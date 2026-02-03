@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AET | Investment Memorandum</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+
+    <style>
+        :root {
+            /* AET Corporate Identity */
+            --navy: #0A2540;
+            --blue: #00A3E0;
+            --green: #6CC24A;
+            --dark-green: #2E7D32;
+            --bg-body: #F5F7FA;
+            --white: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            
+            /* Status Indicators */
+            --risk-high: #EF4444;
+            --risk-med: #F59E0B;
+            --risk-low: #10B981;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            min-height: 100vh; /* Changed from height: 100vh */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        /* --- MOBILE HEADER (Visible only on mobile) --- */
+        .mobile-header {
+            display: none;
+            background: var(--navy);
+            color: white;
+            padding: 1rem;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 200;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .mobile-brand {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .hamburger {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* --- SIDEBAR NAVIGATION --- */
+        aside {
+            width: 280px;
+            background: linear-gradient(180deg, var(--navy) 0%, #061525 100%);
+            color: var(--white);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+            z-index: 300;
+            /* Sticky for desktop */
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        .brand {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.4rem;
+            margin-bottom: 3rem;
+            border-bottom: 3px solid var(--green);
+            padding-bottom: 1rem;
+            letter-spacing: -0.5px;
+        }
+        .brand span { color: var(--green); }
+
+        nav button {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            color: rgba(255,255,255,0.7);
+            padding: 14px 12px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 6px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        nav button:hover, nav button.active {
+            color: var(--white);
+            background: rgba(255,255,255,0.1);
+        }
+
+        nav button.active {
+            border-left: 4px solid var(--green);
+            background: linear-gradient(90deg, rgba(108,194,74,0.15) 0%, transparent 100%);
+        }
+
+        /* --- MAIN CONTENT AREA --- */
+        main {
+            flex: 1;
+            padding: 0;
+            position: relative;
+            /* Allow main to scroll naturally */
+            overflow-y: visible;
+        }
+
+        .view-section {
+            display: none; 
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .view-section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Typography */
+        h1 { font-family: 'Montserrat', sans-serif; color: var(--navy); font-size: 2.2rem; margin-top: 0; font-weight: 700; line-height: 1.2; }
+        h2 { font-family: 'Montserrat', sans-serif; color: var(--navy); margin-top: 0; font-size: 1.5rem; border-left: 5px solid var(--green); padding-left: 1rem; }
+        .subtitle { color: var(--blue); font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; font-size: 0.75rem; display: block; margin-bottom: 0.5rem; }
+        p { line-height: 1.7; color: #4b5563; }
+        ul { margin: 0; }
+
+        /* --- DASHBOARD CARDS & GRIDS --- */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .grid-2-bias { display: grid; grid-template-columns: 340px 1fr; gap: 30px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border);
+            height: 100%;
+        }
+
+        /* --- MARKET / POLICY STYLES --- */
+        .driver-card {
+            background: white; border: 1px solid #e5e7eb; padding: 12px;
+            border-radius: 6px; font-size: 0.8rem; margin-bottom: 10px;
+        }
+        .driver-card strong { color: var(--navy); display: block; margin-bottom: 5px; text-transform: uppercase; font-size: 0.7rem; }
+        .driver-card p { margin: 0; color: #4b5563; line-height: 1.4; }
+
+        /* --- EXECUTIVE SUMMARY TOGGLE --- */
+        .narrative-box { background: #fff; padding: 2rem; border-radius: 12px; text-align: center; border: 1px solid var(--border); margin-bottom: 2rem; }
+        .toggle-group { display: inline-flex; background: #f3f4f6; padding: 4px; border-radius: 99px; margin-bottom: 1.5rem; flex-wrap: wrap; justify-content: center; gap: 5px; }
+        .toggle-btn { padding: 10px 30px; border-radius: 99px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #6b7280; transition: 0.3s; }
+        .toggle-btn.active { background: var(--navy); color: white; shadow: 0 4px 6px rgba(0,0,0,0.1); }
+
+        /* --- FINANCIAL MODEL CONTROLS --- */
+        .control-panel { background: #f8fafc; padding: 1.5rem; border-radius: 10px; border-right: 1px solid var(--border); height: 100%; font-size: 0.9rem; }
+        .slider-group { margin-bottom: 1rem; }
+        .slider-header { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+        .slider-val { color: var(--blue); font-family: 'Montserrat', sans-serif; }
+        /* Larger touch target for sliders */
+        input[type=range] { width: 100%; accent-color: var(--green); cursor: pointer; height: 10px; }
+        
+        /* KPI BOXES */
+        .kpi-box { background: white; padding: 1rem; border-radius: 8px; text-align: center; border-top: 4px solid var(--navy); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .kpi-val { font-size: 1.5rem; font-weight: 700; color: var(--navy); font-family: 'Montserrat', sans-serif; }
+        .kpi-label { font-size: 0.7rem; text-transform: uppercase; color: #6b7280; font-weight: 600; letter-spacing: 0.5px; margin-top: 5px; }
+        
+        /* --- CAPITAL STACK VISUAL --- */
+        .stack-box { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .stack-bar { display: flex; height: 40px; border-radius: 6px; overflow: hidden; margin-top: 10px; }
+        .stack-seg { height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; font-weight: bold; position: relative; cursor: help; }
+        .stack-seg:hover { opacity: 0.9; }
+
+        /* --- RISK MATRIX --- */
+        .matrix-container { display: grid; grid-template-columns: 20px repeat(3, 1fr); gap: 5px; margin-top: 1rem; }
+        .matrix-cell { min-height: 80px; background: white; border: 1px solid #e5e7eb; border-radius: 4px; position: relative; transition: 0.2s; overflow: visible; padding: 2px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; }
+        .bg-red { background-color: #FEF2F2; border-color: #FECACA; }
+        .bg-yellow { background-color: #FFFBEB; border-color: #FDE68A; }
+        .bg-green { background-color: #F0FDF4; border-color: #BBF7D0; }
+        
+        .risk-bubble { 
+            font-size: 0.6rem; font-weight: 700; padding: 4px 8px; background: white; 
+            border: 1px solid #e5e7eb; border-radius: 10px; cursor: pointer; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1); z-index: 2; margin: 2px;
+            display: inline-block; white-space: nowrap; color: #333;
+            max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+        }
+        .risk-bubble:hover, .risk-bubble:active { transform: scale(1.05); background: var(--navy); color: white; border-color: var(--navy); z-index: 10; }
+        
+        .axis-label { writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; font-size: 0.6rem; font-weight: 700; color: #9CA3AF; }
+        .axis-header { text-align: center; font-size: 0.6rem; font-weight: 700; color: #9CA3AF; padding-bottom: 2px; }
+        
+        .risk-detail-box { grid-column: 1 / -1; margin-top: 15px; padding: 15px; background: #F3F4F6; border-radius: 8px; font-size: 0.9rem; display: none; border-left: 4px solid var(--navy); }
+
+        .list-check { list-style: none; padding: 0; }
+        .list-check li { padding-left: 1.5rem; position: relative; margin-bottom: 0.5rem; font-size: 0.9rem; color: #4b5563; }
+        .list-check li::before { content: '✓'; color: var(--green); font-weight: bold; position: absolute; left: 0; }
+
+        .disclaimer { font-size: 0.7rem; color: #9ca3af; margin-top: 1rem; font-style: italic; border-top: 1px solid #eee; padding-top: 10px; }
+
+        /* =========================================
+           MOBILE RESPONSIVENESS
+           ========================================= */
+        @media (max-width: 900px) {
+            body { display: block; padding-top: 60px; /* Space for fixed header */ }
+            
+            /* Hide Sidebar by default, show as drawer */
+            aside {
+                position: fixed;
+                left: -290px;
+                top: 0;
+                bottom: 0;
+                height: 100%;
+                transition: left 0.3s ease;
+            }
+            aside.open { left: 0; }
+            .mobile-header { display: flex; }
+            .brand { display: none; } /* Brand is now in header */
+
+            /* Collapse Grids */
+            .grid-2, .grid-3, .grid-2-bias { grid-template-columns: 1fr !important; gap: 20px; }
+            
+            /* Section Padding */
+            .view-section { padding: 1.5rem; width: 100%; }
+            
+            /* Card Adjustments */
+            .card { padding: 1.5rem; }
+            h1 { font-size: 1.8rem; }
+            
+            /* Interactive elements spacing */
+            .slider-group { margin-bottom: 1.5rem; }
+            
+            /* Control Panel specific */
+            .control-panel { border-right: none; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+            
+            /* Overlay for menu */
+            #overlay {
+                display: none;
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.5); z-index: 90;
+            }
+            #overlay.active { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="mobile-header">
+    <div class="mobile-brand">AET Capital</div>
+    <button class="hamburger" onclick="toggleMenu()">&#9776;</button>
+</div>
+
+<div id="overlay" onclick="toggleMenu()"></div>
+
+<aside id="sidebar">
+    <div class="brand">AET <span>Capital</span></div>
+    <nav>
+        <button onclick="switchView('executive')" class="active" id="btn-executive">
+            Executive Summary <span>&rarr;</span>
+        </button>
+        <button onclick="switchView('market')" id="btn-market">
+            Market Fundamentals <span>&rarr;</span>
+        </button>
+        <button onclick="switchView('financials')" id="btn-financials">
+            Financial Engine <span>&rarr;</span>
+        </button>
+        <button onclick="switchView('risk')" id="btn-risk">
+            Risks & Commercials <span>&rarr;</span>
+        </button>
+    </nav>
+    
+    <div style="margin-top: auto; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; opacity: 0.7; line-height: 1.6;">
+        <strong>Investment Memorandum</strong><br>
+        Status: Implementation Ready<br>
+        <span style="color:var(--green)">Live Model Active</span>
+    </div>
+</aside>
+
+<main>
+
+    <section id="executive" class="view-section active">
+        <span class="subtitle">01. Strategic Overview</span>
+        <h1>Investment Memorandum</h1>
+        <p style="font-size: 1.1rem; max-width: 800px;">
+            The Advanced Resource Recovery Centre (ARRC) is a <strong>$50M defensive infrastructure asset</strong>. It capitalizes on the structural imbalance in the Victorian waste sector to deliver long-term, CPI-indexed yield.
+        </p>
+
+        <div class="narrative-box">
+            <div class="toggle-group">
+                <button class="toggle-btn active" onclick="setNarrative('lender', this)">Lender View (Credit)</button>
+                <button class="toggle-btn" onclick="setNarrative('equity', this)">Equity View (Growth)</button>
+            </div>
+            <div id="narrative-text" style="font-size: 1.1rem; font-weight: 500; color: var(--navy); min-height: 80px; display: flex; align-items: center; justify-content: center; padding: 10px;">
+                "We are financing a predictable infrastructure utility. The Base Case relies solely on proven mechanical sorting of guaranteed Council waste volumes to service debt."
+            </div>
+        </div>
+
+        <div class="grid-3">
+            <div class="card">
+                <h3 style="margin-top:0; color:var(--green);">Infrastructure Core</h3>
+                <p style="font-size:0.8rem; text-transform:uppercase; color:#999; font-weight:bold; margin-bottom:10px;">The Bankable Base</p>
+                <ul style="font-size:0.9rem; padding-left: 1.2rem; color: #4b5563; line-height: 1.8;">
+                    <li><strong>Technology:</strong> TRL-9 Proven Equipment.</li>
+                    <li><strong>Revenue:</strong> Long-term WSA (Inflation Linked).</li>
+                    <li><strong>Security:</strong> Sovereign Counterparty.</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 style="margin-top:0; color:var(--blue);">Material Valorization</h3>
+                <p style="font-size:0.8rem; text-transform:uppercase; color:#999; font-weight:bold; margin-bottom:10px;">The Equity Upside</p>
+                <ul style="font-size:0.9rem; padding-left: 1.2rem; color: #4b5563; line-height: 1.8;">
+                    <li><strong>Technology:</strong> Robotics & AI Optimization.</li>
+                    <li><strong>Product:</strong> High-purity recovered materials.</li>
+                    <li><strong>Growth:</strong> Platform for regional expansion.</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 style="margin-top:0; color:var(--navy);">ESG Impact</h3>
+                <p style="font-size:0.8rem; text-transform:uppercase; color:#999; font-weight:bold; margin-bottom:10px;">Value Multiplier</p>
+                <ul style="font-size:0.9rem; padding-left: 1.2rem; color: #4b5563; line-height: 1.8;">
+                    <li><strong>Diversion:</strong> Landfill life extension.</li>
+                    <li><strong>Circularity:</strong> Material circularity uplift.</li>
+                    <li><strong>Social:</strong> Regional economic outcomes.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section id="market" class="view-section">
+        <span class="subtitle">02. Economic Fundamentals</span>
+        <h1>Market Clearing Analysis</h1>
+        <p style="margin-bottom: 2rem; max-width: 800px;">
+            Applying a commodity "Merit Order" framework reveals AET's structural advantage. As legacy landfill capacity exits, the <strong>Market Clearing Price</strong> is set by the "Marginal Tonne"—the cost to transport waste to Metro WtE.
+        </p>
+
+        <div class="grid-2-bias" style="grid-template-columns: 1fr 350px; margin-bottom: 30px;">
+            
+            <div class="card">
+                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3 style="margin:0; font-size: 1.1rem;">Waste Supply Cost Curve</h3>
+                </div>
+                
+                <div style="height: 300px; width: 100%; position: relative;">
+                    <canvas id="meritChart"></canvas>
+                </div>
+
+                <div class="control-panel" style="margin-top: 15px; padding: 15px; background: #F8FAFC; border: 1px solid #eee;">
+                    <div style="font-size: 0.75rem; font-weight: 700; color: var(--navy); margin-bottom: 5px;">SENSITIVITY: Competitor Transport Cost</div>
+                    <input type="range" id="in-transport" min="10" max="60" value="35" step="5" oninput="updateMeritChart()" style="width: 100%;">
+                    <div style="display:flex; justify-content:space-between; font-size: 0.7rem; color: #666;">
+                        <span>Low ($10/t)</span>
+                        <span id="val-transport" style="font-weight:bold; color:var(--blue);">Current: $35/t</span>
+                        <span>High ($60/t)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                
+                <div class="card" style="background: var(--navy); color: white; border: none;">
+                    <h3 style="margin-top:0; color:var(--green); font-size: 1rem;">The "Marginal Tonne" Theory</h3>
+                    <p style="font-size: 0.9rem; line-height: 1.5; opacity: 0.9;">
+                        In commodity markets, the most expensive necessary supplier sets the market price. The Marginal Supplier is "Truck to Sunbury WtE." This creates a high price floor ($200+/t).
+                    </p>
+                </div>
+
+                <div class="driver-card" style="border-left: 4px solid var(--green);">
+                    <strong>1. Legacy Landfill (The Past)</strong>
+                    <p>Cheapest option, but capacity is capped.</p>
+                </div>
+
+                <div class="driver-card" style="border-left: 4px solid var(--navy);">
+                    <strong>2. AET ARRC (The Inframarginal)</strong>
+                    <p>We sit in the middle of the cost curve. Cheaper than the marginal price setter.</p>
+                </div>
+
+                <div class="driver-card" style="border-left: 4px solid var(--risk-med);">
+                    <strong>3. Metro WtE (The Price Setter)</strong>
+                    <p>High Gate Fee + High Transport Cost. Sets the regional "Shadow Price".</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="financials" class="view-section">
+        <span class="subtitle">03. Unit Economics</span>
+        <h1>Financial Engine & Risk</h1>
+        
+        <div class="grid-2-bias" style="margin-top: 2rem; align-items: start;">
+            
+            <div class="control-panel">
+                <h3 style="margin-top:0; margin-bottom: 1rem; color:var(--navy); border-bottom:1px solid #ddd; padding-bottom:5px;">Operating Risks</h3>
+                
+                <div class="slider-group">
+                    <div class="slider-header"><span>Throughput (tpa)</span> <span id="val-tpa" class="slider-val">100,000</span></div>
+                    <input type="range" id="in-tpa" min="50000" max="150000" step="5000" value="100000" oninput="runModel()">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header"><span>Gate Fee ($/t)</span> <span id="val-gate" class="slider-val">150</span></div>
+                    <input type="range" id="in-gate" min="100" max="250" step="5" value="150" oninput="runModel()">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header"><span>Recovery Rate (%)</span> <span id="val-rec" class="slider-val">85%</span></div>
+                    <input type="range" id="in-rec" min="50" max="95" step="5" value="85" oninput="runModel()">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header"><span>Basket Value ($/t)</span> <span id="val-basket" class="slider-val">120</span></div>
+                    <input type="range" id="in-basket" min="0" max="300" step="10" value="120" oninput="runModel()">
+                </div>
+                
+                <div class="slider-group">
+                    <div class="slider-header"><span>Var Opex ($/t)</span> <span id="val-opex" class="slider-val">45</span></div>
+                    <input type="range" id="in-opex" min="30" max="80" step="5" value="45" oninput="runModel()">
+                </div>
+
+                <h3 style="margin-top:1.5rem; margin-bottom: 0.5rem; color:var(--navy); border-bottom:1px solid #ddd; padding-bottom:5px;">Financial Structure</h3>
+
+                <div class="slider-group">
+                    <div class="slider-header"><span>Capex ($M)</span> <span id="val-capex" class="slider-val">50.0</span></div>
+                    <input type="range" id="in-capex" min="40" max="70" step="1" value="50" oninput="runModel()">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header"><span>Base Interest Rate (%)</span> <span id="val-rate" class="slider-val">6.5%</span></div>
+                    <input type="range" id="in-rate" min="3" max="12" step="0.5" value="6.5" oninput="runModel()">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header"><span>Senior Debt (%)</span> <span id="val-senior" class="slider-val">55%</span></div>
+                    <input type="range" id="in-senior" min="0" max="80" step="5" value="55" oninput="runModel()">
+                </div>
+                
+                <div class="slider-group">
+                    <div class="slider-header"><span>Mezzanine (%)</span> <span id="val-mezz" class="slider-val">10%</span></div>
+                    <input type="range" id="in-mezz" min="0" max="30" step="5" value="10" oninput="runModel()">
+                </div>
+            </div>
+
+            <div>
+                <div class="grid-3">
+                    <div class="kpi-box">
+                        <div class="kpi-val" id="out-ebitda">$10.2M</div>
+                        <div class="kpi-label">EBITDA</div>
+                    </div>
+                    <div class="kpi-box">
+                        <div class="kpi-val" id="out-wacc">8.0%</div>
+                        <div class="kpi-label">WACC</div>
+                    </div>
+                    <div class="kpi-box">
+                        <div class="kpi-val" id="out-dscr">2.45x</div>
+                        <div class="kpi-label">DSCR</div>
+                    </div>
+                </div>
+                
+                <div class="stack-box">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.8rem; font-weight:700; color:var(--navy); text-transform:uppercase;">Capital Stack</span>
+                        <span style="font-size:0.8rem; color:#666;">Total: <strong id="stack-total">$50M</strong></span>
+                    </div>
+                    <div class="stack-bar">
+                        <div id="bar-senior" class="stack-seg" style="background:var(--navy);" title="Senior Debt">Snr</div>
+                        <div id="bar-mezz" class="stack-seg" style="background:var(--blue);" title="Mezzanine">Mez</div>
+                        <div id="bar-equity" class="stack-seg" style="background:var(--green);" title="Equity">Eq</div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:5px; font-size:0.7rem; color:#666;">
+                        <span id="txt-senior">Snr: 55%</span>
+                        <span id="txt-mezz">Mez: 10%</span>
+                        <span id="txt-equity">Eq: 35%</span>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 20px; height: 320px; position: relative;">
+                    <canvas id="finChart"></canvas>
+                </div>
+
+                <div class="disclaimer">
+                    Disclaimer: Simplified internal representation. Outputs are indicative only.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="risk" class="view-section">
+        <span class="subtitle">04. Commercial Structure</span>
+        <h1>Risk Allocation Matrix</h1>
+        <p style="margin-bottom: 2rem;">Risk allocation informed by PPP-style infrastructure frameworks.</p>
+        
+        <div class="grid-2">
+            
+            <div class="card">
+                <div class="matrix-container">
+                    <div></div>
+                    <div class="axis-header">Low Imp</div>
+                    <div class="axis-header">Med Imp</div>
+                    <div class="axis-header">High Imp</div>
+
+                    <div class="axis-label">High Prob</div>
+                    <div class="matrix-cell bg-yellow">
+                        <div class="risk-bubble" onclick="showRisk('energy')">Energy</div>
+                        <div class="risk-bubble" onclick="showRisk('labour')">Labour</div>
+                    </div>
+                    <div class="matrix-cell bg-red">
+                        <div class="risk-bubble" onclick="showRisk('policy')">Policy</div>
+                        <div class="risk-bubble" onclick="showRisk('comp')">Waste %</div>
+                    </div>
+                    <div class="matrix-cell bg-red"></div>
+
+                    <div class="axis-label">Med Prob</div>
+                    <div class="matrix-cell bg-green">
+                        <div class="risk-bubble" onclick="showRisk('insurance')">Insur</div>
+                        <div class="risk-bubble" onclick="showRisk('inflation')">Inf</div>
+                    </div>
+                    <div class="matrix-cell bg-yellow">
+                        <div class="risk-bubble" onclick="showRisk('capex')">Const</div>
+                    </div>
+                    <div class="matrix-cell bg-red">
+                        <div class="risk-bubble" onclick="showRisk('tech')">Tech</div>
+                    </div>
+
+                    <div class="axis-label">Low Prob</div>
+                    <div class="matrix-cell bg-green">
+                        <div class="risk-bubble" onclick="showRisk('planning')">Plan</div>
+                        <div class="risk-bubble" onclick="showRisk('epa')">EPA</div>
+                    </div>
+                    <div class="matrix-cell bg-green">
+                         <div class="risk-bubble" onclick="showRisk('offtake')">Offtake</div>
+                    </div>
+                    <div class="matrix-cell bg-yellow">
+                        <div class="risk-bubble" onclick="showRisk('default')">Cncl Def</div>
+                    </div>
+                </div>
+                
+                <div id="risk-detail" class="risk-detail-box">
+                    <strong id="risk-title"></strong><br>
+                    <span id="risk-desc"></span>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                
+                <div class="card" style="padding: 1.5rem;">
+                    <h3 style="color:var(--navy); margin-top:0; margin-bottom:1rem; font-size: 1.1rem;">Key Commercial Protections</h3>
+                    <ul class="list-check">
+                        <li>CPI indexation on Gate Fees</li>
+                        <li>Change-of-Law adjustment mechanisms</li>
+                        <li>Compositional banding (Feedstock)</li>
+                        <li>Proportional termination regime</li>
+                        <li>EPC model: ECI &rarr; Fixed-Price D&C</li>
+                        <li>OEM availability guarantees</li>
+                    </ul>
+                </div>
+
+                <div class="card" style="padding: 1.5rem;">
+                    <h3 style="color:var(--navy); margin-top:0; margin-bottom:1rem; font-size: 1.1rem;">Lender Priorities</h3>
+                    <ul class="list-check">
+                        <li>Proven TRL-9 core technology</li>
+                        <li>Stable, contract-backed revenue</li>
+                        <li>Conservative Base Case modeling</li>
+                        <li>Clear delivery capability</li>
+                        <li>Robust risk allocation</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<script>
+    // --- MOBILE MENU LOGIC ---
+    function toggleMenu() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('active');
+    }
+
+    // --- 1. NAVIGATION LOGIC ---
+    function switchView(viewId) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+        document.getElementById('btn-' + viewId).classList.add('active');
+        
+        // Close menu on selection for mobile
+        if(window.innerWidth <= 900) {
+            toggleMenu();
+        }
+    }
+
+    // --- 2. EXECUTIVE SUMMARY TOGGLE ---
+    function setNarrative(type, btn) {
+        document.querySelectorAll('.toggle-btn').forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
+        const txt = document.getElementById('narrative-text');
+        if(type === 'lender') {
+            txt.innerText = '"We are financing a predictable infrastructure utility. The Base Case relies solely on proven mechanical sorting of guaranteed Council waste volumes to service debt."';
+        } else {
+            txt.innerText = '"The ARRC is a Regional Circular Economy Platform. The infrastructure protects the downside, while AI-driven material recovery provides exponential equity upside."';
+        }
+    }
+
+    // --- 3. RISK MATRIX LOGIC ---
+    function showRisk(type) {
+        const box = document.getElementById('risk-detail');
+        const title = document.getElementById('risk-title');
+        const desc = document.getElementById('risk-desc');
+        box.style.display = 'block';
+
+        const data = {
+            'policy': {t: 'Policy & Regulatory Change', d: 'Mitigation: Change-of-Law adjustment mechanism in WSA.'},
+            'comp': {t: 'Waste Composition Variability', d: 'Mitigation: Compositional Banding Clause adjusts Gate Fee if material yield drops.'},
+            'capex': {t: 'Construction Cost Variance', d: 'Mitigation: Early Contractor Involvement (ECI) converting to Fixed Price D&C.'},
+            'tech': {t: 'Technology Performance', d: 'Mitigation: OEM Availability Guarantees + Insurance Wraps. Innovation layer isolated from Debt.'},
+            'insurance': {t: 'Insurance Availability', d: 'Mitigation: Detailed fire engineering design and premium volatility buffers.'},
+            'planning': {t: 'Planning & Social License', d: 'Mitigation: Industrial zoning (BREP), proactive community engagement.'},
+            'epa': {t: 'EPA / End of Waste', d: 'Mitigation: Securing specific determinations for output products.'},
+            'offtake': {t: 'Offtake Market Depth', d: 'Mitigation: Conservative basket pricing; diverse buyer universe; product de-risking.'},
+            'energy': {t: 'Energy Price Risk', d: 'Mitigation: On-site solar generation and long-term PPA.'},
+            'labour': {t: 'Labour Capability', d: 'Mitigation: Key Personnel clauses and training partnerships.'},
+            'inflation': {t: 'Opex Inflation', d: 'Mitigation: CPI Indexation on Gate Fees provides revenue hedge.'},
+            'default': {t: 'Council Default', d: 'Mitigation: Proportionate Make-Whole Payment (Debt + Equity Return).'}
+        };
+
+        if(data[type]) {
+            title.innerText = data[type].t;
+            desc.innerText = data[type].d;
+        }
+    }
+
+    // --- 4. MERIT ORDER CHART LOGIC (MARKET CLEARING) ---
+    let meritChart = null;
+
+    function updateMeritChart() {
+        const transportCost = parseInt(document.getElementById('in-transport').value);
+        document.getElementById('val-transport').innerText = "Transport Penalty: $" + transportCost + "/t";
+
+        const ctxMerit = document.getElementById('meritChart').getContext('2d');
+        
+        // Cost Build-Up (Illustrative)
+        const costLandfill = 130; // Legacy cheap capacity
+        const costARRC = 160;     // AET Target Price
+        const costWtE_Base = 170; // Metro Gate Fee
+        const costWtE_Total = costWtE_Base + transportCost; // The Price Setter
+
+        const data = {
+            datasets: [
+                {
+                    label: 'Legacy Landfill (Capped)',
+                    data: [
+                        {x: 0, y: costLandfill}, 
+                        {x: 50, y: costLandfill}
+                    ],
+                    borderColor: '#10B981', // Green
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    borderWidth: 2,
+                    fill: true,
+                    stepped: true
+                },
+                {
+                    label: 'AET ARRC (Mid-Merit)',
+                    data: [
+                        {x: 50, y: costARRC}, 
+                        {x: 150, y: costARRC}
+                    ],
+                    borderColor: '#0A2540', // Navy
+                    backgroundColor: 'rgba(10, 37, 64, 0.2)',
+                    borderWidth: 2,
+                    fill: true,
+                    stepped: true
+                },
+                {
+                    label: 'Metro WtE + Transport (Marginal)',
+                    data: [
+                        {x: 150, y: costWtE_Total}, 
+                        {x: 350, y: costWtE_Total}
+                    ],
+                    borderColor: '#EF4444', // Red
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    borderWidth: 2,
+                    fill: true,
+                    stepped: true
+                }
+            ]
+        };
+
+        if (meritChart) meritChart.destroy();
+
+        meritChart = new Chart(ctxMerit, {
+            type: 'line',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: 'linear',
+                        title: {display: true, text: 'Cumulative Market Volume (ktpa)'},
+                        min: 0,
+                        max: 350
+                    },
+                    y: {
+                        title: {display: true, text: 'Total Cost ($/t)'},
+                        min: 100,
+                        max: 250
+                    }
+                },
+                plugins: {
+                    legend: { position: 'bottom', labels: {boxWidth: 10, font: {size: 10}} },
+                    annotation: {
+                        annotations: {
+                            demandLine: {
+                                type: 'line',
+                                xMin: 120, // Current Regional Demand
+                                xMax: 120,
+                                borderColor: '#333',
+                                borderWidth: 2,
+                                borderDash: [5, 5],
+                                label: {
+                                    display: true,
+                                    content: 'Current Demand',
+                                    position: 'start',
+                                    backgroundColor: '#333',
+                                    font: {size: 10}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // --- 5. FINANCIAL ENGINE ---
+    let finChart = null;
+
+    function runModel() {
+        // GET INPUTS
+        const tpa = parseInt(document.getElementById('in-tpa').value);
+        const gate = parseInt(document.getElementById('in-gate').value);
+        const recRate = parseInt(document.getElementById('in-rec').value) / 100;
+        const basket = parseInt(document.getElementById('in-basket').value);
+        const varOpexUnit = parseInt(document.getElementById('in-opex').value);
+        
+        // CAPEX & RATES
+        const capex = parseFloat(document.getElementById('in-capex').value) * 1000000;
+        const baseRate = parseFloat(document.getElementById('in-rate').value) / 100;
+        
+        // CAPITAL STACK INPUTS
+        let seniorPct = parseInt(document.getElementById('in-senior').value);
+        let mezzPct = parseInt(document.getElementById('in-mezz').value);
+        
+        // Validate Stack (Max 100%)
+        if (seniorPct + mezzPct > 100) {
+            mezzPct = 100 - seniorPct;
+            document.getElementById('in-mezz').value = mezzPct;
+        }
+        let equityPct = 100 - (seniorPct + mezzPct);
+
+        // DISPLAY VALS
+        document.getElementById('val-tpa').innerText = tpa.toLocaleString();
+        document.getElementById('val-gate').innerText = gate;
+        document.getElementById('val-rec').innerText = (recRate * 100).toFixed(0) + "%";
+        document.getElementById('val-basket').innerText = basket;
+        document.getElementById('val-opex').innerText = varOpexUnit;
+        
+        document.getElementById('val-capex').innerText = (capex/1000000).toFixed(1);
+        document.getElementById('val-rate').innerText = (baseRate*100).toFixed(1) + "%";
+
+        document.getElementById('val-senior').innerText = seniorPct + "%";
+        document.getElementById('val-mezz').innerText = mezzPct + "%";
+        
+        // Update Stack Visual
+        document.getElementById('bar-senior').style.width = seniorPct + "%";
+        document.getElementById('bar-mezz').style.width = mezzPct + "%";
+        document.getElementById('bar-equity').style.width = equityPct + "%";
+        
+        document.getElementById('txt-senior').innerText = "Snr: " + seniorPct + "%";
+        document.getElementById('txt-mezz').innerText = "Mez: " + mezzPct + "%";
+        document.getElementById('txt-equity').innerText = "Eq: " + equityPct + "%";
+        
+        document.getElementById('stack-total').innerText = "$" + (capex/1000000).toFixed(1) + "M";
+
+        // CALCULATIONS
+        const revGate = tpa * gate;
+        const revCommodity = tpa * recRate * basket;
+        const totalRev = revGate + revCommodity;
+
+        const fixedOpex = 2500000; 
+        const varOpexTotal = tpa * varOpexUnit; 
+        const totalOpex = fixedOpex + varOpexTotal;
+
+        const ebitda = totalRev - totalOpex;
+
+        // Debt Service & WACC (Using Dynamic Rates)
+        const seniorAmt = capex * (seniorPct/100);
+        const mezzAmt = capex * (mezzPct/100);
+        
+        const costSenior = baseRate; // Dynamic
+        const costMezz = baseRate + 0.06; // Spread
+        const costEquity = 0.15; // Fixed Target
+
+        const wacc = ((seniorPct/100)*costSenior) + ((mezzPct/100)*costMezz) + ((equityPct/100)*costEquity);
+        
+        // Annual Debt Service
+        const seniorService = (seniorAmt * costSenior) + (seniorAmt / 15);
+        const mezzService = mezzAmt * costMezz;
+        const totalDebtService = seniorService + mezzService;
+
+        const dscr = totalDebtService > 0 ? ebitda / totalDebtService : 0;
+
+        // UPDATE OUTPUTS
+        document.getElementById('out-ebitda').innerText = "$" + (ebitda/1000000).toFixed(1) + "M";
+        document.getElementById('out-dscr').innerText = dscr.toFixed(2) + "x";
+        document.getElementById('out-wacc').innerText = (wacc*100).toFixed(1) + "%";
+
+        // UPDATE CHART
+        updateChart(revGate, revCommodity, totalOpex, seniorService, mezzService, ebitda - totalDebtService);
+    }
+
+    function updateChart(rGate, rComm, opex, senior, mezz, fcf) {
+        const ctx = document.getElementById('finChart').getContext('2d');
+        if(finChart) finChart.destroy();
+
+        finChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Revenue', 'Opex & Debt', 'Free Cash'],
+                datasets: [
+                    { label: 'Gate Fees', data: [rGate/1000000, 0, 0], backgroundColor: '#0A2540', stack: 'Stack 0' },
+                    { label: 'Commodities', data: [rComm/1000000, 0, 0], backgroundColor: '#00A3E0', stack: 'Stack 0' },
+                    { label: 'Opex', data: [0, opex/1000000, 0], backgroundColor: '#EF4444', stack: 'Stack 1' },
+                    { label: 'Senior Debt', data: [0, senior/1000000, 0], backgroundColor: '#F59E0B', stack: 'Stack 1' },
+                    { label: 'Mezz Debt', data: [0, mezz/1000000, 0], backgroundColor: '#D97706', stack: 'Stack 1' },
+                    { label: 'Net Cash', data: [0, 0, fcf/1000000], backgroundColor: '#10B981', stack: 'Stack 2' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: {boxWidth: 10} } },
+                scales: { 
+                    x: { stacked: true },
+                    y: { stacked: true, beginAtZero: true, title: {display:true, text:'$ Millions'} } 
+                }
+            }
+        });
+    }
+
+    // Initialize
+    updateMeritChart();
+    runModel();
+
+</script>
+</body>
+</html>
