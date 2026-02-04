@@ -52,6 +52,33 @@ const mockData = {
             { id: "obj3", text: "Build early trust and credibility" },
             { id: "obj4", text: "Equip advocates with practical tools" },
             { id: "obj5", text: "Shape early media understanding and tone" }
+        ],
+        qa_library: [
+            {
+                category: "Facility Overview",
+                question: "What is the purpose of the ARRC?",
+                answer: "It is a modern facility designed to recover valuable materials from household waste, reduce landfill use, and support local circular industries. It is not a waste-to-energy facility."
+            },
+            {
+                category: "Technology",
+                question: "What is 'precision sorting'?",
+                answer: "A combination of AI, robotics, and optical sensors used to separate materials by shape, colour, and composition with high accuracy."
+            },
+            {
+                category: "Environment",
+                question: "How will it reduce emissions?",
+                answer: "By diverting organics from landfill to avoid methane emissions, reducing long-haul transport, and enabling more local recycling."
+            },
+            {
+                category: "Local Impact",
+                question: "What about traffic and smell?",
+                answer: "The facility uses a fully enclosed negative-pressure system to manage odour. Traffic will be routed via major roads to minimise impacts on local streets."
+            },
+            {
+                category: "Governance",
+                question: "How is this different from waste-to-energy?",
+                answer: "Materials are cleaned, sorted, and reused as part of a resource recovery process. Energy outcomes are secondary and not the primary function."
+            }
         ]
     },
     // STAKEHOLDERS (From strategy_backup_2026-02-02.json)
@@ -261,21 +288,21 @@ const mockData = {
 
 // Simulate local storage persistence
 // Bumping to v8 to ensure new structure loads (FRESH LOAD)
-if (!localStorage.getItem('portalData_v8')) {
-    localStorage.setItem('portalData_v8', JSON.stringify(mockData));
+if (!localStorage.getItem('portalData_v9')) {
+    localStorage.setItem('portalData_v9', JSON.stringify(mockData));
 }
 
 window.getData = function (key) {
-    const data = JSON.parse(localStorage.getItem('portalData_v8'));
+    const data = JSON.parse(localStorage.getItem('portalData_v9'));
     return data ? data[key] : null; // This will return 'spine' object if key is 'spine'
 };
 
 window.addData = function (key, item) {
-    const data = JSON.parse(localStorage.getItem('portalData_v8'));
+    const data = JSON.parse(localStorage.getItem('portalData_v9'));
     if (data && data[key]) {
         item.id = item.id || Date.now(); // Keep existing ID if present
         data[key].push(item);
-        localStorage.setItem('portalData_v8', JSON.stringify(data));
+        localStorage.setItem('portalData_v9', JSON.stringify(data));
         return true;
     }
     return false;
@@ -283,12 +310,12 @@ window.addData = function (key, item) {
 
 // Helper for adding a contact to a stakeholder
 window.addContact = function (stakeholderId, contact) {
-    const data = JSON.parse(localStorage.getItem('portalData_v8'));
+    const data = JSON.parse(localStorage.getItem('portalData_v9'));
     const sh = data.stakeholders.find(s => s.id == stakeholderId);
     if (sh) {
         if (!sh.contacts) sh.contacts = [];
         sh.contacts.push(contact);
-        localStorage.setItem('portalData_v8', JSON.stringify(data));
+        localStorage.setItem('portalData_v9', JSON.stringify(data));
         return true;
     }
     return false;
@@ -296,11 +323,11 @@ window.addContact = function (stakeholderId, contact) {
 
 // Helper for updating a stakeholder
 window.updateStakeholder = function (id, updates) {
-    const data = JSON.parse(localStorage.getItem('portalData_v8'));
+    const data = JSON.parse(localStorage.getItem('portalData_v9'));
     const index = data.stakeholders.findIndex(s => s.id == id);
     if (index !== -1) {
         data.stakeholders[index] = { ...data.stakeholders[index], ...updates };
-        localStorage.setItem('portalData_v8', JSON.stringify(data));
+        localStorage.setItem('portalData_v9', JSON.stringify(data));
         return true;
     }
     return false;

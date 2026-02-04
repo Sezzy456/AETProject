@@ -148,16 +148,7 @@ function renderDashboard() {
     }
 
     // --- 3. KNOWLEDGE BANK (QA) ---
-    const kbGrid = document.getElementById('knowledge-bank');
-    if (kbGrid && spine.qa_library) {
-        kbGrid.innerHTML = spine.qa_library.map(qa => `
-            <div class="card" style="padding: 1rem;">
-                <span class="status-badge" style="margin-bottom: 0.5rem;">${qa.category}</span>
-                <p style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--text-primary);">Q. ${qa.question}</p>
-                <p style="font-size: 0.9rem;">${qa.answer}</p>
-            </div>
-        `).join('');
-    }
+    renderKnowledgeBank(spine.qa_library);
 
     // --- 4. PREVIEWS (Stakeholders, Activity, Actions) ---
     const stakeholders = window.getData('stakeholders') || [];
@@ -347,3 +338,16 @@ function renderActions() {
 }
 
 
+
+function renderKnowledgeBank(qaLibrary) {
+    const kbGrid = document.getElementById('knowledge-bank');
+    if (kbGrid && qaLibrary) {
+        kbGrid.innerHTML = qaLibrary.map(qa => `
+            <div class="card" style="padding: 1rem;">
+                <h3>${qa.category}</h3>
+                <p style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--text-primary);">Q. ${qa.question}</p>
+                <p style="font-size: 0.9rem;">${qa.answer}</p>
+            </div>
+        `).join('');
+    }
+}
