@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
             // Mock login success
-            window.location.href = 'index.html';
+            window.location.href = 'portal.html';
         });
     }
 });
@@ -348,8 +348,8 @@ function initNavigation() {
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             const href = link.getAttribute('href');
-            // Allow specialized pages like login to work normally if needed, or handle logout
-            if (href === 'login.html') return;
+            // Allow navigation to Login or Public Home
+            if (href === 'login.html' || href === 'index.html') return;
 
             e.preventDefault();
 
@@ -374,7 +374,7 @@ function loadView(viewName) {
     const container = document.getElementById('view-container');
     if (!container) return;
 
-    if (viewName === 'index') viewName = 'dashboard';
+    if (viewName === 'index' || viewName === 'portal') viewName = 'dashboard';
 
     let template = '';
     let initFunc = null;
