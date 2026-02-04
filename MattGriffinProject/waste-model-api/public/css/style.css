@@ -247,7 +247,7 @@ body:not(.bio-mode) .nav-item.active {
   grid-template-columns: 2fr 1fr 1fr 2fr;
   gap: 2rem;
   align-items: center;
-  transition: all 0.1s;
+  transition: all 0.4s var(--ease-organic);
   position: relative;
   overflow: hidden;
   min-height: auto;
@@ -336,11 +336,7 @@ body.bio-mode .card {
   /* Restore curves */
   border: 1px solid var(--border-subtle);
   /* Restore own border */
-  margin: 1.5rem 0 1.5rem 0;
-  /* Float top/bottom */
-  margin-left: 0;
-  height: calc(100vh - 3rem);
-  /* Adjust height for margins */
+  /* Margin/Height removed to prevent vertical shift (inherited from parent padding) */
 }
 
 .container-boxed #main-content {
@@ -348,10 +344,8 @@ body.bio-mode .card {
   /* Restore curves */
   border: 1px solid var(--border-subtle);
   /* Restore own border */
-  margin: 1.5rem 0 1.5rem 0;
-  /* Float top/bottom */
+  /* Margin/Height removed to prevent vertical shift */
   margin-right: 0;
-  height: calc(100vh - 3rem);
 }
 
 body.bio-mode .container-boxed {
@@ -364,6 +358,7 @@ body.bio-mode .container-boxed {
 .spine-section::before,
 .ledger-container::before,
 .pillar-card::before,
+.stakeholder-card::before,
 .card::before {
   content: '';
   position: absolute;
@@ -378,6 +373,7 @@ body.bio-mode .container-boxed {
 }
 
 .pillar-card:hover::before,
+.stakeholder-card:hover::before,
 .card:hover::before {
   border-color: var(--energy-algae);
   opacity: 1;
@@ -392,6 +388,7 @@ body.bio-mode .container-boxed {
 }
 
 body.bio-mode .pillar-card:hover,
+body.bio-mode .stakeholder-card:hover,
 body.bio-mode .card:hover {
   box-shadow: 0 0 20px var(--energy-algae-glow);
 }
@@ -580,9 +577,48 @@ td:last-child {
   border-bottom-right-radius: var(--radius-node);
 }
 
-tr:hover td {
+tbody tr {
+  transition: all 0.4s var(--ease-organic);
+  position: relative;
+}
+
+tbody tr td:first-child {
+  position: relative;
+  /* Anchor for the marker */
+}
+
+/* Table Row Corner Marker */
+tbody tr td:first-child::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  /* Align with border-top */
+  left: -1px;
+  /* Align with border-left */
+  width: 12px;
+  height: 12px;
+  border-top: 2px solid var(--border-subtle);
+  border-left: 2px solid var(--border-subtle);
+  border-radius: var(--radius-node) 0 0 0;
+  opacity: 0.5;
+  transition: all 0.4s var(--ease-organic);
+  z-index: 11;
+}
+
+tbody tr:hover td:first-child::before {
+  border-color: var(--energy-algae);
+  opacity: 1;
+}
+
+tbody tr:hover td {
   border-color: var(--energy-algae);
   background: var(--bg-app);
+}
+
+tbody tr:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+  z-index: 10;
 }
 
 /* Status Badges */
@@ -597,7 +633,6 @@ tr:hover td {
   border: 1px solid var(--border-subtle);
 }
 
-/* --- THEME TOGGLE SWITCH --- */
 /* --- THEME TOGGLE SWITCH --- */
 .sidebar-footer {
   display: flex;
@@ -698,12 +733,12 @@ body.bio-mode input:checked+.slider {
 
   #sidebar {
     width: 100%;
-    height: 64px;
+    height: auto;
     flex-shrink: 0;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 1rem;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 1rem;
     border-radius: 0;
     border: none;
     border-bottom: 1px solid var(--border-subtle);
@@ -711,11 +746,44 @@ body.bio-mode input:checked+.slider {
     position: sticky;
     top: 0;
     z-index: 100;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    /* Subtle shadow fix */
   }
 
-  nav {
+  .brand {
+    margin-bottom: 0;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  /* Show Burger Button on Mobile */
+  #burger-menu {
+    display: inline-flex !important;
+  }
+
+  /* Hide Nav by default on mobile, show when open */
+  #nav-links-container,
+  .sidebar-footer {
     display: none !important;
-    /* Mobile menu logic required later if we want full menu */
+  }
+
+  #nav-links-container {
+    margin-top: 1rem;
+  }
+
+  .sidebar-footer {
+    border-top: none;
+    padding-bottom: 1rem;
+  }
+
+  nav.open #nav-links-container,
+  nav.open .sidebar-footer {
+    display: flex !important;
+  }
+
+  nav.open {
+    /* Ensure the nav container itself (which is #sidebar now acting as nav wrapper) allows expansion */
+    height: auto;
   }
 
   .theme-switch-container {

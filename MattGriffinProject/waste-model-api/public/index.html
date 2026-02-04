@@ -12,13 +12,18 @@
 <body>
 
     <div id="app-container">
-        <!-- Sidebar -->
         <nav id="sidebar">
             <div class="brand">
                 <h1>Portal v3.1</h1>
+                <!-- Burger Menu (Mobile Only) -->
+                <button id="burger-menu" class="btn-secondary"
+                    style="border:none; padding:0; height:auto; display:none;">
+                    <span class="material-symbols-outlined"
+                        style="font-size: 1.5rem; color: var(--text-primary);">menu</span>
+                </button>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">
+            <div id="nav-links-container" style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">
                 <a href="index.html" class="nav-item active">
                     <span class="material-symbols-outlined">dashboard</span>
                     Dashboard
@@ -62,120 +67,8 @@
 
         <!-- Main Content -->
         <main id="main-content">
-            <div>
-                <header
-                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <div>
-                        <h2>Dashboard</h2>
-                        <p>Welcome back, Admin. System Status: Nominal.</p>
-                    </div>
-                    <div class="user-profile">
-                        <!-- User Profile or Date -->
-                        <span style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--energy-algae);">●
-                            ONLINE</span>
-                    </div>
-                </header>
-
-                <!-- 1. Strategy Core (Editable) -->
-                <div class="spine-section" style="margin-bottom: 2rem; border-left: 4px solid var(--energy-algae);">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <h3><span class="material-symbols-outlined"
-                                style="font-size: 1rem; color: var(--energy-algae);">verified</span> Strategy Core</h3>
-                        <button id="btn-edit-strategy" class="btn-secondary"
-                            style="height: 32px; font-size: 0.75rem; padding: 0 0.75rem;">Edit</button>
-                    </div>
-                    <p id="strategy-purpose" style="font-size: 1.1rem; font-weight: 500; margin-bottom: 1rem;">
-                        Loading...</p>
-                </div>
-
-                <!-- 2. Narrative Block -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
-                    <div class="card"
-                        style="background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(16, 185, 129, 0.05) 100%);">
-                        <h3>Core Narrative</h3>
-                        <p id="narrative-core" style="font-size: 1.05rem; line-height: 1.6;">Loading...</p>
-                    </div>
-                    <div class="card">
-                        <h3>Simple Narrative</h3>
-                        <p id="narrative-simple" style="font-size: 1.05rem; line-height: 1.6;">Loading...</p>
-                    </div>
-                </div>
-
-                <!-- 3. Stats Grid -->
-                <!-- User requested Stats after Strategy (already here) -->
-                <div class="pillar-grid" style="margin-bottom: 2rem; grid-template-columns: repeat(3, 1fr);">
-                    <div class="card stat-card" onclick="location.href='stakeholders.html'" style="cursor: pointer;">
-                        <h3>Total Stakeholders</h3>
-                        <div class="stat-value" id="stat-total-stakeholders"
-                            style="font-size: 2.5rem; font-weight: 700; color: var(--text-primary);">0</div>
-                    </div>
-                    <div class="card stat-card" onclick="location.href='activity_log.html'" style="cursor: pointer;">
-                        <h3>Upcoming Activities</h3>
-                        <div class="stat-value" id="stat-meetings"
-                            style="font-size: 2.5rem; font-weight: 700; color: var(--text-primary);">0</div>
-                    </div>
-                    <div class="card stat-card" onclick="location.href='actions.html'" style="cursor: pointer;">
-                        <h3>Open Actions</h3>
-                        <div class="stat-value" id="stat-actions"
-                            style="font-size: 2.5rem; font-weight: 700; color: var(--text-primary);">0</div>
-                    </div>
-                </div>
-
-                <!-- 4. Pillars Grid -->
-                <h3 style="margin-bottom: 1rem; color: var(--text-tertiary);">Strategic Pillars</h3>
-                <div id="pillars-grid" class="pillar-grid" style="margin-bottom: 3rem;">
-                    <!-- Populated by JS -->
-                </div>
-
-                <!-- 5. Knowledge Bank (FAQs) - Requested BEFORE Lists -->
-                <h3 style="margin-bottom: 1rem; color: var(--text-tertiary);">Knowledge Bank (FAQs)</h3>
-                <div id="knowledge-bank"
-                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 3rem;">
-                    <!-- Populated by JS -->
-                </div>
-
-                <!-- 6. Vertical Stack: Previews (Stakeholders, Activity, Actions) -->
-                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-
-                    <!-- Stakeholders Preview -->
-                    <div class="card">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                            <h3>Stakeholders</h3>
-                            <a href="stakeholders.html" class="btn-secondary"
-                                style="font-size: 0.8rem; height: 32px;">View Ledger</a>
-                        </div>
-                        <div id="preview-stakeholders"
-                            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
-                        </div>
-                    </div>
-
-                    <!-- Activity Preview -->
-                    <div class="card">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                            <h3>Activity Log</h3>
-                            <a href="activity_log.html" class="btn-secondary"
-                                style="font-size: 0.8rem; height: 32px;">View Log</a>
-                        </div>
-                        <div id="preview-activity" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
-                    </div>
-
-                    <!-- Actions Preview -->
-                    <div class="card">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                            <h3>Pending Actions</h3>
-                            <a href="actions.html" class="btn-secondary" style="font-size: 0.8rem; height: 32px;">View
-                                All</a>
-                        </div>
-                        <div id="preview-actions"
-                            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
-                        </div>
-                    </div>
-
-                </div>
-
+            <div id="view-container">
+                <!-- Dynamic Content Loading -->
             </div>
         </main>
     </div>

@@ -1,31 +1,20 @@
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
-    initLayout(); // Ensure global layout handler is called
+    initLayout();
+    initNavigation(); // Initialize sidebar clicks
 
-    // Check which page we are on
-    const path = window.location.pathname;
-    const page = path.split("/").pop() || "index.html";
 
-    // Highlight active nav link
-    const navLinks = document.querySelectorAll('.nav-item');
-    navLinks.forEach(link => {
-        if (link.getAttribute('href') === page) {
-            link.classList.add('active');
-        }
-    });
-
-    // Populate Data based on page
-    if (page === 'index.html' || page === '') {
-        renderDashboard();
-    } else if (page === 'stakeholders.html') {
-        renderStakeholders();
-    } else if (page === 'stakeholder_detail.html') {
-        renderStakeholderDetail();
-    } else if (page === 'activity_log.html') {
-        renderActivityLog();
-    } else if (page === 'actions.html') {
-        renderActions();
+    // Button Logic
+    const burgerBtn = document.getElementById('burger-menu');
+    const nav = document.querySelector('nav');
+    if (burgerBtn && nav) {
+        burgerBtn.addEventListener('click', () => {
+            nav.classList.toggle('open');
+        });
     }
+
+    // Load Default View
+    loadView('dashboard');
 
     // Handle Login Mock
     const loginForm = document.getElementById('login-form');
@@ -350,4 +339,384 @@ function renderKnowledgeBank(qaLibrary) {
             </div>
         `).join('');
     }
+}
+
+// --- SPA ROUTING & TEMPLATES ---
+
+function initNavigation() {
+    const navLinks = document.querySelectorAll('.nav-item');
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            const href = link.getAttribute('href');
+            // Allow specialized pages like login to work normally if needed, or handle logout
+            if (href === 'login.html') return;
+
+            e.preventDefault();
+
+            // Update Active State
+            navLinks.forEach(n => n.classList.remove('active'));
+            link.classList.add('active');
+
+            // Route
+            const view = href.replace('.html', '');
+            loadView(view);
+
+            // Auto-close Burger Menu on Mobile
+            const nav = document.querySelector('nav');
+            if (nav && nav.classList.contains('open')) {
+                nav.classList.remove('open');
+            }
+        });
+    });
+}
+
+function loadView(viewName) {
+    const container = document.getElementById('view-container');
+    if (!container) return;
+
+    if (viewName === 'index') viewName = 'dashboard';
+
+    let template = '';
+    let initFunc = null;
+
+    switch (viewName) {
+        case 'dashboard':
+            template = getDashboardTemplate();
+            initFunc = renderDashboard;
+            break;
+        case 'stakeholders':
+            template = getStakeholdersTemplate();
+            initFunc = renderStakeholders;
+            break;
+        case 'stakeholder_detail':
+            template = getStakeholderDetailTemplate();
+            initFunc = renderStakeholderDetail;
+            break;
+        case 'activity_log':
+            template = getActivityLogTemplate();
+            initFunc = renderActivityLog;
+            break;
+        case 'actions':
+            template = getActionsTemplate();
+            initFunc = renderActions;
+            break;
+        default:
+            template = '<h2>404 - View Not Found</h2>';
+    }
+
+    // Inject HTML
+    container.innerHTML = template;
+    container.scrollTop = 0; // Reset scroll position (Desktop)
+    window.scrollTo(0, 0); // Reset scroll position (Mobile)
+
+    // Run Logic
+    if (initFunc) {
+        initFunc();
+    }
+}
+
+// --- TEMPLATES ---
+// Extracted from original HTML files
+
+function getDashboardTemplate() {
+    return `
+                <header
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div>
+                        <h2>Dashboard</h2>
+                        <p>Welcome back, Admin. System Status: Nominal.</p>
+                    </div>
+                    <div class="user-profile">
+                        <span style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--energy-algae);">●
+                            ONLINE</span>
+                    </div>
+                </header>
+
+                <!-- 1. Strategy Core (Editable) -->
+                <div class="spine-section" style="margin-bottom: 2rem; border-left: 4px solid var(--energy-algae);">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <h3><span class="material-symbols-outlined"
+                                style="font-size: 1rem; color: var(--energy-algae);">verified</span> Strategy Core</h3>
+                        <button id="btn-edit-strategy" class="btn-secondary"
+                            style="height: 32px; font-size: 0.75rem; padding: 0 0.75rem;">Edit</button>
+                    </div>
+                    <p id="strategy-purpose" style="font-size: 1.1rem; font-weight: 500; margin-bottom: 1rem;">
+                        Loading...</p>
+                </div>
+
+                <!-- 2. Narrative Block -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                    <div class="card"
+                        style="background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(16, 185, 129, 0.05) 100%);">
+                        <h3>Core Narrative</h3>
+                        <p id="narrative-core" style="font-size: 1.05rem; line-height: 1.6;">Loading...</p>
+                    </div>
+                    <div class="card">
+                        <h3>Simple Narrative</h3>
+                        <p id="narrative-simple" style="font-size: 1.05rem; line-height: 1.6;">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- 3. Stats Grid -->
+                <!-- Removed inline columns to allow responsive auto-fit -->
+                <div class="pillar-grid" style="margin-bottom: 2rem;">
+                    <div class="card stat-card" onclick="loadView('stakeholders')" style="cursor: pointer;">
+                        <h3>Total Stakeholders</h3>
+                        <div class="stat-value" id="stat-total-stakeholders"
+                            style="font-size: 2.5rem; font-weight: 700; color: var(--text-primary);">0</div>
+                    </div>
+                    <div class="card stat-card" onclick="loadView('activity_log')" style="cursor: pointer;">
+                        <h3>Upcoming Activities</h3>
+                        <div class="stat-value" id="stat-meetings"
+                            style="font-size: 2.5rem; font-weight: 700; color: var(--text-primary);">0</div>
+                    </div>
+                    <div class="card stat-card" onclick="loadView('actions')" style="cursor: pointer;">
+                        <h3>Open Actions</h3>
+                        <div class="stat-value" id="stat-actions"
+                            style="font-size: 2.5rem; font-weight: 700; color: var(--text-primary);">0</div>
+                    </div>
+                </div>
+
+                <!-- 4. Pillars Grid -->
+                <h3 style="margin-bottom: 1rem; color: var(--text-tertiary);">Strategic Pillars</h3>
+                <div id="pillars-grid" class="pillar-grid" style="margin-bottom: 3rem;">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- 5. Knowledge Bank (FAQs) -->
+                <h3 style="margin-bottom: 1rem; color: var(--text-tertiary);">Knowledge Bank (FAQs)</h3>
+                <div id="knowledge-bank"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 3rem;">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- 6. Previews -->
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <!-- Stakeholders Preview -->
+                    <div class="card">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3>Stakeholders</h3>
+                            <button onclick="loadView('stakeholders')" class="btn-secondary"
+                                style="font-size: 0.8rem; height: 32px;">View Ledger</button>
+                        </div>
+                        <div id="preview-stakeholders"
+                            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
+                        </div>
+                    </div>
+
+                    <!-- Activity Preview -->
+                    <div class="card">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3>Activity Log</h3>
+                             <button onclick="loadView('activity_log')" class="btn-secondary"
+                                style="font-size: 0.8rem; height: 32px;">View Log</button>
+                        </div>
+                        <div id="preview-activity" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
+                    </div>
+
+                    <!-- Actions Preview -->
+                    <div class="card">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3>Pending Actions</h3>
+                             <button onclick="loadView('actions')" class="btn-secondary" style="font-size: 0.8rem; height: 32px;">View
+                                All</button>
+                        </div>
+                        <div id="preview-actions"
+                            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
+                        </div>
+                    </div>
+                </div>
+    `;
+}
+
+function getStakeholdersTemplate() {
+    return `
+                <header
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div>
+                        <h2>Stakeholder Ledger</h2>
+                        <p>Complete register of key partners and community groups.</p>
+                    </div>
+                    <button class="btn-primary" onclick="alert('Add Stakeholder Modal (Mock)')">+ New
+                        Stakeholder</button>
+                </header>
+
+                <div class="ledger-grid" id="stakeholder-list">
+                    <!-- Populated by JS -->
+                </div>
+    `;
+}
+
+function getStakeholderDetailTemplate() {
+    // Basic structure for detail, assuming renderStakeholderDetail fills the IDs
+    return `
+         <header style="margin-bottom: 2rem;">
+            <button onclick="loadView('stakeholders')" class="btn-secondary" style="margin-bottom:1rem;">← Back to Ledger</button>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                     <h2 id="detail-name">Loading...</h2>
+                     <p>Stakeholder Profile</p>
+                </div>
+                 <div style="display: gap: 0.5rem;">
+                     <button class="btn-primary" onclick="window.saveStakeholderEdit()">Save Changes</button>
+                 </div>
+            </div>
+         </header>
+
+         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+             <!-- Left: Details -->
+             <div class="card">
+                 <h3>Profile</h3>
+                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem;">
+                     <div>
+                         <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Role</label>
+                         <div id="view-role" style="font-weight:500;">-</div>
+                         <input id="edit-role" type="text" style="display:none;" />
+                     </div>
+                      <div>
+                         <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Status</label>
+                         <span id="view-status" class="status-badge">-</span>
+                           <select id="edit-status" style="display:none;">
+                                <option value="Active">Active</option>
+                                <option value="Needs Attention">Needs Attention</option>
+                                <option value="Stable">Stable</option>
+                           </select>
+                     </div>
+                      <div>
+                         <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Influence</label>
+                         <div id="view-influence">-</div>
+                     </div>
+                      <div>
+                         <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Owner</label>
+                         <div id="view-owner">-</div>
+                     </div>
+                 </div>
+
+                 <div style="margin-top: 1.5rem;">
+                      <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Narrative Hook</label>
+                      <p id="view-narrativeHook" style="font-style: italic; color: var(--text-secondary);">-</p>
+                      <textarea id="edit-narrativeHook" rows="3" style="display:none; width:100%;"></textarea>
+                 </div>
+                 
+                 <div style="margin-top: 1rem;">
+                     <button class="btn-secondary" onclick="document.getElementById('edit-mode-toggle').click()">Edit Details</button>
+                     <!-- Invisible toggle for mock logic from before -->
+                     <button id="edit-mode-toggle" style="display:none;" onclick="
+                        const isEdit = this.getAttribute('data-editing') === 'true';
+                        if(!isEdit) {
+                           // Enter Edit
+                           this.setAttribute('data-editing', 'true');
+                           document.getElementById('view-narrativeHook').style.display='none';
+                           const hook = document.getElementById('view-narrativeHook').textContent;
+                           const hookInput = document.getElementById('edit-narrativeHook');
+                           hookInput.style.display='block';
+                           hookInput.value = hook;
+
+                           // Name
+                           const name = document.getElementById('detail-name').textContent;
+                           const nameInput = document.createElement('input'); 
+                           nameInput.id = 'edit-name';
+                           nameInput.value = name;
+                           document.getElementById('detail-name').innerHTML = '';
+                           document.getElementById('detail-name').appendChild(nameInput);
+                           
+                           // Role
+                           document.getElementById('view-role').style.display='none';
+                           const role = document.getElementById('view-role').textContent;
+                           const roleInput = document.getElementById('edit-role');
+                           roleInput.style.display='block';
+                           roleInput.value = role;
+
+                           // Status
+                           document.getElementById('view-status').style.display='none';
+                           const statInput = document.getElementById('edit-status');
+                           statInput.style.display='block';
+                           
+                        }
+                     "></button>
+                 </div>
+             </div>
+
+             <!-- Right: History -->
+             <div class="card">
+                 <h3>Recent Interactions</h3>
+                 <div style="margin-top: 1rem; opacity: 0.6; font-size: 0.9rem;">
+                     Mock history items...
+                 </div>
+             </div>
+         </div>
+    `;
+}
+
+function getActivityLogTemplate() {
+    return `
+                <header
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div>
+                        <h2>Activity Log</h2>
+                        <p>Chronological record of interactions, decisions, and signals.</p>
+                    </div>
+                    <button class="btn-primary" onclick="alert('Log Activity Modal (Mock)')">+ Log Activity</button>
+                </header>
+
+                <!-- Filter Bar (Mock) -->
+                <div class="spine-section"
+                    style="padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center;">
+                    <span class="material-symbols-outlined" style="opacity: 0.5;">filter_list</span>
+                    <select style="width: 200px;">
+                        <option>All Activities</option>
+                        <option>Meetings</option>
+                        <option>Decisions</option>
+                        <option>Signals</option>
+                    </select>
+                </div>
+
+                <div class="ledger-grid" id="activity-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Populated by JS -->
+                </div>
+    `;
+}
+
+function getActionsTemplate() {
+    return `
+                <header
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div>
+                        <h2>Actions / Goals</h2>
+                        <p>Track tactical execution and strategic alignment.</p>
+                    </div>
+                    <button class="btn-primary" onclick="alert('Add Action Modal (Mock)')">+ New Action</button>
+                </header>
+
+                <!-- Filter Bar (Mock) -->
+                <div class="spine-section"
+                    style="padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center;">
+                    <span class="material-symbols-outlined" style="opacity: 0.5;">filter_list</span>
+                    <select style="width: 200px;">
+                        <option>All Actions</option>
+                        <option>Pending</option>
+                        <option>Completed</option>
+                    </select>
+                </div>
+
+                <div class="table-container spine-section">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Activity</th>
+                                <th>Owner</th>
+                                <th>Linked To</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="actions-list">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+    `;
 }
