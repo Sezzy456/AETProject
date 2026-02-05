@@ -104,7 +104,7 @@ body.wide-view {
 
 /* TOP HEADER */
 #top-nav {
-  height: 80px;
+  height: 64px;
   background: var(--bg-glass);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
@@ -144,9 +144,24 @@ body.wide-view {
   letter-spacing: -0.02em;
 }
 
+#nav-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+.mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
 .nav-links {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .nav-item {
@@ -432,11 +447,96 @@ input:checked+.slider:before {
   transform: translateX(22px);
 }
 
-/* MOBILE */
+/* MOBILE / TABLET OPTIMIZATION */
 @media (max-width: 1024px) {
+  #top-nav {
+    padding: 0 1.5rem;
+  }
+
+  /* Desktop Grid Specifics */
+  @media (min-width: 1025px) {
+    #clients #map {
+      grid-row: span 2;
+    }
+
+    #clients #logistics-controls {
+      grid-column: 2;
+    }
+
+    #clients #logistics-note {
+      grid-column: 2;
+    }
+  }
+
+  .mobile-toggle {
+    display: block;
+    z-index: 1001;
+  }
+
+  #nav-wrapper {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    width: 100%;
+    height: 0;
+    background: var(--bg-surface);
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 0;
+    overflow: hidden;
+    transition: all 0.5s var(--ease-organic);
+    z-index: 1000;
+    border-bottom: 0px solid var(--border-subtle);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  #nav-wrapper.open {
+    height: calc(100vh - 64px);
+    padding: 3rem 2rem;
+    opacity: 1;
+    pointer-events: auto;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .nav-links {
+    flex-direction: column;
+    width: 100%;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .nav-links .nav-item {
+    width: 100%;
+    justify-content: center;
+    padding: 1.25rem;
+    font-size: 1.1rem;
+    border-radius: var(--radius-node);
+  }
+
+  .nav-controls {
+    flex-direction: column;
+    width: 100%;
+    gap: 1.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .nav-controls .theme-toggle {
+    width: 100%;
+    padding: 0 1rem;
+  }
+
+  .nav-controls .btn-login {
+    width: 100%;
+    justify-content: center;
+    padding: 1.25rem;
+    margin-top: 1rem;
+  }
+
   #app-container {
     padding: 0.5rem;
-    gap: 0.5rem;
+    gap: 1rem;
   }
 
   #sidebar {
@@ -445,17 +545,47 @@ input:checked+.slider:before {
     align-items: center;
   }
 
-  .brand h1,
-  .nav-item span,
-  .theme-toggle span {
-    display: none;
-  }
 
   #main-viewport {
-    border-radius: 12px;
+    border-radius: 16px;
   }
 
   .view-section {
-    padding: 2rem;
+    padding: 2rem 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.75rem;
+  }
+
+  /* Section-Specific Stacking */
+  #clients .grid,
+  #investors .grid {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+  }
+
+  #clients #map {
+    height: 450px !important;
+    order: 2;
+    grid-row: auto !important;
+    grid-column: auto !important;
+  }
+
+  #clients #logistics-controls {
+    order: 1;
+    grid-row: auto !important;
+    grid-column: auto !important;
+  }
+
+  #clients #logistics-note {
+    order: 3;
+    margin-top: 0;
+    grid-row: auto !important;
+    grid-column: auto !important;
+  }
+
+  #investors .card {
+    height: auto !important;
   }
 }

@@ -332,8 +332,24 @@ function renderActions() {
     container.innerHTML = '';
 
     actions.forEach(a => {
+        // Resolve Reference Name
+        let referenceName = '-';
+        if (a.linkType === 'Objective') {
+            const objectives = window.getData('spine')?.objectives || [];
+            const obj = objectives.find(o => o.id === a.linkId);
+            referenceName = obj ? obj.text : a.linkId;
+        } else if (a.linkType === 'Stakeholder') {
+            const stakeholders = window.getData('stakeholders') || [];
+            const sh = stakeholders.find(s => s.id === a.linkId);
+            referenceName = sh ? sh.name : a.linkId;
+        }
+
         const card = document.createElement('div');
         card.className = 'portal-list-card';
+        // Add specific 5-column grid override for Actions
+        card.style.display = 'grid';
+        card.style.gridTemplateColumns = '2fr 1fr 1fr 1.5fr 1fr';
+
         card.innerHTML = `
             <div>
                 <h2 style="margin:0;">${a.activity}</h2>
@@ -348,10 +364,13 @@ function renderActions() {
                 <div style="font-family:'JetBrains Mono'; font-size:0.9rem;">${a.dueDate || '-'}</div>
             </div>
             <div>
+                <h3>Linked To</h3>
+                <div style="font-size:0.85rem; line-height: 1.4; color: var(--text-secondary);">${referenceName}</div>
+            </div>
+            <div>
                 <h3>Status</h3>
                 <div style="display:flex; flex-direction:column; gap:0.5rem; align-items:start;">
                     <span class="status-badge">${a.status}</span>
-                    ${a.linkType ? `<small style="opacity:0.6;">${a.linkType}</small>` : ''}
                 </div>
             </div>
         `;
@@ -753,21 +772,8 @@ function getActionsTemplate() {
                     </select>
                 </div>
 
-                <div class="table-container spine-section">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Activity</th>
-                                <th>Owner</th>
-                                <th>Linked To</th>
-                                <th>Due Date</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="actions-list">
-                            <!-- Populated by JS -->
-                        </tbody>
-                    </table>
+                <div class="ledger-grid" id="actions-list">
+                    <!-- Populated by JS -->
                 </div>
     `;
 }
