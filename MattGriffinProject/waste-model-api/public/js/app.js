@@ -13,17 +13,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Load Default View
-    loadView('dashboard');
-
-    // Handle Login Mock
+    // Load Default View ONLY if on portal.html or if view-container exists
+    const path = window.location.pathname;
     const loginForm = document.getElementById('login-form');
+
     if (loginForm) {
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            // Mock login success
             window.location.href = 'portal.html';
         });
+    }
+
+    if (path.includes('portal.html') || document.getElementById('view-container')) {
+        loadView('dashboard');
+    } else if (path.includes('stakeholder_detail.html')) {
+        renderStakeholderDetail(); // Standalone support
     }
 });
 
@@ -51,16 +55,14 @@ function initTheme() {
 }
 
 function initLayout() {
-    // Target the global app container as per request
     const wrapper = document.getElementById('app-container');
     const toggle = document.getElementById('width-toggle');
 
-    // Load state
     const savedWidth = localStorage.getItem('pageWidth');
 
     if (wrapper) {
-        if (savedWidth === 'boxed') {
-            wrapper.classList.add('container-boxed');
+        if (savedWidth === 'wide') {
+            wrapper.classList.add('wide-view');
             if (toggle) toggle.checked = true;
         }
     }
@@ -68,11 +70,11 @@ function initLayout() {
     if (toggle && wrapper) {
         toggle.addEventListener('change', (e) => {
             if (e.target.checked) {
-                wrapper.classList.add('container-boxed');
-                localStorage.setItem('pageWidth', 'boxed');
+                wrapper.classList.add('wide-view');
+                localStorage.setItem('pageWidth', 'wide');
             } else {
-                wrapper.classList.remove('container-boxed');
-                localStorage.setItem('pageWidth', 'full');
+                wrapper.classList.remove('wide-view');
+                localStorage.setItem('pageWidth', 'boxed');
             }
         });
     }
@@ -194,8 +196,15 @@ function renderStakeholders() {
 
     stakeholders.forEach(s => {
         const card = document.createElement('div');
-        card.className = 'stakeholder-card';
-        card.onclick = () => location.href = `stakeholder_detail.html?id=${s.id}`;
+        card.className = 'portal-list-card';
+        card.onclick = () => {
+            if (document.getElementById('view-container')) {
+                window.currentStakeholderId = s.id;
+                loadView('stakeholder-detail');
+            } else {
+                location.href = `stakeholder_detail.html?id=${s.id}`;
+            }
+        };
         card.style.cursor = 'pointer';
 
         card.innerHTML = `
@@ -227,31 +236,31 @@ function renderStakeholders() {
 
 function renderStakeholderDetail() {
     const params = new URLSearchParams(window.location.search);
-    const id = params.get('id');
+    const id = params.get('id') || window.currentStakeholderId;
     const stakeholders = window.getData('stakeholders');
     const s = stakeholders.find(item => item.id == id);
 
     if (!s) {
-        document.getElementById('main-content').innerHTML = '<div style="padding:2rem;">Stakeholder not found.</div>';
+        const container = document.getElementById('view-container');
+        if (container) container.innerHTML = '<div style="padding:2rem;">Stakeholder not found.</div>';
         return;
     }
 
-    // Populate View (assuming DOM elements exist in stakeholder_detail.html)
+    window.currentStakeholderId = id;
     document.title = `${s.name} - Detail`;
 
-    // Header
     const headerName = document.getElementById('detail-name');
     if (headerName) headerName.textContent = s.name;
 
-    // Fields
     const fields = ['role', 'influence', 'interest', 'status', 'owner', 'narrativeHook', 'engagementStrategy'];
     fields.forEach(f => {
         const el = document.getElementById(`view-${f}`);
         if (el) el.textContent = s[f] || '-';
-    });
 
-    // Edit Logic binding
-    window.currentStakeholderId = id; // Store for save
+        // Also populate edit fields if they exist
+        const editEl = document.getElementById(`edit-${f}`);
+        if (editEl) editEl.value = s[f] || '';
+    });
 }
 
 // Global scope function for saving edits
@@ -263,7 +272,11 @@ window.saveStakeholderEdit = function () {
         name: document.getElementById('edit-name').value,
         role: document.getElementById('edit-role').value,
         status: document.getElementById('edit-status').value,
-        narrativeHook: document.getElementById('edit-narrativeHook').value
+        narrativeHook: document.getElementById('edit-narrativeHook').value,
+        engagementStrategy: document.getElementById('edit-engagementStrategy').value,
+        influence: document.getElementById('edit-influence').value,
+        interest: document.getElementById('edit-interest').value,
+        owner: document.getElementById('edit-owner').value
     };
 
     window.updateStakeholder(id, updates);
@@ -275,13 +288,12 @@ window.saveStakeholderEdit = function () {
 function renderActivityLog() {
     const activityLog = window.getData('activityLog');
     const container = document.getElementById('activity-list');
+    if (!container) return;
     container.innerHTML = '';
 
     activityLog.forEach(a => {
         const card = document.createElement('div');
-        card.className = 'card';
-        card.style.display = 'flex';
-        card.style.justifyContent = 'space-between';
+        card.className = 'portal-list-card';
 
         let typeIcon = '📄';
         if (a.type === 'Meeting') typeIcon = '📅';
@@ -290,13 +302,22 @@ function renderActivityLog() {
 
         card.innerHTML = `
             <div>
-                 <h3>${typeIcon} ${a.title}</h3>
-                 <p style="margin-top:0.5rem;">${a.notes}</p>
-                 <div style="margin-top:0.5rem; font-size:0.85rem; opacity:0.8;">Attendees: ${a.attendees}</div>
+                 <h2>${typeIcon} ${a.title}</h2>
+                 <p style="font-size:0.85rem; color:var(--text-secondary);">${a.notes}</p>
             </div>
-            <div style="text-align:right;">
-                <div style="font-family:'JetBrains Mono'; font-size:0.8rem; margin-bottom:0.5rem;">${a.date}</div>
+            <div>
+                <h3>Date</h3>
+                <div style="font-family:'JetBrains Mono'; font-size:0.9rem;">${a.date}</div>
+            </div>
+            <div>
+                <h3>Status</h3>
                 <span class="status-badge status-${a.status.toLowerCase()}">${a.status}</span>
+            </div>
+            <div>
+                <h3>Attendees</h3>
+                <div style="font-size:0.85rem; color:var(--text-tertiary);">
+                    ${a.attendees}
+                </div>
             </div>
         `;
         container.appendChild(card);
@@ -311,18 +332,30 @@ function renderActions() {
     container.innerHTML = '';
 
     actions.forEach(a => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>
-                <strong>${a.activity}</strong>
-                ${a.phase ? `<br><small style="opacity:0.6;">${a.phase}</small>` : ''}
-            </td>
-            <td>${a.owner || '-'}</td>
-            <td>${a.linkType ? `${a.linkType}` : '-'}</td>
-            <td>${a.dueDate || '-'}</td>
-            <td><span class="status-badge">${a.status}</span></td>
+        const card = document.createElement('div');
+        card.className = 'portal-list-card';
+        card.innerHTML = `
+            <div>
+                <h2 style="margin:0;">${a.activity}</h2>
+                ${a.phase ? `<div style="font-size:0.8rem; opacity:0.6; margin-top:0.25rem;">${a.phase}</div>` : ''}
+            </div>
+            <div>
+                <h3>Owner</h3>
+                <div style="font-size:0.9rem;">${a.owner || '-'}</div>
+            </div>
+            <div>
+                <h3>Due Date</h3>
+                <div style="font-family:'JetBrains Mono'; font-size:0.9rem;">${a.dueDate || '-'}</div>
+            </div>
+            <div>
+                <h3>Status</h3>
+                <div style="display:flex; flex-direction:column; gap:0.5rem; align-items:start;">
+                    <span class="status-badge">${a.status}</span>
+                    ${a.linkType ? `<small style="opacity:0.6;">${a.linkType}</small>` : ''}
+                </div>
+            </div>
         `;
-        container.appendChild(row);
+        container.appendChild(card);
     });
 }
 
@@ -375,6 +408,12 @@ function loadView(viewName) {
     if (!container) return;
 
     if (viewName === 'index' || viewName === 'portal') viewName = 'dashboard';
+
+    // Check for ID in URL if navigating via hash or link
+    const params = new URLSearchParams(window.location.search);
+    if (!window.currentStakeholderId) {
+        window.currentStakeholderId = params.get('id');
+    }
 
     let template = '';
     let initFunc = null;
@@ -551,103 +590,115 @@ function getStakeholdersTemplate() {
 }
 
 function getStakeholderDetailTemplate() {
-    // Basic structure for detail, assuming renderStakeholderDetail fills the IDs
     return `
-         <header style="margin-bottom: 2rem;">
-            <button onclick="loadView('stakeholders')" class="btn-secondary" style="margin-bottom:1rem;">← Back to Ledger</button>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                     <h2 id="detail-name">Loading...</h2>
-                     <p>Stakeholder Profile</p>
-                </div>
-                 <div style="display: gap: 0.5rem;">
-                     <button class="btn-primary" onclick="window.saveStakeholderEdit()">Save Changes</button>
-                 </div>
+         <header style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: start;">
+            <div>
+                <button onclick="loadView('stakeholders')" class="btn-secondary" style="margin-bottom:1rem; border:none; padding:0; height:auto; background:none;">← Back to Ledger</button>
+                <h2 id="detail-name">Loading Profile...</h2>
+                <div class="status-badge" id="view-status-badge" style="display: inline-block; border-color: var(--energy-algae); color: var(--energy-algae);">Active</div>
             </div>
+            <button class="btn-primary" onclick="document.getElementById('edit-modal').showModal()">
+                <span class="material-symbols-outlined">edit</span> Edit Stakeholder
+            </button>
          </header>
 
-         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
-             <!-- Left: Details -->
-             <div class="card">
-                 <h3>Profile</h3>
-                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem;">
-                     <div>
-                         <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Role</label>
-                         <div id="view-role" style="font-weight:500;">-</div>
-                         <input id="edit-role" type="text" style="display:none;" />
-                     </div>
-                      <div>
-                         <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Status</label>
-                         <span id="view-status" class="status-badge">-</span>
-                           <select id="edit-status" style="display:none;">
-                                <option value="Active">Active</option>
-                                <option value="Needs Attention">Needs Attention</option>
-                                <option value="Stable">Stable</option>
-                           </select>
-                     </div>
-                      <div>
-                         <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Influence</label>
-                         <div id="view-influence">-</div>
-                     </div>
-                      <div>
-                         <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Owner</label>
-                         <div id="view-owner">-</div>
-                     </div>
-                 </div>
-
-                 <div style="margin-top: 1.5rem;">
-                      <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Narrative Hook</label>
-                      <p id="view-narrativeHook" style="font-style: italic; color: var(--text-secondary);">-</p>
-                      <textarea id="edit-narrativeHook" rows="3" style="display:none; width:100%;"></textarea>
-                 </div>
-                 
-                 <div style="margin-top: 1rem;">
-                     <button class="btn-secondary" onclick="document.getElementById('edit-mode-toggle').click()">Edit Details</button>
-                     <!-- Invisible toggle for mock logic from before -->
-                     <button id="edit-mode-toggle" style="display:none;" onclick="
-                        const isEdit = this.getAttribute('data-editing') === 'true';
-                        if(!isEdit) {
-                           // Enter Edit
-                           this.setAttribute('data-editing', 'true');
-                           document.getElementById('view-narrativeHook').style.display='none';
-                           const hook = document.getElementById('view-narrativeHook').textContent;
-                           const hookInput = document.getElementById('edit-narrativeHook');
-                           hookInput.style.display='block';
-                           hookInput.value = hook;
-
-                           // Name
-                           const name = document.getElementById('detail-name').textContent;
-                           const nameInput = document.createElement('input'); 
-                           nameInput.id = 'edit-name';
-                           nameInput.value = name;
-                           document.getElementById('detail-name').innerHTML = '';
-                           document.getElementById('detail-name').appendChild(nameInput);
-                           
-                           // Role
-                           document.getElementById('view-role').style.display='none';
-                           const role = document.getElementById('view-role').textContent;
-                           const roleInput = document.getElementById('edit-role');
-                           roleInput.style.display='block';
-                           roleInput.value = role;
-
-                           // Status
-                           document.getElementById('view-status').style.display='none';
-                           const statInput = document.getElementById('edit-status');
-                           statInput.style.display='block';
-                           
-                        }
-                     "></button>
-                 </div>
-             </div>
-
-             <!-- Right: History -->
-             <div class="card">
-                 <h3>Recent Interactions</h3>
-                 <div style="margin-top: 1rem; opacity: 0.6; font-size: 0.9rem;">
-                     Mock history items...
-                 </div>
-             </div>
+         <div class="spine-section" style="margin-bottom: 2rem;">
+            <h3>Core Profile</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 2rem; margin-top: 1.5rem;">
+                <div>
+                    <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); display: block; margin-bottom: 0.25rem;">Role</span>
+                    <div id="view-role" style="font-size: 1.1rem; font-weight: 500;">-</div>
+                </div>
+                <div>
+                    <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); display: block; margin-bottom: 0.25rem;">Status</span>
+                    <div id="view-status" style="font-size: 1.1rem; font-weight: 500;">-</div>
+                </div>
+                <div>
+                    <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); display: block; margin-bottom: 0.25rem;">Influence</span>
+                    <div id="view-influence" style="font-size: 1.1rem;">-</div>
+                </div>
+                <div>
+                    <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); display: block; margin-bottom: 0.25rem;">Interest</span>
+                    <div id="view-interest" style="font-size: 1.1rem;">-</div>
+                </div>
+                <div>
+                    <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); display: block; margin-bottom: 0.25rem;">Owner</span>
+                    <div id="view-owner" style="font-size: 1.1rem;">-</div>
+                </div>
+            </div>
          </div>
+
+         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="card">
+                <h3>Narrative Hook</h3>
+                <p id="view-narrativeHook" style="font-style: italic; color: var(--text-secondary); margin-top: 1rem;">-</p>
+            </div>
+            <div class="card">
+                <h3>Engagement Strategy</h3>
+                <p id="view-engagementStrategy" style="margin-top: 1rem;">-</p>
+            </div>
+         </div>
+
+         <!-- Native Edit Modal Integration -->
+         <dialog id="edit-modal" style="background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-highlight); border-radius: var(--radius-node); padding: 2rem; width: 100%; max-width: 500px; backdrop-filter: blur(10px);">
+            <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Edit Stakeholder</h2>
+            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                <div>
+                    <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-tertiary);">Name</label>
+                    <input type="text" id="edit-name">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-tertiary);">Role</label>
+                        <input type="text" id="edit-role">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-tertiary);">Status</label>
+                        <select id="edit-status">
+                            <option value="Active">Active</option>
+                            <option value="Needs Attention">Needs Attention</option>
+                            <option value="Stable">Stable</option>
+                            <option value="Monitor">Monitor</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-tertiary);">Influence</label>
+                        <select id="edit-influence">
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-tertiary);">Interest</label>
+                        <select id="edit-interest">
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-tertiary);">Owner</label>
+                    <input type="text" id="edit-owner">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-tertiary);">Narrative Hook</label>
+                    <textarea id="edit-narrativeHook" rows="2"></textarea>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-tertiary);">Engagement Strategy</label>
+                    <textarea id="edit-engagementStrategy" rows="2"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1rem;">
+                    <button class="btn-secondary" onclick="document.getElementById('edit-modal').close()">Cancel</button>
+                    <button class="btn-primary" onclick="window.saveStakeholderEdit()">Save Changes</button>
+                </div>
+            </div>
+         </dialog>
     `;
 }
 
