@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AET | Advanced Resource Recovery</title>
+    <link rel="stylesheet" href="css/redesign.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+</head>
+
+<body>
+
+    <!-- TOP NAVIGATION -->
+    <header id="top-nav">
+        <a href="javascript:void(0)" class="brand">
+            <h1>AET <span>ARRC</span></h1>
+        </a>
+
+        <!-- Burger Toggle (Mobile Only) -->
+        <button id="burger-menu" class="mobile-toggle" onclick="toggleMobileMenu()">
+            <span class="material-symbols-outlined">menu</span>
+        </button>
+
+        <div id="nav-wrapper">
+            <nav class="nav-links">
+                <a href="javascript:void(0)" class="nav-item active" onclick="switchView('overview', this)">Overview</a>
+                <a href="javascript:void(0)" class="nav-item" onclick="switchView('impact', this)">Impact</a>
+                <a href="javascript:void(0)" class="nav-item" onclick="switchView('clients', this)">Clients</a>
+                <a href="javascript:void(0)" class="nav-item" onclick="switchView('investors', this)">Investors</a>
+            </nav>
+
+            <div class="nav-controls">
+                <!-- Wide View Toggle -->
+                <div class="theme-toggle">
+                    <span>Wide View</span>
+                    <label class="switch">
+                        <input type="checkbox" id="width-switch" onchange="toggleWideMode()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <!-- Dark Mode Toggle -->
+                <div class="theme-toggle">
+                    <span>Dark Mode</span>
+                    <label class="switch">
+                        <input type="checkbox" id="theme-switch" onchange="toggleTheme()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <a href="login.html" class="btn-login">Portal Login</a>
+            </div>
+        </div>
+    </header>
+
+    <div id="app-container">
+        <main id="main-viewport">
+
+            <!-- SECTION: OVERVIEW -->
+            <section id="overview" class="view-section active">
+                <h2>Advanced Resource Recovery Centre</h2>
+                <p style="font-size: 1.25rem; line-height: 1.6;">
+                    The ARRC represents a paradigm shift in waste management—moving from "disposal" to "valorization".
+                    Leveraging AI-driven robotics and precision thermal processing, we turn regional waste into
+                    sovereign resources.
+                </p>
+
+                <div class="grid">
+                    <div class="card">
+                        <h3>Infrastructure Core</h3>
+                        <p style="font-size: 1rem;">$50M defensive infrastructure asset delivering long-term,
+                            CPI-indexed yield through proven technologies.</p>
+                    </div>
+                    <div class="card">
+                        <h3>Circular Economy</h3>
+                        <p style="font-size: 1rem;">Enabling regional circularity by providing high-purity feedstocks
+                            for the manufacturing sector.</p>
+                    </div>
+                    <div class="card">
+                        <h3>Environmental Yield</h3>
+                        <p style="font-size: 1rem;">Avoiding 80,000+ tonnes of CO2e annually while extending the life of
+                            critical landfill assets.</p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 3rem; display: flex; gap: 1rem;">
+                    <button class="nav-item active" style="padding: 1rem 2.5rem; border-radius: 12px; height: auto;"
+                        onclick="switchView('impact', document.querySelectorAll('.nav-links .nav-item')[1])">Explore
+                        Impact &rarr;</button>
+                </div>
+            </section>
+
+            <!-- SECTION: IMPACT -->
+            <section id="impact" class="view-section">
+                <h2>Environmental & Social Impact Dashboard</h2>
+                <p style="font-size: 1.25rem; line-height: 1.6; max-width: 100%;">The ARRC doesn't just process waste;
+                    it regenerates
+                    regional environmental and social capital.</p>
+
+                <div class="grid">
+                    <div class="card" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <h3>Carbon Abatement</h3>
+                        <div style="height: 300px;">
+                            <canvas id="impactChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div class="card" style="border-left: 6px solid var(--energy-solar);">
+                            <h3>Regional Employment</h3>
+                            <div
+                                style="font-size: 2.5rem; font-weight: 800; color: var(--energy-solar); margin: 0.5rem 0;">
+                                250+</div>
+                            <p style="font-size: 0.95rem; margin: 0;">Direct & Indirect roles during peak construction
+                                and ongoing operations.</p>
+                        </div>
+                        <div class="card" style="border-left: 6px solid var(--energy-algae);">
+                            <h3>Landfill Diversion</h3>
+                            <div
+                                style="font-size: 2.5rem; font-weight: 800; color: var(--energy-algae); margin: 0.5rem 0;">
+                                85,000t</div>
+                            <p style="font-size: 0.95rem; margin: 0;">Residual waste diverted from regional landfill
+                                annually, extending landfill life by 15+ years.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: CLIENTS -->
+            <section id="clients" class="view-section">
+                <h2>Regional Logistics Mapping</h2>
+                <p style="font-size: 1.25rem; line-height: 1.6; max-width: 100%;">Select a Client location to verify
+                    transport distance
+                    deltas and projected gate fee savings relative
+                    to metropolitan WtE alternatives.</p>
+
+                <div class="grid" style="grid-template-columns: 2fr 1fr; height: auto; gap: 2rem;">
+
+                    <!-- Map Container -->
+                    <div class="card" id="map"
+                        style="padding: 0; position: relative; overflow: hidden; height: 650px; border-radius: 20px;">
+                        <!-- Map initialized by JS -->
+                    </div>
+
+                    <!-- Comparison Panel -->
+                    <div id="logistics-controls" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div class="card" style="padding: 2rem;">
+                            <h3 class="outcome-heading" style="color: var(--energy-algae);">Logistics Selector</h3>
+                            <select id="client-select" onchange="focusClient()"
+                                style="margin-bottom: 2rem; background: var(--bg-app); border: 1px solid var(--border-subtle); color: var(--text-primary); padding: 1rem; border-radius: 8px; width: 100%; font-family: 'Space Grotesk'; font-weight: 600;">
+                                <option value="">-- Select Region Council --</option>
+                                <option value="macedon">Macedon Ranges</option>
+                                <option value="bendigo_lga">Greater Bendigo</option>
+                                <option value="hepburn">Hepburn Shire</option>
+                                <option value="mitchell">Mitchell Shire</option>
+                                <option value="loddon">Loddon Shire</option>
+                            </select>
+
+                            <div id="comparison-stats" style="display: none; animation: fadeIn 0.4s ease-out;">
+                                <h3 class="outcome-heading" style="font-size: 1.25rem;">Distance Delta</h3>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                                    <span style="font-size: 1rem; color: var(--text-secondary);">To ARRC
+                                        (Bendigo)</span>
+                                    <span id="dist-arrc" style="font-weight: 800; color: var(--energy-algae);">--</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                                    <span style="font-size: 1rem; color: var(--text-secondary);">To Maldon</span>
+                                    <span id="dist-maldon"
+                                        style="font-weight: 800; color: var(--text-tertiary);">--</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 2rem;">
+                                    <span style="font-size: 1rem; color: var(--text-secondary);">To Sunbury</span>
+                                    <span id="dist-sunbury"
+                                        style="font-weight: 800; color: var(--text-tertiary);">--</span>
+                                </div>
+
+                                <h3 class="outcome-heading" style="font-size: 1.25rem;">Financial Advantage</h3>
+                                <div class="card"
+                                    style="background: rgba(16, 185, 129, 0.1); border-color: var(--energy-algae); padding: 1.5rem; text-align: center;">
+                                    <div
+                                        style="font-size: 0.75rem; color: var(--energy-algae-dim); text-transform: uppercase; font-weight: 700;">
+                                        Projected Annual Savings</div>
+                                    <div id="annual-savings"
+                                        style="font-size: 2.25rem; font-weight: 800; color: var(--energy-algae);">$0.00M
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="interpretive-note" id="logistics-note">
+                        <strong>Economic Note</strong>
+                        The visual routing demonstrates the proximity advantage of the ARRC over traditional
+                        disposal routes.
+                        Red dotted lines indicate the nearest alternative waste facility.
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- SECTION: INVESTORS -->
+            <section id="investors" class="view-section">
+                <h2>Investor Sensitivity Model</h2>
+                <p style="font-size: 1.25rem; line-height: 1.6; max-width: 100%;">High-interactivity unit economics
+                    calculator. Adjust
+                    scenarios to explore the project's resilience
+                    and return profile.</p>
+
+                <div class="grid" style="grid-template-columns: 1fr 2fr; align-items: start; gap: 2rem;">
+
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <!-- Preset Scenarios -->
+                        <div class="card" style="padding: 1.5rem;">
+                            <h3 style="color: var(--energy-algae); margin-bottom: 1rem;">Scenario Presets</h3>
+                            <div class="scenario-grid">
+                                <button class="btn-preset active" id="preset-cautious"
+                                    onclick="setPreset('cautious')">Cautious</button>
+                                <button class="btn-preset" id="preset-max" onclick="setPreset('max')">Max
+                                    Investment</button>
+                                <button class="btn-preset" id="preset-min" onclick="setPreset('min')">Min
+                                    Investment</button>
+                                <button class="btn-preset" id="preset-custom"
+                                    onclick="setPreset('custom')">Manual</button>
+                            </div>
+                        </div>
+
+                        <!-- Controls Panel -->
+                        <div class="card" style="padding: 1.5rem;">
+                            <h3 style="color: var(--energy-algae); margin-bottom: 2rem;">Input Variables</h3>
+
+                            <div style="margin-bottom: 1.5rem;">
+                                <div
+                                    style="display:flex; justify-content:space-between; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                                    <span>Throughput (tpa)</span>
+                                    <span id="val-tpa"
+                                        style="color: var(--energy-algae); font-weight: 700;">100,000</span>
+                                </div>
+                                <input type="range" id="in-tpa" min="50000" max="150000" step="5000" value="100000"
+                                    oninput="manualUpdate()" style="width: 100%; accent-color: var(--energy-algae);">
+                            </div>
+
+                            <div style="margin-bottom: 1.5rem;">
+                                <div
+                                    style="display:flex; justify-content:space-between; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                                    <span>Gate Fee ($/tonne)</span>
+                                    <span id="val-gate" style="color: var(--energy-algae); font-weight: 700;">150</span>
+                                </div>
+                                <input type="range" id="in-gate" min="100" max="250" step="5" value="150"
+                                    oninput="manualUpdate()" style="width: 100%; accent-color: var(--energy-algae);">
+                            </div>
+
+                            <div style="margin-bottom: 1.5rem;">
+                                <div
+                                    style="display:flex; justify-content:space-between; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                                    <span>Capex ($M)</span>
+                                    <span id="val-capex"
+                                        style="color: var(--energy-algae); font-weight: 700;">50.0</span>
+                                </div>
+                                <input type="range" id="in-capex" min="40" max="70" step="1" value="50"
+                                    oninput="manualUpdate()" style="width: 100%; accent-color: var(--energy-algae);">
+                            </div>
+
+                            <div style="margin-bottom: 1rem;">
+                                <div
+                                    style="display:flex; justify-content:space-between; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                                    <span>Recovery Rate (%)</span>
+                                    <span id="val-rec" style="color: var(--energy-algae); font-weight: 700;">85%</span>
+                                </div>
+                                <input type="range" id="in-rec" min="50" max="95" step="5" value="85"
+                                    oninput="manualUpdate()" style="width: 100%; accent-color: var(--energy-algae);">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Outputs Panel -->
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div class="card" style="padding: 1.5rem; text-align: center;">
+                                <h3
+                                    style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-tertiary); margin-bottom: 0.5rem; text-transform: uppercase;">
+                                    Estimated EBITDA</h3>
+                                <div id="out-ebitda"
+                                    style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary);">$10.2M
+                                </div>
+                            </div>
+                            <div class="card" style="padding: 1.5rem; text-align: center;">
+                                <h3
+                                    style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-tertiary); margin-bottom: 0.5rem; text-transform: uppercase;">
+                                    DSCR</h3>
+                                <div id="out-dscr"
+                                    style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary);">2.45x
+                                </div>
+                            </div>
+                            <div class="card" style="padding: 1.5rem; text-align: center;">
+                                <h3
+                                    style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-tertiary); margin-bottom: 0.5rem; text-transform: uppercase;">
+                                    Nominal IRR</h3>
+                                <div id="out-wacc"
+                                    style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary);">12.5%
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Capital Stack Chart Section -->
+                        <div class="card" style="height: 350px; padding: 2rem;">
+                            <h3 style="font-size: 1.1rem; margin-bottom: 1.5rem; color: var(--energy-algae);">Proposed
+                                Capital Stack</h3>
+                            <div style="height: calc(100% - 40px);">
+                                <canvas id="capStackChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="card" style="height: 400px; padding: 2rem;">
+                            <h3 style="font-size: 1.1rem; margin-bottom: 1.5rem; color: var(--energy-algae);">Projected
+                                Cashflows (Base Case)</h3>
+                            <div style="height: calc(100% - 40px);">
+                                <canvas id="finChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="interpretive-note">
+                            <strong>Interactive Analysis</strong>
+                            Adjust the sliders to see how the project handles capital volatility
+                            and operational scale. Performance is simulated based on regional benchmarks.
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+
+        <footer id="global-footer">
+            &copy; 2026 Advanced Energy Transition (AET) | Regional Circular Economy Platform
+        </footer>
+    </div>
+
+    <script>
+        let finChart = null, capStackChart = null;
+        let map, clientMarkers = {}, currentTileLayer;
+        let mapLines = [];
+
+        const locations = {
+            arrc: [-36.757, 144.279], // Bendigo
+            comp1: [-37.000, 144.067], // Maldon
+            comp2: [-37.583, 144.733], // Sunbury
+            macedon: [-37.400, 144.583],
+            bendigo_lga: [-36.757, 144.150],
+            hepburn: [-37.317, 144.133],
+            mitchell: [-37.200, 145.000],
+            loddon: [-36.433, 143.867]
+        };
+
+        const mapTiles = {
+            light: 'https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png',
+            dark: 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png'
+        };
+
+        // --- VIEW SWITCHING ---
+        function switchView(viewId, btn) {
+            if (event) event.preventDefault();
+
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            document.querySelectorAll('.nav-links .nav-item').forEach(el => el.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Close mobile menu
+            const wrapper = document.getElementById('nav-wrapper');
+            if (wrapper) wrapper.classList.remove('open');
+
+            // Force scroll to top immediately, then smooth if possible
+            window.scrollTo(0, 0);
+            setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 10);
+
+            // Leaflet resize bug fix
+            if (viewId === 'clients' && map) {
+                setTimeout(() => { map.invalidateSize(); }, 200);
+            }
+        }
+
+        // --- UI CONTROLS ---
+        function toggleMobileMenu() {
+            const wrapper = document.getElementById('nav-wrapper');
+            if (wrapper) wrapper.classList.toggle('open');
+        }
+
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('bio-mode');
+            if (map) {
+                currentTileLayer.setUrl(isDark ? mapTiles.dark : mapTiles.light);
+            }
+        }
+
+        function toggleWideMode() {
+            document.body.classList.toggle('wide-view');
+            if (map) setTimeout(() => map.invalidateSize(), 400);
+        }
+
+        // --- FINANCIAL MODEL ---
+        function setPreset(type) {
+            document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+            document.getElementById('preset-' + type).classList.add('active');
+
+            if (type === 'max') {
+                updateInputs(150000, 180, 65, 92);
+            } else if (type === 'min') {
+                updateInputs(60000, 140, 42, 75);
+            } else if (type === 'cautious') {
+                updateInputs(100000, 150, 50, 85);
+            }
+            runModel();
+        }
+
+        function updateInputs(tpa, gate, capex, rec) {
+            document.getElementById('in-tpa').value = tpa;
+            document.getElementById('in-gate').value = gate;
+            document.getElementById('in-capex').value = capex;
+            document.getElementById('in-rec').value = rec;
+        }
+
+        function manualUpdate() {
+            document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+            document.getElementById('preset-custom').classList.add('active');
+            runModel();
+        }
+
+        function runModel() {
+            const tpa = parseInt(document.getElementById('in-tpa').value);
+            const gate = parseInt(document.getElementById('in-gate').value);
+            const capexMi = parseFloat(document.getElementById('in-capex').value);
+            const capex = capexMi * 1000000;
+            const recRate = parseInt(document.getElementById('in-rec').value) / 100;
+
+            document.getElementById('val-tpa').innerText = tpa.toLocaleString();
+            document.getElementById('val-gate').innerText = gate;
+            document.getElementById('val-capex').innerText = capexMi.toFixed(1);
+            document.getElementById('val-rec').innerText = (recRate * 100).toFixed(0) + "%";
+
+            const basket = 125;
+            const varOpexUnit = 48;
+            const revenue = (tpa * gate) + (tpa * recRate * basket);
+            const opex = (tpa * varOpexUnit) + 1800000;
+            const ebitda = revenue - opex;
+            const debt = capex * 0.6;
+            const equity = capex * 0.4;
+            const ads = (debt * 0.07) + (debt / 15);
+            const dscr = ebitda / ads;
+
+            document.getElementById('out-ebitda').innerText = "$" + (ebitda / 1000000).toFixed(1) + "M";
+            document.getElementById('out-dscr').innerText = dscr.toFixed(2) + "x";
+            document.getElementById('out-wacc').innerText = (8 + (dscr > 2 ? 4 : dscr * 2)).toFixed(1) + "%";
+
+            updateCharts(revenue, opex, ads, debt, equity);
+            updateInsight(dscr);
+        }
+
+        function updateCharts(rev, opex, ads, debt, equity) {
+            // 1. PROJECT CASHFLOWS (BAR)
+            const ctxFin = document.getElementById('finChart').getContext('2d');
+            const finVals = [rev, -opex, -ads, rev - opex - ads];
+            if (finChart) {
+                finChart.data.datasets[0].data = finVals;
+                finChart.update();
+            } else {
+                finChart = new Chart(ctxFin, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Revenue', 'Opex', 'Debt Serv', 'Net Cash'],
+                        datasets: [{
+                            data: finVals,
+                            backgroundColor: ['#10b981', '#ef4444', '#fbbf24', '#3b82f6'],
+                            borderRadius: 10,
+                            barThickness: 50
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => '$' + (v / 1000000).toFixed(1) + 'M' } },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
+
+            // 2. CAPITAL STACK (DONUT)
+            const ctxCap = document.getElementById('capStackChart').getContext('2d');
+            if (capStackChart) {
+                capStackChart.data.datasets[0].data = [debt, equity];
+                capStackChart.update();
+            } else {
+                capStackChart = new Chart(ctxCap, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Senior Debt', 'Partner Equity'],
+                        datasets: [{
+                            data: [debt, equity],
+                            backgroundColor: ['#3b82f6', '#10b981'],
+                            borderWidth: 0,
+                            hoverOffset: 10
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false, cutout: '70%',
+                        plugins: {
+                            legend: { position: 'right', labels: { padding: 20, usePointStyle: true, font: { family: 'Inter' } } }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateInsight(dscr) {
+            const container = document.querySelector('#investors .interpretive-note');
+            if (!container) return;
+
+            let text = "";
+            if (dscr < 1.3) text = '<span style="color: var(--energy-alert);">Caution:</span> Debt coverage is below institutional thresholds. Project may require additional equity buffer.';
+            else if (dscr > 2.2) text = '<span style="color: var(--energy-algae);">Robust:</span> The project generates significant cash buffer for upside expansion and dividend flow.';
+            else text = 'Project maintains a healthy bankable profile for regional infrastructure assets.';
+
+            container.innerHTML = `<strong>Interactive Analysis</strong> ${text}`;
+        }
+
+        // --- MAP LOGIC ---
+        function initMap() {
+            map = L.map('map', { zoomControl: false }).setView([-37.0, 144.5], 8);
+            const isDark = document.body.classList.contains('bio-mode');
+            currentTileLayer = L.tileLayer(isDark ? mapTiles.dark : mapTiles.light, {
+                attribution: '&copy; CARTO'
+            }).addTo(map);
+
+            L.circleMarker(locations.arrc, { color: '#10b981', weight: 4, fillOpacity: 0.8, radius: 12 }).addTo(map).bindPopup('<strong>AET ARRC (Bendigo)</strong>');
+            L.circleMarker(locations.comp1, { color: '#64748b', radius: 8 }).addTo(map).bindPopup('Comp Facility (Maldon)');
+            L.circleMarker(locations.comp2, { color: '#64748b', radius: 8 }).addTo(map).bindPopup('Comp Facility (Sunbury)');
+
+            Object.keys(locations).forEach(k => {
+                if (k !== 'arrc' && k !== 'comp1' && k !== 'comp2') {
+                    clientMarkers[k] = L.circleMarker(locations[k], { color: '#3b82f6', radius: 6 }).addTo(map);
+                }
+            });
+        }
+
+        function focusClient() {
+            const val = document.getElementById('client-select').value;
+            if (!val) {
+                document.getElementById('comparison-stats').style.display = 'none';
+                clearLines();
+                return;
+            }
+
+            const clientLoc = locations[val];
+
+            // Calculate Euclidean distance to comparison points
+            const dist = (p1, p2) => Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2)) * 111; // Approx km
+            const dArrcVal = dist(clientLoc, locations.arrc);
+            const dMaldonVal = dist(clientLoc, locations.comp1);
+            const dSunburyVal = dist(clientLoc, locations.comp2);
+
+            // Identify nearest competitor
+            const nearest = dMaldonVal < dSunburyVal ? locations.comp1 : locations.comp2;
+            const nearestId = dMaldonVal < dSunburyVal ? 'maldon' : 'sunbury';
+
+            // Fit bounds smoothly
+            map.fitBounds([clientLoc, locations.arrc, nearest], { padding: [50, 50], animate: true, duration: 1.5 });
+
+            clearLines();
+
+            // Draw Lines
+            const lineArrc = L.polyline([clientLoc, locations.arrc], { color: '#10b981', weight: 4, opacity: 0.8 }).addTo(map);
+            const lineComp = L.polyline([clientLoc, nearest], { color: '#ef4444', weight: 3, dashArray: '10, 10', opacity: 0.6 }).addTo(map);
+
+            mapLines.push(lineArrc, lineComp);
+
+            // Update UI
+            document.getElementById('dist-arrc').innerText = dArrcVal.toFixed(1) + "km";
+            document.getElementById('dist-maldon').innerText = dMaldonVal.toFixed(1) + "km";
+            document.getElementById('dist-sunbury').innerText = dSunburyVal.toFixed(1) + "km";
+
+            // Highlight nearest competitor in UI if needed, or just set text
+            document.getElementById('dist-' + nearestId).style.color = 'var(--energy-alert)';
+            document.getElementById('dist-' + (nearestId === 'maldon' ? 'sunbury' : 'maldon')).style.color = 'var(--text-tertiary)';
+
+            const savings = (Math.max(dMaldonVal, dSunburyVal) - dArrcVal) * 0.15; // Hypothetical savings factor
+            document.getElementById('annual-savings').innerText = "$" + Math.max(0.4, savings).toFixed(2) + "M";
+            document.getElementById('comparison-stats').style.display = 'block';
+        }
+
+        function clearLines() {
+            mapLines.forEach(l => map.removeLayer(l));
+            mapLines = [];
+        }
+
+        function initImpactChart() {
+            const ctx = document.getElementById('impactChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Carbon Abated', 'Operational Footprint', 'Material Circularity'],
+                    datasets: [{ data: [80, 15, 65], backgroundColor: ['#10b981', '#ef4444', '#fbbf24'], borderWidth: 0, hoverOffset: 15 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '75%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true, font: { family: 'Inter' } } },
+                        tooltip: { enabled: true, backgroundColor: 'rgba(0,0,0,0.8)', padding: 12, titleFont: { size: 14 } }
+                    },
+                    hover: { mode: 'nearest', intersect: true }
+                }
+            });
+        }
+
+        window.addEventListener('load', () => {
+            runModel();
+            initMap();
+            initImpactChart();
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                const btn = document.querySelector(`.nav-links .nav-item[href="#${hash}"]`);
+                if (btn) switchView(hash, btn);
+            }
+        });
+    </script>
+</body>
+
+</html>

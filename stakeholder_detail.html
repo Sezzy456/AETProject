@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stakeholder Detail - Employee Portal</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+
+<body>
+
+    <div id="app-container">
+        <!-- Sidebar -->
+        <nav id="sidebar">
+            <div class="brand">
+                <h1>Portal v3.3</h1>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">
+                <a href="index.html" class="nav-item">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    Dashboard
+                </a>
+                <a href="stakeholders.html" class="nav-item active">
+                    <span class="material-symbols-outlined">groups</span>
+                    Stakeholder Ledger
+                </a>
+                <a href="activity_log.html" class="nav-item">
+                    <span class="material-symbols-outlined">history</span>
+                    Activity Log
+                </a>
+                <a href="actions.html" class="nav-item">
+                    <span class="material-symbols-outlined">check_circle</span>
+                    Actions / Goals
+                </a>
+                <a href="login.html" class="nav-item" style="margin-top: auto;">
+                    <span class="material-symbols-outlined">logout</span>
+                    Logout
+                </a>
+            </div>
+
+            <div class="theme-switch-container">
+                <span class="theme-switch-label">BIO-MODE</span>
+                <label class="theme-switch">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main id="main-content">
+            <div>
+                <!-- Header / Controls -->
+                <header style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+                    <div>
+                        <a href="stakeholders.html"
+                            style="text-decoration: none; color: var(--text-tertiary); font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <span class="material-symbols-outlined" style="font-size: 1rem;">arrow_back</span>
+                            Back to Ledger
+                        </a>
+                        <h2 id="detail-name" style="margin-bottom: 0.5rem;">Loading Name...</h2>
+                        <div class="status-badge" id="view-status-badge" style="display: inline-block;">Loading...</div>
+                    </div>
+                    <div>
+                        <button class="btn-primary" id="btn-edit-toggle"
+                            onclick="document.getElementById('edit-modal').showModal()">
+                            <span class="material-symbols-outlined">edit</span> Edit Details
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Detail Grid -->
+                <div class="spine-section" style="margin-bottom: 2rem;">
+                    <h3>Core Profile</h3>
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-top: 1.5rem;">
+                        <div>
+                            <span
+                                style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-tertiary); display: block; margin-bottom: 0.25rem;">Role</span>
+                            <div id="view-role" style="font-size: 1.1rem; font-weight: 500;">-</div>
+                        </div>
+                        <div>
+                            <span
+                                style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-tertiary); display: block; margin-bottom: 0.25rem;">Owner</span>
+                            <div id="view-owner" style="font-size: 1.1rem;">-</div>
+                        </div>
+                        <div>
+                            <span
+                                style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-tertiary); display: block; margin-bottom: 0.25rem;">Influence</span>
+                            <div id="view-influence" style="font-size: 1.1rem;">-</div>
+                        </div>
+                        <div>
+                            <span
+                                style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-tertiary); display: block; margin-bottom: 0.25rem;">Interest</span>
+                            <div id="view-interest" style="font-size: 1.1rem;">-</div>
+                        </div>
+                        <div>
+                            <span
+                                style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-tertiary); display: block; margin-bottom: 0.25rem;">Status</span>
+                            <div id="view-status" style="font-size: 1.1rem;">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="card">
+                        <h3>Narrative Hook</h3>
+                        <p id="view-narrativeHook"
+                            style="font-style: italic; color: var(--text-secondary); margin-top: 1rem;">-</p>
+                    </div>
+                    <div class="card">
+                        <h3>Engagement Strategy</h3>
+                        <p id="view-engagementStrategy" style="margin-top: 1rem;">-</p>
+                    </div>
+                </div>
+
+                <!-- Contacts Stub -->
+                <div class="card" style="margin-top: 1.5rem; opacity: 0.7;">
+                    <h3>Contacts (Coming Soon)</h3>
+                    <p style="font-size: 0.9rem;">Contact management is scheduled for Phase 4.</p>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Modal (Native Dialog) -->
+    <dialog id="edit-modal"
+        style="background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-highlight); border-radius: var(--radius-node); padding: 2rem; width: 100%; max-width: 500px; backdrop-filter: blur(10px);">
+        <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Edit Stakeholder</h2>
+        <form method="dialog" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem;">Name</label>
+                <input type="text" id="edit-name" placeholder="Name">
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem;">Role</label>
+                <input type="text" id="edit-role" placeholder="Role">
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem;">Status</label>
+                <select id="edit-status">
+                    <option value="Active">Active</option>
+                    <option value="Needs Attention">Needs Attention</option>
+                    <option value="Stable">Stable</option>
+                    <option value="Monitor">Monitor</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem;">Narrative Hook</label>
+                <textarea id="edit-narrativeHook" rows="3"
+                    style="width: 100%; background: var(--bg-app); border: none; border-bottom: 2px solid var(--border-subtle); padding: 0.5rem; color: var(--text-primary);"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1rem;">
+                <button value="cancel" class="btn-secondary">Cancel</button>
+                <button value="save" class="btn-primary"
+                    onclick="/* Logic handled in app.js via ID binding but wait, dialog form needs preventDefault if using onclick separately, or just use the button */ saveStakeholderEdit();">Save
+                    Changes</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="js/mockdata.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Pre-populate modal on open
+        const modal = document.getElementById('edit-modal');
+        const btn = document.getElementById('btn-edit-toggle');
+        btn.onclick = () => {
+            const id = new URLSearchParams(window.location.search).get('id');
+            const data = window.getData('stakeholders').find(s => s.id == id);
+            if (data) {
+                document.getElementById('edit-name').value = data.name;
+                document.getElementById('edit-role').value = data.role;
+                document.getElementById('edit-status').value = data.status;
+                document.getElementById('edit-narrativeHook').value = data.narrativeHook || '';
+                modal.showModal();
+            }
+        };
+    </script>
+</body>
+
+</html>
