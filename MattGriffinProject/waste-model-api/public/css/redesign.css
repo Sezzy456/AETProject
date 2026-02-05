@@ -164,6 +164,14 @@ body.wide-view {
   gap: 1.5rem;
 }
 
+@media (min-width: 1025px) {
+  .nav-links {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
 .nav-item {
   display: flex;
   align-items: center;
@@ -395,7 +403,7 @@ p {
 .theme-toggle {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 1rem;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
   text-transform: uppercase;
