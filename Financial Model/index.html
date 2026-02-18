@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Model | Investor Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- SortableJS for draggable lists -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <header class="app-header">
+            <h1>Financial Model</h1>
+            <div class="header-actions">
+                <!-- Project info could go here -->
+            </div>
+        </header>
+
+        <main class="dashboard-grid">
+            <!-- Card 1: Initial Investment -->
+            <section id="card-initial-investment" class="card">
+                <div class="card-header">
+                    <h2>Initial Investment</h2>
+                </div>
+                <div class="card-body">
+                    <div class="input-group">
+                        <label for="initial-inv">Initial Investment</label>
+                        <div class="input-wrapper currency">
+                            <input type="number" id="initial-inv" placeholder="0.00" step="0.01">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="opp-cost">Opportunity Cost (if any)</label>
+                        <div class="input-wrapper currency">
+                            <input type="number" id="opp-cost" placeholder="0.00" step="0.01">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="lifetime">Lifetime of the Investment (years)</label>
+                        <input type="number" id="lifetime" placeholder="0" step="1">
+                    </div>
+                    <div class="input-group">
+                        <label for="salvage-value">Salvage Value at End of Project</label>
+                        <div class="input-wrapper currency">
+                            <input type="number" id="salvage-value" placeholder="0.00" step="0.01">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="depreciation-method">Depreciation Method</label>
+                        <select id="depreciation-method">
+                            <option value="" disabled selected>(select)</option>
+                            <option value="straight-line">Straight Line</option>
+                            <option value="ddb">DDB</option>
+                        </select>
+                    </div>
+                    <div id="ddb-factor-group" class="input-group hidden">
+                        <label for="ddb-factor">DDB Factor (%)</label>
+                        <div class="input-wrapper percentage">
+                            <input type="number" id="ddb-factor" value="200" step="1">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="tax-credit">Tax Credit (if any)</label>
+                        <div class="input-wrapper percentage">
+                            <input type="number" id="tax-credit" placeholder="0" step="0.1">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="other-investments">Other Investments (non-depreciable)</label>
+                        <input type="number" id="other-investments" placeholder="0" step="1">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Card 2: Working Capital -->
+            <section id="card-working-capital" class="card">
+                <div class="card-header">
+                    <h2>Working Capital</h2>
+                </div>
+                <div class="card-body">
+                    <div class="input-group">
+                        <label for="wc-initial">Initial Investment in Working Capital</label>
+                        <div class="input-wrapper currency">
+                            <input type="number" id="wc-initial" placeholder="0.00" step="0.01">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="wc-percentage">Working Capital as % of Revenue</label>
+                        <div class="input-wrapper percentage">
+                            <input type="number" id="wc-percentage" placeholder="0" step="0.1">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="wc-salvage">Salvageable Fraction at End</label>
+                        <input type="number" id="wc-salvage" placeholder="0.0" min="0" max="1" step="0.1">
+                    </div>
+                    <div class="input-group">
+                        <label for="capm-tax-rate">Tax Rate on Net Income</label>
+                        <div class="input-wrapper percentage">
+                            <input type="number" id="capm-tax-rate" placeholder="0" step="0.1">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Card 3: Discount Rate -->
+            <section id="card-discount-rate" class="card">
+                <div class="card-header">
+                    <h2>Discount Rate</h2>
+                </div>
+                <div class="card-body">
+                    <div class="input-group">
+                        <label for="discount-approach">Approach</label>
+                        <select id="discount-approach">
+                            <option value="" disabled selected>(select)</option>
+                            <option value="direct">Direct</option>
+                            <option value="capm">CAPM</option>
+                        </select>
+                    </div>
+
+                    <!-- Conditional: Direct -->
+                    <div id="section-direct" class="conditional-section hidden">
+                        <div class="input-group">
+                            <label for="direct-rate">Discount Rate</label>
+                            <div class="input-wrapper percentage">
+                                <input type="number" id="direct-rate" placeholder="0" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Conditional: CAPM -->
+                    <div id="section-capm" class="conditional-section hidden">
+                        <div class="input-group">
+                            <label for="capm-beta">Beta</label>
+                            <input type="number" id="capm-beta" placeholder="0.00" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label for="capm-riskless">Riskless Rate</label>
+                            <div class="input-wrapper percentage">
+                                <input type="number" id="capm-riskless" placeholder="0" step="0.1">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="capm-mrp">Market Risk Premium</label>
+                            <div class="input-wrapper percentage">
+                                <input type="number" id="capm-mrp" placeholder="0" step="0.1">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="capm-debt-ratio">Debt Ratio</label>
+                            <div class="input-wrapper percentage">
+                                <input type="number" id="capm-debt-ratio" placeholder="0" step="0.1">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="capm-cost-borrowing">Cost of Borrowing</label>
+                            <div class="input-wrapper percentage">
+                                <input type="number" id="capm-cost-borrowing" placeholder="0" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group readonly">
+                        <label for="discount-rate-used">Discount Rate Used</label>
+                        <div class="input-wrapper percentage">
+                            <input type="text" id="discount-rate-used" readonly value="0.0">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Card 4: Revenue -->
+            <section id="card-revenue" class="card">
+                <div class="card-header">
+                    <h2>Revenue</h2>
+                    <button class="btn-icon add-item" data-type="revenue" title="Add Revenue Item">+</button>
+                </div>
+                <div class="card-body">
+                    <div id="revenue-list" class="draggable-list">
+                        <!-- Revenue items will be injected here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Card 5: Operating Expense -->
+            <section id="card-expense" class="card">
+                <div class="card-header">
+                    <h2>Operating Expense</h2>
+                    <button class="btn-icon add-item" data-type="operating_expense" title="Add Expense Item">+</button>
+                </div>
+                <div class="card-body">
+                    <div id="expense-list" class="draggable-list">
+                        <!-- Expense items will be injected here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Advanced Growth Toggle -->
+            <section class="advanced-toggle-area full-width">
+                <button id="btn-toggle-advanced" class="btn-secondary">Advanced</button>
+            </section>
+
+            <!-- Advanced Growth Table (Input) -->
+            <section id="advanced-growth-area" class="card hidden full-width">
+                <div class="card-header">
+                    <h2>Year-by-Year Growth Rates (%)</h2>
+                </div>
+                <div class="card-body">
+                    <div id="advanced-growth-table-wrapper" class="table-responsive">
+                        <!-- Input table injected here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="action-area">
+            <button id="btn-save" class="btn-secondary">Save Project</button>
+            <button id="btn-open-load" class="btn-secondary">Load Project</button>
+            <button id="btn-load-sample" class="btn-secondary">Load Sample (ARRC 1)</button>
+            <button id="btn-calculate" class="btn-primary">Run Calculations</button>
+        </footer>
+
+        <!-- Investment Summary Card -->
+        <section id="investment-summary-area" class="results-container hidden">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Investment Summary</h2>
+                </div>
+                <div class="card-body">
+                    <div id="summary-table-wrapper" class="summary-grid">
+                        <!-- Summary data injected here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Growth Rates Summary Card (Calculated) -->
+        <section id="growth-rates-summary-area" class="results-container hidden full-width">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Growth Rates</h2>
+                    <div class="subtitle">(Calculated year-on-year)</div>
+                </div>
+                <div class="card-body">
+                    <div id="growth-summary-table-wrapper" class="table-responsive">
+                        <!-- Summary table injected here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Salvage Value Table -->
+        <section id="salvage-value-area" class="results-container hidden full-width">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Salvage Value</h2>
+                </div>
+                <div class="card-body">
+                    <div id="salvage-table-wrapper" class="table-responsive">
+                        <!-- Table injected here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Operating Cashflows (Renamed from Results) -->
+        <section id="results-area" class="results-container hidden full-width">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Operating Cashflows</h2>
+                </div>
+                <div class="card-body">
+                    <div id="results-table-wrapper" class="table-responsive">
+                        <!-- Table injected here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Investment Measures Card -->
+        <section id="investment-measures-area" class="results-container hidden">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Investment Projections</h2>
+                </div>
+                <div class="card-body">
+                    <div class="measures-grid">
+                        <div class="measure-item">
+                            <span class="measure-label">NPV =</span>
+                            <span id="metric-npv" class="measure-value">$0</span>
+                        </div>
+                        <div class="measure-item">
+                            <span class="measure-label">IRR =</span>
+                            <span id="metric-irr" class="measure-value">0%</span>
+                        </div>
+                        <div class="measure-item">
+                            <span class="measure-label">ROC =</span>
+                            <span id="metric-roc" class="measure-value">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Book Value & Depreciation Table -->
+        <section id="book-value-area" class="results-container hidden full-width">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Book Value & Depreciation</h2>
+                </div>
+                <div class="card-body">
+                    <div id="book-value-table-wrapper" class="table-responsive">
+                        <!-- Table injected here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Project Name Modal -->
+        <div id="modal-save" class="modal hidden">
+            <div class="modal-content">
+                <h3>Save Project</h3>
+                <div class="input-group">
+                    <label for="project-name">Project Name</label>
+                    <input type="text" id="project-name" placeholder="Enter project name...">
+                </div>
+                <div class="modal-actions">
+                    <button id="modal-cancel" class="btn-text">Cancel</button>
+                    <button id="modal-confirm" class="btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Load Project Modal -->
+        <div id="modal-load" class="modal hidden">
+            <div class="modal-content">
+                <h3>Load Project</h3>
+                <div id="project-list" class="project-list">
+                    <!-- Project names injected here -->
+                </div>
+                <div class="modal-actions">
+                    <button id="load-cancel" class="btn-text">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Item Modal/Form (Expandable logic) -->
+        <div id="modal-add-item" class="modal hidden">
+            <div class="modal-content">
+                <h3 id="add-item-title">Add Item</h3>
+                <div class="input-group">
+                    <label for="item-label">Label</label>
+                    <input type="text" id="item-label" placeholder="e.g. Sales">
+                </div>
+                <div class="input-group">
+                    <label for="item-value">Value</label>
+                    <div class="input-wrapper currency">
+                        <input type="number" id="item-value" placeholder="0.00" step="0.01">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="item-growth">Default Growth Rate</label>
+                    <div class="input-wrapper percentage">
+                        <input type="number" id="item-growth" placeholder="0" step="0.1">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button id="item-cancel" class="btn-text">Cancel</button>
+                    <button id="item-confirm" class="btn-primary">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Entry -->
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>
