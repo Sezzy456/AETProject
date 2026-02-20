@@ -35,8 +35,14 @@ export function updateList(containerId, items) {
 }
 
 export function toggleConditionalSections(approach) {
+    console.log('toggleConditionalSections:', approach);
     const directSec = document.getElementById('section-direct');
     const capmSec = document.getElementById('section-capm');
+
+    if (!directSec || !capmSec) {
+        console.error('Missing conditional sections in HTML');
+        return;
+    }
 
     if (approach === 'direct') {
         directSec.classList.remove('hidden');

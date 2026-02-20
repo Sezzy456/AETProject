@@ -11,6 +11,16 @@ let currentAddItemType = null;
 let currentEditItemId = null;
 
 export function setupEventListeners() {
+    console.log('setupEventListeners: Initializing...');
+
+    // Initial UI Sync
+    try {
+        syncUIWithState();
+        console.log('setupEventListeners: Initial sync complete.');
+    } catch (err) {
+        console.warn('Initial sync partially failed or no data:', err);
+    }
+
     // Initial Investment Inputs
     setupInputListener('initial-inv', 'initialInvestment.amount');
     setupInputListener('opp-cost', 'initialInvestment.opportunityCost');
@@ -196,8 +206,16 @@ export function setupEventListeners() {
     });
 
     document.getElementById('btn-calculate').addEventListener('click', () => {
-        const projections = Calc.generateProjections(State.state);
-        UI.updateResultsTable(projections, State.state);
+        console.log('Run Calculations clicked. State:', State.state);
+        try {
+            const projections = Calc.generateProjections(State.state);
+            console.log('Projections generated:', projections);
+            UI.updateResultsTable(projections, State.state);
+            console.log('Results table updated successfully.');
+        } catch (err) {
+            console.error('Calculation or rendering failed:', err);
+            alert('An error occurred during calculation. Please check the console for details.');
+        }
     });
 
     // Initialize Sortable
@@ -281,6 +299,7 @@ function syncUIWithState() {
 
     const dr = State.state.discountRate;
     setVal('discount-approach', dr.approach);
+    UI.toggleConditionalSections(dr.approach);
     setVal('direct-rate', dr.directRate);
     setVal('capm-beta', dr.capm.beta);
     setVal('capm-riskless', dr.capm.risklessRate);

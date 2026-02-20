@@ -327,11 +327,16 @@
                                 <canvas id="finChart"></canvas>
                             </div>
                         </div>
-
                         <div class="interpretive-note">
                             <strong>Interactive Analysis</strong>
                             Adjust the sliders to see how the project handles capital volatility
                             and operational scale. Performance is simulated based on regional benchmarks.
+                        </div>
+
+                        <div style="margin-top: 1.5rem;">
+                            <a href="Financial Model/finance_model.html" class="nav-item active"
+                                style="display: block; width: 100%; padding: 1rem; border-radius: 12px; text-decoration: none; text-align: center;">Go
+                                to Detailed Financial Model &rarr;</a>
                         </div>
                     </div>
 
@@ -628,8 +633,14 @@
             initImpactChart();
             const hash = window.location.hash.substring(1);
             if (hash) {
-                const btn = document.querySelector(`.nav-links .nav-item[href="#${hash}"]`);
-                if (btn) switchView(hash, btn);
+                const buttons = document.querySelectorAll('.nav-links .nav-item');
+                let targetBtn = null;
+                buttons.forEach(btn => {
+                    if (btn.textContent.trim().toLowerCase() === hash.toLowerCase()) {
+                        targetBtn = btn;
+                    }
+                });
+                if (targetBtn) switchView(hash, targetBtn);
             }
         });
     </script>
