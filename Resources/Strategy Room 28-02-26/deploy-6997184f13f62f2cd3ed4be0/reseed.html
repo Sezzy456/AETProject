@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Reseeding Database...</title>
+</head>
+
+<body>
+    <h1>Reseeding Database...</h1>
+    <pre id="output">Log:\n</pre>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        import { strategyData } from './data.js';
+        import { SUPABASE_URL, SUPABASE_KEY } from './src/container.js';
+
+        const client = createClient(SUPABASE_URL, SUPABASE_KEY);
+        const out = document.getElementById('output');
+        function log(msg) {
+            console.log(msg);
+            out.textContent += msg + '\n';
+        }
+
+        async function reseed() {
+            log("Starting reseed...");
+
+            // 1. Delete
+            const { error: delErr } = await client.from('stakeholders').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+            if (delErr) log("Delete Error: " + delErr.message);
+            else log("Cleared old stakeholders.");
+
+            // 2. Prepare Data
+            const seedStakeholders = strategyData.stakeholders.map(s => ({
+                name: s.name,
+                role: s.role,
+                influence: s.influence,
+                interest: s.interest,
+                posture_current: s.posture.current,
+                posture_desired: s.posture.desired,
+                posture_status: s.posture.status,
+                narrative_hook: s.narrativeHook,
+                engagement_strategy: s.engagementStrategy,
+                owner: s.owner
+            }));
+
+            // 3. Insert
+            const { data, error } = await client.from('stakeholders').insert(seedStakeholders).select();
+
+            if (error) log("Insert Error: " + error.message);
+            else {
+                log("Success! Inserted " + data.length + " stakeholders.");
+                log("Stakeholders: " + data.map(d => d.name).join(', '));
+            }
+        }
+
+        reseed();
+    </script>
+</body>
+
+</html>

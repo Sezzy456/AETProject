@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AET Strategy Control Room</title>
+
+    <!-- External Dependencies (Zero-Build) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            darkMode: ['class', '.dark-mode'],
+            theme: {
+                extend: {
+                    colors: {
+                        slate: { 850: '#1e293b' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="transition-colors duration-300" style="background:var(--bg-app); color:var(--text-primary);">
+    <div id="app-container">
+        <aside id="sidebar" class="w-64 border-r flex flex-col p-6 shrink-0 z-20"
+            style="background:var(--bg-surface); border-color:var(--border-subtle);">
+            <div class="brand mb-8 pl-2 flex justify-between items-center w-full">
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight" style="color:var(--text-primary);">Strategy Room</h1>
+                    <span class="inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-1"
+                        style="color:var(--text-tertiary); background:var(--bg-subtle); border:1px solid var(--border-subtle);">Internal
+                        Only</span>
+                </div>
+                <!-- Mobile Menu Toggle -->
+                <button id="mobile-menu-toggle" class="md:hidden text-slate-500 hover:text-slate-900 p-2">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <nav id="sidebar-nav" class="flex flex-col gap-2 flex-1">
+                <button
+                    class="nav-item active flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all text-left"
+                    data-tab="spine">
+                    <i data-lucide="book-open" class="w-4 h-4"></i> Strategy Spine
+                </button>
+                <button
+                    class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all text-left"
+                    data-tab="ledger">
+                    <i data-lucide="users" class="w-4 h-4"></i> Stakeholder Ledger
+                </button>
+                <button
+                    class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all text-left"
+                    data-tab="log">
+                    <i data-lucide="history" class="w-4 h-4"></i> Activity Log
+                </button>
+                <button
+                    class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all text-left"
+                    data-tab="decisions">
+                    <i data-lucide="gavel" class="w-4 h-4"></i> Decision Register
+                </button>
+                <button
+                    class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all text-left"
+                    data-tab="alignment">
+                    <i data-lucide="target" class="w-4 h-4"></i> Action Alignment
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="theme-switch-container">
+                    <span class="theme-switch-label">Dark Mode</span>
+                    <label class="theme-switch">
+                        <input type="checkbox" id="theme-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="theme-switch-container" style="border-top: none; padding-top: 0;">
+                    <span class="theme-switch-label">Wide View</span>
+                    <label class="theme-switch">
+                        <input type="checkbox" id="width-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </aside>
+
+        <main id="main-content">
+            <!-- Content Injected via Module -->
+            <div class="flex items-center justify-center h-full text-slate-400">
+                Loading Strategy Core...
+            </div>
+        </main>
+    </div>
+
+    <!-- FAIL-SAFE TOGGLE INITIALIZATION (Immediate Response) -->
+    <script>
+            (function () {
+                const body = document.body;
+                const savedTheme = localStorage.getItem('theme');
+                const savedWidth = localStorage.getItem('pageWidth');
+
+                // Apply Dark Mode
+                if (savedTheme === 'bio' || savedTheme === 'dark') {
+                    body.classList.add('dark-mode');
+                }
+
+                // Apply Wide View
+                const appContainer = document.getElementById('app-container');
+                if (savedWidth === 'wide' && appContainer) {
+                    appContainer.classList.add('wide-view');
+                }
+
+                // Bind UI Sync
+                window.addEventListener('DOMContentLoaded', () => {
+                    const themeToggle = document.getElementById('theme-toggle');
+                    const widthToggle = document.getElementById('width-toggle');
+
+                    if (themeToggle) {
+                        themeToggle.checked = body.classList.contains('dark-mode');
+                        themeToggle.addEventListener('change', (e) => {
+                            const isDark = e.target.checked;
+                            body.classList.toggle('dark-mode', isDark);
+                            localStorage.setItem('theme', isDark ? 'bio' : 'light');
+                            // Custom event to notify app.js
+                            window.dispatchEvent(new CustomEvent('aet-theme-sync'));
+                        });
+                    }
+
+                    if (widthToggle && appContainer) {
+                        widthToggle.checked = appContainer.classList.contains('wide-view');
+                        widthToggle.addEventListener('change', (e) => {
+                            const isWide = e.target.checked;
+                            appContainer.classList.toggle('wide-view', isWide);
+                            localStorage.setItem('pageWidth', isWide ? 'wide' : 'boxed');
+                            window.dispatchEvent(new CustomEvent('aet-layout-sync'));
+                        });
+                    }
+                });
+            })();
+    </script>
+
+    <!-- PRODUCTION ARCHITECTURE -->
+    <!-- We load the Main Controller as a Module. This triggers the Repository Pattern loading. -->
+    <script type="module" src="./src/ui/app.js"
+        onerror="document.getElementById('main-content').innerHTML = '<div style=\'color:red; padding:20px; text-align:center;\'>Failed to load Application Module (app.js).<br>Check console for Import/Network errors.</div>'"></script>
+</body>
+
+</html>

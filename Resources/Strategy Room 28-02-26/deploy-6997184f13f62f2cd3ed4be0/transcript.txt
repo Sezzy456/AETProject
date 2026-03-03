@@ -1,0 +1,162 @@
+Clean Transcript – DecisionAid & C&E Strategy Web App Review
+
+Meeting: Bendigo Update
+Date: 23 January 2026
+Participants: Matt Griffin, Adam Riley, Rebecca Grant
+Purpose:
+	•	Review DecisionAid approach for Audit & Risk Committee
+	•	Review current state of Communications & Engagement (C&E) Strategy Web App
+	•	Identify gaps, usability issues, and future-direction features
+
+⸻
+
+1. Context: DecisionAid & ARC Presentation
+
+The group discussed positioning the DecisionAid as an interactive, scenario-based tool rather than a static deck. The intent is to:
+	•	Front-load councillors and ARC members with project benefits and context
+	•	Allow ARC members to independently explore scenarios they may not raise in the meeting
+	•	Shift focus away from single “headline numbers” toward levers, trade-offs, and control
+
+There was strong alignment that:
+	•	The tool should be sent ahead of ARC meetings
+	•	ARC members are technical but not marketers — language must be clear, simple, and literal
+	•	The tool must support both presentation mode and self-guided exploration
+
+⸻
+
+2. Strategy Web App – Overall Assessment
+
+The C&E Strategy Web App was reviewed live during the meeting.
+
+General reaction:
+	•	The concept is highly valuable and strongly supported
+	•	The idea of replacing static Word / Excel stakeholder documents with a living system resonated
+	•	Participants described it as something they “would actually use in meetings”
+
+The app is seen as the foundation for:
+	•	Stakeholder tracking
+	•	Action alignment
+	•	Decision logging
+	•	Future automated reporting (e.g. stakeholder consultation reports)
+
+⸻
+
+3. What Is Working Well
+
+Conceptual Design
+	•	The app reframes the C&E strategy as an operational system, not a document
+	•	Stakeholder ledger, activity log, decision register, and actions are the right primitives
+	•	Supports real-time use during meetings
+
+Stakeholder View
+	•	Ability to add stakeholders
+	•	Clear intent to link stakeholders to:
+	•	engagement history
+	•	actions
+	•	decisions
+	•	Recognised as a major improvement over Excel-based tracking
+
+Strategic Spine
+	•	Having strategy, messaging, and narrative embedded is valuable
+	•	Messages can (and should) evolve over time based on engagement
+
+⸻
+
+4. Current Functional Gaps Identified
+
+The following issues were explicitly observed during live use:
+
+Core Interaction Issues
+	•	Some buttons and actions do not work consistently
+	•	Adding actions sometimes fails
+	•	Decision register and action log are not fully functional
+	•	Items cannot reliably be deleted
+	•	Editing existing items is inconsistent
+
+Navigation & Usability
+	•	No clear ability to scroll in some views
+	•	Clicking a stakeholder does not consistently surface:
+	•	engagement history
+	•	outstanding actions
+	•	next steps
+	•	Mobile usability is limited
+
+Data Relationships
+	•	Stakeholders are not yet clearly linked to:
+	•	past meetings
+	•	decisions
+	•	actions
+	•	No consolidated “stakeholder history” view
+	•	No clear ownership assignment (who owns which stakeholder)
+
+⸻
+
+5. Features Explicitly Requested or Implied
+
+From discussion, the following capabilities were identified as high-value:
+
+Stakeholder Management
+	•	Clicking a stakeholder should show:
+	•	full engagement history
+	•	decisions involving them
+	•	actions assigned
+	•	next engagement or follow-up
+	•	Ability to assign internal owner per stakeholder
+	•	Ability to store basic contact details and roles
+
+Logging & Automation
+	•	Activity logs should:
+	•	feed automatically into decision registers and action lists
+	•	Decisions and actions should be:
+	•	created once
+	•	visible everywhere they are relevant
+	•	System should support future one-click reporting:
+	•	“Generate stakeholder consultation report”
+	•	“Summarise engagement by stakeholder”
+
+Workflow Intelligence (Future Direction)
+	•	The system should eventually recognise stakeholder relationships (e.g. onion-ring model)
+	•	When a key stakeholder is updated, the system should suggest:
+	•	who else needs to be informed
+	•	what follow-up actions may be required
+
+⸻
+
+6. Design Philosophy Reiterated
+
+The group emphasised several guiding principles:
+	•	Simple beats comprehensive — if it’s too complex, it won’t be used
+	•	The app must be:
+	•	fast
+	•	intuitive
+	•	forgiving
+	•	This is a working tool, not a showcase
+	•	Iteration is expected; perfection is not required immediately
+
+There was strong agreement that:
+	•	This app could become the equivalent of “Xero for stakeholder engagement”
+	•	AI should reduce admin load, not add to it
+	•	The system should feel like a command centre, not a form
+
+⸻
+
+7. Summary Direction for Next Iteration
+
+The Strategy Web App should evolve toward:
+	•	Fully interactive CRUD functionality (create, edit, delete everywhere)
+	•	Clear linking between:
+	•	stakeholders
+	•	activities
+	•	decisions
+	•	actions
+	•	Reliable usability across devices
+	•	A UX that supports live meeting use without friction
+
+The next build phase should focus on robustness, usability, and flow, not visual polish.
+
+⸻
+
+Source
+
+Cleaned and edited from meeting transcript:
+
