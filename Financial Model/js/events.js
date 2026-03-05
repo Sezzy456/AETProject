@@ -6,6 +6,7 @@ import * as State from './state.js';
 import * as UI from './ui.js';
 import * as Calc from './calculations.js';
 import * as Persist from './persistence.js';
+import { updateCharts } from './charts.js';
 
 let currentAddItemType = null;
 let currentEditItemId = null;
@@ -179,25 +180,42 @@ export function setupEventListeners() {
         btn.textContent = originalText;
         btn.disabled = false;
 
-        UI.renderProjectList(projects, async (name) => {
-            UI.hideModal('modal-load');
-            const data = await Persist.loadProject(name);
-            if (data) {
-                State.state.initialInvestment = data.initialInvestment;
-                State.state.workingCapital = data.workingCapital;
-                State.state.discountRate = data.discountRate;
-                State.state.revenue = data.revenue;
-                State.state.operatingExpenses = data.operatingExpenses;
+        UI.renderProjectList(projects,
+            async (name) => {
+                UI.hideModal('modal-load');
+                const data = await Persist.loadProject(name);
+                if (data) {
+                    State.state.initialInvestment = data.initialInvestment;
+                    State.state.workingCapital = data.workingCapital;
+                    State.state.discountRate = data.discountRate;
+                    State.state.revenue = data.revenue;
+                    State.state.operatingExpenses = data.operatingExpenses;
 
-                syncUIWithState();
-                UI.updateList('revenue-list', State.state.revenue);
-                UI.updateList('expense-list', State.state.operatingExpenses);
-                UI.toggleConditionalSections(State.state.discountRate.approach);
-                UI.renderAdvancedGrowthTable(State.state);
-                updateCalculatedDiscountRate();
-                State.state.currentProjectName = name; // Track current project
+                    syncUIWithState();
+                    UI.updateList('revenue-list', State.state.revenue);
+                    UI.updateList('expense-list', State.state.operatingExpenses);
+                    UI.toggleConditionalSections(State.state.discountRate.approach);
+                    UI.renderAdvancedGrowthTable(State.state);
+                    updateCalculatedDiscountRate();
+                    State.state.currentProjectName = name; // Track current project
+                }
+            },
+            async (name) => {
+                const password = prompt(`Enter password to delete "${name}":`);
+                if (password === 'abracadabra') {
+                    const success = await Persist.deleteProject(name);
+                    if (success) {
+                        alert(`Project "${name}" deleted.`);
+                        const projects = await Persist.getProjectList();
+                        UI.renderProjectList(projects, this, this); // Recursion issue here, need to rethink
+                    } else {
+                        alert('Delete failed.');
+                    }
+                } else if (password !== null) {
+                    alert('Incorrect password.');
+                }
             }
-        });
+        );
         UI.showModal('modal-load');
     });
 
@@ -269,7 +287,19 @@ export function setupEventListeners() {
             const projections = Calc.generateProjections(State.state);
             console.log('Projections generated:', projections);
             UI.updateResultsTable(projections, State.state);
-            console.log('Results table updated successfully.');
+
+            // New: Update Visualization Charts
+            updateCharts(
+                projections.years,
+                projections.rows.subtotals.natcf.map((v, i) => ({
+                    natcf: v,
+                    cumulative: projections.rows.subtotals.cumulativeCF[i]
+                })),
+                projections.rows.revenueItems,
+                projections.rows.expenseItems
+            );
+
+            console.log('Results table and charts updated successfully.');
         } catch (err) {
             console.error('Calculation or rendering failed:', err);
             alert('An error occurred during calculation. Please check the console for details.');

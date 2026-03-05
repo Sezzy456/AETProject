@@ -219,7 +219,7 @@ export function hideModal(id) {
     document.getElementById(id).classList.add('hidden');
 }
 
-export function renderProjectList(projects, onSelect) {
+export function renderProjectList(projects, onSelect, onDelete) {
     const container = document.getElementById('project-list');
     if (!container) return;
 
@@ -237,10 +237,14 @@ export function renderProjectList(projects, onSelect) {
         const div = document.createElement('div');
         div.className = 'project-item';
         div.innerHTML = `
-            <span class="project-name">${name}</span>
-            <button class="btn-primary-sm">Load</button>
+            <button class="project-name-btn">${name}</button>
+            <button class="btn-delete-project" title="Delete Project">×</button>
         `;
-        div.querySelector('button').addEventListener('click', () => onSelect(name));
+        div.querySelector('.project-name-btn').addEventListener('click', () => onSelect(name));
+        div.querySelector('.btn-delete-project').addEventListener('click', (e) => {
+            e.stopPropagation();
+            onDelete(name);
+        });
         listDiv.appendChild(div);
     });
 
