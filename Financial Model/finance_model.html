@@ -13,6 +13,8 @@
         rel="stylesheet">
     <!-- SortableJS for draggable lists -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
@@ -380,6 +382,19 @@
                 <div class="modal-actions">
                     <button id="item-cancel" class="btn-text">Cancel</button>
                     <button id="item-confirm" class="btn-primary">Add</button>
+                </div>
+            </div>
+        </div>
+        <!-- Overwrite Confirmation Modal -->
+        <div id="modal-overwrite" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-icon warning">!</div>
+                <h3>Project Already Exists</h3>
+                <p>A project named "<span id="overwrite-name-display"></span>" already exists. Do you want to overwrite
+                    it with your current changes?</p>
+                <div class="modal-actions">
+                    <button id="overwrite-cancel" class="btn-text">Cancel</button>
+                    <button id="overwrite-confirm" class="btn-primary danger">Overwrite</button>
                 </div>
             </div>
         </div>

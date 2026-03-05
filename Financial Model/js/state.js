@@ -32,7 +32,8 @@ export const state = {
         calculatedRate: 0
     },
     revenue: [], // Array of { id, label, value, growthRate, type: 'revenue' }
-    operatingExpenses: [] // Array of { id, label, value, growthRate, type: 'operating_expense' }
+    operatingExpenses: [], // Array of { id, label, value, growthRate, type: 'operating_expense' }
+    currentProjectName: '' // Keeps track of the loaded project
 };
 
 /**
@@ -70,9 +71,9 @@ export function addItem(type, item) {
  */
 export function removeItem(type, id) {
     if (type === 'revenue') {
-        state.revenue = state.revenue.filter(item => item.id !== id);
+        state.revenue = state.revenue.filter(item => String(item.id) !== String(id));
     } else {
-        state.operatingExpenses = state.operatingExpenses.filter(item => item.id !== id);
+        state.operatingExpenses = state.operatingExpenses.filter(item => String(item.id) !== String(id));
     }
 }
 
@@ -89,7 +90,7 @@ export function reorderItems(type, idOrder) {
  */
 export function updateItem(type, id, updates) {
     const list = type === 'revenue' ? 'revenue' : 'operatingExpenses';
-    const index = state[list].findIndex(item => item.id === id);
+    const index = state[list].findIndex(item => String(item.id) === String(id));
     if (index !== -1) {
         state[list][index] = { ...state[list][index], ...updates };
     }
@@ -100,7 +101,7 @@ export function updateItem(type, id, updates) {
  */
 export function setYearlyGrowth(type, id, yearlyGrowth) {
     const list = type === 'revenue' ? 'revenue' : 'operatingExpenses';
-    const index = state[list].findIndex(item => item.id === id);
+    const index = state[list].findIndex(item => String(item.id) === String(id));
     if (index !== -1) {
         state[list][index].yearlyGrowth = { ...state[list][index].yearlyGrowth, ...yearlyGrowth };
     }
