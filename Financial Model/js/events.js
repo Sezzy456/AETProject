@@ -167,10 +167,20 @@ export function setupEventListeners() {
     document.getElementById('item-cancel').addEventListener('click', () => UI.hideModal('modal-add-item'));
 
     // Action Buttons
-    document.getElementById('btn-open-load').addEventListener('click', () => {
-        const projects = Persist.getProjectList();
-        UI.renderProjectList(projects, (name) => {
-            const data = Persist.loadProject(name);
+    document.getElementById('btn-open-load').addEventListener('click', async () => {
+        const btn = document.getElementById('btn-open-load');
+        const originalText = btn.textContent;
+        btn.textContent = 'Loading...';
+        btn.disabled = true;
+
+        const projects = await Persist.getProjectList();
+
+        btn.textContent = originalText;
+        btn.disabled = false;
+
+        UI.renderProjectList(projects, async (name) => {
+            UI.hideModal('modal-load');
+            const data = await Persist.loadProject(name);
             if (data) {
                 State.state.initialInvestment = data.initialInvestment;
                 State.state.workingCapital = data.workingCapital;
@@ -182,8 +192,12 @@ export function setupEventListeners() {
                 UI.updateList('revenue-list', State.state.revenue);
                 UI.updateList('expense-list', State.state.operatingExpenses);
                 UI.toggleConditionalSections(State.state.discountRate.approach);
-                UI.hideModal('modal-load');
+                UI.renderAdvancedGrowthTable(State.state);
                 updateCalculatedDiscountRate();
+
+                // Auto-calculate after load
+                const projections = Calc.generateProjections(State.state);
+                UI.updateResultsTable(projections, State.state);
             }
         });
         UI.showModal('modal-load');
@@ -197,11 +211,24 @@ export function setupEventListeners() {
 
     document.getElementById('btn-save').addEventListener('click', () => UI.showModal('modal-save'));
     document.getElementById('modal-cancel').addEventListener('click', () => UI.hideModal('modal-save'));
-    document.getElementById('modal-confirm').addEventListener('click', () => {
+    document.getElementById('modal-confirm').addEventListener('click', async () => {
         const name = document.getElementById('project-name').value;
+        const confirmBtn = document.getElementById('modal-confirm');
         if (name) {
-            Persist.saveProject(name, State.state);
-            UI.hideModal('modal-save');
+            const originalText = confirmBtn.textContent;
+            confirmBtn.textContent = 'Saving...';
+            confirmBtn.disabled = true;
+
+            try {
+                await Persist.saveProject(name, State.state);
+                UI.hideModal('modal-save');
+                alert(`Project "${name}" saved successfully.`);
+            } catch (err) {
+                alert('Failed to save project. Check console for details.');
+            } finally {
+                confirmBtn.textContent = originalText;
+                confirmBtn.disabled = false;
+            }
         }
     });
 
