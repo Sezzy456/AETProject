@@ -686,6 +686,39 @@ td[data-deps] {
     color: var(--text);
 }
 
+.modal-icon.warning {
+    background: rgba(255, 152, 0, 0.1);
+    color: #ff9800;
+}
+
+.modal-content p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.btn-primary.danger {
+    background: #ff5252;
+}
+
+.btn-primary.danger:hover {
+    background: #ff1744;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 82, 82, 0.3);
+}
+
+.modal-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0 auto 1.5rem;
+}
 .btn-primary-sm {
     background: var(--primary);
     color: white;

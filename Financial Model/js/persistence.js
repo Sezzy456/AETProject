@@ -81,7 +81,10 @@ export async function saveProject(name, state) {
                 .select()
                 .single();
 
-            if (fError) throw fError;
+            if (fError) {
+                console.error('SUPABASE FACTOR ERROR:', fError.message, fError.details);
+                throw fError;
+            }
 
             // 4. Save Yearly Growth Rates if present
             if (item.yearlyGrowth && Object.keys(item.yearlyGrowth).length > 0) {
@@ -92,7 +95,10 @@ export async function saveProject(name, state) {
                 }));
 
                 const { error: gError } = await supabase.from('tbl_growth_years').insert(growthData);
-                if (gError) throw gError;
+                if (gError) {
+                    console.error('SUPABASE GROWTH ERROR:', gError.message, gError.details);
+                    throw gError;
+                }
             }
         }
 

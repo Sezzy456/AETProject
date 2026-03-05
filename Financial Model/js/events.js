@@ -215,32 +215,44 @@ export function setupEventListeners() {
         UI.showModal('modal-save');
     });
     document.getElementById('modal-cancel').addEventListener('click', () => UI.hideModal('modal-save'));
+    document.getElementById('overwrite-cancel').addEventListener('click', () => UI.hideModal('modal-overwrite'));
+    document.getElementById('overwrite-confirm').addEventListener('click', async () => {
+        UI.hideModal('modal-overwrite');
+        const name = document.getElementById('overwrite-name-display').textContent;
+        await executeSave(name);
+    });
+
+    // Helper to separate save execution logic
+    async function executeSave(name) {
+        const confirmBtn = document.getElementById('modal-confirm');
+        const originalText = confirmBtn.textContent;
+        confirmBtn.textContent = 'Saving...';
+        confirmBtn.disabled = true;
+
+        try {
+            await Persist.saveProject(name, State.state);
+            State.state.currentProjectName = name;
+            UI.hideModal('modal-save');
+            alert(`Project "${name}" saved successfully.`);
+        } catch (err) {
+            console.error('Save failed:', err);
+            alert(`Failed to save project. Error: ${err.message || 'Unknown error'}`);
+        } finally {
+            confirmBtn.textContent = originalText;
+            confirmBtn.disabled = false;
+        }
+    }
+
     document.getElementById('modal-confirm').addEventListener('click', async () => {
         const name = document.getElementById('project-name').value.trim();
-        const confirmBtn = document.getElementById('modal-confirm');
         if (name) {
-            // Check if project exists to warn about overwrite
             const existingProjects = await Persist.getProjectList();
             if (existingProjects.includes(name)) {
-                const proceed = confirm(`A project named "${name}" already exists. Do you want to overwrite it?`);
-                if (!proceed) return;
+                document.getElementById('overwrite-name-display').textContent = name;
+                UI.showModal('modal-overwrite');
+                return;
             }
-
-            const originalText = confirmBtn.textContent;
-            confirmBtn.textContent = 'Saving...';
-            confirmBtn.disabled = true;
-
-            try {
-                await Persist.saveProject(name, State.state);
-                State.state.currentProjectName = name; // Update current project name on success
-                UI.hideModal('modal-save');
-                alert(`Project "${name}" saved successfully.`);
-            } catch (err) {
-                alert('Failed to save project. Check console for details.');
-            } finally {
-                confirmBtn.textContent = originalText;
-                confirmBtn.disabled = false;
-            }
+            await executeSave(name);
         }
     });
 
