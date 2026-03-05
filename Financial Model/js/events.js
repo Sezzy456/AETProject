@@ -79,7 +79,8 @@ export function setupEventListeners() {
 
         if (btn.classList.contains('edit-item')) {
             const list = type === 'revenue' ? State.state.revenue : State.state.operatingExpenses;
-            const item = list.find(i => i.id === id);
+            // Use loose equality or cast to string as ID from DOM is always a string
+            const item = list.find(i => String(i.id) === String(id));
             if (item) {
                 currentAddItemType = type;
                 currentEditItemId = id;
@@ -194,10 +195,7 @@ export function setupEventListeners() {
                 UI.toggleConditionalSections(State.state.discountRate.approach);
                 UI.renderAdvancedGrowthTable(State.state);
                 updateCalculatedDiscountRate();
-
-                // Auto-calculate after load
-                const projections = Calc.generateProjections(State.state);
-                UI.updateResultsTable(projections, State.state);
+                State.state.currentProjectName = name; // Track current project
             }
         });
         UI.showModal('modal-load');
@@ -209,18 +207,32 @@ export function setupEventListeners() {
         loadARRC1Sample();
     });
 
-    document.getElementById('btn-save').addEventListener('click', () => UI.showModal('modal-save'));
+    document.getElementById('btn-save').addEventListener('click', () => {
+        // Pre-fill modal with current project name if exists
+        if (State.state.currentProjectName) {
+            document.getElementById('project-name').value = State.state.currentProjectName;
+        }
+        UI.showModal('modal-save');
+    });
     document.getElementById('modal-cancel').addEventListener('click', () => UI.hideModal('modal-save'));
     document.getElementById('modal-confirm').addEventListener('click', async () => {
-        const name = document.getElementById('project-name').value;
+        const name = document.getElementById('project-name').value.trim();
         const confirmBtn = document.getElementById('modal-confirm');
         if (name) {
+            // Check if project exists to warn about overwrite
+            const existingProjects = await Persist.getProjectList();
+            if (existingProjects.includes(name)) {
+                const proceed = confirm(`A project named "${name}" already exists. Do you want to overwrite it?`);
+                if (!proceed) return;
+            }
+
             const originalText = confirmBtn.textContent;
             confirmBtn.textContent = 'Saving...';
             confirmBtn.disabled = true;
 
             try {
                 await Persist.saveProject(name, State.state);
+                State.state.currentProjectName = name; // Update current project name on success
                 UI.hideModal('modal-save');
                 alert(`Project "${name}" saved successfully.`);
             } catch (err) {
