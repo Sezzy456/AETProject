@@ -23,31 +23,33 @@ export async function saveProject(name, state) {
     try {
         // 1. Upsert into tbl_Saved_Projects
         const projectData = {
-            sp_name: name,
-            sp_description: `Saved from Financial Model at ${new Date().toLocaleString()}`,
-            sp_approach: state.discountRate.approach === 'direct' ? 1 : 2,
-            sp_direct_discount_rate: state.discountRate.directRate,
-            sp_beta: state.discountRate.capm.beta,
-            sp_riskless_rate: state.discountRate.capm.risklessRate,
-            sp_market_risk_premium: state.discountRate.capm.marketRiskPremium,
-            sp_debt_ratio: state.discountRate.capm.debtRatio,
-            sp_cost_of_borrowing: state.discountRate.capm.costOfBorrowing,
-            sp_working_capital_initial_investment: state.workingCapital.initial,
-            sp_working_capital_percentage: state.workingCapital.percentageOfRevenue,
-            sp_salvageable_fraction: state.workingCapital.salvageFraction,
-            sp_tax_rate: state.discountRate.capm.taxRate,
-            sp_initial_investment: state.initialInvestment.amount,
-            sp_opportunity_cost: state.initialInvestment.opportunityCost,
-            sp_lifetime: state.initialInvestment.lifetime,
-            sp_salvage_value: state.initialInvestment.salvageValue,
-            sp_depreciation_method_id: state.initialInvestment.depreciationMethod === 'ddb' ? 2 : 1,
-            sp_tax_credit: state.initialInvestment.taxCredit,
-            sp_other_invest: state.initialInvestment.otherInvestments
+            SP_name: name,
+            SP_description: `Saved from Financial Model at ${new Date().toLocaleString()}`,
+            SP_approach: state.discountRate.approach === 'direct' ? 1 : 2,
+            SP_direct_discount_rate: state.discountRate.directRate,
+            SP_beta: state.discountRate.capm.beta,
+            SP_riskless_rate: state.discountRate.capm.risklessRate,
+            SP_market_risk_premium: state.discountRate.capm.marketRiskPremium,
+            SP_debt_ratio: state.discountRate.capm.debtRatio,
+            SP_cost_of_borrowing: state.discountRate.capm.costOfBorrowing,
+            SP_working_capital_initial_investment: state.workingCapital.initial,
+            SP_working_capital_percentage: state.workingCapital.percentageOfRevenue,
+            SP_salvageable_fraction: state.workingCapital.salvageFraction,
+            SP_tax_rate: state.discountRate.capm.taxRate,
+            SP_initial_investment: state.initialInvestment.amount,
+            SP_opportunity_cost: state.initialInvestment.opportunityCost,
+            SP_lifetime: state.initialInvestment.lifetime,
+            SP_salvage_value: state.initialInvestment.salvageValue,
+            SP_Depreciation_Method_ID: state.initialInvestment.depreciationMethod === 'ddb' ? 2 : 1,
+            SP_tax_credit: state.initialInvestment.taxCredit,
+            SP_other_invest: state.initialInvestment.otherInvestments
         };
 
         const { data: project, error: pError } = await supabase
-            .from('tbl_saved_projects')
-            .upsert(projectData, { onConflict: 'sp_name' })
+            .from('tbl_Saved_Projects')
+            .upsert(projectData, { onConflict: 'SP_name' })
+            .select()
+            .single();
         if (pError) {
             console.error('SUPABASE SAVE ERROR (tbl_saved_projects):', pError.message, pError.details, pError.hint);
             throw pError;
@@ -57,12 +59,12 @@ export async function saveProject(name, state) {
             throw new Error('Project saved but no data returned. Check RLS or unique constraints.');
         }
 
-        const projectId = project.sp_id || project.SP_ID;
+        const projectId = project.SP_ID;
 
         // 2. Clear existing factors (and cascading growth units) to ensure a clean state
         // In a more complex app, we might update individual items, but for now,
         // refreshing the list is most reliable for consistency with state.js.
-        await supabase.from('tbl_other_factors').delete().eq('of_saved_projects_id', projectId);
+        await supabase.from('tbl_Other_Factors').delete().eq('OF_Saved_Projects_ID', projectId);
 
         // 3. Save Revenue and Operating Expenses
         const allItems = [
@@ -72,15 +74,15 @@ export async function saveProject(name, state) {
 
         for (const item of allItems) {
             const factorData = {
-                of_saved_projects_id: projectId,
-                of_type: item.type_id,
-                of_label: item.label,
-                of_value: parseFloat(item.value),
-                of_default_growth_rate: parseFloat(item.growthRate)
+                OF_Saved_Projects_ID: projectId,
+                OF_type: item.type_id,
+                OF_label: item.label,
+                OF_value: parseFloat(item.value),
+                OF_default_growth_rate: parseFloat(item.growthRate)
             };
 
             const { data: factor, error: fError } = await supabase
-                .from('tbl_other_factors')
+                .from('tbl_Other_Factors')
                 .insert(factorData)
                 .select()
                 .single();
@@ -93,12 +95,12 @@ export async function saveProject(name, state) {
             // 4. Save Yearly Growth Rates if present
             if (item.yearlyGrowth && Object.keys(item.yearlyGrowth).length > 0) {
                 const growthData = Object.entries(item.yearlyGrowth).map(([year, rate]) => ({
-                    gy_other_factors_id: factor.of_id,
-                    gy_year: parseInt(year),
-                    gy_growth_rate: parseFloat(rate)
+                    GY_Other_Factors_ID: factor.OF_ID,
+                    GY_year: parseInt(year),
+                    GY_growth_rate: parseFloat(rate)
                 }));
 
-                const { error: gError } = await supabase.from('tbl_growth_years').insert(growthData);
+                const { error: gError } = await supabase.from('tbl_Growth_Years').insert(growthData);
                 if (gError) {
                     console.error('SUPABASE GROWTH ERROR:', gError.message, gError.details);
                     throw gError;
@@ -123,51 +125,51 @@ export async function loadProject(name) {
     try {
         // 1. Fetch project root
         const { data: project, error: pError } = await supabase
-            .from('tbl_saved_projects')
+            .from('tbl_Saved_Projects')
             .select('*')
-            .eq('sp_name', name)
+            .eq('SP_name', name)
             .single();
 
         if (pError) throw pError;
 
         // 2. Fetch all factors and their growth years
         const { data: factors, error: fError } = await supabase
-            .from('tbl_other_factors')
+            .from('tbl_Other_Factors')
             .select(`
                 *,
-                tbl_growth_years (*)
+                tbl_Growth_Years (*)
             `)
-            .eq('of_saved_projects_id', project.sp_id);
+            .eq('OF_Saved_Projects_ID', project.SP_ID);
 
         if (fError) throw fError;
 
         // 3. Map back to state.js structure
         const newState = {
             initialInvestment: {
-                amount: project.sp_initial_investment,
-                opportunityCost: project.sp_opportunity_cost,
-                lifetime: project.sp_lifetime,
-                salvageValue: project.sp_salvage_value,
-                depreciationMethod: project.sp_depreciation_method_id === 2 ? 'ddb' : 'straight-line',
-                taxCredit: project.sp_tax_credit,
-                otherInvestments: project.sp_other_invest,
+                amount: project.SP_initial_investment,
+                opportunityCost: project.SP_opportunity_cost,
+                lifetime: project.SP_lifetime,
+                salvageValue: project.SP_salvage_value,
+                depreciationMethod: project.SP_Depreciation_Method_ID === 2 ? 'ddb' : 'straight-line',
+                taxCredit: project.SP_tax_credit,
+                otherInvestments: project.SP_other_invest,
                 ddbFactor: 200 // Default or retrieve if added to schema
             },
             workingCapital: {
-                initial: project.sp_working_capital_initial_investment,
-                percentageOfRevenue: project.sp_working_capital_percentage,
-                salvageFraction: project.sp_salvageable_fraction
+                initial: project.SP_working_capital_initial_investment,
+                percentageOfRevenue: project.SP_working_capital_percentage,
+                salvageFraction: project.SP_salvageable_fraction
             },
             discountRate: {
-                approach: project.sp_approach === 1 ? 'direct' : 'capm',
-                directRate: project.sp_direct_discount_rate,
+                approach: project.SP_approach === 1 ? 'direct' : 'capm',
+                directRate: project.SP_direct_discount_rate,
                 capm: {
-                    beta: project.sp_beta,
-                    risklessRate: project.sp_riskless_rate,
-                    marketRiskPremium: project.sp_market_risk_premium,
-                    debtRatio: project.sp_debt_ratio,
-                    costOfBorrowing: project.sp_cost_of_borrowing,
-                    taxRate: project.sp_tax_rate
+                    beta: project.SP_beta,
+                    risklessRate: project.SP_riskless_rate,
+                    marketRiskPremium: project.SP_market_risk_premium,
+                    debtRatio: project.SP_debt_ratio,
+                    costOfBorrowing: project.SP_cost_of_borrowing,
+                    taxRate: project.SP_tax_rate
                 },
                 calculatedRate: 0 // Will be recalculated by UI
             },
@@ -177,16 +179,19 @@ export async function loadProject(name) {
 
         factors.forEach(f => {
             const item = {
-                id: f.of_id, // Use DB ID
-                label: f.of_label,
-                value: f.of_value,
-                growthRate: f.of_default_growth_rate,
-                type: f.of_type === 1 ? 'revenue' : 'operating_expense',
+                id: f.OF_ID, // Use DB ID
+                label: f.OF_label,
+                value: f.OF_value,
+                growthRate: f.OF_default_growth_rate,
+                type: f.OF_type === 1 ? 'revenue' : 'operating_expense',
                 yearlyGrowth: {}
             };
 
-            f.tbl_growth_years.forEach(g => {
-                item.yearlyGrowth[g.gy_year] = g.gy_growth_rate;
+            const growthYears = f.tbl_Growth_Years || f.tbl_growth_years || [];
+            growthYears.forEach(g => {
+                const year = g.GY_year || g.gy_year;
+                const rate = g.GY_growth_rate || g.gy_growth_rate;
+                item.yearlyGrowth[year] = rate;
             });
 
             if (item.type === 'revenue') {
@@ -211,12 +216,12 @@ export async function getProjectList() {
 
     try {
         const { data, error } = await supabase
-            .from('tbl_saved_projects')
-            .select('sp_name')
-            .order('sp_name');
+            .from('tbl_Saved_Projects')
+            .select('SP_name')
+            .order('SP_name');
 
         if (error) throw error;
-        return data.map(p => p.sp_name);
+        return data.map(p => p.SP_name);
     } catch (err) {
         console.error('Failed to fetch project list:', err);
         return [];
