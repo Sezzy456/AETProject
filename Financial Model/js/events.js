@@ -215,12 +215,19 @@ export function setupEventListeners() {
         UI.showModal('modal-save');
     });
     document.getElementById('modal-cancel').addEventListener('click', () => UI.hideModal('modal-save'));
-    document.getElementById('overwrite-cancel').addEventListener('click', () => UI.hideModal('modal-overwrite'));
-    document.getElementById('overwrite-confirm').addEventListener('click', async () => {
-        UI.hideModal('modal-overwrite');
-        const name = document.getElementById('overwrite-name-display').textContent;
-        await executeSave(name);
-    });
+
+    // Custom Overwrite Confirmation logic (defensive check)
+    const overwriteCancel = document.getElementById('overwrite-cancel');
+    const overwriteConfirm = document.getElementById('overwrite-confirm');
+    if (overwriteCancel && overwriteConfirm) {
+        overwriteCancel.addEventListener('click', () => UI.hideModal('modal-overwrite'));
+        overwriteConfirm.addEventListener('click', async () => {
+            UI.hideModal('modal-overwrite');
+            const nameEl = document.getElementById('overwrite-name-display');
+            const name = nameEl ? nameEl.textContent : '';
+            await executeSave(name);
+        });
+    }
 
     // Helper to separate save execution logic
     async function executeSave(name) {

@@ -385,6 +385,19 @@
                 </div>
             </div>
         </div>
+        <!-- Overwrite Confirmation Modal -->
+        <div id="modal-overwrite" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-icon warning">!</div>
+                <h3>Project Already Exists</h3>
+                <p>A project named "<span id="overwrite-name-display"></span>" already exists. Do you want to overwrite
+                    it with your current changes?</p>
+                <div class="modal-actions">
+                    <button id="overwrite-cancel" class="btn-text">Cancel</button>
+                    <button id="overwrite-confirm" class="btn-primary danger">Overwrite</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Script Entry -->

@@ -48,12 +48,16 @@ export async function saveProject(name, state) {
         const { data: project, error: pError } = await supabase
             .from('tbl_saved_projects')
             .upsert(projectData, { onConflict: 'sp_name' })
-            .select()
-            .single();
+        if (pError) {
+            console.error('SUPABASE SAVE ERROR (tbl_saved_projects):', pError.message, pError.details, pError.hint);
+            throw pError;
+        }
 
-        if (pError) throw pError;
+        if (!project) {
+            throw new Error('Project saved but no data returned. Check RLS or unique constraints.');
+        }
 
-        const projectId = project.sp_id;
+        const projectId = project.sp_id || project.SP_ID;
 
         // 2. Clear existing factors (and cascading growth units) to ensure a clean state
         // In a more complex app, we might update individual items, but for now,
