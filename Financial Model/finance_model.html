@@ -399,11 +399,31 @@
                     <button id="overwrite-confirm" class="btn-primary danger">Overwrite</button>
                 </div>
             </div>
+            <section id="charts-area" class="results-container hidden full-width">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Financial Visualizations</h2>
+                    </div>
+                    <div class="card-body charts-grid">
+                        <div class="chart-container">
+                            <h3>Annual Net Cash Flows</h3>
+                            <canvas id="chart-cashflow"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Cumulative Cash Position</h3>
+                            <canvas id="chart-cumulative"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Revenue vs. Operating Expenses</h3>
+                            <canvas id="chart-comparison"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
-    </div>
 
-    <!-- Script Entry -->
-    <script type="module" src="js/main.js"></script>
+        <!-- Script Entry -->
+        <script type="module" src="js/main.js"></script>
 </body>
 
 </html>

@@ -180,42 +180,47 @@ export function setupEventListeners() {
         btn.textContent = originalText;
         btn.disabled = false;
 
-        UI.renderProjectList(projects,
-            async (name) => {
-                UI.hideModal('modal-load');
-                const data = await Persist.loadProject(name);
-                if (data) {
-                    State.state.initialInvestment = data.initialInvestment;
-                    State.state.workingCapital = data.workingCapital;
-                    State.state.discountRate = data.discountRate;
-                    State.state.revenue = data.revenue;
-                    State.state.operatingExpenses = data.operatingExpenses;
+        async function refreshProjectList() {
+            const projects = await Persist.getProjectList();
+            UI.renderProjectList(projects,
+                async (name) => {
+                    UI.hideModal('modal-load');
+                    const data = await Persist.loadProject(name);
+                    if (data) {
+                        State.state.initialInvestment = data.initialInvestment;
+                        State.state.workingCapital = data.workingCapital;
+                        State.state.discountRate = data.discountRate;
+                        State.state.revenue = data.revenue;
+                        State.state.operatingExpenses = data.operatingExpenses;
 
-                    syncUIWithState();
-                    UI.updateList('revenue-list', State.state.revenue);
-                    UI.updateList('expense-list', State.state.operatingExpenses);
-                    UI.toggleConditionalSections(State.state.discountRate.approach);
-                    UI.renderAdvancedGrowthTable(State.state);
-                    updateCalculatedDiscountRate();
-                    State.state.currentProjectName = name; // Track current project
-                }
-            },
-            async (name) => {
-                const password = prompt(`Enter password to delete "${name}":`);
-                if (password === 'abracadabra') {
-                    const success = await Persist.deleteProject(name);
-                    if (success) {
-                        alert(`Project "${name}" deleted.`);
-                        const projects = await Persist.getProjectList();
-                        UI.renderProjectList(projects, this, this); // Recursion issue here, need to rethink
-                    } else {
-                        alert('Delete failed.');
+                        syncUIWithState();
+                        UI.updateList('revenue-list', State.state.revenue);
+                        UI.updateList('expense-list', State.state.operatingExpenses);
+                        UI.toggleConditionalSections(State.state.discountRate.approach);
+                        UI.renderAdvancedGrowthTable(State.state);
+                        updateCalculatedDiscountRate();
+                        State.state.currentProjectName = name;
                     }
-                } else if (password !== null) {
-                    alert('Incorrect password.');
+                },
+                async (name) => {
+                    const password = prompt(`Enter password to delete "${name}":`);
+                    if (password === 'abracadabra') {
+                        const success = await Persist.deleteProject(name);
+                        if (success) {
+                            alert(`Project "${name}" deleted.`);
+                            refreshProjectList();
+                        } else {
+                            alert('Delete failed.');
+                        }
+                    } else if (password !== null) {
+                        alert('Incorrect password.');
+                    }
                 }
-            }
-        );
+            );
+        }
+
+        await refreshProjectList();
+        UI.showModal('modal-load');
         UI.showModal('modal-load');
     });
 

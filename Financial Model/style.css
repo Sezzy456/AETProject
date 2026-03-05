@@ -719,6 +719,7 @@ td[data-deps] {
     font-weight: bold;
     margin: 0 auto 1.5rem;
 }
+
 .btn-primary-sm {
     background: var(--primary);
     color: white;
@@ -785,4 +786,56 @@ td[data-deps] {
     font-weight: 400;
     color: var(--text-muted);
     margin-top: 0.25rem;
+}
+
+/* Charts */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    padding: 1rem;
+}
+
+.chart-container {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+}
+
+.chart-container h3 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    color: var(--accent);
+    text-align: center;
+}
+
+/* Project List Deletion */
+.btn-delete-project {
+    background: none;
+    border: none;
+    color: #ff4d4d;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    opacity: 0.6;
+    transition: all 0.2s;
+    margin-left: 0.5rem;
+}
+
+.btn-delete-project:hover {
+    opacity: 1;
+    background: rgba(255, 77, 77, 0.1);
+}
+
+.project-name-btn {
+    border: none;
+    background: none;
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+    text-align: left;
+    flex-grow: 1;
 }
