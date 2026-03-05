@@ -221,7 +221,6 @@ export function setupEventListeners() {
 
         await refreshProjectList();
         UI.showModal('modal-load');
-        UI.showModal('modal-load');
     });
 
     document.getElementById('load-cancel').addEventListener('click', () => UI.hideModal('modal-load'));
