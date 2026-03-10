@@ -791,23 +791,32 @@ td[data-deps] {
 /* Charts */
 .charts-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 2rem;
-    padding: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 2.5rem;
+    padding: 1.5rem;
 }
 
 .chart-container {
-    background: rgba(255, 255, 255, 0.03);
+    background: #ffffff;
+    border: 1px solid var(--border);
     border-radius: 12px;
     padding: 1.5rem;
-    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.chart-container:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
 }
 
 .chart-container h3 {
-    font-size: 1rem;
-    margin-bottom: 1rem;
-    color: var(--accent);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 1.25rem;
     text-align: center;
+    font-family: 'Space Grotesk', sans-serif;
 }
 
 /* Project List Deletion */

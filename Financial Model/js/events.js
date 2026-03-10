@@ -293,15 +293,7 @@ export function setupEventListeners() {
             UI.updateResultsTable(projections, State.state);
 
             // New: Update Visualization Charts
-            updateCharts(
-                projections.years,
-                projections.rows.subtotals.natcf.map((v, i) => ({
-                    natcf: v,
-                    cumulative: projections.rows.subtotals.cumulativeCF[i]
-                })),
-                projections.rows.revenueItems,
-                projections.rows.expenseItems
-            );
+            updateCharts(projections, State.state);
 
             console.log('Results table and charts updated successfully.');
         } catch (err) {

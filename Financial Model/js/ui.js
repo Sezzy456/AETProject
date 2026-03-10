@@ -1,3 +1,4 @@
+console.log('UI.js: v1.2 loaded');
 export function renderListItem(item) {
     const div = document.createElement('div');
     div.className = 'list-item';
