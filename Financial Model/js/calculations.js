@@ -294,14 +294,14 @@ export function generateProjections(state) {
         projection.rows.bookValue.end.push(currentBookValue);
 
         trace[key('Book Value (Initial)', t)] = {
-            formula: t === 0 ? 'Initial Investment' : 'Previous Year End Book Value',
-            substituted: Math.round(bvStart).toLocaleString(),
+            formula: t === 0 ? 'Initial Investment' : 'Previous Year End Book Value + New Investment',
+            substituted: t === 0 ? Math.round(bvStart).toLocaleString() : `${Math.round(currentBookValue).toLocaleString()} + ${Math.round(currentYearInv).toLocaleString()}`,
             deps: t === 0 ? [] : [['Book Value (End)', t - 1]]
         };
         trace[key('Depreciation', t)] = {
-            formula: deprMethod === 'straight-line' ? 'Initial Investment / Lifetime' : 'Start Book Value * (DDB Factor / Lifetime)',
-            substituted: deprMethod === 'straight-line' ? `${Math.round(initialAssetValue).toLocaleString()} / ${lifetime}` : `${Math.round(bvStart).toLocaleString()} * (${ddbFactor} / ${lifetime})`,
-            deps: deprMethod === 'straight-line' ? [] : [['Book Value (Initial)', t]]
+            formula: deprMethod === 'straight-line' ? 'Start Book Value / Remaining Life' : 'Start Book Value * (DDB Factor / Lifetime)',
+            substituted: deprMethod === 'straight-line' ? `${Math.round(bvStart).toLocaleString()} / ${Math.max(1, lifetime - t + 1)}` : `${Math.round(bvStart).toLocaleString()} * (${ddbFactor} / ${lifetime})`,
+            deps: deprMethod === 'straight-line' ? [['Book Value (Initial)', t]] : [['Book Value (Initial)', t]]
         };
         trace[key('Book Value (End)', t)] = {
             formula: 'Start Book Value - Depreciation',

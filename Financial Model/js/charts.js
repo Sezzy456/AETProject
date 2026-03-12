@@ -23,7 +23,8 @@ export function updateCharts(projection, state) {
     const labelsNoY0 = years.filter(y => y > 0).map(y => `Year ${y}`);
 
     // 1. Annual Net Cash Flows
-    renderCashflowChart(labels, projection.rows.subtotals.natcf);
+    const totalFlows = projection.internal ? projection.internal.totalCashFlows : projection.rows.subtotals.natcf;
+    renderCashflowChart(labels, totalFlows);
 
     // 2. Cumulative Cash Position
     renderCumulativeChart(labels, projection.rows.subtotals.cumulativeCF);

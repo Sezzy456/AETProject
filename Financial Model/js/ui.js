@@ -267,28 +267,33 @@ export function renderProjectList(projects, onSelect, onDelete) {
  */
 export function renderAdvancedInvestmentTable(state) {
     const wrapper = document.getElementById('advanced-investment-table-wrapper');
-    const lifetime = state.initialInvestment.lifetime || 5;
-    const startYear = state.initialInvestment.startYear || 0;
+    const lifetime = parseInt(state.initialInvestment.lifetime || 5, 10);
+    const startYear = parseInt(state.initialInvestment.startYear || 0, 10);
 
-    // We render columns from startYear up to startYear + lifetime
-    // e.g. if startYear is 1 and lifetime is 5, we show Year 1 to Year 5.
-    // If startYear is 0 and lifetime is 5, we show Year 0 to Year 5.
-    const startIdx = parseInt(startYear, 10);
-    const endIdx = startIdx + parseInt(lifetime, 10);
+    // Total columns should equal lifetime + 1 (Years 0 to 5 is 6 columns, Years 1 to 5 is 5 cols)
+    const len = startYear === 0 ? lifetime + 1 : lifetime;
 
     let html = `<table class="growth-table">
         <thead>
             <tr>
                 <th class="sticky-col">Investment</th>
-                ${Array.from({ length: endIdx - startIdx + 1 }, (_, i) => `<th>Year ${startIdx + i}</th>`).join('')}
+                ${Array.from({ length: len }, (_, i) => `<th>Year ${startYear + i} ($)</th>`).join('')}
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td class="sticky-col">Amount ($)</td>
-                ${Array.from({ length: endIdx - startIdx + 1 }, (_, i) => {
-        const year = startIdx + i;
-        const val = state.initialInvestment.annualInvestments[year] || '';
+                <td class="sticky-col">Amount</td>
+                ${Array.from({ length: len }, (_, i) => {
+        const year = startYear + i;
+
+        // Default to state first, but if undefined and this is the start year, prefill to initial inv base amount
+        let val = state.initialInvestment.annualInvestments[year];
+        if (val === undefined && i === 0) {
+            val = state.initialInvestment.amount || '';
+        } else if (val === undefined) {
+            val = ''; // empty for other years
+        }
+
         return `<td>
                                 <input type="number" 
                                        class="investment-input" 
