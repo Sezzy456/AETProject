@@ -132,7 +132,7 @@ export function updateResultsTable(projection, state) {
     html += renderRow('EBT(1-t) / NOPAT', projection.rows.subtotals.nopat, true, false, "Net Operating Profit After Tax: The earnings of the company after operations but before financing costs.", "EBT(1-t) / NOPAT");
 
     // Cashflow Reconciliation (Moved beneath NOPAT per Excel alignment)
-    html += renderRow('+ Depreciation', projection.rows.subtotals.depreciationAddBack, false, false, "Non-cash add back");
+    html += renderRow('+ Depreciation', projection.rows.subtotals.depreciationAddBack, false, false, "", "Depreciation");
     html += renderRow('- Δ Working Capital', projection.rows.subtotals.deltaWorkingCapital, false, false, "Yearly change in Working Capital");
     html += renderRow('- Capital Expenditure / Net Investment', projection.rows.subtotals.capEx, false, false, "Year 0: Net Investment + WC + Opp Cost", "CapEx");
     html += renderRow('NATCF', projection.rows.subtotals.natcf, true, false, "Adjusted Cash Flow calculation", "NATCF");

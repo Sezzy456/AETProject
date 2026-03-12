@@ -23,8 +23,7 @@ export function updateCharts(projection, state) {
     const labelsNoY0 = years.filter(y => y > 0).map(y => `Year ${y}`);
 
     // 1. Annual Net Cash Flows
-    const totalFlows = projection.internal ? projection.internal.totalCashFlows : projection.rows.subtotals.natcf;
-    renderCashflowChart(labels, totalFlows);
+    renderCashflowChart(labels, projection);
 
     // 2. Cumulative Cash Position
     renderCumulativeChart(labels, projection.rows.subtotals.cumulativeCF);
@@ -50,22 +49,43 @@ export function updateCharts(projection, state) {
     document.getElementById('charts-area').classList.remove('hidden');
 }
 
-function renderCashflowChart(labels, natcf) {
+function renderCashflowChart(labels, projection) {
     const ctx = document.getElementById('chart-cashflow').getContext('2d');
     if (charts.cashflow) charts.cashflow.destroy();
+
+    // Separate ops cash flow and investment (capex) to show stacking
+    const natcf = projection.rows.subtotals.natcf;
+    const capex = projection.rows.subtotals.capEx.map(v => -v); // Usually shown as negative outlay in chart
+
     charts.cashflow = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
-            datasets: [{
-                label: 'Net Annual Cash Flow',
-                data: natcf,
-                backgroundColor: natcf.map(v => v >= 0 ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)'),
-                borderColor: natcf.map(v => v >= 0 ? '#10b981' : '#ef4444'),
-                borderWidth: 1
-            }]
+            datasets: [
+                {
+                    label: 'Net Operating Cash Flow',
+                    data: natcf,
+                    backgroundColor: natcf.map(v => v >= 0 ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)'),
+                    borderColor: natcf.map(v => v >= 0 ? '#10b981' : '#ef4444'),
+                    borderWidth: 1
+                },
+                {
+                    label: 'Capital Expenditure (Investments)',
+                    data: capex,
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)', // Blue for investments
+                    borderColor: '#2563eb',
+                    borderWidth: 1
+                }
+            ]
         },
-        options: getChartOptions('Currency')
+        options: {
+            ...getChartOptions('Currency'),
+            scales: {
+                ...getChartOptions('Currency').scales,
+                x: { stacked: true, ticks: { color: '#64748b' }, grid: { color: 'rgba(0,0,0,0.03)' } },
+                y: { stacked: true, ticks: getChartOptions('Currency').scales.y.ticks, grid: { color: 'rgba(0,0,0,0.05)' } }
+            }
+        }
     });
 }
 
