@@ -451,27 +451,30 @@ export function renderBookValueTable(projection) {
         </thead>
         <tbody>
             <tr title="Book Value at start of year">
-                <td class="sticky-col">Book Value (Initial)</td>
+                <td class="sticky-col category-label" data-row="Book Value (Initial)">Book Value (Initial)</td>
                 ${projection.rows.bookValue.start.map((v, t) => {
         const traceKey = `Book Value (Initial)-${t}`;
         const traceData = projection.rows.trace[traceKey];
-        return `<td data-row="Book Value (Initial)" data-year="${t}" title="${traceData ? traceData.formula + '\n(' + traceData.substituted + ')' : ''}">$${Math.round(v).toLocaleString()}</td>`;
+        const deps = traceData ? JSON.stringify(traceData.deps) : '[]';
+        return `<td data-row="Book Value (Initial)" data-year="${t}" data-deps='${deps}' title="${traceData ? traceData.substituted : ''}">$${Math.round(v).toLocaleString()}</td>`;
     }).join('')}
             </tr>
             <tr title="Depreciation amount for the year">
-                <td class="sticky-col">Depreciation</td>
+                <td class="sticky-col category-label" data-row="Depreciation">Depreciation</td>
                 ${projection.rows.bookValue.depreciation.map((v, t) => {
         const traceKey = `Depreciation-${t}`;
         const traceData = projection.rows.trace[traceKey];
-        return `<td data-row="Depreciation" data-year="${t}" title="${traceData ? traceData.formula + '\n(' + traceData.substituted + ')' : ''}">$${Math.round(v).toLocaleString()}</td>`;
+        const deps = traceData ? JSON.stringify(traceData.deps) : '[]';
+        return `<td data-row="Depreciation" data-year="${t}" data-deps='${deps}' title="${traceData ? traceData.substituted : ''}">$${Math.round(v).toLocaleString()}</td>`;
     }).join('')}
             </tr>
             <tr title="Book Value at end of year (Initial - Depreciation)">
-                <td class="sticky-col">Book Value (End)</td>
+                <td class="sticky-col category-label" data-row="Book Value (End)">Book Value (End)</td>
                 ${projection.rows.bookValue.end.map((v, t) => {
         const traceKey = `Book Value (End)-${t}`;
         const traceData = projection.rows.trace[traceKey];
-        return `<td data-row="Book Value (End)" data-year="${t}" title="${traceData ? traceData.formula + '\n(' + traceData.substituted + ')' : ''}">$${Math.round(v).toLocaleString()}</td>`;
+        const deps = traceData ? JSON.stringify(traceData.deps) : '[]';
+        return `<td data-row="Book Value (End)" data-year="${t}" data-deps='${deps}' title="${traceData ? traceData.substituted : ''}">$${Math.round(v).toLocaleString()}</td>`;
     }).join('')}
             </tr>
         </tbody>

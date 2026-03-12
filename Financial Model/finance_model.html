@@ -452,10 +452,6 @@
                         <canvas id="chart-growth-rates"></canvas>
                     </div>
                     <div class="chart-container">
-                        <h3>Salvage Value Breakdown</h3>
-                        <canvas id="chart-salvage"></canvas>
-                    </div>
-                    <div class="chart-container">
                         <h3>Operating Cashflow Breakdown</h3>
                         <canvas id="chart-ops-breakdown"></canvas>
                     </div>
@@ -466,6 +462,14 @@
                     <div class="chart-container">
                         <h3>NPV Sensitivity (Discount Rate)</h3>
                         <canvas id="chart-npv-sensitivity"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Salvage Value Breakdown</h3>
+                        <!-- Wrapper to constrain pie chart size -->
+                        <div
+                            style="max-height: 250px; max-width: 250px; margin: 0 auto; display: flex; justify-content: center;">
+                            <canvas id="chart-salvage"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
