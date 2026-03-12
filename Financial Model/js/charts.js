@@ -275,9 +275,17 @@ function renderNPVSensitivityChart(projection, state) {
 function getChartOptions(type) {
     return {
         responsive: true,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
         plugins: {
             legend: {
                 labels: { color: '#475569', font: { family: 'Space Grotesk', weight: '500' } }
+            },
+            tooltip: {
+                mode: 'index',
+                intersect: false,
             }
         },
         scales: {
