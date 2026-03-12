@@ -5,6 +5,8 @@
 export const state = {
     initialInvestment: {
         amount: 0,
+        startYear: 0,
+        annualInvestments: {}, // e.g. { 0: 1000, 1: 500 }
         opportunityCost: 0,
         lifetime: 0,
         salvageValue: 0,

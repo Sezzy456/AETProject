@@ -132,7 +132,7 @@ export function updateResultsTable(projection, state) {
     html += renderRow('EBT(1-t) / NOPAT', projection.rows.subtotals.nopat, true, false, "Net Operating Profit After Tax: The earnings of the company after operations but before financing costs.", "EBT(1-t) / NOPAT");
 
     // Cashflow Reconciliation (Moved beneath NOPAT per Excel alignment)
-    html += renderRow('+ Depreciation', projection.rows.subtotals.depreciationAddBack, false, false, "Non-cash add back");
+    html += renderRow('+ Depreciation', projection.rows.subtotals.depreciationAddBack, false, false, "", "Depreciation");
     html += renderRow('- Δ Working Capital', projection.rows.subtotals.deltaWorkingCapital, false, false, "Yearly change in Working Capital");
     html += renderRow('- Capital Expenditure / Net Investment', projection.rows.subtotals.capEx, false, false, "Year 0: Net Investment + WC + Opp Cost", "CapEx");
     html += renderRow('NATCF', projection.rows.subtotals.natcf, true, false, "Adjusted Cash Flow calculation", "NATCF");
@@ -187,16 +187,26 @@ function setupTraceHighlighting() {
 
 function updateInvestmentSummary(state) {
     const wrapper = document.getElementById('summary-table-wrapper');
-    const inv = state.initialInvestment.amount || 0;
-    const taxCredit = (inv * (state.initialInvestment.taxCredit || 0)) / 100;
-    const netInv = inv - taxCredit;
+
+    // Check if advanced investments are populated
+    let totalAdvancedInv = 0;
+    if (Object.keys(state.initialInvestment.annualInvestments).length > 0) {
+        for (const year in state.initialInvestment.annualInvestments) {
+            totalAdvancedInv += Number(state.initialInvestment.annualInvestments[year] || 0);
+        }
+    }
+
+    // If advanced is used, calculate based on that, otherwise use base amount
+    const baseInv = totalAdvancedInv > 0 ? totalAdvancedInv : (state.initialInvestment.amount || 0);
+    const taxCredit = (baseInv * (state.initialInvestment.taxCredit || 0)) / 100;
+    const netInv = baseInv - taxCredit;
     const wc = state.workingCapital.initial || 0;
     const oppCost = state.initialInvestment.opportunityCost || 0;
     const other = state.initialInvestment.otherInvestments || 0;
     const total = netInv + wc + oppCost + other;
 
     wrapper.innerHTML = `
-        <div class="summary-row"><span>Investment</span> <span>$${inv.toLocaleString()}</span></div>
+        <div class="summary-row"><span>Investment</span> <span>$${baseInv.toLocaleString()}</span></div>
         <div class="summary-row indent"><span>- Tax Credit</span> <span>$${taxCredit.toLocaleString()}</span></div>
         <div class="summary-row highlight"><span>Net Investment</span> <span>$${netInv.toLocaleString()}</span></div>
         <div class="summary-row"><span>+ Working Cap</span> <span>$${wc.toLocaleString()}</span></div>
@@ -250,6 +260,54 @@ export function renderProjectList(projects, onSelect, onDelete) {
     });
 
     container.appendChild(listDiv);
+}
+
+/**
+ * Render the Advanced Investment Table for editing annual investments.
+ */
+export function renderAdvancedInvestmentTable(state) {
+    const wrapper = document.getElementById('advanced-investment-table-wrapper');
+    const lifetime = parseInt(state.initialInvestment.lifetime || 5, 10);
+    const startYear = parseInt(state.initialInvestment.startYear || 0, 10);
+
+    // Total columns should equal lifetime + 1 (Years 0 to 5 is 6 columns, Years 1 to 5 is 5 cols)
+    const len = startYear === 0 ? lifetime + 1 : lifetime;
+
+    let html = `<table class="growth-table">
+        <thead>
+            <tr>
+                <th class="sticky-col">Investment</th>
+                ${Array.from({ length: len }, (_, i) => `<th>Year ${startYear + i} ($)</th>`).join('')}
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="sticky-col">Amount</td>
+                ${Array.from({ length: len }, (_, i) => {
+        const year = startYear + i;
+
+        // Default to state first, but if undefined and this is the start year, prefill to initial inv base amount
+        let val = state.initialInvestment.annualInvestments[year];
+        if (val === undefined && i === 0) {
+            val = state.initialInvestment.amount || '';
+        } else if (val === undefined) {
+            val = ''; // empty for other years
+        }
+
+        return `<td>
+                                <input type="number" 
+                                       class="investment-input" 
+                                       data-year="${year}" 
+                                       value="${val}" 
+                                       placeholder="0"
+                                       step="1">
+                            </td>`;
+    }).join('')}
+            </tr>
+        </tbody>
+    </table>`;
+
+    wrapper.innerHTML = html;
 }
 
 /**
@@ -393,27 +451,30 @@ export function renderBookValueTable(projection) {
         </thead>
         <tbody>
             <tr title="Book Value at start of year">
-                <td class="sticky-col">Book Value (Initial)</td>
+                <td class="sticky-col category-label" data-row="Book Value (Initial)">Book Value (Initial)</td>
                 ${projection.rows.bookValue.start.map((v, t) => {
         const traceKey = `Book Value (Initial)-${t}`;
         const traceData = projection.rows.trace[traceKey];
-        return `<td data-row="Book Value (Initial)" data-year="${t}" title="${traceData ? traceData.formula + '\n(' + traceData.substituted + ')' : ''}">$${Math.round(v).toLocaleString()}</td>`;
+        const deps = traceData ? JSON.stringify(traceData.deps) : '[]';
+        return `<td data-row="Book Value (Initial)" data-year="${t}" data-deps='${deps}' title="${traceData ? traceData.substituted : ''}">$${Math.round(v).toLocaleString()}</td>`;
     }).join('')}
             </tr>
             <tr title="Depreciation amount for the year">
-                <td class="sticky-col">Depreciation</td>
+                <td class="sticky-col category-label" data-row="Depreciation">Depreciation</td>
                 ${projection.rows.bookValue.depreciation.map((v, t) => {
         const traceKey = `Depreciation-${t}`;
         const traceData = projection.rows.trace[traceKey];
-        return `<td data-row="Depreciation" data-year="${t}" title="${traceData ? traceData.formula + '\n(' + traceData.substituted + ')' : ''}">$${Math.round(v).toLocaleString()}</td>`;
+        const deps = traceData ? JSON.stringify(traceData.deps) : '[]';
+        return `<td data-row="Depreciation" data-year="${t}" data-deps='${deps}' title="${traceData ? traceData.substituted : ''}">$${Math.round(v).toLocaleString()}</td>`;
     }).join('')}
             </tr>
             <tr title="Book Value at end of year (Initial - Depreciation)">
-                <td class="sticky-col">Book Value (End)</td>
+                <td class="sticky-col category-label" data-row="Book Value (End)">Book Value (End)</td>
                 ${projection.rows.bookValue.end.map((v, t) => {
         const traceKey = `Book Value (End)-${t}`;
         const traceData = projection.rows.trace[traceKey];
-        return `<td data-row="Book Value (End)" data-year="${t}" title="${traceData ? traceData.formula + '\n(' + traceData.substituted + ')' : ''}">$${Math.round(v).toLocaleString()}</td>`;
+        const deps = traceData ? JSON.stringify(traceData.deps) : '[]';
+        return `<td data-row="Book Value (End)" data-year="${t}" data-deps='${deps}' title="${traceData ? traceData.substituted : ''}">$${Math.round(v).toLocaleString()}</td>`;
     }).join('')}
             </tr>
         </tbody>
