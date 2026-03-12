@@ -264,18 +264,31 @@ export function generateProjections(state) {
         };
 
         // Depreciation & Book Value
+        // Note: New investment for year t increases book value before depreciation
+        let currentYearInv = 0;
+        if (state.initialInvestment.annualInvestments && state.initialInvestment.annualInvestments[t]) {
+            currentYearInv = Number(state.initialInvestment.annualInvestments[t]);
+        } else if (t === Number(state.initialInvestment.startYear)) {
+            // Fallback for single investment
+            currentYearInv = parseFloat(state.initialInvestment.amount) || 0;
+        }
+
+        let bvStart = currentBookValue + currentYearInv;
         let annualDepr = 0;
-        let bvStart = currentBookValue;
+
+        // Depreciation applies to the entire working book value
         if (t > 0 && t <= lifetime) {
             if (deprMethod === 'straight-line') {
-                annualDepr = initialAssetValue / lifetime;
+                // If there are new investments, spread them over remaining life, or just use base formula
+                // A simplified approach is just to straight-line the current BV over remaining years
+                const remainingLife = lifetime - t + 1;
+                annualDepr = remainingLife > 0 ? bvStart / remainingLife : bvStart;
             } else if (deprMethod === 'ddb') {
                 annualDepr = bvStart * (ddbFactor / lifetime);
-                // Ensure we don't depreciate below zero (or salvage if specified differently, but usually zero for tax book value)
                 if (bvStart - annualDepr < 0) annualDepr = bvStart;
             }
         }
-        currentBookValue -= annualDepr;
+        currentBookValue = bvStart - annualDepr;
         projection.rows.bookValue.start.push(bvStart);
         projection.rows.bookValue.depreciation.push(annualDepr);
         projection.rows.bookValue.end.push(currentBookValue);
@@ -325,11 +338,28 @@ export function generateProjections(state) {
 
         let capEx = 0;
         if (t === 0) {
-            capEx = (state.initialInvestment.amount || 0) -
-                ((state.initialInvestment.amount || 0) * (state.initialInvestment.taxCredit || 0) / 100) +
+            // Include opportunity cost and other investments only in year 0
+            capEx = currentYearInv -
+                (currentYearInv * (state.initialInvestment.taxCredit || 0) / 100) +
                 (state.initialInvestment.opportunityCost || 0) +
                 (state.initialInvestment.otherInvestments || 0);
+        } else {
+            // Only the direct investment amount in subsequent years
+            capEx = currentYearInv -
+                (currentYearInv * (state.initialInvestment.taxCredit || 0) / 100);
         }
+
+        // Define trace for CapEx if we want to show it, or just keep it implicit within NATCF
+        trace[key('- CapEx / Net Inv.', t)] = {
+            formula: t === 0 ? 'Net Investment + Opp. Cost + Other' : 'Net Investment',
+            substituted: Math.round(capEx).toLocaleString(),
+            deps: []
+        };
+        trace[key('- Δ Working Capital', t)] = {
+            formula: 'Change in Working Capital',
+            substituted: Math.round(deltaWC).toLocaleString(),
+            deps: []
+        };
 
         // Salvage Value Table
         let equipSalvageValue = 0;
@@ -353,7 +383,7 @@ export function generateProjections(state) {
             deps: [['Total Revenues', t]]
         };
 
-        const natcfOps = (t === 0) ? -(capEx + deltaWC) : (nopat + annualDepr - deltaWC);
+        const natcfOps = (nopat + annualDepr - deltaWC) - capEx;
         const totalCF = natcfOps + equipSalvageValue + wcSalvageValue;
 
         const discountFactor = 1 / Math.pow(1 + discountRate, t);
@@ -362,9 +392,9 @@ export function generateProjections(state) {
         const adjustedCashFlow = totalCF / compoundingFactor; // Active division formula
 
         trace[key('NATCF', t)] = {
-            formula: t === 0 ? '-(CapEx + ΔWC)' : 'NOPAT + Depr - ΔWC',
-            substituted: t === 0 ? `-(${Math.round(capEx).toLocaleString()} + ${Math.round(deltaWC).toLocaleString()})` : `${Math.round(nopat).toLocaleString()} + ${Math.round(annualDepr).toLocaleString()} - ${Math.round(deltaWC).toLocaleString()}`,
-            deps: t === 0 ? [['- CapEx / Net Inv.', t], ['- Δ Working Capital', t]] : [['EBT(1-t) / NOPAT', t], ['+ Depreciation', t], ['- Δ Working Capital', t]]
+            formula: 'NOPAT + Depr - ΔWC - CapEx',
+            substituted: `${Math.round(nopat).toLocaleString()} + ${Math.round(annualDepr).toLocaleString()} - ${Math.round(deltaWC).toLocaleString()} - ${Math.round(capEx).toLocaleString()}`,
+            deps: [['EBT(1-t) / NOPAT', t], ['+ Depreciation', t], ['- Δ Working Capital', t], ['- CapEx / Net Inv.', t]]
         };
 
         trace[key('Discount Factor', t)] = {

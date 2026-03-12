@@ -187,16 +187,26 @@ function setupTraceHighlighting() {
 
 function updateInvestmentSummary(state) {
     const wrapper = document.getElementById('summary-table-wrapper');
-    const inv = state.initialInvestment.amount || 0;
-    const taxCredit = (inv * (state.initialInvestment.taxCredit || 0)) / 100;
-    const netInv = inv - taxCredit;
+
+    // Check if advanced investments are populated
+    let totalAdvancedInv = 0;
+    if (Object.keys(state.initialInvestment.annualInvestments).length > 0) {
+        for (const year in state.initialInvestment.annualInvestments) {
+            totalAdvancedInv += Number(state.initialInvestment.annualInvestments[year] || 0);
+        }
+    }
+
+    // If advanced is used, calculate based on that, otherwise use base amount
+    const baseInv = totalAdvancedInv > 0 ? totalAdvancedInv : (state.initialInvestment.amount || 0);
+    const taxCredit = (baseInv * (state.initialInvestment.taxCredit || 0)) / 100;
+    const netInv = baseInv - taxCredit;
     const wc = state.workingCapital.initial || 0;
     const oppCost = state.initialInvestment.opportunityCost || 0;
     const other = state.initialInvestment.otherInvestments || 0;
     const total = netInv + wc + oppCost + other;
 
     wrapper.innerHTML = `
-        <div class="summary-row"><span>Investment</span> <span>$${inv.toLocaleString()}</span></div>
+        <div class="summary-row"><span>Investment</span> <span>$${baseInv.toLocaleString()}</span></div>
         <div class="summary-row indent"><span>- Tax Credit</span> <span>$${taxCredit.toLocaleString()}</span></div>
         <div class="summary-row highlight"><span>Net Investment</span> <span>$${netInv.toLocaleString()}</span></div>
         <div class="summary-row"><span>+ Working Cap</span> <span>$${wc.toLocaleString()}</span></div>
@@ -250,6 +260,49 @@ export function renderProjectList(projects, onSelect, onDelete) {
     });
 
     container.appendChild(listDiv);
+}
+
+/**
+ * Render the Advanced Investment Table for editing annual investments.
+ */
+export function renderAdvancedInvestmentTable(state) {
+    const wrapper = document.getElementById('advanced-investment-table-wrapper');
+    const lifetime = state.initialInvestment.lifetime || 5;
+    const startYear = state.initialInvestment.startYear || 0;
+
+    // We render columns from startYear up to startYear + lifetime
+    // e.g. if startYear is 1 and lifetime is 5, we show Year 1 to Year 5.
+    // If startYear is 0 and lifetime is 5, we show Year 0 to Year 5.
+    const startIdx = parseInt(startYear, 10);
+    const endIdx = startIdx + parseInt(lifetime, 10);
+
+    let html = `<table class="growth-table">
+        <thead>
+            <tr>
+                <th class="sticky-col">Investment</th>
+                ${Array.from({ length: endIdx - startIdx + 1 }, (_, i) => `<th>Year ${startIdx + i}</th>`).join('')}
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="sticky-col">Amount ($)</td>
+                ${Array.from({ length: endIdx - startIdx + 1 }, (_, i) => {
+        const year = startIdx + i;
+        const val = state.initialInvestment.annualInvestments[year] || '';
+        return `<td>
+                                <input type="number" 
+                                       class="investment-input" 
+                                       data-year="${year}" 
+                                       value="${val}" 
+                                       placeholder="0"
+                                       step="1">
+                            </td>`;
+    }).join('')}
+            </tr>
+        </tbody>
+    </table>`;
+
+    wrapper.innerHTML = html;
 }
 
 /**

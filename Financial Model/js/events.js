@@ -24,9 +24,21 @@ export function setupEventListeners() {
 
     // Initial Investment Inputs
     setupInputListener('initial-inv', 'initialInvestment.amount');
+    setupInputListener('inv-start-year', 'initialInvestment.startYear', (val) => {
+        // Re-render the advanced table if it's currently visible
+        const area = document.getElementById('advanced-investment-area');
+        if (area && !area.classList.contains('hidden')) {
+            UI.renderAdvancedInvestmentTable(State.state);
+        }
+    });
     setupInputListener('opp-cost', 'initialInvestment.opportunityCost');
     setupInputListener('lifetime', 'initialInvestment.lifetime', () => {
         UI.renderAdvancedGrowthTable(State.state);
+        // Also re-render advanced investment table if visible
+        const area = document.getElementById('advanced-investment-area');
+        if (area && !area.classList.contains('hidden')) {
+            UI.renderAdvancedInvestmentTable(State.state);
+        }
     });
     setupInputListener('salvage-value', 'initialInvestment.salvageValue');
     setupInputListener('depreciation-method', 'initialInvestment.depreciationMethod', (val) => {
@@ -111,7 +123,7 @@ export function setupEventListeners() {
         }
     });
 
-    // Advanced toggle
+    // Advanced toggle (Growth)
     document.getElementById('btn-toggle-advanced').addEventListener('click', () => {
         const area = document.getElementById('advanced-growth-area');
         area.classList.toggle('hidden');
@@ -128,6 +140,28 @@ export function setupEventListeners() {
             const year = e.target.dataset.year;
             const val = parseFloat(e.target.value) || 0;
             State.setYearlyGrowth(type, id, { [year]: val });
+        }
+    });
+
+    // Advanced toggle (Investment)
+    document.getElementById('btn-toggle-advanced-inv').addEventListener('click', () => {
+        const area = document.getElementById('advanced-investment-area');
+        area.classList.toggle('hidden');
+        if (!area.classList.contains('hidden')) {
+            UI.renderAdvancedInvestmentTable(State.state);
+        }
+    });
+
+    // Advanced investment input changes
+    document.getElementById('advanced-investment-table-wrapper').addEventListener('input', (e) => {
+        if (e.target.classList.contains('investment-input')) {
+            const year = e.target.dataset.year;
+            const val = parseFloat(e.target.value) || 0;
+            // Ensure object exists
+            if (!State.state.initialInvestment.annualInvestments) {
+                State.state.initialInvestment.annualInvestments = {};
+            }
+            State.state.initialInvestment.annualInvestments[year] = val;
         }
     });
 
