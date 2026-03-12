@@ -1,3 +1,4 @@
+console.log('UI.js: v1.2 loaded');
 export function renderListItem(item) {
     const div = document.createElement('div');
     div.className = 'list-item';
@@ -64,7 +65,9 @@ export function updateResultsTable(projection, state) {
         const isExpenseRow = label.startsWith('-') || label.toLowerCase().includes('expense');
         return `
             <tr class="${isSubtotal ? 'row-subtotal' : ''} ${isChild ? 'row-child' : ''} ${isExpenseRow ? 'row-expense' : ''} ${extraClass}">
-                <td class="sticky-col category-label" data-row="${traceLabel || label}">${label}</td>
+                <td class="sticky-col category-label" 
+                    data-row="${traceLabel || label}" 
+                    title="${formula}">${label}</td>
                 ${data.map((val, t) => {
             let formatted = typeof val === 'number' ? Math.round(val).toLocaleString() : val;
             if (typeof val === 'number' && !label.includes('Factor') && !label.includes('Index')) formatted = '$' + formatted;
@@ -76,7 +79,7 @@ export function updateResultsTable(projection, state) {
 
             const traceKey = `${traceLabel || label}-${t}`;
             const traceData = projection.rows.trace[traceKey];
-            const title = traceData ? `${traceData.formula}\n(${traceData.substituted})` : formula;
+            const title = traceData ? traceData.substituted : formula;
             const deps = traceData ? JSON.stringify(traceData.deps) : '[]';
 
             return `<td class="${colorClass}" 
@@ -136,8 +139,6 @@ export function updateResultsTable(projection, state) {
 
     // Valuation
     html += `<tr class="row-header sticky-header"><td class="sticky-col category-label" colspan="${years.length + 1}">VALUATION</td></tr>`;
-    html += renderRow('Discount Factor', projection.rows.subtotals.discountFactor.map(v => v.toFixed(4)), false, false, "1 / (1 + r)^t", "Discount Factor", "strikethrough");
-    html += renderRow('Discounted Cash Flows', projection.rows.subtotals.discountedCF, false, false, "NATCF * Discount Factor", "Discounted Cash Flows", "strikethrough");
     html += renderRow('Compounding Factor', projection.rows.subtotals.compoundingFactor.map(v => v.toFixed(4)), false, false, "(1 + r)^t", "Compounding Factor");
     html += renderRow('Adjusted Cash Flow', projection.rows.subtotals.adjustedCashFlow, true, false, "(NATCF + Salvages) / Compounding Factor", "Adjusted Cash Flow");
     html += renderRow('Cumulative Cash Flows', projection.rows.subtotals.cumulativeCF, true, false, "Running sum of Adjusted Cash Flows", "Cumulative Cash Flows");
@@ -219,7 +220,7 @@ export function hideModal(id) {
     document.getElementById(id).classList.add('hidden');
 }
 
-export function renderProjectList(projects, onSelect) {
+export function renderProjectList(projects, onSelect, onDelete) {
     const container = document.getElementById('project-list');
     if (!container) return;
 
@@ -237,10 +238,14 @@ export function renderProjectList(projects, onSelect) {
         const div = document.createElement('div');
         div.className = 'project-item';
         div.innerHTML = `
-            <span class="project-name">${name}</span>
-            <button class="btn-primary-sm">Load</button>
+            <button class="project-name-btn">${name}</button>
+            <button class="btn-delete-project" title="Delete Project">×</button>
         `;
-        div.querySelector('button').addEventListener('click', () => onSelect(name));
+        div.querySelector('.project-name-btn').addEventListener('click', () => onSelect(name));
+        div.querySelector('.btn-delete-project').addEventListener('click', (e) => {
+            e.stopPropagation();
+            onDelete(name);
+        });
         listDiv.appendChild(div);
     });
 

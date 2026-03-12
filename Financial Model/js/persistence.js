@@ -235,3 +235,23 @@ export async function getProjectList() {
         return [];
     }
 }
+/**
+ * Delete a project by name.
+ */
+export async function deleteProject(name) {
+    if (!supabase) return false;
+
+    try {
+        const { error } = await supabase
+            .from('tbl_saved_projects')
+            .delete()
+            .eq('sp_name', name);
+
+        if (error) throw error;
+        console.log(`Project "${name}" deleted.`);
+        return true;
+    } catch (err) {
+        console.error('Delete failed:', err);
+        return false;
+    }
+}
