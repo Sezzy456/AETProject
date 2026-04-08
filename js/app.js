@@ -446,6 +446,10 @@ function loadView(viewName) {
             template = getStrategySpineTemplate();
             initFunc = renderStrategySpine;
             break;
+        case 'knowledge_bank':
+            template = getKnowledgeBankTemplate();
+            initFunc = renderKnowledgeBank;
+            break;
         default:
             template = '<h2>404 - View Not Found</h2>';
     }
@@ -1103,6 +1107,367 @@ window.addObjectiveInline = function() {
     refreshSpineUI();
     // After naturally rendering the blank text, immediately pop it into edit mode
     setTimeout(() => window.enableObjectiveInlineEdit(newId), 0);
+};
+
+// --- KNOWLEDGE BANK FUNCTIONS ---
+
+
+function getKnowledgeBankTemplate() {
+    return `
+        <header style="display: flex; justify-content: center; align-items: center; margin-bottom: 2rem; position: relative;">
+            <h2>Knowledge Bank</h2>
+            <button id="kb-edit-toggle" class="btn-secondary" style="position: absolute; right: 0; display:flex; align-items:center; gap:0.25rem;">
+                <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit
+            </button>
+        </header>
+
+        <!-- Project Key Messages -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+            <h3 style="color:var(--text-tertiary); margin:0;">Project key messages<br><span style="font-size:0.8rem; font-weight:normal;">Benefits:</span></h3>
+            <button class="btn-primary kb-edit-btn" onclick="openKbModal('add-key-message')" style="display:none; font-size:0.75rem; padding: 0.2rem 0.5rem;">+ Add Message</button>
+        </div>
+        <div id="kb-key-messages-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:1.5rem; margin-bottom:3rem;">
+            <!-- Loaded by JS -->
+        </div>
+
+        <!-- FAQs -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+            <h3 style="color:var(--text-tertiary); margin:0;">FAQs</h3>
+            <button class="btn-primary kb-edit-btn" onclick="openKbModal('add-faq')" style="display:none; font-size:0.75rem; padding: 0.2rem 0.5rem;">+ Add FAQ</button>
+        </div>
+        <div id="kb-faqs-grid" style="display:grid; grid-template-columns: 1fr; gap:1rem; margin-bottom:3rem;">
+            <!-- Loaded by JS -->
+        </div>
+
+        <!-- Audience Messages -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+            <h3 style="color:var(--text-tertiary); margin:0;">Key Audience Specific Messages</h3>
+            <button class="btn-primary kb-edit-btn" onclick="openKbModal('add-audience')" style="display:none; font-size:0.75rem; padding: 0.2rem 0.5rem;">+ Add Audience</button>
+        </div>
+        <div id="kb-audiences-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:1.5rem; margin-bottom:3rem;">
+            <!-- Loaded by JS -->
+        </div>
+
+        <!-- KB Modal -->
+        <dialog id="kb-modal" onmousedown="if(event.target===this)this.close()" style="border:1px solid var(--border-subtle); border-radius:8px; padding:1.5rem; width:500px; max-width:90vw; background:var(--bg-surface); color:var(--text-primary); box-shadow:0 10px 30px rgba(0,0,0,0.3); margin:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; cursor:move;" id="kb-modal-header">
+                <h3 id="kb-modal-title">Edit</h3>
+                <button onclick="document.getElementById('kb-modal').close()" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div id="kb-modal-body" style="display:flex; flex-direction:column; gap:1rem;">
+                <!-- dynamic inputs -->
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
+                <button class="btn-secondary" onclick="document.getElementById('kb-modal').close()">Cancel</button>
+                <button class="btn-primary" id="kb-modal-save">Save</button>
+            </div>
+        </dialog>
+    `;
+}
+
+let isKbEditMode = false;
+
+function renderKnowledgeBank() {
+    isKbEditMode = false;
+    refreshKbUI();
+
+    const editToggle = document.getElementById('kb-edit-toggle');
+    if (editToggle) {
+        editToggle.addEventListener('click', () => {
+            isKbEditMode = !isKbEditMode;
+            editToggle.style.background = isKbEditMode ? 'var(--energy-algae)' : '';
+            editToggle.style.color = isKbEditMode ? '#000' : '';
+            editToggle.innerHTML = isKbEditMode 
+                ? '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done'
+                : '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
+            refreshKbUI(); 
+        });
+    }
+
+    // Modal drag logic
+    const modal = document.getElementById('kb-modal');
+    const header = document.getElementById('kb-modal-header');
+    if(modal && header) {
+        let isDragging = false, startX, startY, initialX, initialY;
+        header.addEventListener('mousedown', e => {
+            if(e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
+            isDragging = true;
+            startX = e.clientX; startY = e.clientY;
+            const style = window.getComputedStyle(modal);
+            const matrix = new DOMMatrixReadOnly(style.transform !== 'none' ? style.transform : 'matrix(1,0,0,1,0,0)');
+            initialX = matrix.m41; initialY = matrix.m42;
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+        function onMouseMove(e) {
+            if(!isDragging) return;
+            const dx = e.clientX - startX; const dy = e.clientY - startY;
+            modal.style.transform = `translate(${initialX + dx}px, ${initialY + dy}px)`;
+        }
+        function onMouseUp() {
+            isDragging = false;
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+    }
+}
+
+window.toggleKbAccordion = function(id) {
+    if (isKbEditMode) return; // Disable expanding while in edit mode (usually click edits instead)
+    const el = document.getElementById('kb-accordion-'+id);
+    const content = document.getElementById('kb-content-'+id);
+    const icon = document.getElementById('kb-icon-'+id);
+    if(content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.style.transform = 'rotate(90deg)';
+        el.style.background = 'var(--bg-app)';
+    } else {
+        content.style.display = 'none';
+        icon.style.transform = 'rotate(0deg)';
+        el.style.background = 'transparent';
+    }
+};
+
+window.toggleKbFaq = function(id) {
+    if (isKbEditMode) return;
+    const el = document.getElementById('kb-faq-'+id);
+    const content = document.getElementById('kb-faq-content-'+id);
+    const icon = document.getElementById('kb-faq-icon-'+id);
+    if(content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.style.transform = 'rotate(90deg)';
+        el.style.fontWeight = '600';
+    } else {
+        content.style.display = 'none';
+        icon.style.transform = 'rotate(0deg)';
+        el.style.fontWeight = '500';
+    }
+};
+
+function refreshKbUI() {
+    const kb = window.getData('knowledgeBank');
+    if (!kb) return;
+
+    // Toggle global edit buttons
+    const btns = document.querySelectorAll('.kb-edit-btn');
+    btns.forEach(btn => btn.style.display = isKbEditMode ? 'flex' : 'none');
+
+    // 1. Key Messages
+    const keyMsgGrid = document.getElementById('kb-key-messages-grid');
+    if (keyMsgGrid) {
+        keyMsgGrid.innerHTML = kb.keyMessages.map(km => `
+            <div class="card" style="position:relative; background:var(--bg-surface); padding:1.5rem; display:flex; flex-direction:column; justify-content:flex-start; border:1px solid var(--border-subtle); border-radius:12px;">
+                <!-- Edit button mask -->
+                ${isKbEditMode ? `<button onclick="openKbModal('edit-key-message', '${km.id}')" style="position:absolute; right:1rem; top:1rem; background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined">edit</span></button>` : ''}
+                
+                <h4 style="margin:0 0 0.5rem 0; font-size:1.1rem; color:var(--text-primary);">${km.title}</h4>
+                <p style="font-size:0.85rem; color:var(--text-tertiary); margin:0 0 0.5rem 0;">Key Message</p>
+                <p style="font-size:0.95rem; color:var(--text-secondary); margin:0 0 1.5rem 0;">${km.message}</p>
+                
+                <div id="kb-accordion-${km.id}" style="border:1px solid var(--border-subtle); border-radius:8px; padding:0.75rem; cursor:${isKbEditMode ? 'default' : 'pointer'}; transition:all 0.2s; background:${isKbEditMode ? 'var(--bg-app)' : 'transparent'};" onclick="window.toggleKbAccordion('${km.id}')">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.9rem; font-weight:500;">Proof Points</span>
+                        <span id="kb-icon-${km.id}" class="material-symbols-outlined" style="font-size:1.2rem; transition:transform 0.2s; transform:${isKbEditMode ? 'rotate(90deg)' : 'rotate(0deg)'};">arrow_right</span>
+                    </div>
+                    <div id="kb-content-${km.id}" class="accordion-content" style="display:${isKbEditMode ? 'block' : 'none'}; margin-top:1rem;">
+                        <ul style="padding-left:1.5rem; margin:0; font-size:0.85rem; color:var(--text-secondary); display:flex; flex-direction:column; gap:0.5rem;">
+                            ${km.proofPoints.map(pp => `<li>${pp}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // 2. FAQs
+    const faqsGrid = document.getElementById('kb-faqs-grid');
+    if (faqsGrid) {
+        faqsGrid.innerHTML = kb.faqs.map(f => `
+            <div class="card" style="position:relative; background:var(--bg-surface); outline:1px solid var(--border-subtle); border-radius:12px; overflow:hidden;">
+                ${isKbEditMode ? `<button onclick="openKbModal('edit-faq', '${f.id}')" style="position:absolute; right:1rem; top:1rem; z-index:10; background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined">edit</span></button>` : ''}
+                
+                <div id="kb-faq-${f.id}" style="padding:0.75rem 1.5rem; cursor:${isKbEditMode ? 'default' : 'pointer'}; display:flex; justify-content:space-between; align-items:center; font-weight:500; font-size:0.95rem; ${isKbEditMode ? 'border-bottom:1px solid var(--border-subtle);' : ''}" onclick="window.toggleKbFaq('${f.id}')">
+                    <span style="padding-right:2rem;">${f.question}</span>
+                    <span id="kb-faq-icon-${f.id}" class="material-symbols-outlined" style="font-size:1.5rem; transition:transform 0.2s; transform:${isKbEditMode ? 'rotate(90deg)' : 'rotate(0deg)'};">arrow_right</span>
+                </div>
+                <div id="kb-faq-content-${f.id}" style="display:${isKbEditMode ? 'block' : 'none'}; padding: 0 1.5rem 1.5rem; border-top:1px solid var(--border-subtle); margin-top:${isKbEditMode ? '0' : '0'};">
+                    <p style="margin-top:1rem; font-size:0.9rem; color:var(--text-secondary); line-height:1.5; white-space:pre-wrap;">${f.answer}</p>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // 3. Audience Messages
+    const audienceGrid = document.getElementById('kb-audiences-grid');
+    if (audienceGrid) {
+        audienceGrid.innerHTML = kb.audienceMessages.map(a => `
+            <div class="card" style="position:relative; border:1px solid var(--border-subtle); border-radius:12px; padding:1.5rem; background:var(--bg-surface);">
+                ${isKbEditMode ? `<button onclick="openKbModal('edit-audience', '${a.id}')" style="position:absolute; right:1rem; top:1rem; background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined">edit</span></button>` : ''}
+                
+                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem; color:var(--text-primary); font-weight:600;">
+                    <span class="material-symbols-outlined" style="color:var(--energy-algae);">${a.icon}</span> ${a.title}
+                </div>
+                <p style="font-size:0.9rem; color:var(--text-secondary); line-height:1.5;">${a.text}</p>
+            </div>
+        `).join('');
+    }
+}
+
+window.openKbModal = function(type, id) {
+    const kb = window.getData('knowledgeBank');
+    if (!kb) return;
+
+    const modal = document.getElementById('kb-modal');
+    const title = document.getElementById('kb-modal-title');
+    const body = document.getElementById('kb-modal-body');
+    const saveBtn = document.getElementById('kb-modal-save');
+    
+    // reset position
+    modal.style.transform = 'none';
+
+    if (type === 'add-key-message' || type === 'edit-key-message') {
+        title.textContent = id ? 'Edit Key Message' : 'Add Key Message';
+        const msg = id ? kb.keyMessages.find(m => m.id === id) : { title: '', message: '', proofPoints: [] };
+        body.innerHTML = `
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Title (e.g. Environmental Outcomes)</label>
+            <input type="text" id="kb-input-title" value="${msg.title.replace(/"/g, '&quot;')}" style="width:100%; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
+            
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Key Message Statement</label>
+            <textarea id="kb-input-msg" style="width:100%; height:150px; resize:vertical; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${msg.message}</textarea>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                <label style="font-size:0.8rem; font-weight:600;">Proof Points</label>
+                <button type="button" class="btn-secondary" onclick="window.addKbListPoint()" style="font-size:0.7rem; padding:0.2rem 0.5rem;">+ Add Point</button>
+            </div>
+            <div id="kb-modal-points-container" style="display:flex; flex-direction:column; gap:0.5rem; max-height:200px; overflow-y:auto; padding-right:0.5rem;">
+                ${msg.proofPoints.map(pp => `
+                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                        <span style="color:var(--text-secondary);">•</span>
+                        <input type="text" class="kb-point-input" value="${pp.replace(/"/g, '&quot;')}" style="flex:1; padding:0.4rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
+                        <button onclick="window.moveProofPointUp(this)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">arrow_upward</span></button>
+                        <button onclick="window.moveProofPointDown(this)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">arrow_downward</span></button>
+                        <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--energy-alert); cursor:pointer; margin-left:0.25rem;"><span class="material-symbols-outlined" style="font-size:1.2rem;">delete</span></button>
+                    </div>
+                `).join('')}
+            </div>
+            ${id ? `<button onclick="window.deleteKbItem('key-message', '${id}')" style="margin-top:1rem; width:100%; padding:0.5rem; border:1px solid var(--energy-alert); background:rgba(239, 68, 68, 0.1); color:var(--energy-alert); border-radius:4px; cursor:pointer;" onmouseover="this.style.background='var(--energy-alert)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.color='var(--energy-alert)';">Delete Key Message Completely</button>` : ''}
+        `;
+        saveBtn.onclick = () => {
+            const points = Array.from(document.querySelectorAll('.kb-point-input')).map(input => input.value).filter(v => v.trim() !== '');
+            const newObj = {
+                id: id || 'k' + Date.now(),
+                title: document.getElementById('kb-input-title').value,
+                message: document.getElementById('kb-input-msg').value,
+                proofPoints: points
+            };
+            if (id) {
+                const idx = kb.keyMessages.findIndex(m => m.id === id);
+                kb.keyMessages[idx] = newObj;
+            } else {
+                kb.keyMessages.push(newObj);
+            }
+            window.updateData('knowledgeBank', kb);
+            refreshKbUI();
+            modal.close();
+        };
+    } else if (type === 'add-faq' || type === 'edit-faq') {
+        title.textContent = id ? 'Edit FAQ' : 'Add FAQ';
+        const faq = id ? kb.faqs.find(f => f.id === id) : { question: '', answer: '' };
+        body.innerHTML = `
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Question</label>
+            <input type="text" id="kb-input-q" value="${faq.question.replace(/"/g, '&quot;')}" style="width:100%; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
+            
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Answer</label>
+            <textarea id="kb-input-a" style="width:100%; height:150px; resize:none; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${faq.answer}</textarea>
+            
+            ${id ? `<button onclick="window.deleteKbItem('faq', '${id}')" style="margin-top:0.5rem; width:100%; padding:0.5rem; border:1px solid var(--energy-alert); background:rgba(239, 68, 68, 0.1); color:var(--energy-alert); border-radius:4px; cursor:pointer;" onmouseover="this.style.background='var(--energy-alert)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.color='var(--energy-alert)';">Delete FAQ</button>` : ''}
+        `;
+        saveBtn.onclick = () => {
+            const newObj = {
+                id: id || 'f' + Date.now(),
+                question: document.getElementById('kb-input-q').value,
+                answer: document.getElementById('kb-input-a').value
+            };
+            if (id) {
+                const idx = kb.faqs.findIndex(f => f.id === id);
+                kb.faqs[idx] = newObj;
+            } else {
+                kb.faqs.push(newObj);
+            }
+            window.updateData('knowledgeBank', kb);
+            refreshKbUI();
+            modal.close();
+        };
+    } else if (type === 'add-audience' || type === 'edit-audience') {
+        title.textContent = id ? 'Edit Audience Message' : 'Add Audience Message';
+        const aud = id ? kb.audienceMessages.find(a => a.id === id) : { title: '', text: '', icon: 'groups' };
+        const stakeholders = window.getData('stakeholders') || [];
+        const stakeholderOptions = stakeholders.map(s => `<option value="${s.name.replace(/"/g, '&quot;')}" ${aud.title === s.name ? 'selected' : ''}>${s.name}</option>`).join('');
+        body.innerHTML = `
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Audience Type (Stakeholder)</label>
+            <select id="kb-input-aud" style="width:100%; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
+                <option value="">-- Select a Stakeholder --</option>
+                ${stakeholderOptions}
+            </select>
+            
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Tailored Message</label>
+            <textarea id="kb-input-txt" style="width:100%; height:180px; resize:vertical; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${aud.text}</textarea>
+            
+            ${id ? `<button onclick="window.deleteKbItem('audience', '${id}')" style="margin-top:0.5rem; width:100%; padding:0.5rem; border:1px solid var(--energy-alert); background:rgba(239, 68, 68, 0.1); color:var(--energy-alert); border-radius:4px; cursor:pointer;" onmouseover="this.style.background='var(--energy-alert)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.color='var(--energy-alert)';">Delete Audience</button>` : ''}
+        `;
+        saveBtn.onclick = () => {
+            const newObj = {
+                id: id || 'a' + Date.now(),
+                icon: 'groups', // fixed icon for now
+                title: document.getElementById('kb-input-aud').value,
+                text: document.getElementById('kb-input-txt').value
+            };
+            if (id) {
+                const idx = kb.audienceMessages.findIndex(a => a.id === id);
+                kb.audienceMessages[idx] = newObj;
+            } else {
+                kb.audienceMessages.push(newObj);
+            }
+            window.updateData('knowledgeBank', kb);
+            refreshKbUI();
+            modal.close();
+        };
+    }
+    
+    modal.showModal();
+}
+
+window.addKbListPoint = function() {
+    const container = document.getElementById('kb-modal-points-container');
+    const div = document.createElement('div');
+    div.style.cssText = "display:flex; gap:0.5rem; align-items:center;";
+    div.innerHTML = `
+        <span style="color:var(--text-secondary);">•</span>
+        <input type="text" class="kb-point-input" value="" style="flex:1; padding:0.4rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
+        <button onclick="window.moveProofPointUp(this)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">arrow_upward</span></button>
+        <button onclick="window.moveProofPointDown(this)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">arrow_downward</span></button>
+        <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--energy-alert); cursor:pointer; margin-left:0.25rem;"><span class="material-symbols-outlined" style="font-size:1.2rem;">delete</span></button>
+    `;
+    container.appendChild(div);
+};
+
+window.deleteKbItem = function(type, id) {
+    const pwd = prompt('Enter administrator password to perform deletion (hint: "abracadabra"):');
+    if (pwd !== 'abracadabra') {
+        alert('Invalid password. Deletion cancelled.');
+        return;
+    }
+    const kb = window.getData('knowledgeBank');
+    if (type === 'key-message') {
+        kb.keyMessages = kb.keyMessages.filter(o => o.id !== id);
+    } else if (type === 'faq') {
+        kb.faqs = kb.faqs.filter(o => o.id !== id);
+    } else if (type === 'audience') {
+        kb.audienceMessages = kb.audienceMessages.filter(o => o.id !== id);
+    }
+    window.updateData('knowledgeBank', kb);
+    refreshKbUI();
+    document.getElementById('kb-modal').close();
 };
 
 // Forward global wheel events to the main view container when hovering in dead zones
