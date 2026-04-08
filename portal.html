@@ -23,27 +23,58 @@
                 </button>
             </div>
 
-            <div id="nav-links-container" style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">
-                <a href="portal.html" class="nav-item active">
-                    <span class="material-symbols-outlined">dashboard</span>
-                    Dashboard
-                </a>
-                <a href="stakeholders.html" class="nav-item">
-                    <span class="material-symbols-outlined">groups</span>
-                    Stakeholder Ledger
-                </a>
-                <a href="activity_log.html" class="nav-item">
-                    <span class="material-symbols-outlined">history</span>
-                    Activity Log
-                </a>
-                <a href="actions.html" class="nav-item">
-                    <span class="material-symbols-outlined">check_circle</span>
-                    Actions / Goals
-                </a>
-                <a href="index.html" class="nav-item" style="margin-top: auto;">
-                    <span class="material-symbols-outlined">logout</span>
-                    Logout
-                </a>
+            <div id="nav-links-container" style="display: flex; flex-direction: column; gap: 0; flex: 1; overflow-y: auto;">
+                
+                <div class="nav-section">
+                    <h3 class="nav-heading">STRATEGY ROOM</h3>
+                    <a href="portal.html" class="nav-item active">
+                        <span class="material-symbols-outlined">bar_chart</span>
+                        Dashboard
+                    </a>
+                    <a href="strategy_spine.html" class="nav-item">
+                        <span class="material-symbols-outlined">view_timeline</span>
+                        Strategy Spine
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-heading">RELATIONSHIP MANAGEMENT</h3>
+                    <a href="stakeholders.html" class="nav-item">
+                        <span class="material-symbols-outlined">group</span>
+                        Stakeholder Ledger
+                    </a>
+                    <a href="interactions.html" class="nav-item">
+                        <span class="material-symbols-outlined">handshake</span>
+                        Interactions
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-heading">EXECUTION</h3>
+                    <a href="actions.html" class="nav-item">
+                        <span class="material-symbols-outlined">push_pin</span>
+                        Actions
+                    </a>
+                    <a href="assets.html" class="nav-item">
+                        <span class="material-symbols-outlined">architecture</span>
+                        Asset / Artifacts
+                    </a>
+                    <a href="knowledge_bank.html" class="nav-item">
+                        <span class="material-symbols-outlined">menu_book</span>
+                        Knowledge Bank
+                    </a>
+                </div>
+
+                <div style="margin-top: auto;">
+                    <a href="teams.html" class="nav-item">
+                        <span class="material-symbols-outlined">groups</span>
+                        Teams
+                    </a>
+                    <a href="index.html" class="nav-item" style="color: var(--energy-alert);">
+                        <span class="material-symbols-outlined">logout</span>
+                        Logout
+                    </a>
+                </div>
             </div>
 
             <div class="sidebar-footer">

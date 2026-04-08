@@ -81,111 +81,95 @@ function initLayout() {
 }
 
 function renderDashboard() {
-    // 1. Fetch Data
-    const spine = window.getData('spine');
-
-    // ORDER: Strategy -> Stats -> QA -> Stakeholders -> Activity -> Actions
-
-    // --- 1. STRATEGY SPINE ---
-    // Purpose (Mock Editable)
-    if (spine && spine.purpose) {
-        const purposeEl = document.getElementById('strategy-purpose');
-        if (purposeEl) purposeEl.textContent = spine.purpose;
-
-        // Edit Button Logic
-        const editBtn = document.getElementById('btn-edit-strategy');
-        if (editBtn) {
-            editBtn.onclick = () => {
-                const newPurpose = prompt("Edit Strategy Core:", spine.purpose);
-                if (newPurpose) {
-                    spine.purpose = newPurpose; // In-memory update
-                    purposeEl.textContent = newPurpose;
-                }
-            };
-        }
-    }
-
-    // Narratives
-    if (spine && spine.narrative) {
-        const coreEl = document.getElementById('narrative-core');
-        const simpleEl = document.getElementById('narrative-simple');
-        if (coreEl) coreEl.textContent = spine.narrative.core;
-        if (simpleEl) simpleEl.textContent = spine.narrative.simple;
-    }
-
-    // Pillars Grid
-    const pillarGrid = document.getElementById('pillars-grid');
-    if (pillarGrid && spine.pillars) {
-        pillarGrid.innerHTML = spine.pillars.map(p => `
-            <div class="pillar-card">
-                <h3>${p.title}</h3>
-                <p style="font-weight: 500; color: var(--text-primary); margin-bottom: 0.5rem;">${p.message}</p>
-                <ul style="font-size: 0.9rem; padding-left: 1.2rem; color: var(--text-secondary);">
-                    ${p.proofPoints.map(pp => `<li>${pp}</li>`).join('')}
-                </ul>
-            </div>
-        `).join('');
-    }
-
-    // --- 2. STATS ---
+    // 1. Stats Grid
     const stats = window.getData('stats');
     if (stats) {
-        const s1 = document.getElementById('stat-total-stakeholders');
-        const s2 = document.getElementById('stat-meetings');
-        const s3 = document.getElementById('stat-actions');
-        if (s1) s1.textContent = stats.totalStakeholders;
-        if (s2) s2.textContent = stats.upcomingMeetings;
-        if (s3) s3.textContent = stats.openActions;
+        document.getElementById('dash-sh-total').textContent = stats.stakeholders.total;
+        document.getElementById('dash-sh-healthy').textContent = stats.stakeholders.healthy;
+        document.getElementById('dash-sh-neutral').textContent = stats.stakeholders.neutral;
+        document.getElementById('dash-sh-risk').textContent = stats.stakeholders.atRisk;
+
+        document.getElementById('dash-int-upcoming').textContent = stats.interactions.upcoming;
+        document.getElementById('dash-int-total').textContent = stats.interactions.total;
+
+        document.getElementById('dash-act-total').textContent = stats.actions.total;
+        document.getElementById('dash-act-active').textContent = stats.actions.active;
     }
 
-    // --- 3. KNOWLEDGE BANK (QA) ---
-    renderKnowledgeBank(spine.qa_library);
+    // 2. AI Overview
+    const aiOverview = window.getData('aiOverview');
+    if (aiOverview) {
+        document.getElementById('dash-ai-summary').textContent = aiOverview;
+    }
 
-    // --- 4. PREVIEWS (Stakeholders, Activity, Actions) ---
-    const stakeholders = window.getData('stakeholders') || [];
-    const activityLog = window.getData('activityLog') || [];
+    // 3. Current Actions
     const actions = window.getData('actions') || [];
-
-    // Stakeholder Preview
-    const shPreview = document.getElementById('preview-stakeholders');
-    if (shPreview) {
-        shPreview.innerHTML = stakeholders.slice(0, 4).map(s => `
-            <div class="card" style="padding: 1rem; cursor: pointer;" onclick="location.href='stakeholder_detail.html?id=${s.id}'">
-                <strong>${s.name}</strong><br>
-                <div style="display:flex; justify-content:space-between; margin-top:0.5rem; font-size:0.8rem;">
-                     <span>${s.role}</span>
-                     <span style="color:var(--energy-algae);">${s.status}</span>
+    const actionsList = document.getElementById('dash-actions-list');
+    if (actionsList) {
+        actionsList.innerHTML = actions.slice(0, 3).map(a => `
+            <div class="card" style="padding: 1rem; border:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <span class="status-badge" style="font-size:0.7rem; padding:0.1rem 0.5rem; margin-bottom:0.5rem; border-color:var(--energy-algae); color:var(--energy-algae);">${a.status}</span>
+                    <h4 style="margin:0; font-size:1rem; color:var(--text-primary); text-transform:none;">${a.activity}</h4>
+                    <div style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.25rem;">Owner: ${a.owner} <span style="margin:0 0.5rem;">|</span> Due: ${a.dueDate || 'TBD'}</div>
                 </div>
+                <button class="btn-secondary" style="font-size:0.75rem; height:28px; padding:0 0.5rem;" onclick="loadView('actions')">
+                    <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit
+                </button>
             </div>
         `).join('');
     }
 
-    // Activity Preview
-    const acPreview = document.getElementById('preview-activity');
-    if (acPreview) {
-        acPreview.innerHTML = activityLog.slice(0, 3).map(a => `
-            <div class="card" style="padding: 0.75rem; cursor: pointer;" onclick="location.href='activity_log.html'">
-                <div style="display:flex; justify-content:space-between;">
-                     <strong>${a.title}</strong>
-                     <span style="font-size:0.8em; opacity:0.7;">${a.date}</span>
-                </div>
-                <small>${a.type} | ${a.status}</small>
-            </div>
-        `).join('');
-    }
+    // 4. Interactions
+    const interactions = window.getData('interactions') || [];
+    const upcomingContainer = document.getElementById('dash-upcoming-interactions');
+    const recentContainer = document.getElementById('dash-recent-interactions');
 
-    // Actions Preview
-    const actPreview = document.getElementById('preview-actions');
-    if (actPreview) {
-        actPreview.innerHTML = actions.slice(0, 4).map(a => `
-             <div class="card" style="padding: 0.75rem; cursor: pointer;" onclick="location.href='actions.html'">
-                <strong>${a.activity}</strong><br>
-                <div style="display:flex; justify-content:space-between; margin-top:0.5rem; font-size:0.8rem;">
-                    <span>Owner: ${a.owner}</span>
-                    <span style="color:var(--energy-alert);">${a.status}</span>
-                </div>
+    const renderInteraction = (i) => `
+        <div class="card" style="padding: 1rem; border:1px solid var(--border-subtle);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <span style="font-size:0.75rem; color:${i.type==='Upcoming'?'var(--energy-alert)':'var(--text-tertiary)'}; font-weight:600; text-transform:uppercase;">${i.rawDate} - ${i.type}</span>
+                <button class="btn-secondary" style="font-size:0.75rem; height:28px; padding:0 0.5rem;">
+                     <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit
+                </button>
             </div>
-        `).join('');
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:1rem;">
+                <h4 style="margin:0; font-size:1.1rem; color:var(--text-primary); text-transform:none;">${i.title}</h4>
+                <div style="font-weight:700; font-family:'JetBrains Mono'; font-size:1rem;">${i.date}</div>
+            </div>
+            <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">
+                <strong>${i.agenda ? 'Agenda' : 'Summary'}:</strong> ${i.agenda || i.discussed}
+            </div>
+            <div style="font-size:0.85rem; margin-bottom:0.5rem;">
+                <strong>Discussed:</strong> 
+                ${i.topics.map(t => `<span class="status-badge" style="font-size:0.7rem; padding:0.1rem 0.4rem; border:none; background:rgba(16,185,129,0.1); color:var(--energy-algae); margin-right:0.25rem;">${t}</span>`).join('')}
+            </div>
+            <div style="font-size:0.85rem;">
+                <strong>Attendees:</strong>
+                ${i.attendees.map(a => `<span style="display:inline-block; margin-right:0.5rem; color:var(--text-secondary);"><span class="material-symbols-outlined" style="font-size:0.9rem; vertical-align:middle; margin-right:0.1rem;">person</span>${a}</span>`).join('')}
+            </div>
+        </div>
+    `;
+
+    if (upcomingContainer) upcomingContainer.innerHTML = interactions.filter(i => i.type === 'Upcoming').map(renderInteraction).join('');
+    if (recentContainer) recentContainer.innerHTML = interactions.filter(i => i.type === 'Recent').map(renderInteraction).join('');
+
+    // 5. Strategy Spine
+    const spine = window.getData('spine');
+    if (spine) {
+        const objContainer = document.getElementById('dash-spine-objectives');
+        if (objContainer && spine.objectives) {
+            objContainer.innerHTML = spine.objectives.slice(0, 3).map(o => `
+                <li style="display:flex; gap:0.5rem; margin-bottom:0.25rem;"><span style="color:var(--energy-algae);">✅</span> ${o.text}</li>
+            `).join('');
+        }
+
+        const pillarContainer = document.getElementById('dash-spine-pillars');
+        if (pillarContainer && spine.pillars) {
+            pillarContainer.innerHTML = spine.pillars.slice(0, 4).map(p => `
+                <div style="padding:0.5rem 0.75rem; background:rgba(0,0,0,0.02); border:1px solid var(--border-subtle); border-radius:4px; color:var(--text-secondary);">${p.title}</div>
+            `).join('');
+        }
     }
 }
 
@@ -458,6 +442,10 @@ function loadView(viewName) {
             template = getActionsTemplate();
             initFunc = renderActions;
             break;
+        case 'strategy_spine':
+            template = getStrategySpineTemplate();
+            initFunc = renderStrategySpine;
+            break;
         default:
             template = '<h2>404 - View Not Found</h2>';
     }
@@ -478,115 +466,109 @@ function loadView(viewName) {
 
 function getDashboardTemplate() {
     return `
-                <header
-                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <div>
-                        <h2>Dashboard</h2>
-                        <p>Welcome back, Admin. System Status: Nominal.</p>
-                    </div>
-                    <div class="user-profile">
-                        <span style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--energy-algae);">●
-                            ONLINE</span>
-                    </div>
-                </header>
+        <header style="display: flex; justify-content: center; align-items: center; margin-bottom: 2rem;">
+            <h2>Dashboard</h2>
+        </header>
 
-                <!-- 1. Strategy Core (Editable) -->
-                <div class="spine-section" style="margin-bottom: 2rem; border-left: 4px solid var(--energy-algae);">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <h3><span class="material-symbols-outlined"
-                                style="font-size: 1rem; color: var(--energy-algae);">verified</span> Strategy Core</h3>
-                        <button id="btn-edit-strategy" class="btn-secondary"
-                            style="height: 32px; font-size: 0.75rem; padding: 0 0.75rem;">Edit</button>
-                    </div>
-                    <p id="strategy-purpose" style="font-size: 1.1rem; font-weight: 500; margin-bottom: 1rem;">
-                        Loading...</p>
+        <!-- Stats Grid -->
+        <div class="pillar-grid" style="margin-bottom: 2rem; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+            <!-- Stakeholders -->
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h3 style="color:var(--text-tertiary); margin-bottom:0.25rem;">Stakeholders</h3>
+                    <div id="dash-sh-total" style="font-size: 2.5rem; font-weight: 700;">16</div>
                 </div>
-
-                <!-- 2. Narrative Block -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
-                    <div class="card"
-                        style="background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(16, 185, 129, 0.05) 100%);">
-                        <h3>Core Narrative</h3>
-                        <p id="narrative-core" style="font-size: 1.05rem; line-height: 1.6;">Loading...</p>
-                    </div>
-                    <div class="card">
-                        <h3>Simple Narrative</h3>
-                        <p id="narrative-simple" style="font-size: 1.05rem; line-height: 1.6;">Loading...</p>
-                    </div>
+                <div style="font-size: 0.8rem; line-height:1.5;">
+                    <div><span style="color:var(--energy-algae);">●</span> <span id="dash-sh-healthy">5</span> Healthy</div>
+                    <div><span style="color:var(--energy-solar);">●</span> <span id="dash-sh-neutral">8</span> Neutral</div>
+                    <div><span style="color:var(--energy-alert);">●</span> <span id="dash-sh-risk">3</span> At Risk</div>
                 </div>
+            </div>
 
-                <!-- 3. Stats Grid -->
-                <!-- Removed inline columns to allow responsive auto-fit -->
-                <div class="pillar-grid" style="margin-bottom: 2rem;">
-                    <div class="card stat-card" onclick="loadView('stakeholders')" style="cursor: pointer;">
-                        <h3>Total Stakeholders</h3>
-                        <div class="stat-value" id="stat-total-stakeholders"
-                            style="font-size: 2.5rem; font-weight: 700; color: var(--text-primary);">0</div>
-                    </div>
-                    <div class="card stat-card" onclick="loadView('activity_log')" style="cursor: pointer;">
-                        <h3>Upcoming Activities</h3>
-                        <div class="stat-value" id="stat-meetings"
-                            style="font-size: 2.5rem; font-weight: 700; color: var(--text-primary);">0</div>
-                    </div>
-                    <div class="card stat-card" onclick="loadView('actions')" style="cursor: pointer;">
-                        <h3>Open Actions</h3>
-                        <div class="stat-value" id="stat-actions"
-                            style="font-size: 2.5rem; font-weight: 700; color: var(--text-primary);">0</div>
-                    </div>
+            <!-- Interactions -->
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h3 style="color:var(--text-tertiary); margin-bottom:0.25rem;">Interactions</h3>
+                    <div id="dash-int-upcoming" style="font-size: 2.5rem; font-weight: 700;">2</div>
+                    <div style="font-size:0.75rem; color:var(--text-tertiary);">Upcoming</div>
                 </div>
-
-                <!-- 4. Pillars Grid -->
-                <h3 style="margin-bottom: 1rem; color: var(--text-tertiary);">Strategic Pillars</h3>
-                <div id="pillars-grid" class="pillar-grid" style="margin-bottom: 3rem;">
-                    <!-- Populated by JS -->
+                <div style="text-align:right;">
+                    <br>
+                    <div id="dash-int-total" style="font-size: 2.5rem; font-weight: 700;">12</div>
+                    <div style="font-size:0.75rem; color:var(--text-tertiary);">Total</div>
                 </div>
+            </div>
 
-                <!-- 5. Knowledge Bank (FAQs) -->
-                <h3 style="margin-bottom: 1rem; color: var(--text-tertiary);">Knowledge Bank (FAQs)</h3>
-                <div id="knowledge-bank"
-                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 3rem;">
-                    <!-- Populated by JS -->
+            <!-- Actions -->
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h3 style="color:var(--text-tertiary); margin-bottom:0.25rem;">Actions</h3>
+                    <div id="dash-act-total" style="font-size: 2.5rem; font-weight: 700;">12</div>
+                    <div style="font-size:0.75rem; color:var(--text-tertiary);">Total</div>
                 </div>
+                <div style="text-align:right;">
+                    <br>
+                    <div id="dash-act-active" style="font-size: 2.5rem; font-weight: 700;">4</div>
+                    <div style="font-size:0.75rem; color:var(--text-tertiary);">Your Active Actions</div>
+                </div>
+            </div>
+        </div>
 
-                <!-- 6. Previews -->
-                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                    <!-- Stakeholders Preview -->
-                    <div class="card">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                            <h3>Stakeholders</h3>
-                            <button onclick="loadView('stakeholders')" class="btn-secondary"
-                                style="font-size: 0.8rem; height: 32px;">View Ledger</button>
-                        </div>
-                        <div id="preview-stakeholders"
-                            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
-                        </div>
-                    </div>
+        <!-- AI Overview Summary -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3 style="color:var(--text-tertiary);">AI overview summary / Executive Summary</h3>
+            <p id="dash-ai-summary" style="font-size: 1rem; color: var(--text-secondary); margin-top: 1rem;">Loading...</p>
+        </div>
 
-                    <!-- Activity Preview -->
-                    <div class="card">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                            <h3>Activity Log</h3>
-                             <button onclick="loadView('activity_log')" class="btn-secondary"
-                                style="font-size: 0.8rem; height: 32px;">View Log</button>
-                        </div>
-                        <div id="preview-activity" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
-                    </div>
+        <!-- Your Current Actions -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3 style="color:var(--text-tertiary); margin-bottom: 1rem;">Your Current Actions</h3>
+            <div id="dash-actions-list" style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
+                <!-- Filled by JS -->
+            </div>
+            <div style="display:flex; justify-content:flex-end;">
+                <button class="btn-secondary" style="font-size:0.75rem; height:28px; padding:0 0.5rem;" onclick="loadView('actions')">View All</button>
+            </div>
+        </div>
 
-                    <!-- Actions Preview -->
-                    <div class="card">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                            <h3>Pending Actions</h3>
-                             <button onclick="loadView('actions')" class="btn-secondary" style="font-size: 0.8rem; height: 32px;">View
-                                All</button>
-                        </div>
-                        <div id="preview-actions"
-                            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
-                        </div>
+        <!-- Upcoming Interactions -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3 style="color:var(--text-tertiary); margin-bottom: 1rem;">Upcoming Interactions</h3>
+            <div id="dash-upcoming-interactions" style="display: flex; flex-direction: column; gap: 0.5rem;">
+               <!-- Filled by JS -->
+            </div>
+        </div>
+
+        <!-- Recent Interactions -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3 style="color:var(--text-tertiary); margin-bottom: 1rem;">Recent Interactions</h3>
+            <div id="dash-recent-interactions" style="display: flex; flex-direction: column; gap: 0.5rem;">
+               <!-- Filled by JS -->
+            </div>
+        </div>
+
+        <!-- Strategy Spine Preview -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3 style="color:var(--text-tertiary); margin-bottom: 1rem;">Strategy Spine</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="card" style="background:var(--bg-app); border:1px solid var(--border-subtle); display:flex; flex-direction:column;">
+                    <h4 style="margin-bottom:1rem; font-size:0.9rem;">Objectives</h4>
+                    <ul id="dash-spine-objectives" style="list-style:none; padding:0; font-size:0.85rem; display:flex; flex-direction:column; gap:0.5rem;">
+                    </ul>
+                    <div style="margin-top:auto; display:flex; justify-content:flex-end; padding-top:1rem;">
+                        <button class="btn-secondary" style="font-size:0.75rem; height:28px; padding:0 0.5rem;">View All</button>
                     </div>
                 </div>
+                <div class="card" style="background:var(--bg-app); border:1px solid var(--border-subtle); display:flex; flex-direction:column;">
+                    <h4 style="margin-bottom:1rem; font-size:0.9rem;">Strategic Pillars</h4>
+                    <div id="dash-spine-pillars" style="display:flex; flex-direction:column; gap:0.5rem; font-size:0.85rem;">
+                    </div>
+                    <div style="margin-top:auto; display:flex; justify-content:flex-end; padding-top:1rem;">
+                        <button class="btn-secondary" style="font-size:0.75rem; height:28px; padding:0 0.5rem;">View All</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     `;
 }
 
@@ -777,3 +759,362 @@ function getActionsTemplate() {
                 </div>
     `;
 }
+
+function getStrategySpineTemplate() {
+    return `
+        <header style="display: flex; justify-content: center; align-items: center; margin-bottom: 2rem; position: relative;">
+            <h2>Strategy Spine</h2>
+            <button id="spine-edit-toggle" class="btn-secondary" style="position: absolute; right: 0; display:flex; align-items:center; gap:0.25rem;">
+                <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit
+            </button>
+        </header>
+
+        <!-- Comms Strategy Core -->
+        <div class="card" style="margin-bottom: 2rem; text-align: center; position:relative;">
+            <h3 style="margin-bottom:0.5rem; font-size:1.2rem;">Comms Strategy Core</h3>
+            <p id="spine-purpose" style="color:var(--text-secondary); font-size:1rem;">Loading...</p>
+            <button class="btn-secondary spine-edit-btn" onclick="openSpineModal('purpose')" style="display:none; position:absolute; right:1rem; top:1rem;"><span class="material-symbols-outlined" style="font-size:1rem;">edit</span></button>
+        </div>
+
+        <!-- Objectives -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+            <h3 style="color:var(--text-tertiary); margin:0;">Objectives</h3>
+            <button class="btn-primary spine-edit-btn" onclick="window.addObjectiveInline()" style="display:none; font-size:0.75rem; padding: 0.2rem 0.5rem;">+ Add Objective</button>
+        </div>
+        <div class="card" style="margin-bottom: 2rem;">
+            <ul id="spine-objectives-list" style="list-style:none; padding:0; display:flex; flex-direction:column; gap:0.5rem;">
+               <!-- Loaded by JS -->
+            </ul>
+        </div>
+
+        <!-- Core Narrative -->
+        <h3 style="color:var(--text-tertiary); margin-bottom: 1rem;">Core Narrative</h3>
+        <div class="card" style="margin-bottom: 2rem;">
+            <button class="btn-secondary spine-edit-btn" onclick="openSpineModal('narrative')" style="display:none; float:right; margin: 0 0 0.5rem 1rem;"><span class="material-symbols-outlined" style="font-size:1rem;">edit</span></button>
+            <p id="spine-narrative-core" style="font-style:italic; margin-bottom:1rem; color:var(--text-primary);"></p>
+            <p id="spine-narrative-simple" style="color:var(--text-secondary);"></p>
+            <div style="clear:both;"></div>
+        </div>
+
+        <!-- Strategic Pillars -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+            <h3 style="color:var(--text-tertiary); margin:0;">Strategic Pillars</h3>
+            <button class="btn-primary spine-edit-btn" onclick="openSpineModal('add-pillar')" style="display:none; font-size:0.75rem; padding: 0.2rem 0.5rem;">+ Add Pillar</button>
+        </div>
+        <div id="spine-pillars-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:1.5rem; margin-bottom:3rem;">
+            <!-- Loaded by JS -->
+        </div>
+
+        <!-- Modals -->
+        <dialog id="spine-modal" onmousedown="if(event.target===this)this.close()" style="border:1px solid var(--border-subtle); border-radius:8px; padding:1.5rem; width:500px; max-width:90vw; background:var(--bg-surface); color:var(--text-primary); box-shadow:0 10px 30px rgba(0,0,0,0.3); margin:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; cursor:move;" id="spine-modal-header">
+                <h3 id="spine-modal-title">Edit</h3>
+                <button onclick="document.getElementById('spine-modal').close()" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div id="spine-modal-body" style="display:flex; flex-direction:column; gap:1rem;">
+                <!-- dynamic inputs inserted here -->
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
+                <button class="btn-secondary" onclick="document.getElementById('spine-modal').close()">Cancel</button>
+                <button class="btn-primary" id="spine-modal-save">Save</button>
+            </div>
+        </dialog>
+    `;
+}
+
+let isSpineEditMode = false;
+let currentEditId = null; 
+
+function renderStrategySpine() {
+    isSpineEditMode = false;
+    refreshSpineUI();
+
+    const editToggle = document.getElementById('spine-edit-toggle');
+    if (editToggle) {
+        editToggle.addEventListener('click', () => {
+            isSpineEditMode = !isSpineEditMode;
+            editToggle.style.background = isSpineEditMode ? 'var(--energy-algae)' : '';
+            editToggle.style.color = isSpineEditMode ? '#000' : '';
+            editToggle.innerHTML = isSpineEditMode 
+                ? '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done'
+                : '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
+            
+            const btns = document.querySelectorAll('.spine-edit-btn');
+            btns.forEach(btn => btn.style.display = isSpineEditMode ? 'flex' : 'none');
+            // Re-render to update inline list edit buttons
+            refreshSpineUI(); 
+        });
+    }
+
+    // Draggable modal logic
+    const modal = document.getElementById('spine-modal');
+    const header = document.getElementById('spine-modal-header');
+    if (modal && header) {
+        let isDragging = false;
+        let offset = {x:0, y:0};
+        header.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            const rect = modal.getBoundingClientRect();
+            offset.x = e.clientX - rect.left;
+            offset.y = e.clientY - rect.top;
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            modal.style.margin = '0';
+            modal.style.left = (e.clientX - offset.x) + 'px';
+            modal.style.top = (e.clientY - offset.y) + 'px';
+        });
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+    }
+}
+
+function refreshSpineUI() {
+    const spine = window.getData('spine');
+    if (!spine) return;
+
+    // Purpose
+    const purposeEl = document.getElementById('spine-purpose');
+    if (purposeEl) purposeEl.textContent = spine.purpose;
+
+    // Objectives
+    const objList = document.getElementById('spine-objectives-list');
+    if (objList) {
+        objList.innerHTML = spine.objectives.map((o, idx) => `
+            <li id="spine-obj-li-${o.id}" style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.03); padding:0.4rem 0.8rem; border-radius:4px; gap:1rem;">
+                <div style="display:flex; align-items:center; gap:0.5rem; flex:1;">
+                    <span style="color:var(--energy-alert);">🎯</span> 
+                    <span class="obj-text">${o.text}</span>
+                </div>
+                <div class="spine-edit-btn" style="display:${isSpineEditMode ? 'flex' : 'none'}; gap:0.25rem; align-items:center;">
+                    <button onclick="window.enableObjectiveInlineEdit('${o.id}')" style="background:none; border:none; cursor:pointer; color:var(--text-secondary);"><span class="material-symbols-outlined" style="font-size:1.1rem;">edit</span></button>
+                    <button onclick="window.moveObjective('${o.id}', -1)" style="background:none; border:none; cursor:pointer; color:var(--text-secondary); opacity:${idx === 0 ? '0.2' : '1'};" ${idx === 0 ? 'disabled' : ''}><span class="material-symbols-outlined" style="font-size:1.1rem;">arrow_upward</span></button>
+                    <button onclick="window.moveObjective('${o.id}', 1)" style="background:none; border:none; cursor:pointer; color:var(--text-secondary); opacity:${idx === spine.objectives.length - 1 ? '0.2' : '1'};" ${idx === spine.objectives.length - 1 ? 'disabled' : ''}><span class="material-symbols-outlined" style="font-size:1.1rem;">arrow_downward</span></button>
+                    <button onclick="deleteSpineItem('objective', '${o.id}')" style="background:none; border:none; cursor:pointer; color:var(--energy-alert); margin-left:0.5rem;"><span class="material-symbols-outlined" style="font-size:1.1rem;">delete</span></button>
+                </div>
+            </li>
+        `).join('');
+    }
+
+    // Narrative
+    const coreEl = document.getElementById('spine-narrative-core');
+    const simpleEl = document.getElementById('spine-narrative-simple');
+    if (coreEl) coreEl.textContent = `"${spine.narrative.core}"`;
+    if (simpleEl) simpleEl.innerHTML = `<strong>Simple:</strong> ${spine.narrative.simple}`;
+
+    // Pillars
+    const pGrid = document.getElementById('spine-pillars-grid');
+    if (pGrid) {
+        pGrid.innerHTML = spine.pillars.map(p => `
+            <div class="card" style="position:relative;">
+                <h4 style="margin-bottom:0.5rem;">${p.title}</h4>
+                <div class="spine-edit-btn" style="display:${isSpineEditMode ? 'flex' : 'none'}; position:absolute; right:0.5rem; top:0.5rem; gap:0.25rem;">
+                    <button onclick="openSpineModal('edit-pillar', '${p.id}')" style="background:none; border:none; cursor:pointer; color:var(--text-secondary);"><span class="material-symbols-outlined" style="font-size:1rem;">edit</span></button>
+                    <button onclick="deleteSpineItem('pillar', '${p.id}')" style="background:none; border:none; cursor:pointer; color:var(--energy-alert);"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
+                </div>
+                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">${p.message}</p>
+                <ul style="font-size:0.85rem; padding-left:1.2rem; margin:0;">
+                    ${p.proofPoints.map(pp => `<li style="font-size:inherit;">${pp}</li>`).join('')}
+                </ul>
+            </div>
+        `).join('');
+    }
+}
+
+window.openSpineModal = function(type, id = null) {
+    const modal = document.getElementById('spine-modal');
+    const title = document.getElementById('spine-modal-title');
+    const body = document.getElementById('spine-modal-body');
+    const saveBtn = document.getElementById('spine-modal-save');
+    const spine = window.getData('spine');
+    
+    currentEditId = id;
+    body.innerHTML = ''; // clear
+
+    if (type === 'purpose') {
+        title.textContent = 'Edit Comms Strategy Core';
+        body.innerHTML = `
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Comms Strategy Core Purpose</label>
+            <textarea id="spine-input-purpose" style="width:100%; height:120px; resize:none; overflow-y:auto; padding:0.5rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${spine.purpose}</textarea>
+        `;
+        saveBtn.onclick = () => {
+            spine.purpose = document.getElementById('spine-input-purpose').value;
+            saveAndCloseSpine(spine, modal);
+        };
+    } else if (type === 'add-objective' || type === 'edit-objective') {
+        // Obsolete modal block, objective creation/editing is now handled inline.
+        modal.close();
+        return;
+    } else if (type === 'narrative') {
+        title.textContent = 'Edit Core Narrative';
+        body.innerHTML = `
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Core Narrative</label>
+            <textarea id="spine-input-ncore" style="width:100%; height:120px; resize:none; overflow-y:auto; margin-bottom:1rem; padding:0.5rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${spine.narrative.core}</textarea>
+            
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Simple Translation</label>
+            <textarea id="spine-input-nsimple" style="width:100%; height:120px; resize:none; overflow-y:auto; padding:0.5rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${spine.narrative.simple}</textarea>
+        `;
+        saveBtn.onclick = () => {
+            spine.narrative.core = document.getElementById('spine-input-ncore').value;
+            spine.narrative.simple = document.getElementById('spine-input-nsimple').value;
+            saveAndCloseSpine(spine, modal);
+        };
+    } else if (type === 'add-pillar' || type === 'edit-pillar') {
+        title.textContent = id ? 'Edit Pillar' : 'Add Pillar';
+        const p = id ? spine.pillars.find(x => x.id === id) : {title: '', message: '', proofPoints: []};
+        body.innerHTML = `
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Pillar Title</label>
+            <input type="text" id="spine-input-ptitle" value="${p.title}" style="width:100%; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
+            
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Pillar Message / Description</label>
+            <textarea id="spine-input-pmsg" style="width:100%; height:80px; resize:none; overflow-y:auto; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${p.message}</textarea>
+            
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Strategic Proof Points / Dot Points</label>
+            <div id="spine-proof-container" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:0.5rem;">
+                ${p.proofPoints.map(pp => `
+                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                        <span style="color:var(--text-secondary);">•</span>
+                        <input type="text" class="spine-proof-input" value="${pp}" style="flex:1; padding:0.4rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
+                        <button onclick="window.moveProofPointUp(this)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">arrow_upward</span></button>
+                        <button onclick="window.moveProofPointDown(this)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">arrow_downward</span></button>
+                        <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--energy-alert); cursor:pointer; margin-left:0.25rem;"><span class="material-symbols-outlined" style="font-size:1.2rem;">delete</span></button>
+                    </div>
+                `).join('')}
+            </div>
+            <button class="btn-secondary" onclick="window.addProofPointInput()" style="font-size:0.75rem; padding:0.2rem 0.6rem;">+ Add Point</button>
+        `;
+        saveBtn.onclick = () => {
+            const titleVal = document.getElementById('spine-input-ptitle').value;
+            const msgVal = document.getElementById('spine-input-pmsg').value;
+            const proofs = Array.from(document.querySelectorAll('.spine-proof-input'))
+                                .map(el => el.value)
+                                .filter(x => x.trim() !== '');
+            if (id) {
+                const target = spine.pillars.find(x => x.id === id);
+                target.title = titleVal;
+                target.message = msgVal;
+                target.proofPoints = proofs;
+            } else {
+                spine.pillars.push({ id: 'p'+Date.now(), title: titleVal, message: msgVal, proofPoints: proofs });
+            }
+            saveAndCloseSpine(spine, modal);
+        };
+    }
+
+    modal.showModal();
+};
+
+window.addProofPointInput = function() {
+    const container = document.getElementById('spine-proof-container');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex; gap:0.5rem; align-items:center;';
+    div.innerHTML = `
+        <span style="color:var(--text-secondary);">•</span>
+        <input type="text" class="spine-proof-input" value="" style="flex:1; padding:0.4rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
+        <button onclick="window.moveProofPointUp(this)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">arrow_upward</span></button>
+        <button onclick="window.moveProofPointDown(this)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">arrow_downward</span></button>
+        <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--energy-alert); cursor:pointer; margin-left:0.25rem;"><span class="material-symbols-outlined" style="font-size:1.2rem;">delete</span></button>
+    `;
+    container.appendChild(div);
+};
+
+window.saveAndCloseSpine = function(spine, modal) {
+    window.updateData('spine', spine);
+    refreshSpineUI();
+    modal.close();
+};
+
+window.deleteSpineItem = function(type, id) {
+    const pwd = prompt('Enter administrator password to perform deletion (hint: "abracadabra"):');
+    if (pwd !== 'abracadabra') {
+        alert('Invalid password. Deletion cancelled.');
+        return;
+    }
+
+    const spine = window.getData('spine');
+    if (type === 'objective') {
+        spine.objectives = spine.objectives.filter(o => o.id !== id);
+    } else if (type === 'pillar') {
+        spine.pillars = spine.pillars.filter(p => p.id !== id);
+    }
+    window.updateData('spine', spine);
+    refreshSpineUI();
+};
+
+window.moveProofPointUp = function(btn) {
+    const row = btn.closest('div');
+    if (row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling);
+};
+
+window.moveProofPointDown = function(btn) {
+    const row = btn.closest('div');
+    if (row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row);
+};
+
+window.saveObjectiveInline = function(id, val) {
+    if(!val.trim()) return; // prevent empty
+    const spine = window.getData('spine');
+    const obj = spine.objectives.find(o => o.id === id);
+    if (obj) {
+        obj.text = val;
+        window.updateData('spine', spine);
+    }
+    refreshSpineUI(); // re-render to text view
+};
+
+window.enableObjectiveInlineEdit = function(id) {
+    const li = document.getElementById(`spine-obj-li-${id}`);
+    if(!li) return;
+    const oText = li.querySelector('.obj-text').innerText;
+    li.innerHTML = `
+        <div style="display:flex; align-items:center; gap:0.5rem; flex:1;">
+            <span style="color:var(--energy-alert);">🎯</span> 
+            <input type="text" id="spine-input-inline-${id}" value="${oText.replace(/"/g, '&quot;')}" style="flex:1; padding:0.4rem 0.6rem; background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:4px; font-size:0.95rem; color:var(--text-primary);">
+            <button class="btn-primary" onclick="window.saveObjectiveInline('${id}', document.getElementById('spine-input-inline-${id}').value)" style="font-size:0.75rem; padding:0.2rem 0.5rem;">Save</button>
+            <button class="btn-secondary" onclick="refreshSpineUI()" style="font-size:0.75rem; padding:0.2rem 0.5rem;">Cancel</button>
+        </div>
+    `;
+};
+
+window.moveObjective = function(id, dir) {
+    const spine = window.getData('spine');
+    const idx = spine.objectives.findIndex(o => o.id === id);
+    if (idx === -1) return;
+    if (dir === -1 && idx > 0) {
+        const temp = spine.objectives[idx];
+        spine.objectives[idx] = spine.objectives[idx-1];
+        spine.objectives[idx-1] = temp;
+    } else if (dir === 1 && idx < spine.objectives.length - 1) {
+        const temp = spine.objectives[idx];
+        spine.objectives[idx] = spine.objectives[idx+1];
+        spine.objectives[idx+1] = temp;
+    }
+    window.updateData('spine', spine);
+    refreshSpineUI();
+};
+
+window.addObjectiveInline = function() {
+    const spine = window.getData('spine');
+    const newId = 'obj'+Date.now();
+    spine.objectives.push({ id: newId, text: '' });
+    window.updateData('spine', spine);
+    refreshSpineUI();
+    // After naturally rendering the blank text, immediately pop it into edit mode
+    setTimeout(() => window.enableObjectiveInlineEdit(newId), 0);
+};
+
+// Forward global wheel events to the main view container when hovering in dead zones
+window.addEventListener('wheel', (e) => {
+    const vc = document.getElementById('view-container');
+    if (vc && !vc.contains(e.target)) {
+        const nav = document.getElementById('nav-links-container');
+        // If hovering over the sidebar nav and it actually has overflow, let it scroll natively
+        if (nav && nav.contains(e.target) && nav.scrollHeight > nav.clientHeight) {
+            return; 
+        }
+        // Otherwise, forward the scroll to the main view
+        vc.scrollTop += e.deltaY;
+    }
+}, { passive: true });

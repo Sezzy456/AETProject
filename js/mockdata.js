@@ -2,11 +2,27 @@
 
 const mockData = {
     stats: {
-        totalStakeholders: 12, // Updated based on JSON length
-        upcomingMeetings: 5,
-        openActions: 8,
-        completedActions: 45
+        stakeholders: { total: 16, healthy: 5, neutral: 8, atRisk: 3 },
+        interactions: { upcoming: 2, total: 12 },
+        actions: { total: 12, active: 4 }
     },
+    aiOverview: "The team is currently focused on realigning key stakeholders following recent regulatory announcements. Immediate action is required on the messaging toolkit to ensure consistent communication across all channels. Upcoming interactions heavily feature Council engagement.",
+    interactions: [
+        {
+            id: 201, date: "Friday 10:30am", rawDate: "2026-03-05", type: "Upcoming", title: "Weekly Update",
+            agenda: "Update on what everyone's been up to",
+            discussed: null,
+            topics: ["Animation", "Government grant", "Council engagment"],
+            attendees: ["Matt Griffin", "Linda Vo", "Rebecca Grant", "Adam Riley", "Sarah Evans"]
+        },
+        {
+            id: 202, date: "Friday 10:30am", rawDate: "2026-02-27", type: "Recent", title: "Weekly Update",
+            agenda: null,
+            discussed: "Discussed blockages in the progress of the project",
+            topics: ["Animation", "Government grant", "Council engagment"],
+            attendees: ["Matt Griffin", "Linda Vo", "Rebecca Grant", "Adam Riley", "Sarah Evans"]
+        }
+    ],
     // STRATEGY SPINE (From strategy_backup_2026-02-02.json)
     spine: {
         pillars: [
@@ -287,22 +303,32 @@ const mockData = {
 };
 
 // Simulate local storage persistence
-// Bumping to v8 to ensure new structure loads (FRESH LOAD)
-if (!localStorage.getItem('portalData_v9')) {
-    localStorage.setItem('portalData_v9', JSON.stringify(mockData));
+// Bumping to v11 to ensure new structure loads (FRESH LOAD)
+if (!localStorage.getItem('portalData_v11')) {
+    localStorage.setItem('portalData_v11', JSON.stringify(mockData));
 }
 
 window.getData = function (key) {
-    const data = JSON.parse(localStorage.getItem('portalData_v9'));
-    return data ? data[key] : null; // This will return 'spine' object if key is 'spine'
+    const data = JSON.parse(localStorage.getItem('portalData_v11'));
+    return data ? data[key] : null; 
+};
+
+window.updateData = function (key, value) {
+    const data = JSON.parse(localStorage.getItem('portalData_v11'));
+    if (data) {
+        data[key] = value;
+        localStorage.setItem('portalData_v11', JSON.stringify(data));
+        return true;
+    }
+    return false;
 };
 
 window.addData = function (key, item) {
-    const data = JSON.parse(localStorage.getItem('portalData_v9'));
+    const data = JSON.parse(localStorage.getItem('portalData_v11'));
     if (data && data[key]) {
         item.id = item.id || Date.now(); // Keep existing ID if present
         data[key].push(item);
-        localStorage.setItem('portalData_v9', JSON.stringify(data));
+        localStorage.setItem('portalData_v11', JSON.stringify(data));
         return true;
     }
     return false;
@@ -310,12 +336,12 @@ window.addData = function (key, item) {
 
 // Helper for adding a contact to a stakeholder
 window.addContact = function (stakeholderId, contact) {
-    const data = JSON.parse(localStorage.getItem('portalData_v9'));
+    const data = JSON.parse(localStorage.getItem('portalData_v11'));
     const sh = data.stakeholders.find(s => s.id == stakeholderId);
     if (sh) {
         if (!sh.contacts) sh.contacts = [];
         sh.contacts.push(contact);
-        localStorage.setItem('portalData_v9', JSON.stringify(data));
+        localStorage.setItem('portalData_v11', JSON.stringify(data));
         return true;
     }
     return false;
@@ -323,11 +349,11 @@ window.addContact = function (stakeholderId, contact) {
 
 // Helper for updating a stakeholder
 window.updateStakeholder = function (id, updates) {
-    const data = JSON.parse(localStorage.getItem('portalData_v9'));
+    const data = JSON.parse(localStorage.getItem('portalData_v11'));
     const index = data.stakeholders.findIndex(s => s.id == id);
     if (index !== -1) {
         data.stakeholders[index] = { ...data.stakeholders[index], ...updates };
-        localStorage.setItem('portalData_v9', JSON.stringify(data));
+        localStorage.setItem('portalData_v11', JSON.stringify(data));
         return true;
     }
     return false;
