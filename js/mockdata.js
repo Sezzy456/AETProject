@@ -103,13 +103,63 @@ const mockData = {
             id: "f1a8e4ef-fab6-4fb9-b45d-369a6a55abee",
             name: "City of Greater Bendigo (CoGB)",
             role: "Primary Partner",
-            influence: "High",
-            interest: "High",
-            status: "Needs Attention",
+            status: "Operational",
+            statusHistory: [
+                { date: "15 Jan 2026", status: "Strained", notes: "Negotiations stalled. Mayor requested update." },
+                { date: "02 Feb 2026", status: "Friction Points", notes: "Concerns raised over noise." },
+                { date: "14 Mar 2026", status: "Operational", notes: "Initial meetings successful." }
+            ],
             narrativeHook: "This project delivers long-term stability and value for Bendigo.",
-            engagementStrategy: "Direct briefings; Rebuild confidence; Align narrative.",
+            values: ["job creation", "budget savings", "environmental compliance"],
+            powerDynamics: {
+                influence: "Low",
+                interest: "High",
+                authority: "Veto power, Consultant, or informed",
+                values: ["finance", "regulatory", "community-based"]
+            },
+            postureJourney: {
+                current: "uneven; contract strain",
+                desired: "strong, aligned advocate",
+                nextStep: "\"MOU Signed\" or \"Council Approval.\"",
+                target: "APR 2026"
+            },
+            strategicApproach: {
+                barriers: "Concerned about noise pollution",
+                engagementApproach: "The plan is currently to continue trying to go through via investors but now we will also try to approach the mayor and committee members directly.",
+                tactics: [
+                    { type: "brochure", text: "Brochure for committee members" }
+                ]
+            },
+            contactConduct: {
+                preferences: "formal letters, informal coffee meetings, or official briefings",
+                emailTone: "make sure to be overly considerate, legally need to be able to say we've kept them in the loop",
+                elevatorPitches: "for Council and Community"
+            },
+            relationships: {
+                internalLink: "Linda Vo is the primary gatekeeper for the Mayor.",
+                externalTension: "CoGB has a historical dispute with [Stakeholder X] over landfill sites.",
+                keyTies: ["Linda Vo"],
+                frictionPoints: []
+            },
             owner: "AET + Vant",
-            contacts: []
+            contacts: [
+                {
+                    id: "c1",
+                    name: "Linda Vo",
+                    role: "Comms",
+                    isLead: true,
+                    phone: "+61 400 000 000",
+                    email: "linda.vo@cogb.vic.gov.au"
+                },
+                {
+                    id: "c2",
+                    name: "Sarah Evans",
+                    role: "Web Developer",
+                    isLead: false,
+                    phone: "+61 411 111 111",
+                    email: "sarah@example.com"
+                }
+            ]
         },
         {
             id: "f6f8e1e4-73a3-41d6-a1ec-58630add951d",
@@ -402,45 +452,46 @@ const mockData = {
 };
 
 // Simulate local storage persistence
-// Bumping to v12 to ensure new structure loads (FRESH LOAD)
-if (!localStorage.getItem('portalData_v13')) {
-    localStorage.setItem('portalData_v13', JSON.stringify(mockData));
+// Bumping to v15 to ensure new structure loads (FRESH LOAD)
+const CACHE_VERSION = 'v15';
+if (!localStorage.getItem(CACHE_VERSION)) {
+    localStorage.setItem(CACHE_VERSION, JSON.stringify(mockData));
 }
 
 window.getData = function (key) {
-    const data = JSON.parse(localStorage.getItem('portalData_v13'));
+    const data = JSON.parse(localStorage.getItem(CACHE_VERSION));
     return data ? data[key] : null; 
 };
 
 window.updateData = function (key, value) {
-    const data = JSON.parse(localStorage.getItem('portalData_v13'));
+    const data = JSON.parse(localStorage.getItem(CACHE_VERSION));
     if (data) {
         data[key] = value;
-        localStorage.setItem('portalData_v13', JSON.stringify(data));
+        localStorage.setItem(CACHE_VERSION, JSON.stringify(data));
         return true;
     }
     return false;
 };
 
 window.addData = function (key, item) {
-    const data = JSON.parse(localStorage.getItem('portalData_v13'));
+    const data = JSON.parse(localStorage.getItem(CACHE_VERSION));
     if (data && data[key]) {
         item.id = item.id || Date.now(); // Keep existing ID if present
         data[key].push(item);
-        localStorage.setItem('portalData_v13', JSON.stringify(data));
-        return true;
+        localStorage.setItem(CACHE_VERSION, JSON.stringify(data));
+        return item;
     }
-    return false;
+    return null;
 };
 
 // Helper for adding a contact to a stakeholder
 window.addContact = function (stakeholderId, contact) {
-    const data = JSON.parse(localStorage.getItem('portalData_v13'));
+    const data = JSON.parse(localStorage.getItem(CACHE_VERSION));
     const sh = data.stakeholders.find(s => s.id == stakeholderId);
     if (sh) {
         if (!sh.contacts) sh.contacts = [];
         sh.contacts.push(contact);
-        localStorage.setItem('portalData_v13', JSON.stringify(data));
+        localStorage.setItem('portalData_v14', JSON.stringify(data));
         return true;
     }
     return false;
@@ -448,11 +499,11 @@ window.addContact = function (stakeholderId, contact) {
 
 // Helper for updating a stakeholder
 window.updateStakeholder = function (id, updates) {
-    const data = JSON.parse(localStorage.getItem('portalData_v13'));
+    const data = JSON.parse(localStorage.getItem('portalData_v14'));
     const index = data.stakeholders.findIndex(s => s.id == id);
     if (index !== -1) {
         data.stakeholders[index] = { ...data.stakeholders[index], ...updates };
-        localStorage.setItem('portalData_v13', JSON.stringify(data));
+        localStorage.setItem('portalData_v14', JSON.stringify(data));
         return true;
     }
     return false;
