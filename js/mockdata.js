@@ -103,11 +103,11 @@ const mockData = {
             id: "f1a8e4ef-fab6-4fb9-b45d-369a6a55abee",
             name: "City of Greater Bendigo (CoGB)",
             role: "Primary Partner",
-            status: "Operational",
+            status: "Stable",
             statusHistory: [
-                { date: "15 Jan 2026", status: "Strained", notes: "Negotiations stalled. Mayor requested update." },
+                { date: "15 Jan 2026", status: "Critical/At Risk", notes: "Negotiations stalled. Mayor requested update." },
                 { date: "02 Feb 2026", status: "Friction Points", notes: "Concerns raised over noise." },
-                { date: "14 Mar 2026", status: "Operational", notes: "Initial meetings successful." }
+                { date: "14 Mar 2026", status: "Stable", notes: "Initial meetings successful." }
             ],
             narrativeHook: "This project delivers long-term stability and value for Bendigo.",
             values: ["job creation", "budget savings", "environmental compliance"],
@@ -452,8 +452,8 @@ const mockData = {
 };
 
 // Simulate local storage persistence
-// Bumping to v15 to ensure new structure loads (FRESH LOAD)
-const CACHE_VERSION = 'v15';
+// Bumping to v17 to ensure new structure loads (FRESH LOAD)
+const CACHE_VERSION = 'v17';
 if (!localStorage.getItem(CACHE_VERSION)) {
     localStorage.setItem(CACHE_VERSION, JSON.stringify(mockData));
 }
@@ -491,7 +491,7 @@ window.addContact = function (stakeholderId, contact) {
     if (sh) {
         if (!sh.contacts) sh.contacts = [];
         sh.contacts.push(contact);
-        localStorage.setItem('portalData_v14', JSON.stringify(data));
+        localStorage.setItem(CACHE_VERSION, JSON.stringify(data));
         return true;
     }
     return false;
@@ -499,11 +499,11 @@ window.addContact = function (stakeholderId, contact) {
 
 // Helper for updating a stakeholder
 window.updateStakeholder = function (id, updates) {
-    const data = JSON.parse(localStorage.getItem('portalData_v14'));
+    const data = JSON.parse(localStorage.getItem(CACHE_VERSION));
     const index = data.stakeholders.findIndex(s => s.id == id);
     if (index !== -1) {
         data.stakeholders[index] = { ...data.stakeholders[index], ...updates };
-        localStorage.setItem('portalData_v14', JSON.stringify(data));
+        localStorage.setItem(CACHE_VERSION, JSON.stringify(data));
         return true;
     }
     return false;

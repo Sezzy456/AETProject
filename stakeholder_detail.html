@@ -184,4 +184,50 @@
     </script>
 </body>
 
+</html> </select>
+</div>
+<div>
+    <label style="display: block; font-size: 0.8rem; margin-bottom: 0.25rem;">Narrative Hook</label>
+    <textarea id="edit-narrativeHook"
+        style="width: 100%; height: 80px; padding: 0.5rem; border: 1px solid var(--border-subtle); background: var(--bg-app); border-radius: 4px; resize: none;"></textarea>
+</div>
+</div>
+<div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+    <button class="btn-secondary" onclick="document.getElementById('edit-modal').close()">Cancel</button>
+    <button class="btn-primary" id="btn-save-edit">Save Changes</button>
+</div>
+</dialog>
+
+<script src="js/mockdata.js"></script>
+<script src="js/app.js"></script>
+<script>
+    const modal = document.getElementById('edit-modal');
+    const btn = document.getElementById('btn-edit-toggle');
+    btn.onclick = () => {
+        const id = new URLSearchParams(window.location.search).get('id');
+        const data = window.getData('stakeholders').find(s => s.id == id);
+        if (data) {
+            document.getElementById('edit-name').value = data.name;
+            document.getElementById('edit-role').value = data.role;
+            document.getElementById('edit-status').value = data.status;
+            document.getElementById('edit-narrativeHook').value = data.narrativeHook || '';
+            modal.showModal();
+        }
+    };
+    document.getElementById('btn-save-edit').onclick = () => {
+        const id = new URLSearchParams(window.location.search).get('id');
+        const updates = {
+            name: document.getElementById('edit-name').value,
+            role: document.getElementById('edit-role').value,
+            status: document.getElementById('edit-status').value,
+            narrativeHook: document.getElementById('edit-narrativeHook').value
+        };
+        if (window.updateStakeholder(id, updates)) {
+            modal.close();
+            location.reload();
+        }
+    };
+</script>
+</body>
+
 </html>

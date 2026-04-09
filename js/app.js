@@ -128,7 +128,7 @@ function renderDashboard() {
     const renderInteraction = (i) => `
         <div class="card" style="padding: 1rem; border:1px solid var(--border-subtle);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                <span style="font-size:0.75rem; color:${i.type==='Upcoming'?'var(--energy-alert)':'var(--text-tertiary)'}; font-weight:600; text-transform:uppercase;">${i.rawDate} - ${i.type}</span>
+                <span style="font-size:0.75rem; color:${i.type === 'Upcoming' ? 'var(--energy-alert)' : 'var(--text-tertiary)'}; font-weight:600; text-transform:uppercase;">${i.rawDate} - ${i.type}</span>
                 <button class="btn-secondary" style="font-size:0.75rem; height:28px; padding:0 0.5rem;">
                      <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit
                 </button>
@@ -175,7 +175,7 @@ function renderDashboard() {
 function renderStakeholders() {
     const stakeholders = window.getData('stakeholders');
     const container = document.getElementById('stakeholder-list');
-    if(!container) return;
+    if (!container) return;
     container.innerHTML = '';
 
     stakeholders.forEach(s => {
@@ -188,7 +188,7 @@ function renderStakeholders() {
         card.style.padding = '1.5rem';
         card.style.background = 'var(--bg-surface)';
         card.style.transition = 'all 0.2s';
-        
+
         card.onclick = () => {
             if (document.getElementById('view-container')) {
                 window.currentStakeholderId = s.id;
@@ -197,7 +197,7 @@ function renderStakeholders() {
                 location.href = `stakeholder_detail.html?id=${s.id}`;
             }
         };
-        
+
         card.onmouseover = () => {
             card.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
             card.style.transform = 'translateY(-2px)';
@@ -214,13 +214,13 @@ function renderStakeholders() {
 
         let statusColor = 'var(--text-secondary)';
         let statusBg = 'rgba(0,0,0,0.05)';
-        if(s.status === 'Needs Attention') {
+        if (s.status === 'Needs Attention') {
             statusColor = 'var(--energy-alert)';
             statusBg = 'rgba(239, 68, 68, 0.2)';
-        } else if(s.status === 'Monitor') {
+        } else if (s.status === 'Monitor') {
             statusColor = 'var(--energy-mid)';
             statusBg = 'rgba(245, 158, 11, 0.2)';
-        } else if(s.status === 'Active') {
+        } else if (s.status === 'Active') {
             statusBg = 'rgba(0,0,0,0.1)';
         }
 
@@ -266,25 +266,25 @@ function renderStakeholderDetail() {
     window.currentStakeholderId = id;
     document.title = `${s.name} - Detail`;
 
-    const setTxt = (elId, value) => { const el=document.getElementById(elId); if(el) el.textContent = value || '-'; };
-    const setHtml = (elId, value) => { const el=document.getElementById(elId); if(el) el.innerHTML = value || '-'; };
+    const setTxt = (elId, value) => { const el = document.getElementById(elId); if (el) el.textContent = value || '-'; };
+    const setHtml = (elId, value) => { const el = document.getElementById(elId); if (el) el.innerHTML = value || '-'; };
 
     setTxt('view-breadcrumb-name', s.name);
     setTxt('detail-name', s.name);
     setTxt('view-role', s.role);
     setTxt('view-narrativeHook', `"${s.narrativeHook || ''}"`);
-    
+
     // Status Badge and Seg Bar Highlighting
     const stBadge = document.getElementById('view-status-badge');
     if (stBadge) {
         stBadge.textContent = s.status || '-';
         let bg = 'rgba(0,0,0,0.1)', color = 'var(--text-secondary)';
-        switch(s.status) {
+        switch (s.status) {
             case 'Critical/At Risk': bg = 'rgba(239, 68, 68, 0.2)'; color = '#ef4444'; break;
             case 'Strained': bg = 'rgba(249, 115, 22, 0.2)'; color = '#f97316'; break;
             case 'Friction Points': bg = 'rgba(234, 179, 8, 0.2)'; color = '#eab308'; break;
             case 'Operational': bg = 'rgba(34, 197, 94, 0.2)'; color = '#22c55e'; break;
-            case 'Stable': bg = 'rgba(163, 230, 53, 0.2)'; color = '#a3e635'; break;
+            case 'Stable': bg = 'rgba(163, 230, 53, 0.2)'; color = '#065f46'; break;
             case 'Dormant': bg = 'rgba(229, 231, 235, 1)'; color = '#6b7280'; break;
         }
         stBadge.style.background = bg;
@@ -298,7 +298,7 @@ function renderStakeholderDetail() {
 
         const segments = document.querySelectorAll('#view-status-selector .seg-block');
         segments.forEach(el => {
-            if(el.getAttribute('data-status') === s.status) el.classList.add('active');
+            if (el.getAttribute('data-status') === s.status) el.classList.add('active');
             else el.classList.remove('active');
         });
     }
@@ -317,28 +317,28 @@ function renderStakeholderDetail() {
     if (s.powerDynamics) {
         setTxt('view-influence-label', s.powerDynamics.influence);
         setTxt('view-interest-label', s.powerDynamics.interest);
-        
+
         const inf = (s.powerDynamics.influence || '').toLowerCase();
         const int = (s.powerDynamics.interest || '').toLowerCase();
-        let verbStr = 'MONITOR'; 
+        let verbStr = 'MONITOR';
         if (inf === 'high' && int === 'high') verbStr = 'ENGAGE';
         else if (inf === 'high' && int === 'low') verbStr = 'SATISFY';
         else if (inf === 'low' && int === 'high') verbStr = 'INFORM';
-        
+
         const vBadge = document.getElementById('view-matrix-verb');
-        if(vBadge) vBadge.textContent = verbStr;
-        
+        if (vBadge) vBadge.textContent = verbStr;
+
         const infBar = document.getElementById('view-influence-bar');
         const intBar = document.getElementById('view-interest-bar');
         const getPct = (str) => { return str.toLowerCase() === 'high' ? '100%' : str.toLowerCase() === 'medium' ? '50%' : '15%'; };
-        if(infBar) infBar.style.width = getPct(s.powerDynamics.influence || '');
-        if(intBar) intBar.style.width = getPct(s.powerDynamics.interest || '');
+        if (infBar) infBar.style.width = getPct(s.powerDynamics.influence || '');
+        if (intBar) intBar.style.width = getPct(s.powerDynamics.interest || '');
 
         setTxt('view-authority', s.powerDynamics.authority);
 
         const pvC = document.getElementById('view-power-values-container');
         if (pvC && s.powerDynamics.values) {
-             pvC.innerHTML = s.powerDynamics.values.map(v => `<span style="background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-secondary); border-radius:4px; padding:0.2rem 0.5rem; font-size:0.75rem;">${v}</span>`).join('');
+            pvC.innerHTML = s.powerDynamics.values.map(v => `<span style="background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-secondary); border-radius:4px; padding:0.2rem 0.5rem; font-size:0.75rem;">${v}</span>`).join('');
         }
     }
 
@@ -354,7 +354,7 @@ function renderStakeholderDetail() {
     const hl = document.getElementById('view-status-history-lines');
     if (hl && s.statusHistory && s.statusHistory.length > 0) {
         hl.innerHTML = '';
-        
+
         // Define percentages correlating to vertical bands
         const statusY = {
             'Operational': '8%',
@@ -368,54 +368,54 @@ function renderStakeholderDetail() {
         const len = s.statusHistory.length;
         let svgLines = '';
         let dotsHtml = '';
-        
+
         s.statusHistory.forEach((sh, i) => {
             const y = statusY[sh.status] || '50%';
             const x = len === 1 ? 50 : 10 + (70 / (len - 1)) * i;
-            
+
             if (i > 0) {
-                const prevY = statusY[s.statusHistory[i-1].status] || '50%';
+                const prevY = statusY[s.statusHistory[i - 1].status] || '50%';
                 const prevX = 10 + (70 / (len - 1)) * (i - 1);
                 svgLines += `<line x1="${prevX}%" y1="${prevY}" x2="${x}%" y2="${y}" stroke="#60a5fa" stroke-width="3" />`;
             }
-            
+
             const isLast = i === len - 1;
             const dotSize = isLast ? 20 : 16;
             const color = isLast ? '#3b82f6' : '#1e3a8a';
             const hoverLabel = isLast ? 'Current' : sh.date;
-            
+
             dotsHtml += `
                 <div style="position:absolute; left:${x}%; bottom:-25px; transform:translateX(-50%); font-size:0.7rem; color:var(--text-secondary); font-weight:600; white-space:nowrap;">
                     ${sh.date}
                 </div>
             `;
-            
+
             if (isLast) {
-                 dotsHtml += `
-                    <div style="position:absolute; left:${x}%; top:0; height:100%; width:24px; transform:translateX(-50%); display:flex; flex-direction:column; border-radius:4px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.2); z-index:4; background:#fff;">
-                        <div style="flex:1; cursor:pointer; position:relative; border-bottom:1px solid #eee;" onclick="updateDetailStatus('Operational')" title="Operational">
-                            ${sh.status === 'Operational' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%);"></div>' : ''}
+                dotsHtml += `
+                    <div style="position:absolute; left:${x}%; top:0; height:100%; width:16px; transform:translateX(-50%); display:flex; flex-direction:column; border-radius:100px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.2); border:2px solid #fff; z-index:4; background:#e5e7eb;">
+                        <div style="flex:1; cursor:pointer; position:relative; background:#22c55e;" onclick="updateDetailStatus('Operational')" title="Operational">
+                            ${sh.status === 'Operational' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}
                         </div>
-                        <div style="flex:1; cursor:pointer; position:relative; border-bottom:1px solid #eee;" onclick="updateDetailStatus('Stable')" title="Stable">
-                            ${sh.status === 'Stable' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%);"></div>' : ''}
+                        <div style="flex:1; cursor:pointer; position:relative; background:#a3e635;" onclick="updateDetailStatus('Stable')" title="Stable">
+                            ${sh.status === 'Stable' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}
                         </div>
-                        <div style="flex:1; cursor:pointer; position:relative; border-bottom:1px solid #eee;" onclick="updateDetailStatus('Dormant')" title="Dormant">
-                            ${sh.status === 'Dormant' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%);"></div>' : ''}
+                        <div style="flex:1; cursor:pointer; position:relative; background:#f9fafb;" onclick="updateDetailStatus('Dormant')" title="Dormant">
+                            ${sh.status === 'Dormant' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}
                         </div>
-                        <div style="flex:1; cursor:pointer; position:relative; border-bottom:1px solid #eee;" onclick="updateDetailStatus('Friction Points')" title="Friction Points">
-                            ${sh.status === 'Friction Points' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%);"></div>' : ''}
+                        <div style="flex:1; cursor:pointer; position:relative; background:#eab308;" onclick="updateDetailStatus('Friction Points')" title="Friction Points">
+                            ${sh.status === 'Friction Points' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}
                         </div>
-                        <div style="flex:1; cursor:pointer; position:relative; border-bottom:1px solid #eee;" onclick="updateDetailStatus('Strained')" title="Strained">
-                            ${sh.status === 'Strained' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%);"></div>' : ''}
+                        <div style="flex:1; cursor:pointer; position:relative; background:#f97316;" onclick="updateDetailStatus('Strained')" title="Strained">
+                            ${sh.status === 'Strained' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}
                         </div>
-                        <div style="flex:1; cursor:pointer; position:relative;" onclick="updateDetailStatus('Critical/At Risk')" title="Critical/At Risk">
-                            ${sh.status === 'Critical/At Risk' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%);"></div>' : ''}
+                        <div style="flex:1; cursor:pointer; position:relative; background:#ef4444;" onclick="updateDetailStatus('Critical/At Risk')" title="Critical/At Risk">
+                            ${sh.status === 'Critical/At Risk' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}
                         </div>
                     </div>
                     <div style="position:absolute; left:${x}%; top:${y}; transform:translate(-50%,-50%); width:28px; height:28px; border-radius:50%; border:2px solid #22c55e; animation:ping 2s cubic-bezier(0,0,0.2,1) infinite; z-index:3; pointer-events:none;"></div><style>@keyframes ping{75%,100%{transform:scale(1.5);opacity:0;}}</style>
                  `;
             } else {
-                 dotsHtml += `
+                dotsHtml += `
                     <div class="custom-tooltip" style="position:absolute; left:${x}%; top:${y}; transform:translate(-50%, -50%);">
                        <div style="width:${dotSize}px; height:${dotSize}px; border-radius:50%; background:${color}; border:2px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,0.3); z-index:2;"></div>
                        
@@ -428,7 +428,7 @@ function renderStakeholderDetail() {
                 `;
             }
         });
-        
+
         hl.innerHTML = `
             <svg style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;" preserveAspectRatio="none">
                 ${svgLines}
@@ -467,9 +467,9 @@ function renderStakeholderDetail() {
     // Contacts
     const cList = document.getElementById('view-contacts-list');
     if (cList) {
-         if (s.contacts && s.contacts.length > 0) {
-              cList.innerHTML = s.contacts.map(c => `
-                  <div style="display:flex; justify-content:space-between; align-items:flex-start; padding:1rem; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-app);">
+        if (s.contacts && s.contacts.length > 0) {
+            cList.innerHTML = s.contacts.map(c => `
+                  <div class="card" style="display:flex; justify-content:space-between; align-items:flex-start; padding:1rem; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-app); cursor:pointer;">
                       <div>
                           <div style="font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">${c.name} ${c.isLead ? '<span style="background:rgba(245, 158, 11, 0.2); color:var(--energy-mid); font-size:0.7rem; padding:0.1rem 0.3rem; border-radius:4px; margin-left:0.5rem;">PRIMARY CONTACT</span>' : ''}</div>
                           <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.5rem;">${c.role || 'Role N/A'}</div>
@@ -481,9 +481,9 @@ function renderStakeholderDetail() {
                       <button style="background:none; border:none; cursor:pointer; color:var(--text-tertiary);"><span class="material-symbols-outlined">more_vert</span></button>
                   </div>
               `).join('');
-         } else {
-              cList.innerHTML = '<span style="color:var(--text-tertiary); font-style:italic;">No contacts recorded.</span>';
-         }
+        } else {
+            cList.innerHTML = '<span style="color:var(--text-tertiary); font-style:italic;">No contacts recorded.</span>';
+        }
     }
 
     // Relationships
@@ -501,53 +501,53 @@ function renderStakeholderDetail() {
     if (kb && kb.audienceMessages) {
         const audMsg = kb.audienceMessages.find(a => a.title === s.name);
         if (audMsg) {
-             setTxt('view-kb-audience-title', audMsg.title);
-             setTxt('view-kb-audience-text', audMsg.text);
+            setTxt('view-kb-audience-title', audMsg.title);
+            setTxt('view-kb-audience-text', audMsg.text);
         } else {
-             setTxt('view-kb-audience-title', "Specific Audience Messages");
-             setTxt('view-kb-audience-text', '(No tailored message in Knowledge Bank mapping to this stakeholder.)');
+            setTxt('view-kb-audience-title', "Specific Audience Messages");
+            setTxt('view-kb-audience-text', '(No tailored message in Knowledge Bank mapping to this stakeholder.)');
         }
     }
 
     // Dynamic Actions & Interactions List Embedded
     const actContainer = document.getElementById('stakeholder-actions-container');
     if (actContainer) {
-         const allActions = window.getData('actions') || [];
-         const shActions = allActions.filter(a => a.linkType === 'Stakeholder' && a.linkId === s.id);
-         if (shActions.length === 0) {
-             actContainer.innerHTML = '<span style="color:var(--text-tertiary); font-style:italic; font-size:0.9rem;">No linked actions.</span>';
-         } else {
-             actContainer.innerHTML = shActions.map(a => `<div style="padding:1rem; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-app); display:flex; justify-content:space-between; align-items:center;">
+        const allActions = window.getData('actions') || [];
+        const shActions = allActions.filter(a => a.linkType === 'Stakeholder' && a.linkId === s.id);
+        if (shActions.length === 0) {
+            actContainer.innerHTML = '<span style="color:var(--text-tertiary); font-style:italic; font-size:0.9rem;">No linked actions.</span>';
+        } else {
+            actContainer.innerHTML = shActions.map(a => `<div class="card" style="padding:1rem; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-app); display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
                  <div>
                      <div style="font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">${a.activity}</div>
                      <span style="font-size:0.8rem; color:var(--text-secondary);">Owner: ${a.owner || '-'} | Due: ${a.dueDate || '-'}</span>
                  </div>
                  <div><span class="status-badge" style="border-color:#3b82f6; color:#3b82f6; padding:0.1rem 0.5rem; font-size:0.75rem;">${a.status}</span></div>
              </div>`).join('');
-         }
+        }
     }
 
     const intContainer = document.getElementById('stakeholder-interactions-container');
     if (intContainer) {
-         const allLogs = window.getData('activityLog') || [];
-         const shLogs = allLogs.filter(l => (l.attendees && l.attendees.includes(s.name)) || l.title.includes(s.name) || (l.attendees && l.attendees.includes("Linda Vo"))); 
-         if (shLogs.length === 0) {
-             intContainer.innerHTML = '<span style="color:var(--text-tertiary); font-style:italic; font-size:0.9rem;">No recent interactions.</span>';
-         } else {
-             intContainer.innerHTML = shLogs.map(l => `<div style="padding:1rem; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-app);">
+        const allLogs = window.getData('activityLog') || [];
+        const shLogs = allLogs.filter(l => (l.attendees && l.attendees.includes(s.name)) || l.title.includes(s.name) || (l.attendees && l.attendees.includes("Linda Vo")));
+        if (shLogs.length === 0) {
+            intContainer.innerHTML = '<span style="color:var(--text-tertiary); font-style:italic; font-size:0.9rem;">No recent interactions.</span>';
+        } else {
+            intContainer.innerHTML = shLogs.map(l => `<div class="card" style="padding:1rem; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-app); cursor:pointer;">
                  <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.25rem;">${l.date}</div>
                  <div style="font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">${l.title}</div>
                  <div style="font-size:0.85rem; color:var(--text-secondary);">${l.notes}</div>
              </div>`).join('');
-         }
+        }
     }
 }
 
 // Tracking function for the horizontal segment
-window.updateDetailStatus = function(newStatus) {
+window.updateDetailStatus = function (newStatus) {
     const id = window.currentStakeholderId;
     if (!id) return;
-    
+
     // Add logic to save the new status natively + mock history record
     const stakeholders = window.getData('stakeholders');
     const s = stakeholders.find(item => item.id == id);
@@ -555,7 +555,7 @@ window.updateDetailStatus = function(newStatus) {
 
     // Simulate appending to history
     const history = s.statusHistory || [];
-    const dateStr = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }).replace(/ /g, ' ');
+    const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, ' ');
 
     history.push({
         date: dateStr,
@@ -563,11 +563,11 @@ window.updateDetailStatus = function(newStatus) {
         notes: "Status manually updated in portal."
     });
 
-    window.updateStakeholder(id, { 
+    window.updateStakeholder(id, {
         status: newStatus,
-        statusHistory: history 
+        statusHistory: history
     });
-    
+
     renderStakeholderDetail(); // Re-render instantly without full reload to demonstrate reactivity
 };
 
@@ -988,7 +988,7 @@ function getStakeholderDetailTemplate() {
             gap: 4px;
             padding: 24px 10px 10px 34px; 
             position: relative;
-            background: #fdf5f5;
+            background: #fff;
             border-radius: 8px;
         }
         .matrix-container::before {
@@ -1008,11 +1008,8 @@ function getStakeholderDetailTemplate() {
         .matrix-box .title { font-weight: 800; margin-top:0.5rem; letter-spacing:0.5px; }
         .matrix-box .sub { font-size: 0.7rem; color: rgba(0,0,0,0.7); line-height:1.2; }
         
-        .matrix-tl { background: #ffcccb; } /* Satisfy */
-        .matrix-tr { background: #f06292; } /* Engage */
-        .matrix-bl { background: #64b5f6; } /* Monitor */
-        .matrix-br { background: #9575cd; } /* Inform */
-
+        .matrix-tl, .matrix-tr, .matrix-bl, .matrix-br { background: #fff; border: 1px solid #e5e7eb; }
+        
         .matrix-verb-badge {
             background:#000; color:#fff; padding:0.1rem 0.6rem; border-radius:4px; font-size:0.75rem; font-weight:bold; letter-spacing:0.5px;
         }
@@ -1063,20 +1060,8 @@ function getStakeholderDetailTemplate() {
                             <span style="color:var(--text-tertiary);">Role:</span> <span id="view-role" style="color:#3b82f6;">-</span>
                         </div>
                     </div>
-                    <div style="display:flex; align-items:center; gap:0.5rem;">
-                        <span id="view-status-badge" style="background:rgba(245, 158, 11, 0.2); color:var(--energy-mid); padding:0.2rem 0.6rem; border-radius:4px; font-weight:600; font-size:0.8rem;">-</span>
-                        
-                        <div class="custom-tooltip">
-                            <span class="material-symbols-outlined" style="color:var(--text-tertiary); font-size:1.1rem; cursor:help;">info</span>
-                            <div class="custom-tooltip-content">
-                                <div style="margin-bottom:0.5rem;">Status:</div>
-                                <div class="status-def"><span class="status-dot" style="background:#22c55e;"></span> <span><strong>Operational</strong> - Relationship is healthy; communication is fluid and predictable.</span></div>
-                                <div class="status-def"><span class="status-dot" style="background:#eab308;"></span> <span><strong>Friction Points</strong> - Alignment exists, but specific issues (like the noise pollution concern) are causing drag.</span></div>
-                                <div class="status-def"><span class="status-dot" style="background:#f97316;"></span> <span><strong>Strained</strong> - High risk of misalignment; requires senior leadership intervention to fix.</span></div>
-                                <div class="status-def"><span class="status-dot" style="background:#ef4444;"></span> <span><strong>Critical/At Risk</strong> - The partnership is failing or the stakeholder is actively blocking progress.</span></div>
-                                <div class="status-def"><span class="status-dot" style="background:#e5e7eb;"></span> <span><strong>Dormant</strong> - No current engagement; relationship is neutral/waiting.</span></div>
-                            </div>
-                        </div>
+                    <div style="display:flex; align-items:flex-end;">
+                        <!-- The badge goes down below with Current Status inline! -->
                     </div>
                 </div>
                 <div style="margin-bottom:1.5rem; margin-top:1.5rem;">
@@ -1091,38 +1076,41 @@ function getStakeholderDetailTemplate() {
 
                 <hr style="border:none; border-top:1px solid var(--border-subtle); margin:2rem 0;">
 
-                <h3 style="display:flex; align-items:center; font-size:1rem; margin-bottom:1rem; color:var(--text-secondary);">
-                    Power Dynamics: <span id="view-matrix-verb" class="matrix-verb-badge" style="margin-left:0.5rem; margin-right:0.5rem;"></span>
-                    <div class="custom-tooltip">
-                        <span class="material-symbols-outlined" style="display:block; font-size:1rem; cursor:help; vertical-align:middle;">info</span>
-                        <div class="custom-tooltip-content" style="width:300px; top:120%;">
-                            <div class="matrix-container">
-                                <div class="matrix-plus-top">+</div>
-                                <div class="matrix-y-axis">Influence</div>
-                                <div class="matrix-minus-bot">-</div>
-                                
-                                <div class="matrix-minus-left">-</div>
-                                <div class="matrix-x-axis">Interest</div>
-                                <div class="matrix-plus-right">+</div>
-                                
-                                <div class="matrix-box matrix-tl">
-                                    <div class="sub">High influence<br>Low interest</div>
-                                    <div class="title">SATISFY</div>
+                <h3 style="display:flex; align-items:center; gap:0.5rem; font-size:1rem; margin-bottom:1rem; color:var(--text-secondary); text-transform:uppercase;">
+                    <span>Power Dynamics</span>
+                    <div style="margin-left:auto; display:flex; align-items:center; gap:0.5rem;">
+                        <span id="view-matrix-verb" class="matrix-verb-badge"></span>
+                        <div class="custom-tooltip">
+                            <span class="material-symbols-outlined" style="display:block; font-size:1rem; cursor:help; vertical-align:middle;">info</span>
+                            <div class="custom-tooltip-content" style="width:300px; top:120%; right:0; left:auto; transform:none; font-family:var(--font-body), sans-serif; font-weight:normal; text-transform:none;">
+                                <div class="matrix-container">
+                                    <div class="matrix-plus-top">+</div>
+                                    <div class="matrix-y-axis">Influence</div>
+                                    <div class="matrix-minus-bot">-</div>
+                                    
+                                    <div class="matrix-minus-left">-</div>
+                                    <div class="matrix-x-axis">Interest</div>
+                                    <div class="matrix-plus-right">+</div>
+                                    
+                                    <div class="matrix-box matrix-tl">
+                                        <div class="sub">High influence<br>Low interest</div>
+                                        <div class="title">SATISFY</div>
+                                    </div>
+                                    <div class="matrix-box matrix-tr">
+                                        <div class="sub">High influence<br>High interest</div>
+                                        <div class="title">ENGAGE</div>
+                                    </div>
+                                    <div class="matrix-box matrix-bl" style="color:#000;">
+                                        <div class="sub" style="color:rgba(0,0,0,0.8);">Low influence<br>Low interest</div>
+                                        <div class="title">MONITOR</div>
+                                    </div>
+                                    <div class="matrix-box matrix-br" style="color:#000;">
+                                        <div class="sub" style="color:rgba(0,0,0,0.8);">Low influence<br>High interest</div>
+                                        <div class="title">INFORM</div>
+                                    </div>
                                 </div>
-                                <div class="matrix-box matrix-tr">
-                                    <div class="sub">High influence<br>High interest</div>
-                                    <div class="title">ENGAGE</div>
-                                </div>
-                                <div class="matrix-box matrix-bl" style="color:#000;">
-                                    <div class="sub" style="color:rgba(0,0,0,0.8);">Low influence<br>Low interest</div>
-                                    <div class="title">MONITOR</div>
-                                </div>
-                                <div class="matrix-box matrix-br" style="color:#000;">
-                                    <div class="sub" style="color:rgba(0,0,0,0.8);">Low influence<br>High interest</div>
-                                    <div class="title">INFORM</div>
-                                </div>
+                                <div style="margin-top:1rem; text-align:center; font-size:0.75rem; color:var(--text-secondary); text-transform:none;">Power grid model for stakeholder prioritisation</div>
                             </div>
-                            <div style="margin-top:1rem; text-align:center; font-size:0.75rem; color:var(--text-secondary);">Power grid model for stakeholder prioritisation</div>
                         </div>
                     </div>
                 </h3>
@@ -1175,10 +1163,22 @@ function getStakeholderDetailTemplate() {
                     </div>
                 </div>
 
-                <!-- Current Status Inline -->
                 <div style="display:flex; align-items:center; gap:1.5rem; margin-bottom:1rem; padding:0.5rem 0;">
                     <div style="font-size:1rem; font-weight:600; color:var(--text-secondary); display:flex; align-items:center;">
-                        Current Status: <span id="view-current-status-text" style="color:var(--text-primary); font-weight:bold; margin-left:0.5rem;">-</span>
+                        Current Status: <span id="view-status-badge" style="background:rgba(245, 158, 11, 0.2); color:var(--energy-mid); padding:0.2rem 0.6rem; border-radius:4px; font-weight:600; font-size:0.8rem; margin-left:0.5rem;">-</span>
+                        <span id="view-current-status-text" style="display:none;">-</span>
+                        <div class="custom-tooltip" style="margin-left:0.5rem;">
+                            <span class="material-symbols-outlined" style="color:var(--text-tertiary); font-size:1.1rem; cursor:help;">info</span>
+                            <div class="custom-tooltip-content" style="left:0; right:auto; transform:none; text-transform:none;">
+                                <div style="margin-bottom:0.5rem;">Status Levels:</div>
+                                <div class="status-def"><span class="status-dot" style="background:#22c55e;"></span> <span><strong>Operational</strong> - Relationship is healthy; communication is fluid.</span></div>
+                                <div class="status-def"><span class="status-dot" style="background:#a3e635;"></span> <span><strong>Stable</strong> - Positive momentum; relationship is secure and growing.</span></div>
+                                <div class="status-def"><span class="status-dot" style="background:#eab308;"></span> <span><strong>Friction Points</strong> - Alignment exists, but issues cause drag.</span></div>
+                                <div class="status-def"><span class="status-dot" style="background:#f97316;"></span> <span><strong>Strained</strong> - High risk of misalignment; requires intervention.</span></div>
+                                <div class="status-def"><span class="status-dot" style="background:#ef4444;"></span> <span><strong>Critical/At Risk</strong> - The partnership is failing or blocked.</span></div>
+                                <div class="status-def"><span class="status-dot" style="background:#e5e7eb;"></span> <span><strong>Dormant</strong> - No current engagement; relationship is neutral.</span></div>
+                            </div>
+                        </div>
                     </div>
                     <div class="seg-bar" id="view-status-selector" style="margin:0;">
                         <div class="seg-block" style="background:#ef4444;" onclick="updateDetailStatus('Critical/At Risk')" title="Critical/At Risk" data-status="Critical/At Risk"></div>
@@ -1200,7 +1200,7 @@ function getStakeholderDetailTemplate() {
                     <div id="status-map-content" style="display:none; padding:1.5rem; border-top:1px solid var(--border-subtle);">
                     
                          <div style="font-size:0.85rem; font-weight:600; color:var(--text-secondary); margin-bottom:1rem;">Status History Map</div>
-                         <div id="view-status-history-lines" style="position:relative; width:50%; min-width:400px; height:200px; background:linear-gradient(to bottom, #22c55e 0%, #22c55e 16.6%, #a3e635 16.6%, #a3e635 33.3%, #f9fafb 33.3%, #f9fafb 50%, #fef08a 50%, #fef08a 66.6%, #fdba74 66.6%, #fdba74 83.3%, #ef4444 83.3%, #ef4444 100%); border-radius:8px; border:none; box-shadow:0 1px 3px rgba(0,0,0,0.1); margin-bottom:1rem;">
+                         <div id="view-status-history-lines" style="position:relative; width:50%; min-width:400px; height:200px; background:linear-gradient(to bottom, #22c55e 0%, #22c55e 16.6%, #a3e635 16.6%, #a3e635 33.3%, #f9fafb 33.3%, #f9fafb 50%, #eab308 50%, #eab308 66.6%, #f97316 66.6%, #f97316 83.3%, #ef4444 83.3%, #ef4444 100%); border-radius:8px; border:none; box-shadow:0 1px 3px rgba(0,0,0,0.1); margin-bottom:1rem;">
                               <!-- Rendered via JS -->
                          </div>
                     </div>
@@ -1258,7 +1258,7 @@ function getStakeholderDetailTemplate() {
                 <hr style="border:none; border-top:1px solid var(--border-subtle); margin:2rem 0;">
 
                 <h4 style="font-size:1rem; margin-bottom:1rem; color:var(--text-secondary);">Audience Specific Message View</h4>
-                <div style="background:var(--bg-app); border:1px solid var(--border-subtle); padding:1.5rem; border-radius:8px; margin-bottom:2rem;">
+                <div class="card" style="background:var(--bg-app); border:1px solid var(--border-subtle); padding:1.5rem; border-radius:8px; margin-bottom:2rem; cursor:pointer;">
                     <div style="display:flex; align-items:center; gap:0.5rem; color:#3b82f6; font-weight:600; margin-bottom:1rem;">
                         <span class="material-symbols-outlined">groups</span> <span id="view-kb-audience-title">-</span>
                     </div>
@@ -1432,7 +1432,7 @@ function getStrategySpineTemplate() {
 }
 
 let isSpineEditMode = false;
-let currentEditId = null; 
+let currentEditId = null;
 
 function renderStrategySpine() {
     isSpineEditMode = false;
@@ -1444,14 +1444,14 @@ function renderStrategySpine() {
             isSpineEditMode = !isSpineEditMode;
             editToggle.style.background = isSpineEditMode ? 'var(--energy-algae)' : '';
             editToggle.style.color = isSpineEditMode ? '#000' : '';
-            editToggle.innerHTML = isSpineEditMode 
+            editToggle.innerHTML = isSpineEditMode
                 ? '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done'
                 : '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
-            
+
             const btns = document.querySelectorAll('.spine-edit-btn');
             btns.forEach(btn => btn.style.display = isSpineEditMode ? 'flex' : 'none');
             // Re-render to update inline list edit buttons
-            refreshSpineUI(); 
+            refreshSpineUI();
         });
     }
 
@@ -1460,7 +1460,7 @@ function renderStrategySpine() {
     const header = document.getElementById('spine-modal-header');
     if (modal && header) {
         let isDragging = false;
-        let offset = {x:0, y:0};
+        let offset = { x: 0, y: 0 };
         header.addEventListener('mousedown', (e) => {
             isDragging = true;
             const rect = modal.getBoundingClientRect();
@@ -1531,13 +1531,13 @@ function refreshSpineUI() {
     }
 }
 
-window.openSpineModal = function(type, id = null) {
+window.openSpineModal = function (type, id = null) {
     const modal = document.getElementById('spine-modal');
     const title = document.getElementById('spine-modal-title');
     const body = document.getElementById('spine-modal-body');
     const saveBtn = document.getElementById('spine-modal-save');
     const spine = window.getData('spine');
-    
+
     currentEditId = id;
     body.innerHTML = ''; // clear
 
@@ -1571,7 +1571,7 @@ window.openSpineModal = function(type, id = null) {
         };
     } else if (type === 'add-pillar' || type === 'edit-pillar') {
         title.textContent = id ? 'Edit Pillar' : 'Add Pillar';
-        const p = id ? spine.pillars.find(x => x.id === id) : {title: '', message: '', proofPoints: []};
+        const p = id ? spine.pillars.find(x => x.id === id) : { title: '', message: '', proofPoints: [] };
         body.innerHTML = `
             <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Pillar Title</label>
             <input type="text" id="spine-input-ptitle" value="${p.title}" style="width:100%; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
@@ -1597,15 +1597,15 @@ window.openSpineModal = function(type, id = null) {
             const titleVal = document.getElementById('spine-input-ptitle').value;
             const msgVal = document.getElementById('spine-input-pmsg').value;
             const proofs = Array.from(document.querySelectorAll('.spine-proof-input'))
-                                .map(el => el.value)
-                                .filter(x => x.trim() !== '');
+                .map(el => el.value)
+                .filter(x => x.trim() !== '');
             if (id) {
                 const target = spine.pillars.find(x => x.id === id);
                 target.title = titleVal;
                 target.message = msgVal;
                 target.proofPoints = proofs;
             } else {
-                spine.pillars.push({ id: 'p'+Date.now(), title: titleVal, message: msgVal, proofPoints: proofs });
+                spine.pillars.push({ id: 'p' + Date.now(), title: titleVal, message: msgVal, proofPoints: proofs });
             }
             saveAndCloseSpine(spine, modal);
         };
@@ -1614,7 +1614,7 @@ window.openSpineModal = function(type, id = null) {
     modal.showModal();
 };
 
-window.addProofPointInput = function() {
+window.addProofPointInput = function () {
     const container = document.getElementById('spine-proof-container');
     if (!container) return;
     const div = document.createElement('div');
@@ -1629,13 +1629,13 @@ window.addProofPointInput = function() {
     container.appendChild(div);
 };
 
-window.saveAndCloseSpine = function(spine, modal) {
+window.saveAndCloseSpine = function (spine, modal) {
     window.updateData('spine', spine);
     refreshSpineUI();
     modal.close();
 };
 
-window.deleteSpineItem = function(type, id) {
+window.deleteSpineItem = function (type, id) {
     const pwd = prompt('Enter administrator password to perform deletion (hint: "abracadabra"):');
     if (pwd !== 'abracadabra') {
         alert('Invalid password. Deletion cancelled.');
@@ -1652,18 +1652,18 @@ window.deleteSpineItem = function(type, id) {
     refreshSpineUI();
 };
 
-window.moveProofPointUp = function(btn) {
+window.moveProofPointUp = function (btn) {
     const row = btn.closest('div');
     if (row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling);
 };
 
-window.moveProofPointDown = function(btn) {
+window.moveProofPointDown = function (btn) {
     const row = btn.closest('div');
     if (row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row);
 };
 
-window.saveObjectiveInline = function(id, val) {
-    if(!val.trim()) return; // prevent empty
+window.saveObjectiveInline = function (id, val) {
+    if (!val.trim()) return; // prevent empty
     const spine = window.getData('spine');
     const obj = spine.objectives.find(o => o.id === id);
     if (obj) {
@@ -1673,9 +1673,9 @@ window.saveObjectiveInline = function(id, val) {
     refreshSpineUI(); // re-render to text view
 };
 
-window.enableObjectiveInlineEdit = function(id) {
+window.enableObjectiveInlineEdit = function (id) {
     const li = document.getElementById(`spine-obj-li-${id}`);
-    if(!li) return;
+    if (!li) return;
     const oText = li.querySelector('.obj-text').innerText;
     li.innerHTML = `
         <div style="display:flex; align-items:center; gap:0.5rem; flex:1;">
@@ -1687,26 +1687,26 @@ window.enableObjectiveInlineEdit = function(id) {
     `;
 };
 
-window.moveObjective = function(id, dir) {
+window.moveObjective = function (id, dir) {
     const spine = window.getData('spine');
     const idx = spine.objectives.findIndex(o => o.id === id);
     if (idx === -1) return;
     if (dir === -1 && idx > 0) {
         const temp = spine.objectives[idx];
-        spine.objectives[idx] = spine.objectives[idx-1];
-        spine.objectives[idx-1] = temp;
+        spine.objectives[idx] = spine.objectives[idx - 1];
+        spine.objectives[idx - 1] = temp;
     } else if (dir === 1 && idx < spine.objectives.length - 1) {
         const temp = spine.objectives[idx];
-        spine.objectives[idx] = spine.objectives[idx+1];
-        spine.objectives[idx+1] = temp;
+        spine.objectives[idx] = spine.objectives[idx + 1];
+        spine.objectives[idx + 1] = temp;
     }
     window.updateData('spine', spine);
     refreshSpineUI();
 };
 
-window.addObjectiveInline = function() {
+window.addObjectiveInline = function () {
     const spine = window.getData('spine');
-    const newId = 'obj'+Date.now();
+    const newId = 'obj' + Date.now();
     spine.objectives.push({ id: newId, text: '' });
     window.updateData('spine', spine);
     refreshSpineUI();
@@ -1782,20 +1782,20 @@ function renderKnowledgeBank() {
             isKbEditMode = !isKbEditMode;
             editToggle.style.background = isKbEditMode ? 'var(--energy-algae)' : '';
             editToggle.style.color = isKbEditMode ? '#000' : '';
-            editToggle.innerHTML = isKbEditMode 
+            editToggle.innerHTML = isKbEditMode
                 ? '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done'
                 : '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
-            refreshKbUI(); 
+            refreshKbUI();
         });
     }
 
     // Modal drag logic
     const modal = document.getElementById('kb-modal');
     const header = document.getElementById('kb-modal-header');
-    if(modal && header) {
+    if (modal && header) {
         let isDragging = false, startX, startY, initialX, initialY;
         header.addEventListener('mousedown', e => {
-            if(e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
+            if (e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
             isDragging = true;
             startX = e.clientX; startY = e.clientY;
             const style = window.getComputedStyle(modal);
@@ -1805,7 +1805,7 @@ function renderKnowledgeBank() {
             document.addEventListener('mouseup', onMouseUp);
         });
         function onMouseMove(e) {
-            if(!isDragging) return;
+            if (!isDragging) return;
             const dx = e.clientX - startX; const dy = e.clientY - startY;
             modal.style.transform = `translate(${initialX + dx}px, ${initialY + dy}px)`;
         }
@@ -1817,12 +1817,12 @@ function renderKnowledgeBank() {
     }
 }
 
-window.toggleKbAccordion = function(id) {
+window.toggleKbAccordion = function (id) {
     if (isKbEditMode) return; // Disable expanding while in edit mode (usually click edits instead)
-    const el = document.getElementById('kb-accordion-'+id);
-    const content = document.getElementById('kb-content-'+id);
-    const icon = document.getElementById('kb-icon-'+id);
-    if(content.style.display === 'none') {
+    const el = document.getElementById('kb-accordion-' + id);
+    const content = document.getElementById('kb-content-' + id);
+    const icon = document.getElementById('kb-icon-' + id);
+    if (content.style.display === 'none') {
         content.style.display = 'block';
         icon.style.transform = 'rotate(90deg)';
         el.style.background = 'var(--bg-app)';
@@ -1833,12 +1833,12 @@ window.toggleKbAccordion = function(id) {
     }
 };
 
-window.toggleKbFaq = function(id) {
+window.toggleKbFaq = function (id) {
     if (isKbEditMode) return;
-    const el = document.getElementById('kb-faq-'+id);
-    const content = document.getElementById('kb-faq-content-'+id);
-    const icon = document.getElementById('kb-faq-icon-'+id);
-    if(content.style.display === 'none') {
+    const el = document.getElementById('kb-faq-' + id);
+    const content = document.getElementById('kb-faq-content-' + id);
+    const icon = document.getElementById('kb-faq-icon-' + id);
+    if (content.style.display === 'none') {
         content.style.display = 'block';
         icon.style.transform = 'rotate(90deg)';
         el.style.fontWeight = '600';
@@ -1918,7 +1918,7 @@ function refreshKbUI() {
     }
 }
 
-window.openKbModal = function(type, id) {
+window.openKbModal = function (type, id) {
     const kb = window.getData('knowledgeBank');
     if (!kb) return;
 
@@ -1926,7 +1926,7 @@ window.openKbModal = function(type, id) {
     const title = document.getElementById('kb-modal-title');
     const body = document.getElementById('kb-modal-body');
     const saveBtn = document.getElementById('kb-modal-save');
-    
+
     // reset position
     modal.style.transform = 'none';
 
@@ -2038,11 +2038,11 @@ window.openKbModal = function(type, id) {
             modal.close();
         };
     }
-    
+
     modal.showModal();
 }
 
-window.addKbListPoint = function() {
+window.addKbListPoint = function () {
     const container = document.getElementById('kb-modal-points-container');
     const div = document.createElement('div');
     div.style.cssText = "display:flex; gap:0.5rem; align-items:center;";
@@ -2056,7 +2056,7 @@ window.addKbListPoint = function() {
     container.appendChild(div);
 };
 
-window.deleteKbItem = function(type, id) {
+window.deleteKbItem = function (type, id) {
     const pwd = prompt('Enter administrator password to perform deletion (hint: "abracadabra"):');
     if (pwd !== 'abracadabra') {
         alert('Invalid password. Deletion cancelled.');
@@ -2082,7 +2082,7 @@ window.addEventListener('wheel', (e) => {
         const nav = document.getElementById('nav-links-container');
         // If hovering over the sidebar nav and it actually has overflow, let it scroll natively
         if (nav && nav.contains(e.target) && nav.scrollHeight > nav.clientHeight) {
-            return; 
+            return;
         }
         // Otherwise, forward the scroll to the main view
         vc.scrollTop += e.deltaY;
