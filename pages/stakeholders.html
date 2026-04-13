@@ -1,0 +1,30 @@
+<header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <h2>Stakeholders</h2>
+    </div>
+    <button class="btn-primary" style="background:#a3a3a3; border:none; color:white;">+ Add Stakeholder</button>
+</header>
+
+<!-- Search and Filters Bar -->
+<div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
+    <div style="position:relative; flex:1; max-width:300px;">
+        <input type="text" placeholder="Search" style="width:100%; padding:0.5rem 0.5rem 0.5rem 2.5rem; border-radius:100px; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-primary);">
+        <span class="material-symbols-outlined" style="position:absolute; left:0.8rem; top:50%; transform:translateY(-50%); font-size:1.2rem; color:var(--text-tertiary);">search</span>
+    </div>
+    <button class="btn-secondary" style="border-radius:100px; padding:0.5rem 1rem; border:none; background:var(--bg-surface); box-shadow:0 2px 4px rgba(0,0,0,0.05);"><span class="material-symbols-outlined" style="font-size:1.2rem; vertical-align:middle; margin-right:0.25rem;">filter_list</span> Filters</button>
+    <button style="border:none; background:none; color:var(--text-primary); display:flex; align-items:center; cursor:pointer;"><span class="material-symbols-outlined" style="margin-right:0.25rem;">sort</span> Sorting</button>
+</div>
+
+<!-- Quick Filters -->
+<div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:2rem; flex-wrap:wrap; font-size:0.8rem;">
+    <span style="font-weight:600; color:var(--text-secondary);">Quick Filters:</span>
+    <span style="background:var(--bg-surface); border:1px solid var(--border-subtle); padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer;">🔍 Needs Attention</span>
+    <span style="background:var(--bg-surface); border:1px solid var(--border-subtle); padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer;">🔍 Primary Partner</span>
+    <span style="background:var(--bg-surface); border:1px solid var(--border-subtle); padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer;">🔍 High Interest</span>
+    <span style="background:var(--bg-surface); border:1px solid var(--border-subtle); padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer;">🔍 Supply Chain</span>
+    <span style="background:var(--bg-surface); border:1px solid var(--border-subtle); padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer;">🔍 Current Posture != Desired Posture</span>
+</div>
+
+<div id="stakeholder-list" style="display:flex; flex-direction:column; gap:1.5rem;">
+    <!-- Populated by JS -->
+</div>
