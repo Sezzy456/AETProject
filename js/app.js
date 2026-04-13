@@ -1,22 +1,27 @@
+// ============================================================
+//  AET Portal — app.js
+//  Architecture: portal.html is the single shell.
+//  Each view is a real HTML file in /pages/ loaded via fetch().
+// ============================================================
+
+// ---- INIT ----
+
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     initLayout();
-    initNavigation(); // Initialize sidebar clicks
+    initNavigation();
 
-
-    // Button Logic
+    // Burger menu for mobile sidebar
     const burgerBtn = document.getElementById('burger-menu');
-    const nav = document.querySelector('nav');
-    if (burgerBtn && nav) {
+    const sidebar = document.getElementById('sidebar');
+    if (burgerBtn && sidebar) {
         burgerBtn.addEventListener('click', () => {
-            nav.classList.toggle('open');
+            sidebar.classList.toggle('open');
         });
     }
 
-    // Load Default View ONLY if on portal.html or if view-container exists
-    const path = window.location.pathname;
+    // Login form handler (login.html)
     const loginForm = document.getElementById('login-form');
-
     if (loginForm) {
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -24,49 +29,47 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (path.includes('portal.html') || document.getElementById('view-container')) {
-        loadView('dashboard');
-    } else if (path.includes('stakeholder_detail.html')) {
-        renderStakeholderDetail(); // Standalone support
+    // If we are on the portal (view-container exists), load the right view
+    const viewContainer = document.getElementById('view-container');
+    if (viewContainer) {
+        // Check if there's a hash-based route e.g. portal.html#actions
+        const hash = window.location.hash.replace('#', '');
+        loadView(hash || 'dashboard');
     }
 });
+
+// ---- THEME ----
 
 function initTheme() {
     const savedTheme = localStorage.getItem('theme');
     const toggle = document.getElementById('theme-toggle');
-    const body = document.body;
-
     if (savedTheme === 'bio') {
-        body.classList.add('bio-mode');
+        document.body.classList.add('bio-mode');
         if (toggle) toggle.checked = true;
     }
-
     if (toggle) {
         toggle.addEventListener('change', (e) => {
             if (e.target.checked) {
-                body.classList.add('bio-mode');
+                document.body.classList.add('bio-mode');
                 localStorage.setItem('theme', 'bio');
             } else {
-                body.classList.remove('bio-mode');
+                document.body.classList.remove('bio-mode');
                 localStorage.setItem('theme', 'light');
             }
         });
     }
 }
 
+// ---- LAYOUT ----
+
 function initLayout() {
     const wrapper = document.getElementById('app-container');
     const toggle = document.getElementById('width-toggle');
-
     const savedWidth = localStorage.getItem('pageWidth');
-
-    if (wrapper) {
-        if (savedWidth === 'wide') {
-            wrapper.classList.add('wide-view');
-            if (toggle) toggle.checked = true;
-        }
+    if (wrapper && savedWidth === 'wide') {
+        wrapper.classList.add('wide-view');
+        if (toggle) toggle.checked = true;
     }
-
     if (toggle && wrapper) {
         toggle.addEventListener('change', (e) => {
             if (e.target.checked) {
@@ -80,154 +83,258 @@ function initLayout() {
     }
 }
 
-function renderDashboard() {
-    // 1. Fetch Data
-    const spine = window.getData('spine');
+// ---- NAVIGATION ----
 
-    // ORDER: Strategy -> Stats -> QA -> Stakeholders -> Activity -> Actions
+function initNavigation() {
+    const navItems = document.querySelectorAll('.nav-item[data-view]');
+    navItems.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const view = link.getAttribute('data-view');
+            if (view) {
+                loadView(view);
+                // Update active state
+                navItems.forEach(n => n.classList.remove('active'));
+                link.classList.add('active');
+                // Update URL hash (no page reload)
+                history.pushState(null, '', '#' + view);
+                // Close mobile sidebar
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar) sidebar.classList.remove('open');
+            }
+        });
+    });
 
-    // --- 1. STRATEGY SPINE ---
-    // Purpose (Mock Editable)
-    if (spine && spine.purpose) {
-        const purposeEl = document.getElementById('strategy-purpose');
-        if (purposeEl) purposeEl.textContent = spine.purpose;
-
-        // Edit Button Logic
-        const editBtn = document.getElementById('btn-edit-strategy');
-        if (editBtn) {
-            editBtn.onclick = () => {
-                const newPurpose = prompt("Edit Strategy Core:", spine.purpose);
-                if (newPurpose) {
-                    spine.purpose = newPurpose; // In-memory update
-                    purposeEl.textContent = newPurpose;
-                }
-            };
+    // Handle browser back/forward
+    window.addEventListener('popstate', () => {
+        const hash = window.location.hash.replace('#', '');
+        if (hash) {
+            loadView(hash, false); // false = don't push state again
         }
+    });
+}
+
+// ---- VIEW LOADER (fetch-based) ----
+
+// Maps view names to their page fragment files
+const VIEW_FILES = {
+    'dashboard':          'pages/dashboard.html',
+    'stakeholders':       'pages/stakeholders.html',
+    'stakeholder_detail': 'pages/stakeholder_detail.html',
+    'activity_log':       'pages/activity_log.html',
+    'actions':            'pages/actions.html',
+    'strategy_spine':     'pages/strategy_spine.html',
+    'knowledge_bank':     'pages/knowledge_bank.html',
+};
+
+// Maps view names to their post-load render functions
+const VIEW_RENDERERS = {
+    'dashboard':          renderDashboard,
+    'stakeholders':       renderStakeholders,
+    'stakeholder_detail': renderStakeholderDetail,
+    'activity_log':       renderActivityLog,
+    'actions':            renderActions,
+    'strategy_spine':     renderStrategySpine,
+    'knowledge_bank':     renderKnowledgeBank,
+};
+
+function loadView(viewName, pushState = true) {
+    const container = document.getElementById('view-container');
+    if (!container) return;
+
+    // Normalize view name
+    if (viewName === 'index' || viewName === 'portal' || !viewName) viewName = 'dashboard';
+
+    const filePath = VIEW_FILES[viewName];
+    if (!filePath) {
+        container.innerHTML = `<div style="padding:2rem;"><h2>404 – View Not Found</h2><p style="color:var(--text-tertiary);">The view "<strong>${viewName}</strong>" does not exist.</p></div>`;
+        return;
     }
 
-    // Narratives
-    if (spine && spine.narrative) {
-        const coreEl = document.getElementById('narrative-core');
-        const simpleEl = document.getElementById('narrative-simple');
-        if (coreEl) coreEl.textContent = spine.narrative.core;
-        if (simpleEl) simpleEl.textContent = spine.narrative.simple;
-    }
+    // Show loading state
+    container.innerHTML = `<div style="display:flex; align-items:center; justify-content:center; min-height:300px; color:var(--text-tertiary);">
+        <span class="material-symbols-outlined" style="font-size:2rem; margin-right:0.5rem; animation: spin 1s linear infinite;">autorenew</span> Loading...
+    </div>
+    <style>@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }</style>`;
 
-    // Pillars Grid
-    const pillarGrid = document.getElementById('pillars-grid');
-    if (pillarGrid && spine.pillars) {
-        pillarGrid.innerHTML = spine.pillars.map(p => `
-            <div class="pillar-card">
-                <h3>${p.title}</h3>
-                <p style="font-weight: 500; color: var(--text-primary); margin-bottom: 0.5rem;">${p.message}</p>
-                <ul style="font-size: 0.9rem; padding-left: 1.2rem; color: var(--text-secondary);">
-                    ${p.proofPoints.map(pp => `<li>${pp}</li>`).join('')}
-                </ul>
-            </div>
-        `).join('');
-    }
+    fetch(filePath + '?v=' + Date.now())
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status} – ${filePath}`);
+            return res.text();
+        })
+        .then(html => {
+            container.innerHTML = html;
+            container.scrollTop = 0;
+            window.scrollTo(0, 0);
 
-    // --- 2. STATS ---
+            // Run the view's render function if one exists
+            const renderer = VIEW_RENDERERS[viewName];
+            if (typeof renderer === 'function') {
+                renderer();
+            }
+
+            // Update nav active state to match current view
+            const navItems = document.querySelectorAll('.nav-item[data-view]');
+            navItems.forEach(n => {
+                n.classList.toggle('active', n.getAttribute('data-view') === viewName);
+            });
+        })
+        .catch(err => {
+            console.error('loadView error:', err);
+            container.innerHTML = `<div style="padding:2rem;">
+                <h2 style="color:var(--energy-alert);">Failed to load page</h2>
+                <p style="color:var(--text-secondary);">${err.message}</p>
+                <button class="btn-secondary" onclick="loadView('dashboard')" style="margin-top:1rem;">← Back to Dashboard</button>
+            </div>`;
+        });
+}
+
+// ---- RENDER FUNCTIONS ----
+
+function renderDashboard() {
+    // 1. Stats Grid
     const stats = window.getData('stats');
     if (stats) {
-        const s1 = document.getElementById('stat-total-stakeholders');
-        const s2 = document.getElementById('stat-meetings');
-        const s3 = document.getElementById('stat-actions');
-        if (s1) s1.textContent = stats.totalStakeholders;
-        if (s2) s2.textContent = stats.upcomingMeetings;
-        if (s3) s3.textContent = stats.openActions;
+        document.getElementById('dash-sh-total').textContent = stats.stakeholders.total;
+        document.getElementById('dash-sh-healthy').textContent = stats.stakeholders.healthy;
+        document.getElementById('dash-sh-neutral').textContent = stats.stakeholders.neutral;
+        document.getElementById('dash-sh-risk').textContent = stats.stakeholders.atRisk;
+        document.getElementById('dash-int-upcoming').textContent = stats.interactions.upcoming;
+        document.getElementById('dash-int-total').textContent = stats.interactions.total;
+        document.getElementById('dash-act-total').textContent = stats.actions.total;
+        document.getElementById('dash-act-active').textContent = stats.actions.active;
     }
 
-    // --- 3. KNOWLEDGE BANK (QA) ---
-    renderKnowledgeBank(spine.qa_library);
+    // 2. AI Overview
+    const aiOverview = window.getData('aiOverview');
+    if (aiOverview) {
+        document.getElementById('dash-ai-summary').textContent = aiOverview;
+    }
 
-    // --- 4. PREVIEWS (Stakeholders, Activity, Actions) ---
-    const stakeholders = window.getData('stakeholders') || [];
-    const activityLog = window.getData('activityLog') || [];
+    // 3. Current Actions
     const actions = window.getData('actions') || [];
-
-    // Stakeholder Preview
-    const shPreview = document.getElementById('preview-stakeholders');
-    if (shPreview) {
-        shPreview.innerHTML = stakeholders.slice(0, 4).map(s => `
-            <div class="card" style="padding: 1rem; cursor: pointer;" onclick="location.href='stakeholder_detail.html?id=${s.id}'">
-                <strong>${s.name}</strong><br>
-                <div style="display:flex; justify-content:space-between; margin-top:0.5rem; font-size:0.8rem;">
-                     <span>${s.role}</span>
-                     <span style="color:var(--energy-algae);">${s.status}</span>
+    const actionsList = document.getElementById('dash-actions-list');
+    if (actionsList) {
+        actionsList.innerHTML = actions.slice(0, 3).map(a => `
+            <div class="card" style="padding: 1rem; border:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <span class="status-badge" style="font-size:0.7rem; padding:0.1rem 0.5rem; margin-bottom:0.5rem; border-color:var(--energy-algae); color:var(--energy-algae);">${a.status}</span>
+                    <h4 style="margin:0; font-size:1rem; color:var(--text-primary); text-transform:none;">${a.activity}</h4>
+                    <div style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.25rem;">Owner: ${a.owner} <span style="margin:0 0.5rem;">|</span> Due: ${a.dueDate || 'TBD'}</div>
                 </div>
+                <button class="btn-secondary" style="font-size:0.75rem; height:28px; padding:0 0.5rem;" onclick="loadView('actions')">
+                    <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit
+                </button>
             </div>
         `).join('');
     }
 
-    // Activity Preview
-    const acPreview = document.getElementById('preview-activity');
-    if (acPreview) {
-        acPreview.innerHTML = activityLog.slice(0, 3).map(a => `
-            <div class="card" style="padding: 0.75rem; cursor: pointer;" onclick="location.href='activity_log.html'">
-                <div style="display:flex; justify-content:space-between;">
-                     <strong>${a.title}</strong>
-                     <span style="font-size:0.8em; opacity:0.7;">${a.date}</span>
-                </div>
-                <small>${a.type} | ${a.status}</small>
-            </div>
-        `).join('');
-    }
+    // 4. Interactions
+    const interactions = window.getData('interactions') || [];
+    const upcomingContainer = document.getElementById('dash-upcoming-interactions');
+    const recentContainer = document.getElementById('dash-recent-interactions');
 
-    // Actions Preview
-    const actPreview = document.getElementById('preview-actions');
-    if (actPreview) {
-        actPreview.innerHTML = actions.slice(0, 4).map(a => `
-             <div class="card" style="padding: 0.75rem; cursor: pointer;" onclick="location.href='actions.html'">
-                <strong>${a.activity}</strong><br>
-                <div style="display:flex; justify-content:space-between; margin-top:0.5rem; font-size:0.8rem;">
-                    <span>Owner: ${a.owner}</span>
-                    <span style="color:var(--energy-alert);">${a.status}</span>
-                </div>
+    const renderInteraction = (i) => `
+        <div class="card" style="padding: 1rem; border:1px solid var(--border-subtle);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <span style="font-size:0.75rem; color:${i.type === 'Upcoming' ? 'var(--energy-alert)' : 'var(--text-tertiary)'}; font-weight:600; text-transform:uppercase;">${i.rawDate} - ${i.type}</span>
+                <button class="btn-secondary" style="font-size:0.75rem; height:28px; padding:0 0.5rem;">
+                     <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit
+                </button>
             </div>
-        `).join('');
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:1rem;">
+                <h4 style="margin:0; font-size:1.1rem; color:var(--text-primary); text-transform:none;">${i.title}</h4>
+                <div style="font-weight:700; font-family:'JetBrains Mono'; font-size:1rem;">${i.date}</div>
+            </div>
+            <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">
+                <strong>${i.agenda ? 'Agenda' : 'Summary'}:</strong> ${i.agenda || i.discussed}
+            </div>
+            <div style="font-size:0.85rem; margin-bottom:0.5rem;">
+                <strong>Discussed:</strong>
+                ${i.topics.map(t => `<span class="status-badge" style="font-size:0.7rem; padding:0.1rem 0.4rem; border:none; background:rgba(16,185,129,0.1); color:var(--energy-algae); margin-right:0.25rem;">${t}</span>`).join('')}
+            </div>
+            <div style="font-size:0.85rem;">
+                <strong>Attendees:</strong>
+                ${i.attendees.map(a => `<span style="display:inline-block; margin-right:0.5rem; color:var(--text-secondary);"><span class="material-symbols-outlined" style="font-size:0.9rem; vertical-align:middle; margin-right:0.1rem;">person</span>${a}</span>`).join('')}
+            </div>
+        </div>
+    `;
+
+    if (upcomingContainer) upcomingContainer.innerHTML = interactions.filter(i => i.type === 'Upcoming').map(renderInteraction).join('');
+    if (recentContainer) recentContainer.innerHTML = interactions.filter(i => i.type === 'Recent').map(renderInteraction).join('');
+
+    // 5. Strategy Spine Preview
+    const spine = window.getData('spine');
+    if (spine) {
+        const objContainer = document.getElementById('dash-spine-objectives');
+        if (objContainer && spine.objectives) {
+            objContainer.innerHTML = spine.objectives.slice(0, 3).map(o => `
+                <li style="display:flex; gap:0.5rem; margin-bottom:0.25rem;"><span style="color:var(--energy-algae);">✅</span> ${o.text}</li>
+            `).join('');
+        }
+        const pillarContainer = document.getElementById('dash-spine-pillars');
+        if (pillarContainer && spine.pillars) {
+            pillarContainer.innerHTML = spine.pillars.slice(0, 4).map(p => `
+                <div style="padding:0.5rem 0.75rem; background:rgba(0,0,0,0.02); border:1px solid var(--border-subtle); border-radius:4px; color:var(--text-secondary);">${p.title}</div>
+            `).join('');
+        }
     }
 }
 
 function renderStakeholders() {
     const stakeholders = window.getData('stakeholders');
     const container = document.getElementById('stakeholder-list');
+    if (!container) return;
     container.innerHTML = '';
 
     stakeholders.forEach(s => {
         const card = document.createElement('div');
-        card.className = 'portal-list-card';
+        card.className = 'card';
+        card.style.cssText = 'position:relative; cursor:pointer; border:1px solid var(--border-subtle); border-radius:12px; padding:1.5rem; background:var(--bg-surface); transition:all 0.2s;';
+
         card.onclick = () => {
-            if (document.getElementById('view-container')) {
-                window.currentStakeholderId = s.id;
-                loadView('stakeholder-detail');
-            } else {
-                location.href = `stakeholder_detail.html?id=${s.id}`;
-            }
+            window.currentStakeholderId = s.id;
+            loadView('stakeholder_detail');
+            history.pushState(null, '', '#stakeholder_detail');
         };
-        card.style.cursor = 'pointer';
+
+        card.onmouseover = () => {
+            card.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
+            card.style.transform = 'translateY(-2px)';
+            card.style.border = '1px solid var(--border-highlight)';
+        };
+        card.onmouseout = () => {
+            card.style.boxShadow = 'none';
+            card.style.transform = 'none';
+            card.style.border = '1px solid var(--border-subtle)';
+        };
+
+        const owners = s.owner ? s.owner.split('+').map(o => o.trim()) : [];
+        const ownersHtml = owners.map(o => `<span style="margin-left:0.5rem; display:inline-flex; align-items:center; gap:0.25rem;"><span class="material-symbols-outlined" style="font-size:1rem; color:var(--text-tertiary);">person</span>${o}</span>`).join('');
+
+        let statusColor = 'var(--text-secondary)', statusBg = 'rgba(0,0,0,0.05)';
+        if (s.status === 'Needs Attention') { statusColor = 'var(--energy-alert)'; statusBg = 'rgba(239, 68, 68, 0.2)'; }
+        else if (s.status === 'Monitor') { statusColor = 'var(--energy-mid)'; statusBg = 'rgba(245, 158, 11, 0.2)'; }
+        else if (s.status === 'Active') { statusBg = 'rgba(0,0,0,0.1)'; }
 
         card.innerHTML = `
-            <div>
-                <h2>${s.name}</h2>
-                <div style="margin-top:0.5rem; font-size:0.9rem; color:var(--text-secondary);">
-                    ${s.narrativeHook || 'No narrative hook available.'}
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+                <h3 style="margin:0; font-size:1.2rem; color:var(--text-primary);">${s.name}</h3>
+                <div style="font-size:0.85rem; color:var(--text-secondary);">${ownersHtml}</div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.5rem; font-size:0.9rem;">
+                <div style="display:flex; align-items:center; gap:1rem;">
+                    <span style="color:var(--text-tertiary); width:60px; text-align:right;">Status:</span>
+                    <span style="background:${statusBg}; color:${statusColor}; padding:0.1rem 0.5rem; border-radius:4px; font-weight:600; font-size:0.8rem;">${s.status}</span>
                 </div>
-            </div>
-            
-            <div>
-                <h3>Status</h3>
-                <span class="status-badge" style="border-color:var(--energy-algae); color:var(--energy-algae);">${s.status}</span>
-            </div>
-
-            <div>
-                <h3>Influence</h3>
-                <div style="font-family:'Space Grotesk'; font-size:1.1rem;">${s.influence}</div>
-            </div>
-
-            <div>
-                <h3>Engagement</h3>
-                <p style="font-size:0.85rem;">${s.engagementStrategy || 'N/A'}</p>
+                <div style="display:flex; align-items:center; gap:1rem;">
+                    <span style="color:var(--text-tertiary); width:60px; text-align:right;">Role:</span>
+                    <span style="color:#3b82f6;">${s.role}</span>
+                </div>
+                <div style="display:flex; gap:1rem;">
+                    <span style="color:var(--text-tertiary); width:60px; text-align:right;">Strategy:</span>
+                    <span style="font-style:italic; color:var(--text-secondary); flex:1;">"${s.narrativeHook || ''}"</span>
+                </div>
             </div>
         `;
         container.appendChild(card);
@@ -249,41 +356,257 @@ function renderStakeholderDetail() {
     window.currentStakeholderId = id;
     document.title = `${s.name} - Detail`;
 
-    const headerName = document.getElementById('detail-name');
-    if (headerName) headerName.textContent = s.name;
+    const setTxt = (elId, value) => { const el = document.getElementById(elId); if (el) el.textContent = value || '-'; };
+    const setHtml = (elId, value) => { const el = document.getElementById(elId); if (el) el.innerHTML = value || '-'; };
 
-    const fields = ['role', 'influence', 'interest', 'status', 'owner', 'narrativeHook', 'engagementStrategy'];
-    fields.forEach(f => {
-        const el = document.getElementById(`view-${f}`);
-        if (el) el.textContent = s[f] || '-';
+    setTxt('view-breadcrumb-name', s.name);
+    setTxt('detail-name', s.name);
+    setTxt('view-role', s.role);
+    setTxt('view-narrativeHook', `"${s.narrativeHook || ''}"`);
 
-        // Also populate edit fields if they exist
-        const editEl = document.getElementById(`edit-${f}`);
-        if (editEl) editEl.value = s[f] || '';
-    });
+    // Status Badge
+    const stBadge = document.getElementById('view-status-badge');
+    if (stBadge) {
+        stBadge.textContent = s.status || '-';
+        let bg = 'rgba(0,0,0,0.1)', color = 'var(--text-secondary)';
+        switch (s.status) {
+            case 'Critical/At Risk': bg = 'rgba(239, 68, 68, 0.2)'; color = '#ef4444'; break;
+            case 'Strained': bg = 'rgba(249, 115, 22, 0.2)'; color = '#f97316'; break;
+            case 'Friction Points': bg = 'rgba(234, 179, 8, 0.2)'; color = '#eab308'; break;
+            case 'Operational': bg = 'rgba(34, 197, 94, 0.2)'; color = '#22c55e'; break;
+            case 'Stable': bg = 'rgba(163, 230, 53, 0.2)'; color = '#065f46'; break;
+            case 'Dormant': bg = 'rgba(229, 231, 235, 1)'; color = '#6b7280'; break;
+        }
+        stBadge.style.background = bg;
+        stBadge.style.color = color;
+
+        const currentStatusEl = document.getElementById('view-current-status-text');
+        if (currentStatusEl) currentStatusEl.textContent = s.status;
+
+        const segments = document.querySelectorAll('#view-status-selector .seg-block');
+        segments.forEach(el => {
+            el.classList.toggle('active', el.getAttribute('data-status') === s.status);
+        });
+    }
+
+    // Values Chips
+    const vC = document.getElementById('view-values-container');
+    if (vC) {
+        if (s.values && s.values.length > 0) {
+            vC.innerHTML = s.values.map(v => `<span style="border:1px solid #3b82f6; color:#3b82f6; border-radius:100px; padding:0.2rem 0.6rem; font-size:0.75rem;">${v}</span>`).join('');
+        } else {
+            vC.innerHTML = '-';
+        }
+    }
+
+    // Power Dynamics
+    if (s.powerDynamics) {
+        setTxt('view-influence-label', s.powerDynamics.influence);
+        setTxt('view-interest-label', s.powerDynamics.interest);
+
+        const inf = (s.powerDynamics.influence || '').toLowerCase();
+        const int_ = (s.powerDynamics.interest || '').toLowerCase();
+        let verbStr = 'MONITOR';
+        if (inf === 'high' && int_ === 'high') verbStr = 'ENGAGE';
+        else if (inf === 'high' && int_ === 'low') verbStr = 'SATISFY';
+        else if (inf === 'low' && int_ === 'high') verbStr = 'INFORM';
+
+        const vBadge = document.getElementById('view-matrix-verb');
+        if (vBadge) vBadge.textContent = verbStr;
+
+        const getPct = (str) => str.toLowerCase() === 'high' ? '100%' : str.toLowerCase() === 'medium' ? '50%' : '15%';
+        const infBar = document.getElementById('view-influence-bar');
+        const intBar = document.getElementById('view-interest-bar');
+        if (infBar) infBar.style.width = getPct(s.powerDynamics.influence || '');
+        if (intBar) intBar.style.width = getPct(s.powerDynamics.interest || '');
+
+        setTxt('view-authority', s.powerDynamics.authority);
+
+        const pvC = document.getElementById('view-power-values-container');
+        if (pvC && s.powerDynamics.values) {
+            pvC.innerHTML = s.powerDynamics.values.map(v => `<span style="background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-secondary); border-radius:4px; padding:0.2rem 0.5rem; font-size:0.75rem;">${v}</span>`).join('');
+        }
+    }
+
+    // Posture Journey
+    if (s.postureJourney) {
+        setTxt('view-posture-current', s.postureJourney.current);
+        setTxt('view-posture-desired', s.postureJourney.desired);
+        setTxt('view-posture-next', s.postureJourney.nextStep);
+        setTxt('view-posture-target', s.postureJourney.target);
+    }
+
+    // Status History
+    const hl = document.getElementById('view-status-history-lines');
+    if (hl && s.statusHistory && s.statusHistory.length > 0) {
+        hl.innerHTML = '';
+        const statusY = {
+            'Operational': '8%', 'Stable': '25%', 'Dormant': '41%',
+            'Friction Points': '58%', 'Strained': '75%', 'Critical/At Risk': '91%'
+        };
+        const len = s.statusHistory.length;
+        let svgLines = '', dotsHtml = '';
+
+        s.statusHistory.forEach((sh, i) => {
+            const y = statusY[sh.status] || '50%';
+            const x = len === 1 ? 50 : 10 + (70 / (len - 1)) * i;
+            if (i > 0) {
+                const prevY = statusY[s.statusHistory[i - 1].status] || '50%';
+                const prevX = 10 + (70 / (len - 1)) * (i - 1);
+                svgLines += `<line x1="${prevX}%" y1="${prevY}" x2="${x}%" y2="${y}" stroke="#60a5fa" stroke-width="3" />`;
+            }
+
+            dotsHtml += `<div style="position:absolute; left:${x}%; bottom:-25px; transform:translateX(-50%); font-size:0.7rem; color:var(--text-secondary); font-weight:600; white-space:nowrap;">${sh.date}</div>`;
+
+            const isLast = i === len - 1;
+            if (isLast) {
+                dotsHtml += `
+                    <div style="position:absolute; left:${x}%; top:0; height:100%; width:16px; transform:translateX(-50%); display:flex; flex-direction:column; border-radius:100px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.2); border:2px solid #fff; z-index:4; background:#e5e7eb;">
+                        <div style="flex:1; cursor:pointer; position:relative; background:#22c55e;" onclick="updateDetailStatus('Operational')" title="Operational">${sh.status === 'Operational' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
+                        <div style="flex:1; cursor:pointer; position:relative; background:#a3e635;" onclick="updateDetailStatus('Stable')" title="Stable">${sh.status === 'Stable' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
+                        <div style="flex:1; cursor:pointer; position:relative; background:#f9fafb;" onclick="updateDetailStatus('Dormant')" title="Dormant">${sh.status === 'Dormant' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
+                        <div style="flex:1; cursor:pointer; position:relative; background:#eab308;" onclick="updateDetailStatus('Friction Points')" title="Friction Points">${sh.status === 'Friction Points' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
+                        <div style="flex:1; cursor:pointer; position:relative; background:#f97316;" onclick="updateDetailStatus('Strained')" title="Strained">${sh.status === 'Strained' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
+                        <div style="flex:1; cursor:pointer; position:relative; background:#ef4444;" onclick="updateDetailStatus('Critical/At Risk')" title="Critical/At Risk">${sh.status === 'Critical/At Risk' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
+                    </div>
+                    <div style="position:absolute; left:${x}%; top:${y}; transform:translate(-50%,-50%); width:28px; height:28px; border-radius:50%; border:2px solid #22c55e; animation:ping 2s cubic-bezier(0,0,0.2,1) infinite; z-index:3; pointer-events:none;"></div>
+                    <style>@keyframes ping{75%,100%{transform:scale(1.5);opacity:0;}}</style>
+                `;
+            } else {
+                dotsHtml += `
+                    <div class="custom-tooltip" style="position:absolute; left:${x}%; top:${y}; transform:translate(-50%, -50%);">
+                       <div style="width:16px; height:16px; border-radius:50%; background:#1e3a8a; border:2px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,0.3); z-index:2;"></div>
+                       <div class="custom-tooltip-content" style="top:100%; margin-top:12px; width:220px; z-index:9999;">
+                           <div style="font-size:0.75rem; color:var(--text-tertiary); font-family:'JetBrains Mono'; margin-bottom:0.1rem;">${sh.date}</div>
+                           <div style="font-size:0.85rem; font-weight:700; color:var(--text-primary); margin-bottom:0.25rem;">${sh.status}</div>
+                           <div style="font-size:0.8rem; color:var(--text-secondary); max-width:260px; line-height:1.3; white-space:normal;">${sh.notes || ''}</div>
+                       </div>
+                    </div>
+                `;
+            }
+        });
+
+        hl.innerHTML = `
+            <svg style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;" preserveAspectRatio="none">
+                ${svgLines}
+            </svg>
+            ${dotsHtml}
+            <div style="position:absolute; left:92%; top:0; bottom:0; width:1px; background:#22c55e; opacity:0.8; z-index:1;"></div>
+            <div style="position:absolute; left:92%; top:8%; transform:translate(-50%, -50%); background:#22c55e; color:#fff; padding:2px 10px; border-radius:100px; font-size:0.7rem; font-weight:bold; z-index:2; box-shadow:0 2px 4px rgba(34,197,94,0.3);">Desired</div>
+        `;
+    } else if (hl) {
+        hl.innerHTML = '<div style="color:var(--text-tertiary); font-style:italic; padding-left:1rem; padding-top:1rem; font-size:0.9rem;">No historical status records found.</div>';
+    }
+
+    // Strategic Approach
+    if (s.strategicApproach) {
+        setTxt('view-barriers', `"${s.strategicApproach.barriers || ''}"`);
+        setHtml('view-engagement-approach', s.strategicApproach.engagementApproach);
+        const tacC = document.getElementById('view-tactics');
+        if (tacC && s.strategicApproach.tactics) {
+            tacC.innerHTML = s.strategicApproach.tactics.map(t => `<div style="display:flex; align-items:center; gap:0.5rem; background:var(--bg-app); border:1px solid var(--border-subtle); padding:0.5rem; border-radius:4px;">
+                <span style="background:#3b82f6; color:white; font-size:0.7rem; padding:0.1rem 0.4rem; border-radius:4px; text-transform:uppercase; font-weight:bold;">${t.type}</span>
+                <span style="font-size:0.85rem;">${t.text}</span>
+            </div>`).join('');
+        }
+    }
+
+    // Contact Conduct
+    if (s.contactConduct) {
+        setTxt('view-contact-pref', s.contactConduct.preferences);
+        setTxt('view-contact-tone', s.contactConduct.emailTone);
+        setTxt('view-contact-pitch', s.contactConduct.elevatorPitches);
+    }
+
+    // Contacts
+    const cList = document.getElementById('view-contacts-list');
+    if (cList) {
+        if (s.contacts && s.contacts.length > 0) {
+            cList.innerHTML = s.contacts.map(c => `
+                <div class="card" style="display:flex; justify-content:space-between; align-items:flex-start; padding:1rem; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-app); cursor:pointer;">
+                    <div>
+                        <div style="font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">${c.name} ${c.isLead ? '<span style="background:rgba(245, 158, 11, 0.2); color:var(--energy-mid); font-size:0.7rem; padding:0.1rem 0.3rem; border-radius:4px; margin-left:0.5rem;">PRIMARY CONTACT</span>' : ''}</div>
+                        <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.5rem;">${c.role || 'Role N/A'}</div>
+                        <div style="display:flex; flex-direction:column; gap:0.25rem; font-size:0.8rem; color:var(--text-tertiary);">
+                            ${c.email ? `<span style="display:flex; align-items:center; gap:0.4rem;"><span class="material-symbols-outlined" style="font-size:1rem;">mail</span> ${c.email}</span>` : ''}
+                            ${c.phone ? `<span style="display:flex; align-items:center; gap:0.4rem;"><span class="material-symbols-outlined" style="font-size:1rem;">phone</span> ${c.phone}</span>` : ''}
+                        </div>
+                    </div>
+                    <button style="background:none; border:none; cursor:pointer; color:var(--text-tertiary);"><span class="material-symbols-outlined">more_vert</span></button>
+                </div>
+            `).join('');
+        } else {
+            cList.innerHTML = '<span style="color:var(--text-tertiary); font-style:italic;">No contacts recorded.</span>';
+        }
+    }
+
+    // Relationships
+    if (s.relationships) {
+        setTxt('view-rel-internal', s.relationships.internalLink);
+        setTxt('view-rel-external', s.relationships.externalTension);
+        const ties = document.getElementById('view-rel-ties');
+        if (ties) ties.innerHTML = (s.relationships.keyTies || []).map(t => `<li>${t}</li>`).join('') || '-';
+        const friction = document.getElementById('view-rel-friction');
+        if (friction) friction.innerHTML = (s.relationships.frictionPoints || []).map(t => `<li>${t}</li>`).join('') || '-';
+    }
+
+    // Audience Message from KB
+    const kb = window.getData('knowledgeBank');
+    if (kb && kb.audienceMessages) {
+        const audMsg = kb.audienceMessages.find(a => a.title === s.name);
+        if (audMsg) {
+            setTxt('view-kb-audience-title', audMsg.title);
+            setTxt('view-kb-audience-text', audMsg.text);
+        } else {
+            setTxt('view-kb-audience-title', 'Specific Audience Messages');
+            setTxt('view-kb-audience-text', '(No tailored message in Knowledge Bank mapping to this stakeholder.)');
+        }
+    }
+
+    // Linked Actions
+    const actContainer = document.getElementById('stakeholder-actions-container');
+    if (actContainer) {
+        const allActions = window.getData('actions') || [];
+        const shActions = allActions.filter(a => a.linkType === 'Stakeholder' && a.linkId === s.id);
+        actContainer.innerHTML = shActions.length === 0
+            ? '<span style="color:var(--text-tertiary); font-style:italic; font-size:0.9rem;">No linked actions.</span>'
+            : shActions.map(a => `<div class="card" style="padding:1rem; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-app); display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+                <div>
+                    <div style="font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">${a.activity}</div>
+                    <span style="font-size:0.8rem; color:var(--text-secondary);">Owner: ${a.owner || '-'} | Due: ${a.dueDate || '-'}</span>
+                </div>
+                <div><span class="status-badge" style="border-color:#3b82f6; color:#3b82f6; padding:0.1rem 0.5rem; font-size:0.75rem;">${a.status}</span></div>
+             </div>`).join('');
+    }
+
+    // Linked Interactions
+    const intContainer = document.getElementById('stakeholder-interactions-container');
+    if (intContainer) {
+        const allLogs = window.getData('activityLog') || [];
+        const shLogs = allLogs.filter(l => (l.attendees && l.attendees.includes(s.name)) || l.title.includes(s.name));
+        intContainer.innerHTML = shLogs.length === 0
+            ? '<span style="color:var(--text-tertiary); font-style:italic; font-size:0.9rem;">No recent interactions.</span>'
+            : shLogs.map(l => `<div class="card" style="padding:1rem; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-app); cursor:pointer;">
+                <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.25rem;">${l.date}</div>
+                <div style="font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">${l.title}</div>
+                <div style="font-size:0.85rem; color:var(--text-secondary);">${l.notes}</div>
+             </div>`).join('');
+    }
 }
 
-// Global scope function for saving edits
-window.saveStakeholderEdit = function () {
+// Update status from stakeholder detail
+window.updateDetailStatus = function (newStatus) {
     const id = window.currentStakeholderId;
     if (!id) return;
-
-    const updates = {
-        name: document.getElementById('edit-name').value,
-        role: document.getElementById('edit-role').value,
-        status: document.getElementById('edit-status').value,
-        narrativeHook: document.getElementById('edit-narrativeHook').value,
-        engagementStrategy: document.getElementById('edit-engagementStrategy').value,
-        influence: document.getElementById('edit-influence').value,
-        interest: document.getElementById('edit-interest').value,
-        owner: document.getElementById('edit-owner').value
-    };
-
-    window.updateStakeholder(id, updates);
-    alert('Stakeholder updated (Session Only)');
-    location.reload(); // Reload to switch back to view mode (simple toggle logic usually refreshes or swaps divs)
-}
-
+    const stakeholders = window.getData('stakeholders');
+    const s = stakeholders.find(item => item.id == id);
+    if (!s) return;
+    const history = s.statusHistory || [];
+    const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    history.push({ date: dateStr, status: newStatus, notes: 'Status manually updated in portal.' });
+    window.updateStakeholder(id, { status: newStatus, statusHistory: history });
+    renderStakeholderDetail();
+};
 
 function renderActivityLog() {
     const activityLog = window.getData('activityLog');
@@ -294,7 +617,6 @@ function renderActivityLog() {
     activityLog.forEach(a => {
         const card = document.createElement('div');
         card.className = 'portal-list-card';
-
         let typeIcon = '📄';
         if (a.type === 'Meeting') typeIcon = '📅';
         if (a.type === 'Decision') typeIcon = '⚖️';
@@ -315,9 +637,7 @@ function renderActivityLog() {
             </div>
             <div>
                 <h3>Attendees</h3>
-                <div style="font-size:0.85rem; color:var(--text-tertiary);">
-                    ${a.attendees}
-                </div>
+                <div style="font-size:0.85rem; color:var(--text-tertiary);">${a.attendees}</div>
             </div>
         `;
         container.appendChild(card);
@@ -328,11 +648,9 @@ function renderActions() {
     const actions = window.getData('actions');
     const container = document.getElementById('actions-list');
     if (!container) return;
-
     container.innerHTML = '';
 
     actions.forEach(a => {
-        // Resolve Reference Name
         let referenceName = '-';
         if (a.linkType === 'Objective') {
             const objectives = window.getData('spine')?.objectives || [];
@@ -346,10 +664,7 @@ function renderActions() {
 
         const card = document.createElement('div');
         card.className = 'portal-list-card';
-        // Add specific 5-column grid override for Actions
-        card.style.display = 'grid';
-        card.style.gridTemplateColumns = '2fr 1fr 1fr 1.5fr 1fr';
-
+        card.style.cssText = 'display:grid; grid-template-columns:2fr 1fr 1fr 1.5fr 1fr;';
         card.innerHTML = `
             <div>
                 <h2 style="margin:0;">${a.activity}</h2>
@@ -365,7 +680,7 @@ function renderActions() {
             </div>
             <div>
                 <h3>Linked To</h3>
-                <div style="font-size:0.85rem; line-height: 1.4; color: var(--text-secondary);">${referenceName}</div>
+                <div style="font-size:0.85rem; line-height:1.4; color:var(--text-secondary);">${referenceName}</div>
             </div>
             <div>
                 <h3>Status</h3>
@@ -378,402 +693,487 @@ function renderActions() {
     });
 }
 
+// ---- STRATEGY SPINE ----
 
+let isSpineEditMode = false;
+let currentEditId = null;
 
-function renderKnowledgeBank(qaLibrary) {
-    const kbGrid = document.getElementById('knowledge-bank');
-    if (kbGrid && qaLibrary) {
-        kbGrid.innerHTML = qaLibrary.map(qa => `
-            <div class="card" style="padding: 1rem;">
-                <h3>${qa.category}</h3>
-                <p style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--text-primary);">Q. ${qa.question}</p>
-                <p style="font-size: 0.9rem;">${qa.answer}</p>
+function renderStrategySpine() {
+    isSpineEditMode = false;
+    refreshSpineUI();
+
+    const editToggle = document.getElementById('spine-edit-toggle');
+    if (editToggle) {
+        editToggle.addEventListener('click', () => {
+            isSpineEditMode = !isSpineEditMode;
+            editToggle.style.background = isSpineEditMode ? 'var(--energy-algae)' : '';
+            editToggle.style.color = isSpineEditMode ? '#000' : '';
+            editToggle.innerHTML = isSpineEditMode
+                ? '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done'
+                : '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
+            const btns = document.querySelectorAll('.spine-edit-btn');
+            btns.forEach(btn => btn.style.display = isSpineEditMode ? 'flex' : 'none');
+            refreshSpineUI();
+        });
+    }
+
+    // Draggable modal
+    const modal = document.getElementById('spine-modal');
+    const header = document.getElementById('spine-modal-header');
+    if (modal && header) {
+        let isDragging = false, offset = { x: 0, y: 0 };
+        header.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            const rect = modal.getBoundingClientRect();
+            offset.x = e.clientX - rect.left;
+            offset.y = e.clientY - rect.top;
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            modal.style.margin = '0';
+            modal.style.left = (e.clientX - offset.x) + 'px';
+            modal.style.top = (e.clientY - offset.y) + 'px';
+        });
+        document.addEventListener('mouseup', () => { isDragging = false; });
+    }
+}
+
+function refreshSpineUI() {
+    const spine = window.getData('spine');
+    if (!spine) return;
+
+    const purposeEl = document.getElementById('spine-purpose');
+    if (purposeEl) purposeEl.textContent = spine.purpose;
+
+    const objList = document.getElementById('spine-objectives-list');
+    if (objList) {
+        objList.innerHTML = spine.objectives.map((o, idx) => `
+            <li id="spine-obj-li-${o.id}" style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.03); padding:0.4rem 0.8rem; border-radius:4px; gap:1rem;">
+                <div style="display:flex; align-items:center; gap:0.5rem; flex:1;">
+                    <span style="color:var(--energy-alert);">🎯</span>
+                    <span class="obj-text">${o.text}</span>
+                </div>
+                <div class="spine-edit-btn" style="display:${isSpineEditMode ? 'flex' : 'none'}; gap:0.25rem; align-items:center;">
+                    <button onclick="window.enableObjectiveInlineEdit('${o.id}')" style="background:none; border:none; cursor:pointer; color:var(--text-secondary);"><span class="material-symbols-outlined" style="font-size:1.1rem;">edit</span></button>
+                    <button onclick="window.moveObjective('${o.id}', -1)" style="background:none; border:none; cursor:pointer; color:var(--text-secondary); opacity:${idx === 0 ? '0.2' : '1'};" ${idx === 0 ? 'disabled' : ''}><span class="material-symbols-outlined" style="font-size:1.1rem;">arrow_upward</span></button>
+                    <button onclick="window.moveObjective('${o.id}', 1)" style="background:none; border:none; cursor:pointer; color:var(--text-secondary); opacity:${idx === spine.objectives.length - 1 ? '0.2' : '1'};" ${idx === spine.objectives.length - 1 ? 'disabled' : ''}><span class="material-symbols-outlined" style="font-size:1.1rem;">arrow_downward</span></button>
+                    <button onclick="deleteSpineItem('objective', '${o.id}')" style="background:none; border:none; cursor:pointer; color:var(--energy-alert); margin-left:0.5rem;"><span class="material-symbols-outlined" style="font-size:1.1rem;">delete</span></button>
+                </div>
+            </li>
+        `).join('');
+    }
+
+    const coreEl = document.getElementById('spine-narrative-core');
+    const simpleEl = document.getElementById('spine-narrative-simple');
+    if (coreEl) coreEl.textContent = `"${spine.narrative.core}"`;
+    if (simpleEl) simpleEl.innerHTML = `<strong>Simple:</strong> ${spine.narrative.simple}`;
+
+    const pGrid = document.getElementById('spine-pillars-grid');
+    if (pGrid) {
+        pGrid.innerHTML = spine.pillars.map(p => `
+            <div class="card" style="position:relative;">
+                <h4 style="margin-bottom:0.5rem;">${p.title}</h4>
+                <div class="spine-edit-btn" style="display:${isSpineEditMode ? 'flex' : 'none'}; position:absolute; right:0.5rem; top:0.5rem; gap:0.25rem;">
+                    <button onclick="openSpineModal('edit-pillar', '${p.id}')" style="background:none; border:none; cursor:pointer; color:var(--text-secondary);"><span class="material-symbols-outlined" style="font-size:1rem;">edit</span></button>
+                    <button onclick="deleteSpineItem('pillar', '${p.id}')" style="background:none; border:none; cursor:pointer; color:var(--energy-alert);"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
+                </div>
+                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">${p.message}</p>
+                <ul style="font-size:0.85rem; padding-left:1.2rem; margin:0;">
+                    ${p.proofPoints.map(pp => `<li style="font-size:inherit;">${pp}</li>`).join('')}
+                </ul>
             </div>
         `).join('');
     }
 }
 
-// --- SPA ROUTING & TEMPLATES ---
+window.openSpineModal = function (type, id = null) {
+    const modal = document.getElementById('spine-modal');
+    const title = document.getElementById('spine-modal-title');
+    const body = document.getElementById('spine-modal-body');
+    const saveBtn = document.getElementById('spine-modal-save');
+    const spine = window.getData('spine');
+    currentEditId = id;
+    body.innerHTML = '';
 
-function initNavigation() {
-    const navLinks = document.querySelectorAll('.nav-item');
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            const href = link.getAttribute('href');
-            // Allow navigation to Login or Public Home
-            if (href === 'login.html' || href === 'index.html') return;
-
-            e.preventDefault();
-
-            // Update Active State
-            navLinks.forEach(n => n.classList.remove('active'));
-            link.classList.add('active');
-
-            // Route
-            const view = href.replace('.html', '');
-            loadView(view);
-
-            // Auto-close Burger Menu on Mobile
-            const nav = document.querySelector('nav');
-            if (nav && nav.classList.contains('open')) {
-                nav.classList.remove('open');
+    if (type === 'purpose') {
+        title.textContent = 'Edit Comms Strategy Core';
+        body.innerHTML = `
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Comms Strategy Core Purpose</label>
+            <textarea id="spine-input-purpose" style="width:100%; height:120px; resize:none; overflow-y:auto; padding:0.5rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${spine.purpose}</textarea>
+        `;
+        saveBtn.onclick = () => {
+            spine.purpose = document.getElementById('spine-input-purpose').value;
+            saveAndCloseSpine(spine, modal);
+        };
+    } else if (type === 'add-objective' || type === 'edit-objective') {
+        modal.close(); return;
+    } else if (type === 'narrative') {
+        title.textContent = 'Edit Core Narrative';
+        body.innerHTML = `
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Core Narrative</label>
+            <textarea id="spine-input-ncore" style="width:100%; height:120px; resize:none; overflow-y:auto; margin-bottom:1rem; padding:0.5rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${spine.narrative.core}</textarea>
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Simple Translation</label>
+            <textarea id="spine-input-nsimple" style="width:100%; height:120px; resize:none; overflow-y:auto; padding:0.5rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${spine.narrative.simple}</textarea>
+        `;
+        saveBtn.onclick = () => {
+            spine.narrative.core = document.getElementById('spine-input-ncore').value;
+            spine.narrative.simple = document.getElementById('spine-input-nsimple').value;
+            saveAndCloseSpine(spine, modal);
+        };
+    } else if (type === 'add-pillar' || type === 'edit-pillar') {
+        title.textContent = id ? 'Edit Pillar' : 'Add Pillar';
+        const p = id ? spine.pillars.find(x => x.id === id) : { title: '', message: '', proofPoints: [] };
+        body.innerHTML = `
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Pillar Title</label>
+            <input type="text" id="spine-input-ptitle" value="${p.title}" style="width:100%; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Pillar Message</label>
+            <textarea id="spine-input-pmsg" style="width:100%; height:80px; resize:none; overflow-y:auto; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${p.message}</textarea>
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Proof Points</label>
+            <div id="spine-proof-container" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:0.5rem;">
+                ${p.proofPoints.map(pp => `
+                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                        <span style="color:var(--text-secondary);">•</span>
+                        <input type="text" class="spine-proof-input" value="${pp}" style="flex:1; padding:0.4rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
+                        <button onclick="window.moveProofPointUp(this)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">arrow_upward</span></button>
+                        <button onclick="window.moveProofPointDown(this)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">arrow_downward</span></button>
+                        <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--energy-alert); cursor:pointer; margin-left:0.25rem;"><span class="material-symbols-outlined" style="font-size:1.2rem;">delete</span></button>
+                    </div>
+                `).join('')}
+            </div>
+            <button class="btn-secondary" onclick="window.addProofPointInput()" style="font-size:0.75rem; padding:0.2rem 0.6rem;">+ Add Point</button>
+        `;
+        saveBtn.onclick = () => {
+            const titleVal = document.getElementById('spine-input-ptitle').value;
+            const msgVal = document.getElementById('spine-input-pmsg').value;
+            const proofs = Array.from(document.querySelectorAll('.spine-proof-input')).map(el => el.value).filter(x => x.trim() !== '');
+            if (id) {
+                const target = spine.pillars.find(x => x.id === id);
+                target.title = titleVal; target.message = msgVal; target.proofPoints = proofs;
+            } else {
+                spine.pillars.push({ id: 'p' + Date.now(), title: titleVal, message: msgVal, proofPoints: proofs });
             }
-        });
-    });
-}
+            saveAndCloseSpine(spine, modal);
+        };
+    }
+    modal.showModal();
+};
 
-function loadView(viewName) {
-    const container = document.getElementById('view-container');
+window.addProofPointInput = function () {
+    const container = document.getElementById('spine-proof-container');
     if (!container) return;
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex; gap:0.5rem; align-items:center;';
+    div.innerHTML = `
+        <span style="color:var(--text-secondary);">•</span>
+        <input type="text" class="spine-proof-input" value="" style="flex:1; padding:0.4rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
+        <button onclick="window.moveProofPointUp(this)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">arrow_upward</span></button>
+        <button onclick="window.moveProofPointDown(this)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">arrow_downward</span></button>
+        <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--energy-alert); cursor:pointer; margin-left:0.25rem;"><span class="material-symbols-outlined" style="font-size:1.2rem;">delete</span></button>
+    `;
+    container.appendChild(div);
+};
 
-    if (viewName === 'index' || viewName === 'portal') viewName = 'dashboard';
+window.saveAndCloseSpine = function (spine, modal) {
+    window.updateData('spine', spine);
+    refreshSpineUI();
+    modal.close();
+};
 
-    // Check for ID in URL if navigating via hash or link
-    const params = new URLSearchParams(window.location.search);
-    if (!window.currentStakeholderId) {
-        window.currentStakeholderId = params.get('id');
+window.deleteSpineItem = function (type, id) {
+    const pwd = prompt('Enter administrator password to perform deletion (hint: "abracadabra"):');
+    if (pwd !== 'abracadabra') { alert('Invalid password. Deletion cancelled.'); return; }
+    const spine = window.getData('spine');
+    if (type === 'objective') spine.objectives = spine.objectives.filter(o => o.id !== id);
+    else if (type === 'pillar') spine.pillars = spine.pillars.filter(p => p.id !== id);
+    window.updateData('spine', spine);
+    refreshSpineUI();
+};
+
+window.moveProofPointUp = function (btn) {
+    const row = btn.closest('div');
+    if (row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling);
+};
+
+window.moveProofPointDown = function (btn) {
+    const row = btn.closest('div');
+    if (row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row);
+};
+
+window.saveObjectiveInline = function (id, val) {
+    if (!val.trim()) return;
+    const spine = window.getData('spine');
+    const obj = spine.objectives.find(o => o.id === id);
+    if (obj) { obj.text = val; window.updateData('spine', spine); }
+    refreshSpineUI();
+};
+
+window.enableObjectiveInlineEdit = function (id) {
+    const li = document.getElementById(`spine-obj-li-${id}`);
+    if (!li) return;
+    const oText = li.querySelector('.obj-text').innerText;
+    li.innerHTML = `
+        <div style="display:flex; align-items:center; gap:0.5rem; flex:1;">
+            <span style="color:var(--energy-alert);">🎯</span>
+            <input type="text" id="spine-input-inline-${id}" value="${oText.replace(/"/g, '&quot;')}" style="flex:1; padding:0.4rem 0.6rem; background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:4px; font-size:0.95rem; color:var(--text-primary);">
+            <button class="btn-primary" onclick="window.saveObjectiveInline('${id}', document.getElementById('spine-input-inline-${id}').value)" style="font-size:0.75rem; padding:0.2rem 0.5rem;">Save</button>
+            <button class="btn-secondary" onclick="refreshSpineUI()" style="font-size:0.75rem; padding:0.2rem 0.5rem;">Cancel</button>
+        </div>
+    `;
+};
+
+window.moveObjective = function (id, dir) {
+    const spine = window.getData('spine');
+    const idx = spine.objectives.findIndex(o => o.id === id);
+    if (idx === -1) return;
+    if (dir === -1 && idx > 0) { const t = spine.objectives[idx]; spine.objectives[idx] = spine.objectives[idx-1]; spine.objectives[idx-1] = t; }
+    else if (dir === 1 && idx < spine.objectives.length - 1) { const t = spine.objectives[idx]; spine.objectives[idx] = spine.objectives[idx+1]; spine.objectives[idx+1] = t; }
+    window.updateData('spine', spine);
+    refreshSpineUI();
+};
+
+window.addObjectiveInline = function () {
+    const spine = window.getData('spine');
+    const newId = 'obj' + Date.now();
+    spine.objectives.push({ id: newId, text: '' });
+    window.updateData('spine', spine);
+    refreshSpineUI();
+    setTimeout(() => window.enableObjectiveInlineEdit(newId), 0);
+};
+
+// ---- KNOWLEDGE BANK ----
+
+let isKbEditMode = false;
+
+function renderKnowledgeBank() {
+    isKbEditMode = false;
+    refreshKbUI();
+
+    const editToggle = document.getElementById('kb-edit-toggle');
+    if (editToggle) {
+        editToggle.addEventListener('click', () => {
+            isKbEditMode = !isKbEditMode;
+            editToggle.style.background = isKbEditMode ? 'var(--energy-algae)' : '';
+            editToggle.style.color = isKbEditMode ? '#000' : '';
+            editToggle.innerHTML = isKbEditMode
+                ? '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done'
+                : '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
+            refreshKbUI();
+        });
     }
 
-    let template = '';
-    let initFunc = null;
-
-    switch (viewName) {
-        case 'dashboard':
-            template = getDashboardTemplate();
-            initFunc = renderDashboard;
-            break;
-        case 'stakeholders':
-            template = getStakeholdersTemplate();
-            initFunc = renderStakeholders;
-            break;
-        case 'stakeholder_detail':
-            template = getStakeholderDetailTemplate();
-            initFunc = renderStakeholderDetail;
-            break;
-        case 'activity_log':
-            template = getActivityLogTemplate();
-            initFunc = renderActivityLog;
-            break;
-        case 'actions':
-            template = getActionsTemplate();
-            initFunc = renderActions;
-            break;
-        default:
-            template = '<h2>404 - View Not Found</h2>';
-    }
-
-    // Inject HTML
-    container.innerHTML = template;
-    container.scrollTop = 0; // Reset scroll position (Desktop)
-    window.scrollTo(0, 0); // Reset scroll position (Mobile)
-
-    // Run Logic
-    if (initFunc) {
-        initFunc();
+    // Modal drag
+    const modal = document.getElementById('kb-modal');
+    const header = document.getElementById('kb-modal-header');
+    if (modal && header) {
+        let dragging = false, startX, startY, initialX, initialY;
+        header.addEventListener('mousedown', e => {
+            if (e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
+            dragging = true;
+            startX = e.clientX; startY = e.clientY;
+            const style = window.getComputedStyle(modal);
+            const matrix = new DOMMatrixReadOnly(style.transform !== 'none' ? style.transform : 'matrix(1,0,0,1,0,0)');
+            initialX = matrix.m41; initialY = matrix.m42;
+            const onMove = e => { if (!dragging) return; modal.style.transform = `translate(${initialX + e.clientX - startX}px, ${initialY + e.clientY - startY}px)`; };
+            const onUp = () => { dragging = false; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        });
     }
 }
 
-// --- TEMPLATES ---
-// Extracted from original HTML files
+window.toggleKbAccordion = function (id) {
+    if (isKbEditMode) return;
+    const el = document.getElementById('kb-accordion-' + id);
+    const content = document.getElementById('kb-content-' + id);
+    const icon = document.getElementById('kb-icon-' + id);
+    if (content.style.display === 'none') {
+        content.style.display = 'block'; icon.style.transform = 'rotate(90deg)'; el.style.background = 'var(--bg-app)';
+    } else {
+        content.style.display = 'none'; icon.style.transform = 'rotate(0deg)'; el.style.background = 'transparent';
+    }
+};
 
-function getDashboardTemplate() {
-    return `
-                <header
-                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <div>
-                        <h2>Dashboard</h2>
-                        <p>Welcome back, Admin. System Status: Nominal.</p>
+window.toggleKbFaq = function (id) {
+    if (isKbEditMode) return;
+    const content = document.getElementById('kb-faq-content-' + id);
+    const icon = document.getElementById('kb-faq-icon-' + id);
+    const el = document.getElementById('kb-faq-' + id);
+    if (content.style.display === 'none') {
+        content.style.display = 'block'; icon.style.transform = 'rotate(90deg)'; el.style.fontWeight = '600';
+    } else {
+        content.style.display = 'none'; icon.style.transform = 'rotate(0deg)'; el.style.fontWeight = '500';
+    }
+};
+
+function refreshKbUI() {
+    const kb = window.getData('knowledgeBank');
+    if (!kb) return;
+
+    document.querySelectorAll('.kb-edit-btn').forEach(btn => btn.style.display = isKbEditMode ? 'flex' : 'none');
+
+    // Key Messages
+    const keyMsgGrid = document.getElementById('kb-key-messages-grid');
+    if (keyMsgGrid) {
+        keyMsgGrid.innerHTML = kb.keyMessages.map(km => `
+            <div class="card" style="position:relative; background:var(--bg-surface); padding:1.5rem; display:flex; flex-direction:column; justify-content:flex-start; border:1px solid var(--border-subtle); border-radius:12px;">
+                ${isKbEditMode ? `<button onclick="openKbModal('edit-key-message', '${km.id}')" style="position:absolute; right:1rem; top:1rem; background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined">edit</span></button>` : ''}
+                <h4 style="margin:0 0 0.5rem 0; font-size:1.1rem; color:var(--text-primary);">${km.title}</h4>
+                <p style="font-size:0.85rem; color:var(--text-tertiary); margin:0 0 0.5rem 0;">Key Message</p>
+                <p style="font-size:0.95rem; color:var(--text-secondary); margin:0 0 1.5rem 0;">${km.message}</p>
+                <div id="kb-accordion-${km.id}" style="border:1px solid var(--border-subtle); border-radius:8px; padding:0.75rem; cursor:${isKbEditMode ? 'default' : 'pointer'}; transition:all 0.2s;" onclick="window.toggleKbAccordion('${km.id}')">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.9rem; font-weight:500;">Proof Points</span>
+                        <span id="kb-icon-${km.id}" class="material-symbols-outlined" style="font-size:1.2rem; transition:transform 0.2s; transform:${isKbEditMode ? 'rotate(90deg)' : 'rotate(0deg)'};">arrow_right</span>
                     </div>
-                    <div class="user-profile">
-                        <span style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--energy-algae);">●
-                            ONLINE</span>
+                    <div id="kb-content-${km.id}" style="display:${isKbEditMode ? 'block' : 'none'}; margin-top:1rem;">
+                        <ul style="padding-left:1.5rem; margin:0; font-size:0.85rem; color:var(--text-secondary); display:flex; flex-direction:column; gap:0.5rem;">
+                            ${km.proofPoints.map(pp => `<li>${pp}</li>`).join('')}
+                        </ul>
                     </div>
-                </header>
-
-                <!-- 1. Strategy Core (Editable) -->
-                <div class="spine-section" style="margin-bottom: 2rem; border-left: 4px solid var(--energy-algae);">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <h3><span class="material-symbols-outlined"
-                                style="font-size: 1rem; color: var(--energy-algae);">verified</span> Strategy Core</h3>
-                        <button id="btn-edit-strategy" class="btn-secondary"
-                            style="height: 32px; font-size: 0.75rem; padding: 0 0.75rem;">Edit</button>
-                    </div>
-                    <p id="strategy-purpose" style="font-size: 1.1rem; font-weight: 500; margin-bottom: 1rem;">
-                        Loading...</p>
-                </div>
-
-                <!-- 2. Narrative Block -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
-                    <div class="card"
-                        style="background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(16, 185, 129, 0.05) 100%);">
-                        <h3>Core Narrative</h3>
-                        <p id="narrative-core" style="font-size: 1.05rem; line-height: 1.6;">Loading...</p>
-                    </div>
-                    <div class="card">
-                        <h3>Simple Narrative</h3>
-                        <p id="narrative-simple" style="font-size: 1.05rem; line-height: 1.6;">Loading...</p>
-                    </div>
-                </div>
-
-                <!-- 3. Stats Grid -->
-                <!-- Removed inline columns to allow responsive auto-fit -->
-                <div class="pillar-grid" style="margin-bottom: 2rem;">
-                    <div class="card stat-card" onclick="loadView('stakeholders')" style="cursor: pointer;">
-                        <h3>Total Stakeholders</h3>
-                        <div class="stat-value" id="stat-total-stakeholders"
-                            style="font-size: 2.5rem; font-weight: 700; color: var(--text-primary);">0</div>
-                    </div>
-                    <div class="card stat-card" onclick="loadView('activity_log')" style="cursor: pointer;">
-                        <h3>Upcoming Activities</h3>
-                        <div class="stat-value" id="stat-meetings"
-                            style="font-size: 2.5rem; font-weight: 700; color: var(--text-primary);">0</div>
-                    </div>
-                    <div class="card stat-card" onclick="loadView('actions')" style="cursor: pointer;">
-                        <h3>Open Actions</h3>
-                        <div class="stat-value" id="stat-actions"
-                            style="font-size: 2.5rem; font-weight: 700; color: var(--text-primary);">0</div>
-                    </div>
-                </div>
-
-                <!-- 4. Pillars Grid -->
-                <h3 style="margin-bottom: 1rem; color: var(--text-tertiary);">Strategic Pillars</h3>
-                <div id="pillars-grid" class="pillar-grid" style="margin-bottom: 3rem;">
-                    <!-- Populated by JS -->
-                </div>
-
-                <!-- 5. Knowledge Bank (FAQs) -->
-                <h3 style="margin-bottom: 1rem; color: var(--text-tertiary);">Knowledge Bank (FAQs)</h3>
-                <div id="knowledge-bank"
-                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 3rem;">
-                    <!-- Populated by JS -->
-                </div>
-
-                <!-- 6. Previews -->
-                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                    <!-- Stakeholders Preview -->
-                    <div class="card">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                            <h3>Stakeholders</h3>
-                            <button onclick="loadView('stakeholders')" class="btn-secondary"
-                                style="font-size: 0.8rem; height: 32px;">View Ledger</button>
-                        </div>
-                        <div id="preview-stakeholders"
-                            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
-                        </div>
-                    </div>
-
-                    <!-- Activity Preview -->
-                    <div class="card">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                            <h3>Activity Log</h3>
-                             <button onclick="loadView('activity_log')" class="btn-secondary"
-                                style="font-size: 0.8rem; height: 32px;">View Log</button>
-                        </div>
-                        <div id="preview-activity" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
-                    </div>
-
-                    <!-- Actions Preview -->
-                    <div class="card">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                            <h3>Pending Actions</h3>
-                             <button onclick="loadView('actions')" class="btn-secondary" style="font-size: 0.8rem; height: 32px;">View
-                                All</button>
-                        </div>
-                        <div id="preview-actions"
-                            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
-                        </div>
-                    </div>
-                </div>
-    `;
-}
-
-function getStakeholdersTemplate() {
-    return `
-                <header
-                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <div>
-                        <h2>Stakeholder Ledger</h2>
-                        <p>Complete register of key partners and community groups.</p>
-                    </div>
-                    <button class="btn-primary" onclick="alert('Add Stakeholder Modal (Mock)')">+ New
-                        Stakeholder</button>
-                </header>
-
-                <div class="ledger-grid" id="stakeholder-list">
-                    <!-- Populated by JS -->
-                </div>
-    `;
-}
-
-function getStakeholderDetailTemplate() {
-    return `
-         <header style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: start;">
-            <div>
-                <button onclick="loadView('stakeholders')" class="btn-secondary" style="margin-bottom:1rem; border:none; padding:0; height:auto; background:none;">← Back to Ledger</button>
-                <h2 id="detail-name">Loading Profile...</h2>
-                <div class="status-badge" id="view-status-badge" style="display: inline-block; border-color: var(--energy-algae); color: var(--energy-algae);">Active</div>
-            </div>
-            <button class="btn-primary" onclick="document.getElementById('edit-modal').showModal()">
-                <span class="material-symbols-outlined">edit</span> Edit Stakeholder
-            </button>
-         </header>
-
-         <div class="spine-section" style="margin-bottom: 2rem;">
-            <h3>Core Profile</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 2rem; margin-top: 1.5rem;">
-                <div>
-                    <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); display: block; margin-bottom: 0.25rem;">Role</span>
-                    <div id="view-role" style="font-size: 1.1rem; font-weight: 500;">-</div>
-                </div>
-                <div>
-                    <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); display: block; margin-bottom: 0.25rem;">Status</span>
-                    <div id="view-status" style="font-size: 1.1rem; font-weight: 500;">-</div>
-                </div>
-                <div>
-                    <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); display: block; margin-bottom: 0.25rem;">Influence</span>
-                    <div id="view-influence" style="font-size: 1.1rem;">-</div>
-                </div>
-                <div>
-                    <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); display: block; margin-bottom: 0.25rem;">Interest</span>
-                    <div id="view-interest" style="font-size: 1.1rem;">-</div>
-                </div>
-                <div>
-                    <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-tertiary); display: block; margin-bottom: 0.25rem;">Owner</span>
-                    <div id="view-owner" style="font-size: 1.1rem;">-</div>
                 </div>
             </div>
-         </div>
+        `).join('');
+    }
 
-         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-            <div class="card">
-                <h3>Narrative Hook</h3>
-                <p id="view-narrativeHook" style="font-style: italic; color: var(--text-secondary); margin-top: 1rem;">-</p>
-            </div>
-            <div class="card">
-                <h3>Engagement Strategy</h3>
-                <p id="view-engagementStrategy" style="margin-top: 1rem;">-</p>
-            </div>
-         </div>
-
-         <!-- Native Edit Modal Integration -->
-         <dialog id="edit-modal" style="background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-highlight); border-radius: var(--radius-node); padding: 2rem; width: 100%; max-width: 500px; backdrop-filter: blur(10px);">
-            <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Edit Stakeholder</h2>
-            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-                <div>
-                    <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-tertiary);">Name</label>
-                    <input type="text" id="edit-name">
+    // FAQs
+    const faqsGrid = document.getElementById('kb-faqs-grid');
+    if (faqsGrid) {
+        faqsGrid.innerHTML = kb.faqs.map(f => `
+            <div class="card" style="position:relative; background:var(--bg-surface); outline:1px solid var(--border-subtle); border-radius:12px; overflow:hidden;">
+                ${isKbEditMode ? `<button onclick="openKbModal('edit-faq', '${f.id}')" style="position:absolute; right:1rem; top:1rem; z-index:10; background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined">edit</span></button>` : ''}
+                <div id="kb-faq-${f.id}" style="padding:0.75rem 1.5rem; cursor:${isKbEditMode ? 'default' : 'pointer'}; display:flex; justify-content:space-between; align-items:center; font-weight:500; font-size:0.95rem;" onclick="window.toggleKbFaq('${f.id}')">
+                    <span style="padding-right:2rem;">${f.question}</span>
+                    <span id="kb-faq-icon-${f.id}" class="material-symbols-outlined" style="font-size:1.5rem; transition:transform 0.2s; transform:${isKbEditMode ? 'rotate(90deg)' : 'rotate(0deg)'};">arrow_right</span>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div>
-                        <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-tertiary);">Role</label>
-                        <input type="text" id="edit-role">
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-tertiary);">Status</label>
-                        <select id="edit-status">
-                            <option value="Active">Active</option>
-                            <option value="Needs Attention">Needs Attention</option>
-                            <option value="Stable">Stable</option>
-                            <option value="Monitor">Monitor</option>
-                        </select>
-                    </div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div>
-                        <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-tertiary);">Influence</label>
-                        <select id="edit-influence">
-                            <option value="High">High</option>
-                            <option value="Medium">Medium</option>
-                            <option value="Low">Low</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-tertiary);">Interest</label>
-                        <select id="edit-interest">
-                            <option value="High">High</option>
-                            <option value="Medium">Medium</option>
-                            <option value="Low">Low</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-tertiary);">Owner</label>
-                    <input type="text" id="edit-owner">
-                </div>
-                <div>
-                    <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-tertiary);">Narrative Hook</label>
-                    <textarea id="edit-narrativeHook" rows="2"></textarea>
-                </div>
-                <div>
-                    <label style="display: block; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--text-tertiary);">Engagement Strategy</label>
-                    <textarea id="edit-engagementStrategy" rows="2"></textarea>
-                </div>
-
-                <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1rem;">
-                    <button class="btn-secondary" onclick="document.getElementById('edit-modal').close()">Cancel</button>
-                    <button class="btn-primary" onclick="window.saveStakeholderEdit()">Save Changes</button>
+                <div id="kb-faq-content-${f.id}" style="display:${isKbEditMode ? 'block' : 'none'}; padding:0 1.5rem 1.5rem; border-top:1px solid var(--border-subtle);">
+                    <p style="margin-top:1rem; font-size:0.9rem; color:var(--text-secondary); line-height:1.5; white-space:pre-wrap;">${f.answer}</p>
                 </div>
             </div>
-         </dialog>
-    `;
+        `).join('');
+    }
+
+    // Audience Messages
+    const audienceGrid = document.getElementById('kb-audiences-grid');
+    if (audienceGrid) {
+        audienceGrid.innerHTML = kb.audienceMessages.map(a => `
+            <div class="card" style="position:relative; border:1px solid var(--border-subtle); border-radius:12px; padding:1.5rem; background:var(--bg-surface);">
+                ${isKbEditMode ? `<button onclick="openKbModal('edit-audience', '${a.id}')" style="position:absolute; right:1rem; top:1rem; background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined">edit</span></button>` : ''}
+                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem; color:var(--text-primary); font-weight:600;">
+                    <span class="material-symbols-outlined" style="color:var(--energy-algae);">${a.icon}</span> ${a.title}
+                </div>
+                <p style="font-size:0.9rem; color:var(--text-secondary); line-height:1.5;">${a.text}</p>
+            </div>
+        `).join('');
+    }
 }
 
-function getActivityLogTemplate() {
-    return `
-                <header
-                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <div>
-                        <h2>Activity Log</h2>
-                        <p>Chronological record of interactions, decisions, and signals.</p>
+window.openKbModal = function (type, id) {
+    const kb = window.getData('knowledgeBank');
+    if (!kb) return;
+    const modal = document.getElementById('kb-modal');
+    const title = document.getElementById('kb-modal-title');
+    const body = document.getElementById('kb-modal-body');
+    const saveBtn = document.getElementById('kb-modal-save');
+    modal.style.transform = 'none';
+
+    if (type === 'add-key-message' || type === 'edit-key-message') {
+        title.textContent = id ? 'Edit Key Message' : 'Add Key Message';
+        const msg = id ? kb.keyMessages.find(m => m.id === id) : { title: '', message: '', proofPoints: [] };
+        body.innerHTML = `
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Title</label>
+            <input type="text" id="kb-input-title" value="${msg.title.replace(/"/g, '&quot;')}" style="width:100%; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Key Message Statement</label>
+            <textarea id="kb-input-msg" style="width:100%; height:150px; resize:vertical; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${msg.message}</textarea>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                <label style="font-size:0.8rem; font-weight:600;">Proof Points</label>
+                <button type="button" class="btn-secondary" onclick="window.addKbListPoint()" style="font-size:0.7rem; padding:0.2rem 0.5rem;">+ Add Point</button>
+            </div>
+            <div id="kb-modal-points-container" style="display:flex; flex-direction:column; gap:0.5rem; max-height:200px; overflow-y:auto; padding-right:0.5rem;">
+                ${msg.proofPoints.map(pp => `
+                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                        <span style="color:var(--text-secondary);">•</span>
+                        <input type="text" class="kb-point-input" value="${pp.replace(/"/g, '&quot;')}" style="flex:1; padding:0.4rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
+                        <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--energy-alert); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">delete</span></button>
                     </div>
-                    <button class="btn-primary" onclick="alert('Log Activity Modal (Mock)')">+ Log Activity</button>
-                </header>
+                `).join('')}
+            </div>
+            ${id ? `<button onclick="window.deleteKbItem('key-message', '${id}')" style="margin-top:1rem; width:100%; padding:0.5rem; border:1px solid var(--energy-alert); background:rgba(239,68,68,0.1); color:var(--energy-alert); border-radius:4px; cursor:pointer;">Delete Key Message</button>` : ''}
+        `;
+        saveBtn.onclick = () => {
+            const points = Array.from(document.querySelectorAll('.kb-point-input')).map(i => i.value).filter(v => v.trim() !== '');
+            const newObj = { id: id || 'k' + Date.now(), title: document.getElementById('kb-input-title').value, message: document.getElementById('kb-input-msg').value, proofPoints: points };
+            if (id) { const idx = kb.keyMessages.findIndex(m => m.id === id); kb.keyMessages[idx] = newObj; } else { kb.keyMessages.push(newObj); }
+            window.updateData('knowledgeBank', kb); refreshKbUI(); modal.close();
+        };
+    } else if (type === 'add-faq' || type === 'edit-faq') {
+        title.textContent = id ? 'Edit FAQ' : 'Add FAQ';
+        const faq = id ? kb.faqs.find(f => f.id === id) : { question: '', answer: '' };
+        body.innerHTML = `
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Question</label>
+            <input type="text" id="kb-input-q" value="${faq.question.replace(/"/g, '&quot;')}" style="width:100%; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Answer</label>
+            <textarea id="kb-input-a" style="width:100%; height:150px; resize:none; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${faq.answer}</textarea>
+            ${id ? `<button onclick="window.deleteKbItem('faq', '${id}')" style="width:100%; padding:0.5rem; border:1px solid var(--energy-alert); background:rgba(239,68,68,0.1); color:var(--energy-alert); border-radius:4px; cursor:pointer;">Delete FAQ</button>` : ''}
+        `;
+        saveBtn.onclick = () => {
+            const newObj = { id: id || 'f' + Date.now(), question: document.getElementById('kb-input-q').value, answer: document.getElementById('kb-input-a').value };
+            if (id) { const idx = kb.faqs.findIndex(f => f.id === id); kb.faqs[idx] = newObj; } else { kb.faqs.push(newObj); }
+            window.updateData('knowledgeBank', kb); refreshKbUI(); modal.close();
+        };
+    } else if (type === 'add-audience' || type === 'edit-audience') {
+        title.textContent = id ? 'Edit Audience Message' : 'Add Audience Message';
+        const aud = id ? kb.audienceMessages.find(a => a.id === id) : { title: '', text: '', icon: 'groups' };
+        const stakeholders = window.getData('stakeholders') || [];
+        const stakeholderOptions = stakeholders.map(s => `<option value="${s.name.replace(/"/g, '&quot;')}" ${aud.title === s.name ? 'selected' : ''}>${s.name}</option>`).join('');
+        body.innerHTML = `
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Audience Type (Stakeholder)</label>
+            <select id="kb-input-aud" style="width:100%; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
+                <option value="">-- Select a Stakeholder --</option>
+                ${stakeholderOptions}
+            </select>
+            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Tailored Message</label>
+            <textarea id="kb-input-txt" style="width:100%; height:180px; resize:vertical; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${aud.text}</textarea>
+            ${id ? `<button onclick="window.deleteKbItem('audience', '${id}')" style="width:100%; padding:0.5rem; border:1px solid var(--energy-alert); background:rgba(239,68,68,0.1); color:var(--energy-alert); border-radius:4px; cursor:pointer;">Delete Audience</button>` : ''}
+        `;
+        saveBtn.onclick = () => {
+            const newObj = { id: id || 'a' + Date.now(), icon: 'groups', title: document.getElementById('kb-input-aud').value, text: document.getElementById('kb-input-txt').value };
+            if (id) { const idx = kb.audienceMessages.findIndex(a => a.id === id); kb.audienceMessages[idx] = newObj; } else { kb.audienceMessages.push(newObj); }
+            window.updateData('knowledgeBank', kb); refreshKbUI(); modal.close();
+        };
+    }
+    modal.showModal();
+};
 
-                <!-- Filter Bar (Mock) -->
-                <div class="spine-section"
-                    style="padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center;">
-                    <span class="material-symbols-outlined" style="opacity: 0.5;">filter_list</span>
-                    <select style="width: 200px;">
-                        <option>All Activities</option>
-                        <option>Meetings</option>
-                        <option>Decisions</option>
-                        <option>Signals</option>
-                    </select>
-                </div>
-
-                <div class="ledger-grid" id="activity-list" style="display: flex; flex-direction: column; gap: 1rem;">
-                    <!-- Populated by JS -->
-                </div>
+window.addKbListPoint = function () {
+    const container = document.getElementById('kb-modal-points-container');
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex; gap:0.5rem; align-items:center;';
+    div.innerHTML = `
+        <span style="color:var(--text-secondary);">•</span>
+        <input type="text" class="kb-point-input" value="" style="flex:1; padding:0.4rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
+        <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--energy-alert); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">delete</span></button>
     `;
-}
+    container.appendChild(div);
+};
 
-function getActionsTemplate() {
-    return `
-                <header
-                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <div>
-                        <h2>Actions / Goals</h2>
-                        <p>Track tactical execution and strategic alignment.</p>
-                    </div>
-                    <button class="btn-primary" onclick="alert('Add Action Modal (Mock)')">+ New Action</button>
-                </header>
+window.deleteKbItem = function (type, id) {
+    const pwd = prompt('Enter administrator password to perform deletion (hint: "abracadabra"):');
+    if (pwd !== 'abracadabra') { alert('Invalid password. Deletion cancelled.'); return; }
+    const kb = window.getData('knowledgeBank');
+    if (type === 'key-message') kb.keyMessages = kb.keyMessages.filter(o => o.id !== id);
+    else if (type === 'faq') kb.faqs = kb.faqs.filter(o => o.id !== id);
+    else if (type === 'audience') kb.audienceMessages = kb.audienceMessages.filter(o => o.id !== id);
+    window.updateData('knowledgeBank', kb);
+    refreshKbUI();
+    document.getElementById('kb-modal').close();
+};
 
-                <!-- Filter Bar (Mock) -->
-                <div class="spine-section"
-                    style="padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center;">
-                    <span class="material-symbols-outlined" style="opacity: 0.5;">filter_list</span>
-                    <select style="width: 200px;">
-                        <option>All Actions</option>
-                        <option>Pending</option>
-                        <option>Completed</option>
-                    </select>
-                </div>
-
-                <div class="ledger-grid" id="actions-list">
-                    <!-- Populated by JS -->
-                </div>
-    `;
-}
+// ---- SCROLL FORWARDING ----
+window.addEventListener('wheel', (e) => {
+    const vc = document.getElementById('view-container');
+    if (vc && !vc.contains(e.target)) {
+        const nav = document.getElementById('nav-links-container');
+        if (nav && nav.contains(e.target) && nav.scrollHeight > nav.clientHeight) return;
+        vc.scrollTop += e.deltaY;
+    }
+}, { passive: true });

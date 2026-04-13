@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Employee Portal</title>
+    <title>AET | Employee Portal</title>
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 </head>
@@ -23,27 +23,50 @@
                 </button>
             </div>
 
-            <div id="nav-links-container" style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">
-                <a href="portal.html" class="nav-item active">
-                    <span class="material-symbols-outlined">dashboard</span>
-                    Dashboard
-                </a>
-                <a href="stakeholders.html" class="nav-item">
-                    <span class="material-symbols-outlined">groups</span>
-                    Stakeholder Ledger
-                </a>
-                <a href="activity_log.html" class="nav-item">
-                    <span class="material-symbols-outlined">history</span>
-                    Activity Log
-                </a>
-                <a href="actions.html" class="nav-item">
-                    <span class="material-symbols-outlined">check_circle</span>
-                    Actions / Goals
-                </a>
-                <a href="index.html" class="nav-item" style="margin-top: auto;">
-                    <span class="material-symbols-outlined">logout</span>
-                    Logout
-                </a>
+            <div id="nav-links-container" style="display: flex; flex-direction: column; gap: 0; flex: 1; overflow-y: auto;">
+
+                <div class="nav-section">
+                    <h3 class="nav-heading">STRATEGY ROOM</h3>
+                    <a href="#" class="nav-item active" data-view="dashboard">
+                        <span class="material-symbols-outlined">bar_chart</span>
+                        Dashboard
+                    </a>
+                    <a href="#" class="nav-item" data-view="strategy_spine">
+                        <span class="material-symbols-outlined">view_timeline</span>
+                        Strategy Spine
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-heading">RELATIONSHIP MANAGEMENT</h3>
+                    <a href="#" class="nav-item" data-view="stakeholders">
+                        <span class="material-symbols-outlined">group</span>
+                        Stakeholder Ledger
+                    </a>
+                    <a href="#" class="nav-item" data-view="activity_log">
+                        <span class="material-symbols-outlined">handshake</span>
+                        Activity Log
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-heading">EXECUTION</h3>
+                    <a href="#" class="nav-item" data-view="actions">
+                        <span class="material-symbols-outlined">push_pin</span>
+                        Actions
+                    </a>
+                    <a href="#" class="nav-item" data-view="knowledge_bank">
+                        <span class="material-symbols-outlined">menu_book</span>
+                        Knowledge Bank
+                    </a>
+                </div>
+
+                <div style="margin-top: auto;">
+                    <a href="index.html" class="nav-item" style="color: var(--energy-alert);">
+                        <span class="material-symbols-outlined">logout</span>
+                        Logout
+                    </a>
+                </div>
             </div>
 
             <div class="sidebar-footer">
@@ -68,7 +91,11 @@
         <!-- Main Content -->
         <main id="main-content">
             <div id="view-container">
-                <!-- Dynamic Content Loading -->
+                <!-- Dynamic Content Loaded Here -->
+                <div style="display:flex; align-items:center; justify-content:center; height:100%; color:var(--text-tertiary);">
+                    <span class="material-symbols-outlined" style="font-size:2rem; margin-right:0.5rem;">hourglass_empty</span>
+                    Loading...
+                </div>
             </div>
         </main>
     </div>

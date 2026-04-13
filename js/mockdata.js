@@ -2,11 +2,27 @@
 
 const mockData = {
     stats: {
-        totalStakeholders: 12, // Updated based on JSON length
-        upcomingMeetings: 5,
-        openActions: 8,
-        completedActions: 45
+        stakeholders: { total: 16, healthy: 5, neutral: 8, atRisk: 3 },
+        interactions: { upcoming: 2, total: 12 },
+        actions: { total: 12, active: 4 }
     },
+    aiOverview: "The team is currently focused on realigning key stakeholders following recent regulatory announcements. Immediate action is required on the messaging toolkit to ensure consistent communication across all channels. Upcoming interactions heavily feature Council engagement.",
+    interactions: [
+        {
+            id: 201, date: "Friday 10:30am", rawDate: "2026-03-05", type: "Upcoming", title: "Weekly Update",
+            agenda: "Update on what everyone's been up to",
+            discussed: null,
+            topics: ["Animation", "Government grant", "Council engagment"],
+            attendees: ["Matt Griffin", "Linda Vo", "Rebecca Grant", "Adam Riley", "Sarah Evans"]
+        },
+        {
+            id: 202, date: "Friday 10:30am", rawDate: "2026-02-27", type: "Recent", title: "Weekly Update",
+            agenda: null,
+            discussed: "Discussed blockages in the progress of the project",
+            topics: ["Animation", "Government grant", "Council engagment"],
+            attendees: ["Matt Griffin", "Linda Vo", "Rebecca Grant", "Adam Riley", "Sarah Evans"]
+        }
+    ],
     // STRATEGY SPINE (From strategy_backup_2026-02-02.json)
     spine: {
         pillars: [
@@ -87,13 +103,63 @@ const mockData = {
             id: "f1a8e4ef-fab6-4fb9-b45d-369a6a55abee",
             name: "City of Greater Bendigo (CoGB)",
             role: "Primary Partner",
-            influence: "High",
-            interest: "High",
-            status: "Needs Attention",
+            status: "Stable",
+            statusHistory: [
+                { date: "15 Jan 2026", status: "Critical/At Risk", notes: "Negotiations stalled. Mayor requested update." },
+                { date: "02 Feb 2026", status: "Friction Points", notes: "Concerns raised over noise." },
+                { date: "14 Mar 2026", status: "Stable", notes: "Initial meetings successful." }
+            ],
             narrativeHook: "This project delivers long-term stability and value for Bendigo.",
-            engagementStrategy: "Direct briefings; Rebuild confidence; Align narrative.",
+            values: ["job creation", "budget savings", "environmental compliance"],
+            powerDynamics: {
+                influence: "Low",
+                interest: "High",
+                authority: "Veto power, Consultant, or informed",
+                values: ["finance", "regulatory", "community-based"]
+            },
+            postureJourney: {
+                current: "uneven; contract strain",
+                desired: "strong, aligned advocate",
+                nextStep: "\"MOU Signed\" or \"Council Approval.\"",
+                target: "APR 2026"
+            },
+            strategicApproach: {
+                barriers: "Concerned about noise pollution",
+                engagementApproach: "The plan is currently to continue trying to go through via investors but now we will also try to approach the mayor and committee members directly.",
+                tactics: [
+                    { type: "brochure", text: "Brochure for committee members" }
+                ]
+            },
+            contactConduct: {
+                preferences: "formal letters, informal coffee meetings, or official briefings",
+                emailTone: "make sure to be overly considerate, legally need to be able to say we've kept them in the loop",
+                elevatorPitches: "for Council and Community"
+            },
+            relationships: {
+                internalLink: "Linda Vo is the primary gatekeeper for the Mayor.",
+                externalTension: "CoGB has a historical dispute with [Stakeholder X] over landfill sites.",
+                keyTies: ["Linda Vo"],
+                frictionPoints: []
+            },
             owner: "AET + Vant",
-            contacts: []
+            contacts: [
+                {
+                    id: "c1",
+                    name: "Linda Vo",
+                    role: "Comms",
+                    isLead: true,
+                    phone: "+61 400 000 000",
+                    email: "linda.vo@cogb.vic.gov.au"
+                },
+                {
+                    id: "c2",
+                    name: "Sarah Evans",
+                    role: "Web Developer",
+                    isLead: false,
+                    phone: "+61 411 111 111",
+                    email: "sarah@example.com"
+                }
+            ]
         },
         {
             id: "f6f8e1e4-73a3-41d6-a1ec-58630add951d",
@@ -133,7 +199,19 @@ const mockData = {
         },
         {
             id: "49bc9bc9-60e5-42dd-9366-ce4c6483bd16",
-            name: "Community & Media",
+            name: "Community",
+            role: "Public License",
+            influence: "High",
+            interest: "High",
+            status: "Monitor",
+            narrativeHook: "Clean, smart recycling – not waste-to-energy.",
+            engagementStrategy: "Proactive education; simple explainers.",
+            owner: "Vant",
+            contacts: []
+        },
+        {
+            id: "media-stakeholder-1234",
+            name: "Media",
             role: "Public License",
             influence: "High",
             interest: "High",
@@ -283,39 +361,137 @@ const mockData = {
             linkId: "0dbcbb1c-4532-43e2-8a5b-5cb4286bb9dd",
             dueDate: "2026-05-01"
         }
-    ]
+    ],
+    // KNOWLEDGE BANK
+    knowledgeBank: {
+        keyMessages: [
+            {
+                id: "k1",
+                title: "Environmental Outcomes",
+                message: "The Advanced Resource Recovery Centre (ARRC) will reduce landfill and help create a cleaner, healthier environment.",
+                proofPoints: [
+                    "The project significantly reduces greenhouse gas emissions, with the potential to avoid around 80,000 tonnes of CO₂e annually.",
+                    "Line about reducing landfill and why this is critical",
+                    "The ARRC will produce high-quality materials that can be reused by local industries and help improve soil health and land management.",
+                    "Processing materials locally at the ARRC will reduce long-distance transport and associated emissions.",
+                    "The project directly supports Victoria's Recycling Victoria 80% diversion target and aligns with the National Circular Economy Framework."
+                ]
+            },
+            {
+                id: "k2",
+                title: "Regional economic benefits",
+                message: "The ARRC will create jobs, attract investment and build new circular industries, strengthening the local economy.",
+                proofPoints: [
+                    "The project will create up to 80 direct jobs and 150 indirect roles across operations, logistics, maintenance and R&D, with training pathways through local tertiary partner.",
+                    "It will help establish new circular industries such as plastics reprocessing, organics, soil products and biochar.",
+                    "The project will attract private investment and strengthen local supply chains, supporting long-term regional growth.",
+                    "The project keeps economic value local by processing waste in the region rather than transporting materials - and the economic opportunity tied to them - elsewhere.",
+                    "Recovering valuable materials creates additional revenue streams, helping make the regional waste system more financially stable over time."
+                ]
+            },
+            {
+                id: "k3",
+                title: "Circular Leadership and Innovation",
+                message: "The project brings the latest, AI-enabled recovery technology to the Loddon Mallee - positioning the region as a national leader in modern resource recovery and circular innovation.",
+                proofPoints: [
+                    "State of the art sorting facility.",
+                    "AI systems adapt to waste streams."
+                ]
+            },
+            {
+                id: "k4",
+                title: "Partnerships",
+                message: "AET values councils, communities and industry as genuine long-term partners, with open and transparent communication and engagement at the heart of the project.",
+                proofPoints: [
+                    "Community Reference Groups.",
+                    "Transparent reporting structures."
+                ]
+            }
+        ],
+        faqs: [
+            { id: "f1", question: "Who is AET?", answer: "AET develops smart projects that turn everyday waste into valuable resources - reducing landfill, cutting emissions and keeping value in the region.\n\nWe help regional communities move toward a circular economy by designing systems that recover materials, support local industry and create long-term environmental benefits.\n\nAET's Pyramid Hill R&D facility plays a critical role in this work. It allows the team to test how organic waste can be transformed into valuable carbon products and, by working with local businesses, identify practical ways to return these materials to industry. These proven methods will be applied at the Advanced Resource Recovery Centre (ARRC) to ensure as much waste as possible is put to good use." },
+            { id: "f2", question: "What does AET do?", answer: "AET develops smart projects..." },
+            { id: "f3", question: "What is the ARRC project?", answer: "The advanced resource recovery center..." },
+            { id: "f4", question: "What stage is the project at?", answer: "Feasibility." },
+            { id: "f5", question: "What technology will the ARRC use?", answer: "AI and machine learning." },
+            { id: "f6", question: "Will AI reduce the number of local jobs at the ARRC?", answer: "No, it augments the process." }
+        ],
+        audienceMessages: [
+            {
+                id: "a1",
+                icon: "groups",
+                title: "City of Greater Bendigo (CoGB)",
+                text: "The Advanced Resource Recovery Centre (ARRC) delivers long-term stability and value for the region - keeping jobs, skills and investment local, while reducing landfill and future cost pressures."
+            },
+            {
+                id: "a2",
+                icon: "groups",
+                title: "Neighbouring Councils",
+                text: "The ARRC is a reliable, future-ready regional solution backed by clear data, modern technology and long-term value for councils - that will benefit the region now and into the future."
+            },
+            {
+                id: "a3",
+                icon: "groups",
+                title: "Community",
+                text: "The ARRC will help the Loddon Mallee region turn everyday waste into valuable resources - reducing landfill, cutting emissions and creating more jobs and attracting local investment."
+            },
+            {
+                id: "a4",
+                icon: "groups",
+                title: "Local Industry",
+                text: "The ARRC will supply high-quality recovered materials that create new commercial opportunities and strengthen regional supply chains."
+            },
+            {
+                id: "a5",
+                icon: "groups",
+                title: "Media",
+                text: "The Loddon Mallee region is emerging as a leader in clean, modern resource recovery - turning local waste into local opportunity using AI and advanced sorting technology."
+            }
+        ]
+    }
 };
 
 // Simulate local storage persistence
-// Bumping to v8 to ensure new structure loads (FRESH LOAD)
-if (!localStorage.getItem('portalData_v9')) {
-    localStorage.setItem('portalData_v9', JSON.stringify(mockData));
+// Bumping to v17 to ensure new structure loads (FRESH LOAD)
+const CACHE_VERSION = 'v17';
+if (!localStorage.getItem(CACHE_VERSION)) {
+    localStorage.setItem(CACHE_VERSION, JSON.stringify(mockData));
 }
 
 window.getData = function (key) {
-    const data = JSON.parse(localStorage.getItem('portalData_v9'));
-    return data ? data[key] : null; // This will return 'spine' object if key is 'spine'
+    const data = JSON.parse(localStorage.getItem(CACHE_VERSION));
+    return data ? data[key] : null; 
 };
 
-window.addData = function (key, item) {
-    const data = JSON.parse(localStorage.getItem('portalData_v9'));
-    if (data && data[key]) {
-        item.id = item.id || Date.now(); // Keep existing ID if present
-        data[key].push(item);
-        localStorage.setItem('portalData_v9', JSON.stringify(data));
+window.updateData = function (key, value) {
+    const data = JSON.parse(localStorage.getItem(CACHE_VERSION));
+    if (data) {
+        data[key] = value;
+        localStorage.setItem(CACHE_VERSION, JSON.stringify(data));
         return true;
     }
     return false;
 };
 
+window.addData = function (key, item) {
+    const data = JSON.parse(localStorage.getItem(CACHE_VERSION));
+    if (data && data[key]) {
+        item.id = item.id || Date.now(); // Keep existing ID if present
+        data[key].push(item);
+        localStorage.setItem(CACHE_VERSION, JSON.stringify(data));
+        return item;
+    }
+    return null;
+};
+
 // Helper for adding a contact to a stakeholder
 window.addContact = function (stakeholderId, contact) {
-    const data = JSON.parse(localStorage.getItem('portalData_v9'));
+    const data = JSON.parse(localStorage.getItem(CACHE_VERSION));
     const sh = data.stakeholders.find(s => s.id == stakeholderId);
     if (sh) {
         if (!sh.contacts) sh.contacts = [];
         sh.contacts.push(contact);
-        localStorage.setItem('portalData_v9', JSON.stringify(data));
+        localStorage.setItem(CACHE_VERSION, JSON.stringify(data));
         return true;
     }
     return false;
@@ -323,11 +499,11 @@ window.addContact = function (stakeholderId, contact) {
 
 // Helper for updating a stakeholder
 window.updateStakeholder = function (id, updates) {
-    const data = JSON.parse(localStorage.getItem('portalData_v9'));
+    const data = JSON.parse(localStorage.getItem(CACHE_VERSION));
     const index = data.stakeholders.findIndex(s => s.id == id);
     if (index !== -1) {
         data.stakeholders[index] = { ...data.stakeholders[index], ...updates };
-        localStorage.setItem('portalData_v9', JSON.stringify(data));
+        localStorage.setItem(CACHE_VERSION, JSON.stringify(data));
         return true;
     }
     return false;

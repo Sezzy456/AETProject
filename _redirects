@@ -1,0 +1,8 @@
+# Netlify Redirects
+# All portal sub-routes redirect to portal.html (which handles routing via JS hash)
+/stakeholders   /portal.html  200
+/actions        /portal.html  200
+/activity_log   /portal.html  200
+/strategy_spine /portal.html  200
+/knowledge_bank /portal.html  200
+/dashboard      /portal.html  200
