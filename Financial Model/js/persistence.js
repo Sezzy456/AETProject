@@ -157,6 +157,8 @@ export async function loadProject(name) {
         const newState = {
             initialInvestment: {
                 amount: project.sp_initial_investment,
+                startYear: 0,         // Not persisted to DB; default to Year 0
+                annualInvestments: {}, // Not persisted to DB; start empty so calculations use amount+startYear fallback
                 opportunityCost: project.sp_opportunity_cost,
                 lifetime: project.sp_lifetime,
                 salvageValue: project.sp_salvage_value,

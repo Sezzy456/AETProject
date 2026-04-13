@@ -227,6 +227,17 @@ export function setupEventListeners() {
                         State.state.revenue = data.revenue;
                         State.state.operatingExpenses = data.operatingExpenses;
 
+                        // Defensive guards: ensure these fields always exist after load
+                        // (they are not persisted to DB, so the load function defaults them,
+                        //  but guard here too in case of old/incomplete saved data)
+                        if (!State.state.initialInvestment.annualInvestments) {
+                            State.state.initialInvestment.annualInvestments = {};
+                        }
+                        if (State.state.initialInvestment.startYear === undefined ||
+                            State.state.initialInvestment.startYear === null) {
+                            State.state.initialInvestment.startYear = 0;
+                        }
+
                         syncUIWithState();
                         UI.updateList('revenue-list', State.state.revenue);
                         UI.updateList('expense-list', State.state.operatingExpenses);
@@ -397,6 +408,7 @@ function syncUIWithState() {
 
     const inv = State.state.initialInvestment;
     setVal('initial-inv', inv.amount);
+    setVal('inv-start-year', inv.startYear !== undefined ? inv.startYear : 0);
     setVal('opp-cost', inv.opportunityCost);
     setVal('lifetime', inv.lifetime);
     setVal('salvage-value', inv.salvageValue);
