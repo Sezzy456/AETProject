@@ -644,54 +644,599 @@ function renderActivityLog() {
     });
 }
 
+// ---- ACTIONS ----
+
+let _actCurrentTab = 'list';
+let _actCurrentId = null;
+let _actOriginalData = null;
+let _actSortMode = 'due'; // 'due' | 'status' | 'owner'
+let _actFilterOpen = false;
+
 function renderActions() {
-    const actions = window.getData('actions');
-    const container = document.getElementById('actions-list');
+    _actCurrentTab = 'list';
+    _actCurrentId = null;
+    _actPopulateObjectiveDropdown();
+    window.filterActions();
+}
+
+// Helper: resolve objective text from id
+function _actGetObjectiveText(id) {
+    const spine = window.getData('spine');
+    if (!spine) return id;
+    const obj = (spine.objectives || []).find(o => o.id === id);
+    return obj ? obj.text : id;
+}
+
+// Helper: get status color
+function _actStatusColor(status) {
+    const map = {
+        'Pending':     { bg:'rgba(148,163,184,0.15)', color:'#64748b', dot:'#94a3b8' },
+        'Planned':     { bg:'rgba(129,140,248,0.15)', color:'#6366f1', dot:'#818cf8' },
+        'In Progress': { bg:'rgba(96,165,250,0.15)',  color:'#3b82f6', dot:'#60a5fa' },
+        'Completed':   { bg:'rgba(52,211,153,0.15)',  color:'#059669', dot:'#34d399' },
+    };
+    return map[status] || { bg:'rgba(0,0,0,0.05)', color:'var(--text-secondary)', dot:'#aaa' };
+}
+
+// Populate objective <select> in modal
+function _actPopulateObjectiveDropdown() {
+    const sel = document.getElementById('act-f-objective');
+    if (!sel) return;
+    const spine = window.getData('spine');
+    sel.innerHTML = '<option value="">— Select Objective —</option>';
+    if (spine && spine.objectives) {
+        spine.objectives.forEach(o => {
+            sel.innerHTML += `<option value="${o.id}">🎯 ${o.text.length > 50 ? o.text.substring(0,47)+'...' : o.text}</option>`;
+        });
+    }
+}
+
+// Filter + re-render
+window.filterActions = function() {
+    const search = (document.getElementById('act-search')?.value || '').toLowerCase();
+    const statusF = document.getElementById('act-filter-status')?.value || '';
+    const ownerF  = document.getElementById('act-filter-owner')?.value  || '';
+    const phaseF  = document.getElementById('act-filter-phase')?.value  || '';
+
+    let actions = window.getData('actions') || [];
+    if (search)  actions = actions.filter(a => (a.activity||'').toLowerCase().includes(search) || (a.description||'').toLowerCase().includes(search));
+    if (statusF) actions = actions.filter(a => a.status === statusF);
+    if (ownerF)  actions = actions.filter(a => (a.owner||'').includes(ownerF));
+    if (phaseF)  actions = actions.filter(a => a.phase === phaseF);
+
+    // Sort
+    if (_actSortMode === 'due') {
+        actions.sort((a,b) => (a.timing?.dueDate || '9999') < (b.timing?.dueDate || '9999') ? -1 : 1);
+    } else if (_actSortMode === 'status') {
+        const order = ['In Progress','Planned','Pending','Completed'];
+        actions.sort((a,b) => order.indexOf(a.status) - order.indexOf(b.status));
+    } else if (_actSortMode === 'owner') {
+        actions.sort((a,b) => (a.owner||'').localeCompare(b.owner||''));
+    }
+
+    const sortLabel = document.getElementById('act-sort-label');
+    if (sortLabel) {
+        const sortNames = { due:'Due Date ↑', status:'Status', owner:'Owner A–Z' };
+        sortLabel.textContent = sortNames[_actSortMode] || '';
+    }
+
+    _actRenderList(actions);
+    _actRenderKanban(actions);
+    _actRenderGantt(actions);
+};
+
+window.cycleActionsSort = function() {
+    const modes = ['due','status','owner'];
+    _actSortMode = modes[(modes.indexOf(_actSortMode)+1) % modes.length];
+    window.filterActions();
+};
+
+window.toggleActionsFilter = function() {
+    _actFilterOpen = !_actFilterOpen;
+    const panel = document.getElementById('act-filter-panel');
+    if (panel) panel.style.display = _actFilterOpen ? 'flex' : 'none';
+};
+
+window.clearActionsFilters = function() {
+    ['act-filter-status','act-filter-owner','act-filter-phase'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    window.filterActions();
+};
+
+window.switchActionsTab = function(tab, btn) {
+    _actCurrentTab = tab;
+    ['list','kanban','gantt'].forEach(t => {
+        const v = document.getElementById('act-view-'+t);
+        if (v) v.style.display = t === tab ? 'block' : 'none';
+        if (t === 'gantt' && tab === 'gantt') v.style.display = 'block';
+    });
+    document.querySelectorAll('.act-tab').forEach(b => {
+        b.style.borderBottomColor = 'transparent';
+        b.style.color = 'var(--text-tertiary)';
+    });
+    if (btn) {
+        btn.style.borderBottomColor = 'var(--energy-algae)';
+        btn.style.color = 'var(--text-primary)';
+    }
+};
+
+// ---- LIST VIEW ----
+function _actRenderList(actions) {
+    const container = document.getElementById('act-list-container');
     if (!container) return;
-    container.innerHTML = '';
+    if (actions.length === 0) {
+        container.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--text-tertiary);font-style:italic;">No actions match your filters.</div>`;
+        return;
+    }
+    container.innerHTML = actions.map(a => {
+        const sc = _actStatusColor(a.status);
+        const isOverdue = a.timing?.dueDate && a.timing.dueDate < new Date().toISOString().substring(0,10) && a.status !== 'Completed';
+        const objText = _actGetObjectiveText(a.commsObjectiveId);
+        const dueStr = a.timing?.dueDate ? new Date(a.timing.dueDate + 'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}) : 'DD/MM/YYYY';
+        const advStatus = a.advancedStatus ? `<span style="font-size:0.75rem; color:${isOverdue?'#ef4444':'var(--energy-algae)'};">⚠ ${a.advancedStatus}</span>` : '';
+        const tags = (a.tags||[]).map(t => `<span style="font-size:0.68rem; padding:0.1rem 0.45rem; border-radius:100px; background:rgba(99,102,241,0.1); color:#6366f1; border:1px solid rgba(99,102,241,0.2);">${t}</span>`).join('');
 
-    actions.forEach(a => {
-        let referenceName = '-';
-        if (a.linkType === 'Objective') {
-            const objectives = window.getData('spine')?.objectives || [];
-            const obj = objectives.find(o => o.id === a.linkId);
-            referenceName = obj ? obj.text : a.linkId;
-        } else if (a.linkType === 'Stakeholder') {
-            const stakeholders = window.getData('stakeholders') || [];
-            const sh = stakeholders.find(s => s.id === a.linkId);
-            referenceName = sh ? sh.name : a.linkId;
-        }
+        // Progress dots (complexity)
+        const dots = Array.from({length:5}).map((_,i) => `<span style="width:7px;height:7px;border-radius:50%;background:${i<parseInt(a.complexity||0)?sc.dot:'var(--border-subtle)'};display:inline-block;"></span>`).join('');
 
-        const card = document.createElement('div');
-        card.className = 'portal-list-card';
-        card.style.cssText = 'display:grid; grid-template-columns:2fr 1fr 1fr 1.5fr 1fr;';
-        card.innerHTML = `
-            <div>
-                <h2 style="margin:0;">${a.activity}</h2>
-                ${a.phase ? `<div style="font-size:0.8rem; opacity:0.6; margin-top:0.25rem;">${a.phase}</div>` : ''}
-            </div>
-            <div>
-                <h3>Owner</h3>
-                <div style="font-size:0.9rem;">${a.owner || '-'}</div>
-            </div>
-            <div>
-                <h3>Due Date</h3>
-                <div style="font-family:'JetBrains Mono'; font-size:0.9rem;">${a.dueDate || '-'}</div>
-            </div>
-            <div>
-                <h3>Linked To</h3>
-                <div style="font-size:0.85rem; line-height:1.4; color:var(--text-secondary);">${referenceName}</div>
-            </div>
-            <div>
-                <h3>Status</h3>
-                <div style="display:flex; flex-direction:column; gap:0.5rem; align-items:start;">
-                    <span class="status-badge">${a.status}</span>
+        return `<div class="act-card${isOverdue?' overdue':''}" onclick="window.openActionModal('${a.id}')" style="cursor:pointer;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
+                <div style="flex:1; min-width:0;">
+                    <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem; flex-wrap:wrap;">
+                        <span class="act-status-badge" style="background:${sc.bg};color:${sc.color};border-color:${sc.dot};">${a.status}</span>
+                        <span style="display:inline-flex; gap:3px; align-items:center;">${dots}</span>
+                        ${tags}
+                    </div>
+                    <div style="font-weight:700; font-size:1rem; color:var(--text-primary); margin-bottom:0.3rem;">${a.activity}</div>
+                    <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.4rem;">${a.description || ''}</div>
+                    <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap; font-size:0.8rem; color:var(--text-tertiary);">
+                        ${a.audience && a.audience.length > 0 ? `<span style="display:inline-flex;align-items:center;gap:0.25rem;"><span class="material-symbols-outlined" style="font-size:0.9rem;">groups</span>${a.audience.join(', ')}</span>` : ''}
+                        ${a.commsObjectiveId ? `<span style="display:inline-flex;align-items:center;gap:0.25rem;"><span style="font-size:0.85rem;">🎯</span> ${objText.length>50?objText.substring(0,47)+'...':objText}</span>` : ''}
+                    </div>
+                </div>
+                <div style="text-align:right; flex-shrink:0; min-width:100px;">
+                    <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.2rem; display:flex; align-items:center; gap:0.25rem; justify-content:flex-end;">
+                        <span class="material-symbols-outlined" style="font-size:0.9rem;">person</span> ${a.owner||'-'}
+                    </div>
+                    ${advStatus ? `<div style="margin-bottom:0.2rem;">${advStatus}</div>` : ''}
+                    <div style="font-size:0.8rem; color:${isOverdue?'#ef4444':'var(--text-tertiary)'};">due: ${dueStr}</div>
+                    <button onclick="event.stopPropagation(); window.openActionModal('${a.id}')" class="btn-secondary" style="margin-top:0.5rem; font-size:0.75rem; padding:0.25rem 0.6rem; display:inline-flex; align-items:center; gap:0.25rem;">
+                        <span class="material-symbols-outlined" style="font-size:0.9rem;">edit</span> Edit
+                    </button>
                 </div>
             </div>
-        `;
-        container.appendChild(card);
-    });
+        </div>`;
+    }).join('');
 }
+
+// ---- KANBAN VIEW ----
+function _actRenderKanban(actions) {
+    const container = document.getElementById('act-kanban-container');
+    if (!container) return;
+    const columns = ['Pending','Planned','In Progress','Completed'];
+    const colColors = { 'Pending':'#94a3b8','Planned':'#818cf8','In Progress':'#60a5fa','Completed':'#34d399' };
+
+    container.innerHTML = columns.map(col => {
+        const colActions = actions.filter(a => a.status === col);
+        const cards = colActions.map(a => {
+            const isOverdue = a.timing?.dueDate && a.timing.dueDate < new Date().toISOString().substring(0,10) && col !== 'Completed';
+            const dueStr = a.timing?.dueDate ? new Date(a.timing.dueDate + 'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}) : 'DD/MM/YYYY';
+            const objText = _actGetObjectiveText(a.commsObjectiveId);
+            return `<div class="act-kanban-card${isOverdue?' overdue':''}" onclick="window.openActionModal('${a.id}')"
+                style="${col==='Completed'?'border-left:3px solid #34d399;':''}${isOverdue?'border-left:3px solid #ef4444;border-color:#ef4444;background:rgba(239,68,68,0.03);':''}">
+                <div style="font-size:0.72rem; color:${isOverdue?'#ef4444':'var(--text-tertiary)'}; margin-bottom:0.3rem;">due: ${dueStr} ${isOverdue?'<span style="color:#ef4444;">⊘</span>':''}</div>
+                ${col==='Completed' ? `<div style="font-size:0.7rem;color:#059669;font-weight:600;margin-bottom:0.2rem;">completed: ${a.versionControl?.dateCompleted||dueStr}</div>` : ''}
+                <div style="font-weight:700; font-size:0.88rem; color:var(--text-primary); margin-bottom:0.4rem; line-height:1.3;">${a.activity}</div>
+                <div style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:0.4rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${a.description||''}</div>
+                <div style="font-size:0.75rem; color:var(--text-tertiary); display:flex; flex-direction:column; gap:0.2rem; margin-bottom:0.5rem;">
+                    ${a.audience&&a.audience.length>0?`<span><span class="material-symbols-outlined" style="font-size:0.8rem;vertical-align:middle;">groups</span> ${a.audience.slice(0,1).join(', ')}${a.audience.length>1?` + ${a.audience.length-1} more`:''}</span>`:''}
+                    ${a.commsObjectiveId?`<span>🎯 ${objText.length>30?objText.substring(0,28)+'...':objText}</span>`:''}
+                    <span><span class="material-symbols-outlined" style="font-size:0.8rem;vertical-align:middle;">person</span> ${a.owner||'-'}</span>
+                </div>
+                <div style="display:flex; justify-content:flex-end;">
+                    <button onclick="event.stopPropagation();window.openActionModal('${a.id}')" class="btn-secondary" style="font-size:0.7rem; padding:0.2rem 0.5rem; display:inline-flex; align-items:center; gap:0.2rem;">
+                        <span class="material-symbols-outlined" style="font-size:0.8rem;">edit</span> Edit
+                    </button>
+                </div>
+            </div>`;
+        }).join('') || `<div style="font-size:0.8rem;color:var(--text-tertiary);font-style:italic;text-align:center;padding:1rem 0;">No items</div>`;
+
+        return `<div class="act-kanban-col">
+            <div class="act-kanban-col-header">
+                <span style="width:10px;height:10px;background:${colColors[col]};border-radius:2px;display:inline-block;flex-shrink:0;"></span>
+                <span>${col}</span>
+                <span style="font-size:0.8rem;font-weight:400;color:var(--text-tertiary);margin-left:auto;">${colActions.length}</span>
+                <span style="display:inline-flex; gap:2px;">${Array(3).fill('<span style="width:4px;height:14px;border-radius:2px;background:'+colColors[col]+';opacity:0.6;display:inline-block;"></span>').join('')}</span>
+            </div>
+            ${cards}
+        </div>`;
+    }).join('');
+}
+
+// ---- GANTT VIEW ----
+function _actRenderGantt(actions) {
+    const container = document.getElementById('act-gantt-container');
+    if (!container) return;
+
+    // Build months range
+    const now = new Date();
+    const months = [];
+    for (let i = -1; i <= 5; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+        months.push({ label: d.toLocaleString('default',{month:'long'}), year: d.getFullYear(), month: d.getMonth(), date: d });
+    }
+    const rangeStart = months[0].date;
+    const rangeEnd   = new Date(months[months.length-1].year, months[months.length-1].month + 1, 0);
+    const totalDays  = (rangeEnd - rangeStart) / 86400000;
+
+    const getLeft = (dateStr) => {
+        if (!dateStr) return 0;
+        const d = new Date(dateStr + 'T00:00:00');
+        return Math.max(0, Math.min(100, ((d - rangeStart) / 86400000 / totalDays) * 100));
+    };
+    const getWidth = (startStr, endStr, length) => {
+        let start = startStr ? new Date(startStr+'T00:00:00') : rangeStart;
+        let end = endStr ? new Date(endStr+'T00:00:00') : start;
+        if (!startStr && length) {
+            const wks = parseFloat(length) || 4;
+            end = new Date(start.getTime() + wks * 7 * 86400000);
+        }
+        return Math.max(2, ((end - start) / 86400000 / totalDays) * 100);
+    };
+
+    // Group by objective
+    const spine = window.getData('spine') || {};
+    const objectives = spine.objectives || [];
+    const todayPct = ((new Date() - rangeStart) / 86400000 / totalDays) * 100;
+
+    // Bar colors by status
+    const barColors = { 'Pending':'#94a3b8','Planned':'#818cf8','In Progress':'#60a5fa','Completed':'#34d399' };
+
+    const LABEL_W = 200; // px for task label column
+
+    const headerHtml = `
+        <div style="display:flex; position:sticky; top:0; z-index:10; background:var(--bg-surface); border-bottom:1px solid var(--border-subtle); margin-bottom:0.5rem;">
+            <div style="width:${LABEL_W}px; flex-shrink:0;"></div>
+            <div style="flex:1; display:flex; position:relative; overflow:hidden;">
+                ${months.map((m,i) => `<div style="flex:1; padding:0.4rem 0.75rem; font-size:0.82rem; font-weight:600; color:var(--text-secondary); border-left:1px solid var(--border-subtle);">${m.label}</div>`).join('')}
+                <div style="position:absolute; top:0; left:${todayPct.toFixed(1)}%; width:2px; height:100%; background:#ef4444; z-index:5;"></div>
+                <div style="position:absolute; top:0; left:${todayPct.toFixed(1)}%; background:#ef4444; color:#fff; font-size:0.6rem; font-weight:700; padding:1px 4px; border-radius:2px; transform:translateX(-50%);">Now</div>
+            </div>
+        </div>`;
+
+    let bodyHtml = '';
+    const groupedObjectives = objectives.filter(o => actions.some(a => a.commsObjectiveId === o.id));
+    const ungrouped = actions.filter(a => !a.commsObjectiveId);
+
+    const renderGroup = (objText, groupActions, color='#818cf8') => {
+        if (groupActions.length === 0) return '';
+        const rows = groupActions.map(a => {
+            const left  = getLeft(a.timing?.startDate || a.timing?.dueDate);
+            const width = getWidth(a.timing?.startDate, a.timing?.dueDate, a.timing?.predictedLength);
+            const clr   = barColors[a.status] || '#94a3b8';
+            return `<div style="display:flex; align-items:center; margin-bottom:0.5rem; min-height:28px;">
+                <div style="width:${LABEL_W}px; flex-shrink:0; font-size:0.78rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:0.75rem; cursor:pointer;" onclick="window.openActionModal('${a.id}')" title="${a.activity}">
+                    ${a.activity}
+                </div>
+                <div style="flex:1; position:relative; height:20px;">
+                    ${Array.from({length:months.length}).map((_,i)=>`<div style="position:absolute; top:0; left:${(i/months.length*100).toFixed(1)}%; width:${(100/months.length).toFixed(1)}%; height:100%; border-left:1px solid var(--border-subtle); opacity:0.4;"></div>`).join('')}
+                    <div style="position:absolute; left:${left.toFixed(1)}%; width:${width.toFixed(1)}%; height:100%; background:${clr}; border-radius:4px; opacity:0.85; cursor:pointer; display:flex; align-items:center; padding-left:4px; font-size:0.65rem; color:#fff; font-weight:600; white-space:nowrap; overflow:hidden;" onclick="window.openActionModal('${a.id}')" title="${a.status}"></div>
+                    <div style="position:absolute; top:0; left:${todayPct.toFixed(1)}%; width:1px; height:100%; background:#ef4444; opacity:0.6;"></div>
+                </div>
+            </div>`;
+        }).join('');
+
+        return `<div style="margin-bottom:1.25rem;">
+            <div style="display:flex; align-items:center; margin-bottom:0.5rem;">
+                <div style="width:${LABEL_W}px; flex-shrink:0;"></div>
+                <div style="flex:1; background:rgba(0,0,0,0.04); border-radius:4px; padding:0.3rem 0.75rem; font-size:0.8rem; font-weight:600; color:var(--text-secondary); display:flex; align-items:center; gap:0.4rem;">
+                    <span style="font-size:0.85rem;">🎯</span> ${objText}
+                </div>
+            </div>
+            ${rows}
+        </div>`;
+    };
+
+    groupedObjectives.forEach(o => {
+        const groupActions = actions.filter(a => a.commsObjectiveId === o.id);
+        bodyHtml += renderGroup(o.text, groupActions);
+    });
+    if (ungrouped.length > 0) bodyHtml += renderGroup('No Objective', ungrouped, '#aaa');
+
+    container.innerHTML = `
+        <div style="overflow-x:auto; padding-bottom:1rem;">
+            <div style="min-width:700px;">
+                ${headerHtml}
+                ${bodyHtml || '<div style="padding:2rem;text-align:center;color:var(--text-tertiary);font-style:italic;">No actions to display.</div>'}
+            </div>
+        </div>`;
+}
+
+// ---- MODAL OPEN/CLOSE ----
+window.openActionModal = function(id) {
+    _actCurrentId = id;
+    const overlay = document.getElementById('act-modal-overlay');
+    if (!overlay) return;
+    overlay.style.display = 'block';
+    _actPopulateObjectiveDropdown();
+
+    const deleteBtn = document.getElementById('act-modal-delete-btn');
+    if (deleteBtn) deleteBtn.style.display = id ? 'inline-flex' : 'none';
+
+    if (id) {
+        const actions = window.getData('actions') || [];
+        const a = actions.find(x => x.id === id);
+        if (!a) return;
+        _actOriginalData = JSON.parse(JSON.stringify(a));
+        _actFillModal(a);
+    } else {
+        _actOriginalData = null;
+        _actClearModal();
+    }
+};
+
+window.closeActionModal = function() {
+    const overlay = document.getElementById('act-modal-overlay');
+    if (overlay) overlay.style.display = 'none';
+    _actCurrentId = null;
+};
+
+window.toggleActSection = function(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+};
+
+function _actClearModal() {
+    const fields = ['act-f-title','act-f-description','act-f-desired-outcome','act-f-kpi','act-f-due-date','act-f-start-date','act-f-predicted-length','act-f-resource','act-f-vc-progress','act-f-vc-blockers','act-f-other'];
+    fields.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    const sel = document.getElementById('act-f-status');
+    if (sel) sel.value = 'Pending';
+    const obj = document.getElementById('act-f-objective');
+    if (obj) obj.value = '';
+    document.getElementById('act-f-todos').innerHTML = '';
+    document.getElementById('act-f-prereqs').innerHTML = '';
+    document.getElementById('act-f-audience-chips').innerHTML = '';
+    document.getElementById('act-f-owner-chips').innerHTML = '';
+    document.querySelectorAll('input[name="act-privacy"]').forEach(r => { r.checked = r.value === 'Public/Official'; });
+    document.querySelectorAll('.act-tag-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('act-vc-summary').textContent = '';
+    document.getElementById('act-vc-created').textContent = '';
+    document.getElementById('act-vc-edited').textContent = '';
+    document.getElementById('act-vc-who').textContent = '';
+}
+
+function _actFillModal(a) {
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+    set('act-f-title', a.activity);
+    set('act-f-description', a.description);
+    set('act-f-desired-outcome', a.desiredOutcome);
+    set('act-f-kpi', a.kpiTarget);
+    set('act-f-due-date', a.timing?.dueDate || '');
+    set('act-f-start-date', a.timing?.startDate || '');
+    set('act-f-predicted-length', a.timing?.predictedLength || '');
+    set('act-f-resource', a.resourceRequirement);
+    set('act-f-vc-progress', a.versionControl?.recentProgress || '');
+    set('act-f-vc-blockers', a.versionControl?.currentBlockers || '');
+    set('act-f-other', a.other);
+
+    const statusEl = document.getElementById('act-f-status');
+    if (statusEl) statusEl.value = a.status || 'Pending';
+    const objEl = document.getElementById('act-f-objective');
+    if (objEl) objEl.value = a.commsObjectiveId || '';
+
+    // Privacy
+    document.querySelectorAll('input[name="act-privacy"]').forEach(r => { r.checked = r.value === a.privacy; });
+
+    // Tags
+    document.querySelectorAll('.act-tag-btn').forEach(btn => {
+        const tag = btn.textContent.trim().replace(/^[^\s]+\s/,'');
+        btn.classList.toggle('active', (a.tags||[]).includes(tag.trim()));
+    });
+
+    // Audience chips
+    const audContainer = document.getElementById('act-f-audience-chips');
+    if (audContainer) {
+        audContainer.innerHTML = (a.audience||[]).map(aud => _actMakeChip(aud,'audience')).join('');
+    }
+
+    // Owner chips
+    const ownContainer = document.getElementById('act-f-owner-chips');
+    if (ownContainer) {
+        ownContainer.innerHTML = (a.owner ? a.owner.split('+').map(o=>o.trim()) : []).map(o => _actMakeOwnerChip(o)).join('');
+    }
+
+    // Todos
+    const todosEl = document.getElementById('act-f-todos');
+    if (todosEl) {
+        todosEl.innerHTML = (a.todos||[]).map(t => _actMakeTodoRow(t.id,t.completed,t.detail)).join('');
+    }
+
+    // Prereqs
+    const prereqsEl = document.getElementById('act-f-prereqs');
+    if (prereqsEl) {
+        const allActions = window.getData('actions') || [];
+        prereqsEl.innerHTML = (a.prerequisites||[]).map(pid => {
+            const prereq = allActions.find(x => x.id === pid);
+            return _actMakePrereqRow(pid, prereq?.activity || pid);
+        }).join('');
+    }
+
+    // Version control metadata
+    if (a.versionControl) {
+        const vc = a.versionControl;
+        const vcSumEl = document.getElementById('act-vc-summary');
+        if (vcSumEl) vcSumEl.textContent = 'Current Version: ' + (vc.currentVersion || '-') + ' (changes made)';
+        const createdEl = document.getElementById('act-vc-created');
+        if (createdEl) createdEl.textContent = 'Task Created: ' + (vc.taskCreated || '-');
+        const editedEl = document.getElementById('act-vc-edited');
+        if (editedEl) editedEl.textContent = 'Task Last Edited: ' + (vc.lastEdited || '-');
+        const whoEl = document.getElementById('act-vc-who');
+        if (whoEl) whoEl.textContent = vc.whoEdited || '-';
+        const hlEl = document.getElementById('act-f-highlight-changes');
+        if (hlEl) hlEl.checked = !!vc.highlightChanges;
+        const compEl = document.getElementById('act-f-completed-check');
+        if (compEl) compEl.checked = !!vc.dateCompleted;
+        const compDate = document.getElementById('act-f-date-completed');
+        if (compDate) compDate.value = vc.dateCompleted || '';
+    }
+}
+
+function _actMakeChip(label, type) {
+    return `<span style="background:rgba(16,185,129,0.1);color:var(--energy-algae);border:1px solid rgba(16,185,129,0.3);border-radius:100px;padding:0.15rem 0.5rem;font-size:0.72rem;display:inline-flex;align-items:center;gap:0.25rem;">
+        ${label}
+        <span onclick="this.parentElement.remove()" style="cursor:pointer;font-weight:700;line-height:1;">×</span>
+    </span>`;
+}
+
+function _actMakeOwnerChip(label) {
+    const colors = { 'Vant':'#ef4444', 'AET':'#3b82f6', 'AET + Vant':'#8b5cf6' };
+    const clr = colors[label] || '#6b7280';
+    return `<span style="background:${clr};color:#fff;border-radius:4px;padding:0.15rem 0.6rem;font-size:0.75rem;font-weight:600;display:inline-flex;align-items:center;gap:0.25rem;">
+        ${label}
+        <span onclick="this.parentElement.remove()" style="cursor:pointer;font-weight:700;line-height:1;opacity:0.8;">×</span>
+    </span>`;
+}
+
+function _actMakeTodoRow(id, completed, detail) {
+    return `<div style="display:flex;align-items:center;gap:0.5rem;" id="todo-row-${id}">
+        <input type="checkbox" ${completed?'checked':''} onchange="window.toggleTodo('${id}',this.checked)" style="flex-shrink:0;cursor:pointer;">
+        <span style="font-size:0.75rem;color:var(--text-tertiary);text-decoration:none;font-weight:600;width:70px;">Completed</span>
+        <span style="font-size:0.75rem;color:var(--text-tertiary);">Details:</span>
+        <input type="text" value="${detail||''}" style="flex:1;padding:0.25rem 0.5rem;border:1px solid var(--border-subtle);background:var(--bg-app);color:var(--text-primary);border-radius:4px;font-size:0.8rem;" placeholder="input text">
+        <button onclick="document.getElementById('todo-row-${id}').remove()" style="background:#34d399;border:none;color:#fff;width:20px;height:20px;border-radius:3px;cursor:pointer;font-size:0.9rem;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
+        <button onclick="document.getElementById('todo-row-${id}').remove()" style="background:#ef4444;border:none;color:#fff;width:20px;height:20px;border-radius:3px;cursor:pointer;font-size:0.9rem;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
+    </div>`;
+}
+
+function _actMakePrereqRow(id, label) {
+    return `<div style="display:flex;align-items:center;gap:0.5rem;font-size:0.8rem;color:var(--text-secondary);" id="prereq-row-${id}">
+        <span class="material-symbols-outlined" style="font-size:1rem;color:var(--text-tertiary);">drag_indicator</span>
+        <span style="flex:1;">${label}</span>
+        <button onclick="document.getElementById('prereq-row-${id}').remove()" style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:1.1rem;line-height:1;padding:0.1rem 0.3rem;border-radius:3px;border:1px solid var(--border-subtle);">×</button>
+    </div>`;
+}
+
+window.addTodoItem = function() {
+    const el = document.getElementById('act-f-todos');
+    if (!el) return;
+    const newId = 'new-' + Date.now();
+    el.insertAdjacentHTML('beforeend', _actMakeTodoRow(newId, false, ''));
+};
+
+window.addPrereqItem = function() {
+    const el = document.getElementById('act-f-prereqs');
+    if (!el) return;
+    const newId = 'new-' + Date.now();
+    el.insertAdjacentHTML('beforeend', _actMakePrereqRow(newId, 'Sub Action (action that needs to be done before this one)'));
+};
+
+window.addAudienceChip = function() {
+    const stakeholders = window.getData('stakeholders') || [];
+    const name = prompt('Enter audience name (or stakeholder):',  stakeholders.length ? stakeholders[0].name : '');
+    if (!name) return;
+    const el = document.getElementById('act-f-audience-chips');
+    if (el) el.insertAdjacentHTML('beforeend', _actMakeChip(name,'audience'));
+};
+
+window.addOwnerChip = function() {
+    const val = prompt('Owner name (e.g. Vant, AET):', 'Vant');
+    if (!val) return;
+    const el = document.getElementById('act-f-owner-chips');
+    if (el) el.insertAdjacentHTML('beforeend', _actMakeOwnerChip(val.trim()));
+};
+
+window.toggleTag = function(btn, tag) {
+    btn.classList.toggle('active');
+};
+
+window.toggleTodo = function(id, checked) {
+    const row = document.getElementById('todo-row-' + id);
+    if (row) {
+        const input = row.querySelector('input[type=text]');
+        if (input) input.style.textDecoration = checked ? 'line-through' : 'none';
+    }
+};
+
+window.revertActionChanges = function() {
+    if (_actOriginalData) _actFillModal(_actOriginalData);
+    else _actClearModal();
+};
+
+window.saveCurrentAction = function() {
+    const id = _actCurrentId;
+    const now = new Date();
+    const nowStr = now.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'}) + ' ' + now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+
+    const getTags = () => Array.from(document.querySelectorAll('.act-tag-btn.active')).map(b => b.textContent.trim().replace(/^[^\s]*\s/,''));
+    const getOwner = () => Array.from(document.querySelectorAll('#act-f-owner-chips > span')).map(s => s.textContent.replace('×','').trim()).join(' + ');
+    const getAudience = () => Array.from(document.querySelectorAll('#act-f-audience-chips > span')).map(s => s.textContent.replace('×','').trim());
+    const getTodos = () => Array.from(document.querySelectorAll('#act-f-todos > div')).map((row,i) => ({
+        id: row.id.replace('todo-row-','') || ('t'+i),
+        completed: row.querySelector('input[type=checkbox]')?.checked || false,
+        detail: row.querySelector('input[type=text]')?.value || ''
+    }));
+    const getPrivacy = () => document.querySelector('input[name="act-privacy"]:checked')?.value || 'Public/Official';
+
+    const updates = {
+        activity: document.getElementById('act-f-title')?.value || 'Untitled',
+        description: document.getElementById('act-f-description')?.value || '',
+        owner: getOwner() || document.getElementById('act-f-title')?.value,
+        audience: getAudience(),
+        status: document.getElementById('act-f-status')?.value || 'Pending',
+        tags: getTags(),
+        priority: document.getElementById('act-f-priority')?.value || 'Medium',
+        complexity: document.getElementById('act-f-complexity')?.value || '3',
+        commsObjectiveId: document.getElementById('act-f-objective')?.value || '',
+        desiredOutcome: document.getElementById('act-f-desired-outcome')?.value || '',
+        kpiTarget: document.getElementById('act-f-kpi')?.value || '',
+        timing: {
+            dueDate: document.getElementById('act-f-due-date')?.value || '',
+            startDate: document.getElementById('act-f-start-date')?.value || '',
+            predictedLength: document.getElementById('act-f-predicted-length')?.value || ''
+        },
+        resourceRequirement: document.getElementById('act-f-resource')?.value || '',
+        todos: getTodos(),
+        other: document.getElementById('act-f-other')?.value || '',
+        privacy: getPrivacy(),
+        versionControl: {
+            currentVersion: nowStr,
+            recentProgress: document.getElementById('act-f-vc-progress')?.value || '',
+            currentBlockers: document.getElementById('act-f-vc-blockers')?.value || '',
+            taskCreated: _actOriginalData?.versionControl?.taskCreated || nowStr,
+            lastEdited: nowStr,
+            whoEdited: 'Portal User',
+            highlightChanges: document.getElementById('act-f-highlight-changes')?.checked || false,
+            dateCompleted: document.getElementById('act-f-completed-check')?.checked ? (document.getElementById('act-f-date-completed')?.value || nowStr.split(' ')[0]) : ''
+        }
+    };
+
+    const actions = window.getData('actions') || [];
+    if (id) {
+        const idx = actions.findIndex(a => a.id === id);
+        if (idx !== -1) {
+            actions[idx] = { ...actions[idx], ...updates };
+        }
+    } else {
+        updates.id = 'act-' + Date.now();
+        actions.push(updates);
+    }
+    window.updateData('actions', actions);
+    window.closeActionModal();
+    window.filterActions();
+};
+
+window.deleteCurrentAction = function() {
+    if (!_actCurrentId) return;
+    if (!confirm('Delete this action? This cannot be undone.')) return;
+    let actions = window.getData('actions') || [];
+    actions = actions.filter(a => a.id !== _actCurrentId);
+    window.updateData('actions', actions);
+    window.closeActionModal();
+    window.filterActions();
+};
+
 
 // ---- STRATEGY SPINE ----
 

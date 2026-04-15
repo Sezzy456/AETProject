@@ -1,21 +1,420 @@
-<header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-    <div>
-        <h2>Actions / Goals</h2>
-        <p>Track tactical execution and strategic alignment.</p>
+<!-- ============================================================
+     ACTIONS PAGE — pages/actions.html
+     Loaded into #view-container in portal.html via fetch().
+     All interactivity handled by renderActions() in app.js.
+============================================================ -->
+
+<!-- Page header -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+    <h2 style="margin:0;">Actions</h2>
+    <button class="btn-primary" id="act-add-btn" onclick="window.openActionModal(null)" style="display:flex; align-items:center; gap:0.4rem;">
+        <span class="material-symbols-outlined" style="font-size:1.1rem;">add</span> Add Action
+    </button>
+</div>
+
+<!-- Search + Filter + Sort bar -->
+<div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.25rem; flex-wrap:wrap;">
+    <div style="position:relative; flex:1; min-width:180px; max-width:280px;">
+        <span class="material-symbols-outlined" style="position:absolute; left:0.6rem; top:50%; transform:translateY(-50%); font-size:1rem; color:var(--text-tertiary); pointer-events:none;">search</span>
+        <input type="text" id="act-search" placeholder="Search" oninput="window.filterActions()"
+            style="width:100%; padding:0.45rem 0.75rem 0.45rem 2rem; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-primary); border-radius:8px; font-size:0.875rem; font-family:inherit;">
     </div>
-    <button class="btn-primary" onclick="alert('Add Action Modal (Mock)')">+ New Action</button>
-</header>
-
-<!-- Filter Bar (Mock) -->
-<div class="spine-section" style="padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center;">
-    <span class="material-symbols-outlined" style="opacity: 0.5;">filter_list</span>
-    <select style="width: 200px;">
-        <option>All Actions</option>
-        <option>Pending</option>
-        <option>Completed</option>
-    </select>
+    <button class="btn-secondary" id="act-filter-btn" onclick="window.toggleActionsFilter()" style="display:flex; align-items:center; gap:0.4rem; font-size:0.875rem; padding:0.4rem 0.9rem;">
+        <span class="material-symbols-outlined" style="font-size:1rem;">filter_list</span> Filters
+    </button>
+    <button class="btn-secondary" id="act-sort-btn" onclick="window.cycleActionsSort()" style="display:flex; align-items:center; gap:0.4rem; font-size:0.875rem; padding:0.4rem 0.9rem;">
+        <span class="material-symbols-outlined" style="font-size:1rem;">sort</span> Sorting
+    </button>
+    <span id="act-sort-label" style="font-size:0.8rem; color:var(--text-tertiary);"></span>
 </div>
 
-<div class="ledger-grid" id="actions-list">
-    <!-- Populated by JS -->
+<!-- Filter Panel (hidden by default) -->
+<div id="act-filter-panel" style="display:none; background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; padding:1rem; margin-bottom:1.25rem; display:flex; gap:1.5rem; flex-wrap:wrap; align-items:flex-end;">
+    <div>
+        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--text-tertiary); margin-bottom:0.3rem;">STATUS</label>
+        <select id="act-filter-status" onchange="window.filterActions()" style="padding:0.35rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+            <option value="">All</option>
+            <option>Pending</option>
+            <option>Planned</option>
+            <option>In Progress</option>
+            <option>Completed</option>
+        </select>
+    </div>
+    <div>
+        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--text-tertiary); margin-bottom:0.3rem;">OWNER</label>
+        <select id="act-filter-owner" onchange="window.filterActions()" style="padding:0.35rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+            <option value="">All</option>
+            <option>AET</option>
+            <option>Vant</option>
+            <option>AET + Vant</option>
+        </select>
+    </div>
+    <div>
+        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--text-tertiary); margin-bottom:0.3rem;">PHASE</label>
+        <select id="act-filter-phase" onchange="window.filterActions()" style="padding:0.35rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+            <option value="">All</option>
+            <option>Phase 1</option>
+            <option>Phase 2</option>
+        </select>
+    </div>
+    <button class="btn-secondary" onclick="window.clearActionsFilters()" style="font-size:0.8rem; padding:0.35rem 0.8rem;">Clear</button>
 </div>
+
+<!-- View Tabs -->
+<div style="display:flex; border-bottom:2px solid var(--border-subtle); margin-bottom:1.5rem; gap:0;">
+    <button class="act-tab active" data-tab="list" onclick="window.switchActionsTab('list', this)"
+        style="background:none; border:none; border-bottom:2px solid var(--energy-algae); margin-bottom:-2px; padding:0.6rem 1.2rem; font-family:inherit; font-size:0.9rem; font-weight:500; color:var(--text-primary); cursor:pointer; transition:all 0.2s;">
+        List View
+    </button>
+    <button class="act-tab" data-tab="kanban" onclick="window.switchActionsTab('kanban', this)"
+        style="background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-2px; padding:0.6rem 1.2rem; font-family:inherit; font-size:0.9rem; font-weight:500; color:var(--text-tertiary); cursor:pointer; transition:all 0.2s;">
+        Kanban Board View
+    </button>
+    <button class="act-tab" data-tab="gantt" onclick="window.switchActionsTab('gantt', this)"
+        style="background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-2px; padding:0.6rem 1.2rem; font-family:inherit; font-size:0.9rem; font-weight:500; color:var(--text-tertiary); cursor:pointer; transition:all 0.2s;">
+        Gantt Chart View
+    </button>
+</div>
+
+<!-- LIST VIEW -->
+<div id="act-view-list">
+    <div id="act-list-container" style="display:flex; flex-direction:column; gap:0.75rem;">
+        <!-- Populated by renderActions() -->
+    </div>
+</div>
+
+<!-- KANBAN VIEW -->
+<div id="act-view-kanban" style="display:none;">
+    <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:1rem; display:flex; align-items:center; gap:0.75rem;">
+        <span>Status Boards:</span>
+        <span style="display:inline-flex; align-items:center; gap:0.3rem;"><span style="width:10px;height:10px;background:#94a3b8;border-radius:2px;display:inline-block;"></span> Pending</span>
+        <span style="display:inline-flex; align-items:center; gap:0.3rem;"><span style="width:10px;height:10px;background:#818cf8;border-radius:2px;display:inline-block;"></span> Planned</span>
+        <span style="display:inline-flex; align-items:center; gap:0.3rem;"><span style="width:10px;height:10px;background:#60a5fa;border-radius:2px;display:inline-block;"></span> In Progress</span>
+        <span style="display:inline-flex; align-items:center; gap:0.3rem;"><span style="width:10px;height:10px;background:#34d399;border-radius:2px;display:inline-block;"></span> Completed</span>
+    </div>
+    <div id="act-kanban-container" style="display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; align-items:start;">
+        <!-- Populated by renderActions() -->
+    </div>
+</div>
+
+<!-- GANTT VIEW -->
+<div id="act-view-gantt" style="display:none; overflow-x:auto;">
+    <div id="act-gantt-container">
+        <!-- Populated by renderActions() -->
+    </div>
+</div>
+
+<!-- ============================================================
+     ADD / EDIT MODAL
+============================================================ -->
+<div id="act-modal-overlay" onclick="if(event.target===this)window.closeActionModal()"
+    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:9000; overflow-y:auto; padding:2rem 1rem;">
+    <div id="act-modal" style="background:var(--bg-app); border-radius:14px; max-width:600px; margin:0 auto; position:relative; font-size:0.875rem; color:var(--text-primary);">
+
+        <!-- Close -->
+        <button onclick="window.closeActionModal()" style="position:absolute; right:1rem; top:1rem; background:var(--text-tertiary); border:none; color:#fff; width:26px; height:26px; border-radius:50%; cursor:pointer; font-size:1rem; line-height:1; display:flex; align-items:center; justify-content:center; z-index:1;">×</button>
+
+        <!-- Breadcrumb -->
+        <div style="background:var(--bg-surface); border-radius:14px 14px 0 0; padding:0.75rem 1.5rem; font-size:0.8rem; color:var(--text-tertiary); border-bottom:1px solid var(--border-subtle);">
+            <span onclick="window.closeActionModal()" style="cursor:pointer; color:var(--energy-algae);">Actions</span>
+            <span style="margin:0 0.4rem;">&gt;</span> [add / edit]
+        </div>
+
+        <div style="padding:1.5rem;">
+            <h3 style="margin:0 0 1.25rem 0; font-size:1.15rem;">Actions</h3>
+
+            <!-- SECTION: DEFINITION -->
+            <div style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; padding:1.25rem; margin-bottom:1rem;">
+                <div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; color:var(--text-tertiary); text-align:center; margin-bottom:1rem; letter-spacing:0.08em;">Definition:</div>
+
+                <label style="display:block; font-size:0.78rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Action Title:</label>
+                <div style="position:relative; margin-bottom:1rem;">
+                    <input type="text" id="act-f-title" placeholder="Action Title"
+                        style="width:100%; padding:0.5rem 2rem 0.5rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-family:inherit; font-size:0.875rem;">
+                    <span class="material-symbols-outlined" style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);font-size:0.9rem;color:var(--text-tertiary);">edit</span>
+                </div>
+
+                <label style="display:block; font-size:0.78rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Description:</label>
+                <div style="position:relative; margin-bottom:1rem;">
+                    <textarea id="act-f-description" rows="3" placeholder="Brief description of the action..."
+                        style="width:100%; padding:0.5rem 2rem 0.5rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-family:inherit; font-size:0.875rem; resize:vertical;"></textarea>
+                    <span class="material-symbols-outlined" style="position:absolute;right:0.5rem;bottom:0.5rem;font-size:0.9rem;color:var(--text-tertiary);">edit</span>
+                </div>
+
+                <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:120px;">
+                        <label style="display:block; font-size:0.78rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Audience:</label>
+                        <button onclick="window.addAudienceChip()" class="btn-secondary" style="font-size:0.75rem; padding:0.2rem 0.6rem; display:inline-flex; align-items:center; gap:0.25rem;">
+                            <span class="material-symbols-outlined" style="font-size:0.9rem;">add</span>
+                        </button>
+                        <div id="act-f-audience-chips" style="display:inline-flex; gap:0.4rem; flex-wrap:wrap; margin-left:0.5rem;"></div>
+                    </div>
+                    <div style="flex:1; min-width:160px;">
+                        <label style="display:block; font-size:0.78rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Owner(s):</label>
+                        <div style="display:flex; align-items:center; gap:0.4rem;">
+                            <button onclick="window.addOwnerChip()" class="btn-secondary" style="font-size:0.75rem; padding:0.2rem 0.6rem; display:inline-flex; align-items:center; gap:0.25rem;">
+                                <span class="material-symbols-outlined" style="font-size:0.9rem;">add</span>
+                            </button>
+                            <div id="act-f-owner-chips" style="display:flex; gap:0.4rem; flex-wrap:wrap;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: IMPACT -->
+            <div style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; padding:1.25rem; margin-bottom:1rem;">
+                <div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; color:var(--text-tertiary); text-align:center; margin-bottom:1rem; letter-spacing:0.08em;">Impact:</div>
+
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
+                    <label style="font-size:0.78rem; color:var(--text-tertiary); white-space:nowrap; width:110px;">Comms Objective:</label>
+                    <select id="act-f-objective" style="flex:1; padding:0.4rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                        <option value="">— Select Objective —</option>
+                    </select>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem; flex-wrap:wrap;">
+                    <div style="display:flex; align-items:center; gap:0.5rem; flex:1; min-width:140px;">
+                        <label style="font-size:0.78rem; color:var(--text-tertiary); white-space:nowrap;">Status:</label>
+                        <select id="act-f-status" style="flex:1; padding:0.4rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                            <option>Pending</option>
+                            <option>Planned</option>
+                            <option>In Progress</option>
+                            <option>Completed</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.4rem; font-size:0.78rem; color:var(--text-tertiary);">
+                        Advanced Status
+                        <span class="material-symbols-outlined" style="font-size:0.9rem; cursor:pointer;" onclick="document.getElementById('act-advanced-status').style.display=document.getElementById('act-advanced-status').style.display==='none'?'block':'none'">expand_more</span>
+                    </div>
+                </div>
+                <div id="act-advanced-status" style="display:none; margin-bottom:0.75rem; padding:0.75rem; background:var(--bg-app); border-radius:6px; border:1px solid var(--border-subtle);">
+                    <label style="font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem; display:block;">Tags:</label>
+                    <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+                        <button onclick="window.toggleTag(this,'Financial')" class="act-tag-btn" style="font-size:0.72rem; padding:0.2rem 0.6rem; border-radius:100px; border:1px solid var(--border-subtle); background:var(--bg-app); cursor:pointer; color:var(--text-secondary);">💰 Financial</button>
+                        <button onclick="window.toggleTag(this,'Comms')" class="act-tag-btn" style="font-size:0.72rem; padding:0.2rem 0.6rem; border-radius:100px; border:1px solid var(--border-subtle); background:var(--bg-app); cursor:pointer; color:var(--text-secondary);">📡 Comms</button>
+                        <button onclick="window.toggleTag(this,'Legal')" class="act-tag-btn" style="font-size:0.72rem; padding:0.2rem 0.6rem; border-radius:100px; border:1px solid var(--border-subtle); background:var(--bg-app); cursor:pointer; color:var(--text-secondary);">⚖️ Legal</button>
+                    </div>
+                    <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+                        <div style="flex:1; min-width:120px;">
+                            <label style="font-size:0.75rem; color:var(--text-tertiary); display:block; margin-bottom:0.2rem;">Priority: current focus</label>
+                            <select id="act-f-priority" style="width:100%; padding:0.35rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                                <option>ASAP</option><option>High</option><option>Medium</option><option>Low</option>
+                            </select>
+                            <div style="font-size:0.68rem; color:var(--text-tertiary); margin-top:0.2rem;">(1 priority for each stakeholder / objective)</div>
+                        </div>
+                        <div style="flex:1; min-width:120px;">
+                            <label style="font-size:0.75rem; color:var(--text-tertiary); display:block; margin-bottom:0.2rem;">Complexity:</label>
+                            <select id="act-f-complexity" style="width:100%; padding:0.35rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                                <option value="1">1 star</option><option value="2">2 stars</option><option value="3">3 stars</option><option value="4">4 stars</option><option value="5">5 stars</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desired Outcome accordion -->
+                <div style="border:1px solid var(--border-subtle); border-radius:6px; margin-bottom:0.5rem; overflow:hidden;">
+                    <div onclick="window.toggleActSection('act-desired-outcome')" style="padding:0.5rem 0.75rem; cursor:pointer; display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; font-weight:500; background:var(--bg-app);">
+                        Desired Outcome: <span class="material-symbols-outlined" style="font-size:1rem; margin-left:auto;">chevron_right</span>
+                    </div>
+                    <div id="act-desired-outcome" style="display:none; padding:0.75rem; border-top:1px solid var(--border-subtle);">
+                        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+                            <div style="flex:1; min-width:160px;">
+                                <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Desired Outcome:</label>
+                                <div style="position:relative;">
+                                    <input type="text" id="act-f-desired-outcome" style="width:100%; padding:0.4rem 1.8rem 0.4rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-primary); border-radius:4px; font-size:0.8rem;">
+                                    <span class="material-symbols-outlined" style="position:absolute;right:0.4rem;top:50%;transform:translateY(-50%);font-size:0.8rem;color:var(--text-tertiary);">edit</span>
+                                </div>
+                            </div>
+                            <div style="flex:1; min-width:160px;">
+                                <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">KPI/Target / Success Metric:</label>
+                                <div style="position:relative;">
+                                    <input type="text" id="act-f-kpi" placeholder='* (e.g., "Mayor interest +10%")' style="width:100%; padding:0.4rem 1.8rem 0.4rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-primary); border-radius:4px; font-size:0.8rem;">
+                                    <span class="material-symbols-outlined" style="position:absolute;right:0.4rem;top:50%;transform:translateY(-50%);font-size:0.8rem;color:var(--text-tertiary);">edit</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top:0.5rem; display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; color:var(--text-tertiary);">
+                            Asset(s): <button class="btn-secondary" style="font-size:0.7rem; padding:0.15rem 0.5rem; display:inline-flex; align-items:center;"><span class="material-symbols-outlined" style="font-size:0.85rem;">add</span></button>
+                            <span style="margin-left:0.75rem;">Stakeholder Posture:</span> <button class="btn-secondary" style="font-size:0.7rem; padding:0.15rem 0.5rem; display:inline-flex; align-items:center;"><span class="material-symbols-outlined" style="font-size:0.85rem;">add</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: LOGISTICS -->
+            <div style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; padding:1.25rem; margin-bottom:1rem;">
+                <div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; color:var(--text-tertiary); text-align:center; margin-bottom:1rem; letter-spacing:0.08em;">Logistics:</div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                    <span style="font-size:0.85rem; font-weight:500;">Timing:</span>
+                    <span style="font-size:0.75rem; color:var(--text-tertiary); display:flex; align-items:center; gap:0.25rem; cursor:pointer;" onclick="window.toggleActSection('act-timing-advanced')">
+                        Advanced Timing <span class="material-symbols-outlined" style="font-size:0.9rem;">expand_more</span>
+                    </span>
+                </div>
+
+                <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:0.5rem;">
+                    <div style="flex:1; min-width:150px;">
+                        <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Due:</label>
+                        <div style="position:relative;">
+                            <input type="date" id="act-f-due-date" style="width:100%; padding:0.4rem 2rem 0.4rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                            <span class="material-symbols-outlined" style="position:absolute;right:0.4rem;top:50%;transform:translateY(-50%);font-size:0.85rem;color:var(--text-tertiary); pointer-events:none;">expand_more</span>
+                        </div>
+                    </div>
+                    <div style="flex:1; min-width:150px; position:relative;">
+                        <div style="position:absolute; right:0; top:0; font-size:0.72rem; color:var(--text-tertiary);">
+                            <span class="material-symbols-outlined" style="font-size:0.85rem; vertical-align:middle;">info</span> Predicted Length of Task: (for Gantt chart)
+                        </div>
+                        <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem; visibility:hidden;">placeholder</label>
+                        <div style="position:relative;">
+                            <input type="text" id="act-f-predicted-length" placeholder="** days / weeks / months" style="width:100%; padding:0.4rem 1.8rem 0.4rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                            <span class="material-symbols-outlined" style="position:absolute;right:0.4rem;top:50%;transform:translateY(-50%);font-size:0.8rem;color:var(--text-tertiary);">edit</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="act-timing-advanced" style="display:none; margin-bottom:0.75rem; padding:0.75rem; background:var(--bg-app); border-radius:6px; border:1px solid var(--border-subtle);">
+                    <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Start Date:</label>
+                    <div style="position:relative; max-width:200px;">
+                        <input type="date" id="act-f-start-date" style="width:100%; padding:0.4rem 2rem 0.4rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                        <span class="material-symbols-outlined" style="position:absolute;right:0.4rem;top:50%;transform:translateY(-50%);font-size:0.85rem;color:var(--text-tertiary); pointer-events:none;">expand_more</span>
+                    </div>
+                </div>
+
+                <!-- Resource Requirement accordion -->
+                <div style="border:1px solid var(--border-subtle); border-radius:6px; margin-bottom:0.5rem; overflow:hidden;">
+                    <div onclick="window.toggleActSection('act-resource-section')" style="padding:0.5rem 0.75rem; cursor:pointer; display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; font-weight:500; background:var(--bg-app);">
+                        Resource Requirement (estimated cost) <span class="material-symbols-outlined" style="font-size:1rem; margin-left:auto;">chevron_right</span>
+                    </div>
+                    <div id="act-resource-section" style="display:none; padding:0.75rem; border-top:1px solid var(--border-subtle);">
+                        <div style="position:relative;">
+                            <input type="text" id="act-f-resource" placeholder="** money, time, political capital" style="width:100%; padding:0.4rem 1.8rem 0.4rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-primary); border-radius:4px; font-size:0.8rem;">
+                            <span class="material-symbols-outlined" style="position:absolute;right:0.4rem;top:50%;transform:translateY(-50%);font-size:0.8rem;color:var(--text-tertiary);">edit</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- To-Do accordion -->
+                <div style="border:1px solid var(--border-subtle); border-radius:6px; overflow:hidden;">
+                    <div onclick="window.toggleActSection('act-todo-section')" style="padding:0.5rem 0.75rem; cursor:pointer; display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; font-weight:500; background:var(--bg-app);">
+                        To-Do <span class="material-symbols-outlined" style="font-size:1rem; margin-left:auto; transform:rotate(90deg);">chevron_right</span>
+                        <select onclick="event.stopPropagation()" style="margin-left:0.25rem; padding:0.1rem 0.3rem; border:1px solid var(--border-subtle); background:var(--bg-surface); font-size:0.72rem; border-radius:4px; color:var(--text-secondary);">
+                            <option>Simple</option><option>Detailed</option>
+                        </select>
+                        <button onclick="event.stopPropagation(); window.addTodoItem()" class="btn-secondary" style="font-size:0.7rem; padding:0.1rem 0.4rem; display:inline-flex; align-items:center; margin-left:auto;">
+                            <span class="material-symbols-outlined" style="font-size:0.85rem;">add</span>
+                        </button>
+                    </div>
+                    <div id="act-todo-section" style="display:block; padding:0.75rem; border-top:1px solid var(--border-subtle);">
+                        <div id="act-f-todos" style="display:flex; flex-direction:column; gap:0.5rem;">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div style="margin-top:0.75rem;">
+                            <div style="font-size:0.78rem; color:var(--text-tertiary); margin-bottom:0.3rem; display:flex; align-items:center; gap:0.4rem;">
+                                Prerequisites: <button onclick="window.addPrereqItem()" class="btn-secondary" style="font-size:0.7rem; padding:0.1rem 0.4rem;"><span class="material-symbols-outlined" style="font-size:0.85rem;">add</span></button>
+                            </div>
+                            <div id="act-f-prereqs" style="display:flex; flex-direction:column; gap:0.4rem;">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: VERSION CONTROL -->
+            <div style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; padding:1.25rem; margin-bottom:1rem;">
+                <div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; color:var(--text-tertiary); text-align:center; margin-bottom:0.75rem; letter-spacing:0.08em;">Version Control:</div>
+                <div id="act-vc-summary" style="font-size:0.8rem; color:var(--text-tertiary); text-align:center; margin-bottom:0.75rem;"></div>
+
+                <div style="display:flex; gap:0.75rem; margin-bottom:0.75rem; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:140px;">
+                        <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.2rem;">What was the most recent progress:</label>
+                        <div style="position:relative;">
+                            <textarea id="act-f-vc-progress" rows="2" style="width:100%; padding:0.35rem 1.8rem 0.35rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:4px; font-size:0.8rem; resize:none;"></textarea>
+                            <span class="material-symbols-outlined" style="position:absolute;right:0.4rem;bottom:0.4rem;font-size:0.8rem;color:var(--text-tertiary);">edit</span>
+                        </div>
+                    </div>
+                    <div style="flex:1; min-width:140px;">
+                        <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.2rem;">Current Blockers: next hurdle</label>
+                        <div style="position:relative;">
+                            <textarea id="act-f-vc-blockers" rows="2" style="width:100%; padding:0.35rem 1.8rem 0.35rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:4px; font-size:0.8rem; resize:none;"></textarea>
+                            <span class="material-symbols-outlined" style="position:absolute;right:0.4rem;bottom:0.4rem;font-size:0.8rem;color:var(--text-tertiary);">edit</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Version Control -->
+                <div style="border:1px solid var(--border-subtle); border-radius:6px; overflow:hidden;">
+                    <div onclick="window.toggleActSection('act-vc-advanced')" style="padding:0.4rem 0.75rem; cursor:pointer; display:flex; align-items:center; justify-content:flex-end; gap:0.4rem; font-size:0.75rem; color:var(--text-tertiary); background:var(--bg-app);">
+                        Advanced Version Control <span class="material-symbols-outlined" style="font-size:0.9rem;">expand_more</span>
+                    </div>
+                    <div id="act-vc-advanced" style="display:none; padding:0.75rem; border-top:1px solid var(--border-subtle); font-size:0.8rem; color:var(--text-secondary);">
+                        <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:0.5rem;">
+                            <div style="flex:1;"><span id="act-vc-created"></span></div>
+                            <div style="flex:1;"><span id="act-vc-edited"></span></div>
+                        </div>
+                        <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:0.4rem;">
+                                Who edited: <span id="act-vc-who" style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:100px; padding:0.1rem 0.5rem;"></span>
+                            </div>
+                            <label style="display:flex; align-items:center; gap:0.3rem; cursor:pointer;">
+                                <input type="checkbox" id="act-f-highlight-changes"> Highlight changes
+                            </label>
+                            <div style="display:flex; align-items:center; gap:0.3rem;">
+                                <input type="checkbox" id="act-f-completed-check"> Completed
+                                <input type="date" id="act-f-date-completed" style="padding:0.2rem 0.4rem; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-primary); border-radius:4px; font-size:0.75rem;">
+                            </div>
+                        </div>
+                        <div style="margin-top:0.5rem; cursor:pointer; color:var(--energy-algae); font-size:0.8rem;">
+                            <span class="material-symbols-outlined" style="font-size:0.85rem; vertical-align:middle;">chevron_left</span> Previous version
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OTHER -->
+            <div style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; padding:1.25rem; margin-bottom:1rem;">
+                <div style="font-size:0.78rem; color:var(--text-tertiary); margin-bottom:0.5rem;">Other:</div>
+                <div style="display:flex; gap:0.75rem; align-items:flex-start;">
+                    <div style="position:relative; flex:1;">
+                        <textarea id="act-f-other" rows="2" style="width:100%; padding:0.4rem 1.8rem 0.4rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem; resize:none;"></textarea>
+                        <span class="material-symbols-outlined" style="position:absolute;right:0.4rem;bottom:0.4rem;font-size:0.8rem;color:var(--text-tertiary);">edit</span>
+                    </div>
+                    <div style="font-size:0.72rem; color:var(--text-tertiary); max-width:150px; line-height:1.4; flex-shrink:0;">The band-aid solution for any data or information that isn't currently supported in this info model</div>
+                </div>
+                <div style="margin-top:1rem;">
+                    <div style="font-size:0.78rem; font-weight:500; margin-bottom:0.4rem;">Privacy: <button class="btn-secondary" style="font-size:0.7rem; padding:0.1rem 0.5rem;">+ Advanced / Custom</button></div>
+                    <div id="act-privacy-group" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                        <label style="display:flex; align-items:center; gap:0.3rem; cursor:pointer; font-size:0.8rem;"><input type="radio" name="act-privacy" value="Public/Official" id="act-priv-public"> Public/Official</label>
+                        <label style="display:flex; align-items:center; gap:0.3rem; cursor:pointer; font-size:0.8rem;"><input type="radio" name="act-privacy" value="Attendees" id="act-priv-attendees"> Attendees</label>
+                        <label style="display:flex; align-items:center; gap:0.3rem; cursor:pointer; font-size:0.8rem;"><input type="radio" name="act-privacy" value="Restricted" id="act-priv-restricted"> Restricted</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div style="display:flex; justify-content:space-between; align-items:center; padding-top:0.5rem;">
+                <div style="display:flex; gap:0.5rem;">
+                    <button class="btn-secondary" onclick="window.closeActionModal()">Close</button>
+                    <button class="btn-secondary" onclick="window.revertActionChanges()">Revert changes</button>
+                </div>
+                <div style="display:flex; gap:0.5rem;">
+                    <button id="act-modal-delete-btn" class="btn-primary" style="background:#ef4444; border-color:#ef4444; display:none;" onclick="window.deleteCurrentAction()">Delete</button>
+                    <button class="btn-primary" onclick="window.saveCurrentAction()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.act-tab:hover { color: var(--text-primary) !important; }
+.act-tag-btn.active { background: var(--energy-algae) !important; color: #fff !important; border-color: var(--energy-algae) !important; }
+.act-card { background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; padding:1rem 1.25rem; transition:box-shadow 0.2s, transform 0.15s; }
+.act-card:hover { box-shadow:0 4px 16px rgba(0,0,0,0.08); transform:translateY(-1px); }
+.act-card.overdue { border-left: 3px solid #ef4444; }
+.act-status-badge { display:inline-block; font-size:0.7rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:100px; border:1px solid; }
+.act-kanban-col { background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:12px; padding:1rem; min-height:200px; }
+.act-kanban-col-header { font-weight:700; font-size:0.95rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; }
+.act-kanban-card { background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:8px; padding:0.75rem; margin-bottom:0.6rem; font-size:0.82rem; cursor:pointer; transition:box-shadow 0.15s; }
+.act-kanban-card:hover { box-shadow:0 3px 10px rgba(0,0,0,0.1); }
+</style>

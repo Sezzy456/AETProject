@@ -289,77 +289,241 @@ const mockData = {
         { id: 103, type: "Signal", title: "Policy Change Rumor", date: "2023-10-26", notes: "Heard rumors of new waste regulations.", attendees: "N/A", status: "Investigating" },
         { id: 104, type: "Meeting", title: "Partnership Kickoff", date: "2023-10-26", notes: "Kickoff with Green Initiative.", attendees: "Emily, Jessica", status: "Scheduled" }
     ],
-    // ACTIONS (From strategy_backup_2026-02-02.json "initialActions")
+    // ACTIONS (Expanded with full data schema)
     actions: [
         {
             id: "996cc5e6-a6f9-487e-8132-fb22b23d18bc",
             activity: "Stakeholder Messaging Toolkit",
+            description: "Create a toolkit to have easy messaging to stakeholders",
             owner: "Vant",
+            audience: [],
             status: "Pending",
+            advancedStatus: "At Risk",
+            tags: ["Comms"],
+            priority: "ASAP",
+            complexity: "3",
             phase: "Phase 1",
-            linkType: "Objective",
-            linkId: "obj2",
-            dueDate: "2026-03-01" // Added mock due date
+            commsObjectiveId: "obj2",
+            desiredOutcome: "Stakeholders have clear, consistent messaging they can use.",
+            kpiTarget: "Toolkit delivered and distributed",
+            assetIds: [],
+            stakeholderPosture: "",
+            timing: {
+                dueDate: "2026-03-01",
+                startDate: "2026-02-10",
+                predictedLength: "3 weeks"
+            },
+            resourceRequirement: "Design time + copywriting",
+            todos: [
+                { id: "t1", completed: false, detail: "Draft core messaging pillars" },
+                { id: "t2", completed: false, detail: "Review with AET team" }
+            ],
+            prerequisites: [],
+            versionControl: {
+                currentVersion: "24/03/26 17:40",
+                recentProgress: "",
+                currentBlockers: "",
+                taskCreated: "24/03/26 17:38",
+                lastEdited: "24/03/26 17:40",
+                whoEdited: "Sarah Evans",
+                highlightChanges: false,
+                dateCompleted: ""
+            },
+            other: "",
+            privacy: "Public/Official"
         },
         {
             id: "ce26e0fe-c915-455a-a934-75bed1df828a",
             activity: "Council Exec Briefings (CoGB)",
+            description: "-",
             owner: "AET",
+            audience: ["City of Greater Bendigo (CoGB)"],
             status: "Planned",
+            advancedStatus: "Underway - aim for mid-Mar completion",
+            tags: ["Legal", "Financial"],
+            priority: "High",
+            complexity: "4",
             phase: "Phase 1",
-            linkType: "Stakeholder",
-            linkId: "f1a8e4ef-fab6-4fb9-b45d-369a6a55abee", // Linked to CoGB
-            dueDate: "2026-03-15"
+            commsObjectiveId: "obj1",
+            desiredOutcome: "Council executives briefed and aligned.",
+            kpiTarget: "Briefing completed; next steps agreed",
+            assetIds: [],
+            stakeholderPosture: "",
+            timing: {
+                dueDate: "2026-03-15",
+                startDate: "2026-02-20",
+                predictedLength: "4 weeks"
+            },
+            resourceRequirement: "Meeting facilitation + presentation materials",
+            todos: [],
+            prerequisites: [],
+            versionControl: {
+                currentVersion: "14/03/26 09:00",
+                recentProgress: "Initial meeting booked",
+                currentBlockers: "Awaiting council calendar confirmation",
+                taskCreated: "10/02/26 10:00",
+                lastEdited: "14/03/26 09:00",
+                whoEdited: "Matt Griffin",
+                highlightChanges: false,
+                dateCompleted: ""
+            },
+            other: "",
+            privacy: "Restricted"
         },
         {
             id: "e4bd8482-852c-4107-8a1d-608101c5c5bb",
-            activity: "Regional Council Forum",
-            owner: "AET + Vant",
-            status: "Planned",
+            activity: "A5 Council Brochure",
+            description: "Produce a high-quality brochure for council committee members.",
+            owner: "Vant",
+            audience: ["Surrounding Councils"],
+            status: "In Progress",
+            advancedStatus: "",
+            tags: ["Comms"],
+            priority: "High",
+            complexity: "2",
             phase: "Phase 1",
-            linkType: "Stakeholder",
-            linkId: "f6f8e1e4-73a3-41d6-a1ec-58630add951d",
-            dueDate: "2026-04-01"
+            commsObjectiveId: "obj1",
+            desiredOutcome: "Strengthen alignment & confidence across key stakeholders",
+            kpiTarget: "Brochure printed and distributed",
+            assetIds: [],
+            stakeholderPosture: "",
+            timing: {
+                dueDate: "2026-04-01",
+                startDate: "2026-03-01",
+                predictedLength: "1 month"
+            },
+            resourceRequirement: "Graphic design + printing costs",
+            todos: [
+                { id: "t1", completed: true, detail: "Draft content approved" },
+                { id: "t2", completed: false, detail: "Send to printer" }
+            ],
+            prerequisites: ["996cc5e6-a6f9-487e-8132-fb22b23d18bc"],
+            versionControl: {
+                currentVersion: "01/04/26 12:00",
+                recentProgress: "Design finalised",
+                currentBlockers: "",
+                taskCreated: "01/03/26 09:00",
+                lastEdited: "01/04/26 12:00",
+                whoEdited: "Sarah Evans",
+                highlightChanges: false,
+                dateCompleted: ""
+            },
+            other: "",
+            privacy: "Public/Official"
         },
         {
             id: "75d9daa1-8bcc-4f54-8bdd-468240e253f8",
             activity: "Project Microsite Launch",
+            description: "Launch the public-facing project microsite with key messaging.",
             owner: "Vant",
-            status: "In Progress",
+            audience: [],
+            status: "Completed",
+            advancedStatus: "",
+            tags: ["Comms"],
+            priority: "ASAP",
+            complexity: "4",
             phase: "Phase 1",
-            linkType: "Stakeholder",
-            linkId: "all",
-            dueDate: "2026-02-28"
+            commsObjectiveId: "obj2",
+            desiredOutcome: "Public has a clear, accessible source of project information.",
+            kpiTarget: "Site live with 500+ visits in month 1",
+            assetIds: [],
+            stakeholderPosture: "",
+            timing: {
+                dueDate: "2026-02-28",
+                startDate: "2026-01-15",
+                predictedLength: "6 weeks"
+            },
+            resourceRequirement: "Web development + content",
+            todos: [],
+            prerequisites: [],
+            versionControl: {
+                currentVersion: "28/02/26 17:00",
+                recentProgress: "Site launched successfully",
+                currentBlockers: "",
+                taskCreated: "15/01/26 09:00",
+                lastEdited: "28/02/26 17:00",
+                whoEdited: "Sarah Evans",
+                highlightChanges: false,
+                dateCompleted: "28/02/26"
+            },
+            other: "",
+            privacy: "Public/Official"
         },
         {
             id: "8bc069d0-9c35-4da8-a54a-3416e1545b80",
             activity: "Media Pack Production",
+            description: "Produce a media pack for press and public relations outreach.",
             owner: "Vant",
+            audience: [],
             status: "Pending",
+            advancedStatus: "",
+            tags: ["Comms", "Financial"],
+            priority: "Medium",
+            complexity: "3",
             phase: "Phase 1",
-            linkType: "Stakeholder",
-            linkId: "49bc9bc9-60e5-42dd-9366-ce4c6483bd16",
-            dueDate: "2026-02-20"
-        },
-        {
-            id: "166512b0-2dc8-4db3-9abc-b4bc9f02fe36",
-            activity: "Community FAQ (Plain English)",
-            owner: "Vant",
-            status: "Pending",
-            phase: "Phase 1",
-            linkType: "Stakeholder",
-            linkId: "49bc9bc9-60e5-42dd-9366-ce4c6483bd16",
-            dueDate: "2026-02-25"
+            commsObjectiveId: "obj2",
+            desiredOutcome: "Media have accurate, positive information about the project.",
+            kpiTarget: "Pack distributed to 10+ media contacts",
+            assetIds: [],
+            stakeholderPosture: "",
+            timing: {
+                dueDate: "2026-02-20",
+                startDate: "2026-02-01",
+                predictedLength: "3 weeks"
+            },
+            resourceRequirement: "Copywriting + photography",
+            todos: [],
+            prerequisites: [],
+            versionControl: {
+                currentVersion: "01/02/26 09:00",
+                recentProgress: "",
+                currentBlockers: "Waiting on finalized project photos",
+                taskCreated: "01/02/26 09:00",
+                lastEdited: "01/02/26 09:00",
+                whoEdited: "Matt Griffin",
+                highlightChanges: false,
+                dateCompleted: ""
+            },
+            other: "",
+            privacy: "Public/Official"
         },
         {
             id: "f7ec565b-470a-43ca-89d2-f331f237c211",
             activity: "Technical Q&A Docs",
+            description: "Develop structured technical documentation for regulators.",
             owner: "AET",
+            audience: [],
             status: "Planned",
+            advancedStatus: "",
+            tags: ["Legal"],
+            priority: "Medium",
+            complexity: "5",
             phase: "Phase 2",
-            linkType: "Stakeholder",
-            linkId: "0dbcbb1c-4532-43e2-8a5b-5cb4286bb9dd",
-            dueDate: "2026-05-01"
+            commsObjectiveId: "obj3",
+            desiredOutcome: "Regulators have confidence in technical competence.",
+            kpiTarget: "Docs reviewed and accepted by EPA",
+            assetIds: [],
+            stakeholderPosture: "",
+            timing: {
+                dueDate: "2026-05-01",
+                startDate: "2026-04-01",
+                predictedLength: "4 weeks"
+            },
+            resourceRequirement: "Technical writing + legal review",
+            todos: [],
+            prerequisites: [],
+            versionControl: {
+                currentVersion: "01/04/26 09:00",
+                recentProgress: "",
+                currentBlockers: "",
+                taskCreated: "01/04/26 09:00",
+                lastEdited: "01/04/26 09:00",
+                whoEdited: "Matt Griffin",
+                highlightChanges: false,
+                dateCompleted: ""
+            },
+            other: "",
+            privacy: "Restricted"
         }
     ],
     // KNOWLEDGE BANK
@@ -453,7 +617,7 @@ const mockData = {
 
 // Simulate local storage persistence
 // Bumping to v17 to ensure new structure loads (FRESH LOAD)
-const CACHE_VERSION = 'v17';
+const CACHE_VERSION = 'v18';
 if (!localStorage.getItem(CACHE_VERSION)) {
     localStorage.setItem(CACHE_VERSION, JSON.stringify(mockData));
 }
