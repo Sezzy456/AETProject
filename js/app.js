@@ -123,6 +123,7 @@ const VIEW_FILES = {
     'stakeholder_detail': 'pages/stakeholder_detail.html',
     'activity_log':       'pages/activity_log.html',
     'actions':            'pages/actions.html',
+    'action_detail':      'pages/action_detail.html',
     'strategy_spine':     'pages/strategy_spine.html',
     'knowledge_bank':     'pages/knowledge_bank.html',
 };
@@ -134,8 +135,19 @@ const VIEW_RENDERERS = {
     'stakeholder_detail': renderStakeholderDetail,
     'activity_log':       renderActivityLog,
     'actions':            renderActions,
+    'action_detail':      renderActionDetail,
     'strategy_spine':     renderStrategySpine,
     'knowledge_bank':     renderKnowledgeBank,
+};
+
+// Track current action being viewed/edited
+window.currentActionId = null;
+
+// Navigate to action detail page
+window.viewAction = function(id) {
+    window.currentActionId = id;
+    loadView('action_detail');
+    history.pushState(null, '', '#action_detail');
 };
 
 function loadView(viewName, pushState = true) {
@@ -655,6 +667,10 @@ let _actFilterOpen = false;
 function renderActions() {
     _actCurrentTab = 'list';
     _actCurrentId = null;
+    // Fix: collapse filter panel on load
+    const fp = document.getElementById('act-filter-panel');
+    if (fp) fp.style.display = 'none';
+    _actFilterOpen = false;
     _actPopulateObjectiveDropdown();
     window.filterActions();
 }
@@ -781,7 +797,7 @@ function _actRenderList(actions) {
         // Progress dots (complexity)
         const dots = Array.from({length:5}).map((_,i) => `<span style="width:7px;height:7px;border-radius:50%;background:${i<parseInt(a.complexity||0)?sc.dot:'var(--border-subtle)'};display:inline-block;"></span>`).join('');
 
-        return `<div class="act-card${isOverdue?' overdue':''}" onclick="window.openActionModal('${a.id}')" style="cursor:pointer;">
+        return `<div class="act-card${isOverdue?' overdue':''}" onclick="window.viewAction('${a.id}')" style="cursor:pointer;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
                 <div style="flex:1; min-width:0;">
                     <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem; flex-wrap:wrap;">
@@ -796,14 +812,16 @@ function _actRenderList(actions) {
                         ${a.commsObjectiveId ? `<span style="display:inline-flex;align-items:center;gap:0.25rem;"><span style="font-size:0.85rem;">🎯</span> ${objText.length>50?objText.substring(0,47)+'...':objText}</span>` : ''}
                     </div>
                 </div>
-                <div style="text-align:right; flex-shrink:0; min-width:100px;">
+                <div style="text-align:right; flex-shrink:0; min-width:110px;">
                     <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.2rem; display:flex; align-items:center; gap:0.25rem; justify-content:flex-end;">
                         <span class="material-symbols-outlined" style="font-size:0.9rem;">person</span> ${a.owner||'-'}
                     </div>
                     ${advStatus ? `<div style="margin-bottom:0.2rem;">${advStatus}</div>` : ''}
-                    <div style="font-size:0.8rem; color:${isOverdue?'#ef4444':'var(--text-tertiary)'};">due: ${dueStr}</div>
-                    <button onclick="event.stopPropagation(); window.openActionModal('${a.id}')" class="btn-secondary" style="margin-top:0.5rem; font-size:0.75rem; padding:0.25rem 0.6rem; display:inline-flex; align-items:center; gap:0.25rem;">
-                        <span class="material-symbols-outlined" style="font-size:0.9rem;">edit</span> Edit
+                    <div style="font-size:0.8rem; color:${isOverdue?'#ef4444':'var(--text-tertiary)'};">
+                        due: ${dueStr}
+                    </div>
+                    <button onclick="event.stopPropagation(); window.viewAction('${a.id}')" class="btn-secondary" style="margin-top:0.5rem; font-size:0.75rem; padding:0.25rem 0.6rem; display:inline-flex; align-items:center; gap:0.25rem;">
+                        <span class="material-symbols-outlined" style="font-size:0.9rem;">open_in_new</span> View
                     </button>
                 </div>
             </div>
@@ -824,7 +842,7 @@ function _actRenderKanban(actions) {
             const isOverdue = a.timing?.dueDate && a.timing.dueDate < new Date().toISOString().substring(0,10) && col !== 'Completed';
             const dueStr = a.timing?.dueDate ? new Date(a.timing.dueDate + 'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}) : 'DD/MM/YYYY';
             const objText = _actGetObjectiveText(a.commsObjectiveId);
-            return `<div class="act-kanban-card${isOverdue?' overdue':''}" onclick="window.openActionModal('${a.id}')"
+            return `<div class="act-kanban-card${isOverdue?' overdue':''}" onclick="window.viewAction('${a.id}')"
                 style="${col==='Completed'?'border-left:3px solid #34d399;':''}${isOverdue?'border-left:3px solid #ef4444;border-color:#ef4444;background:rgba(239,68,68,0.03);':''}">
                 <div style="font-size:0.72rem; color:${isOverdue?'#ef4444':'var(--text-tertiary)'}; margin-bottom:0.3rem;">due: ${dueStr} ${isOverdue?'<span style="color:#ef4444;">⊘</span>':''}</div>
                 ${col==='Completed' ? `<div style="font-size:0.7rem;color:#059669;font-weight:600;margin-bottom:0.2rem;">completed: ${a.versionControl?.dateCompleted||dueStr}</div>` : ''}
@@ -836,8 +854,8 @@ function _actRenderKanban(actions) {
                     <span><span class="material-symbols-outlined" style="font-size:0.8rem;vertical-align:middle;">person</span> ${a.owner||'-'}</span>
                 </div>
                 <div style="display:flex; justify-content:flex-end;">
-                    <button onclick="event.stopPropagation();window.openActionModal('${a.id}')" class="btn-secondary" style="font-size:0.7rem; padding:0.2rem 0.5rem; display:inline-flex; align-items:center; gap:0.2rem;">
-                        <span class="material-symbols-outlined" style="font-size:0.8rem;">edit</span> Edit
+                    <button onclick="event.stopPropagation();window.viewAction('${a.id}')" class="btn-secondary" style="font-size:0.7rem; padding:0.2rem 0.5rem; display:inline-flex; align-items:center; gap:0.2rem;">
+                        <span class="material-symbols-outlined" style="font-size:0.8rem;">open_in_new</span> View
                     </button>
                 </div>
             </div>`;
@@ -1237,6 +1255,347 @@ window.deleteCurrentAction = function() {
     window.filterActions();
 };
 
+
+// ---- ACTION DETAIL VIEW ----
+
+function renderActionDetail() {
+    const id = window.currentActionId;
+    const actions = window.getData('actions') || [];
+    const a = actions.find(x => x.id === id);
+
+    if (!a) {
+        const c = document.getElementById('view-container');
+        if (c) c.innerHTML = '<div style="padding:2rem;"><h2>Action not found.</h2><button class="btn-secondary" onclick="loadView(\'actions\')">← Back to Actions</button></div>';
+        return;
+    }
+
+    // Populate objective dropdown in edit modal
+    const sel = document.getElementById('adet-e-objective');
+    if (sel) {
+        const spine = window.getData('spine');
+        sel.innerHTML = '<option value="">— Select Objective —</option>';
+        if (spine && spine.objectives) {
+            spine.objectives.forEach(o => {
+                sel.innerHTML += `<option value="${o.id}">🎯 ${o.text.length > 55 ? o.text.substring(0,52)+'...' : o.text}</option>`;
+            });
+        }
+    }
+
+    const txt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val || '—'; };
+    const html = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; };
+
+    // Header
+    txt('adet-breadcrumb', a.activity);
+    txt('adet-title', a.activity);
+
+    // Status badge
+    const sc = { 'Pending':['#94a3b8','rgba(148,163,184,0.15)'], 'Planned':['#6366f1','rgba(129,140,248,0.15)'], 'In Progress':['#3b82f6','rgba(96,165,250,0.15)'], 'Completed':['#059669','rgba(52,211,153,0.15)'] };
+    const badge = document.getElementById('adet-status-badge');
+    if (badge) {
+        const colors = sc[a.status] || ['#aaa','rgba(0,0,0,0.05)'];
+        badge.textContent = a.status || '—';
+        badge.style.color = colors[0]; badge.style.background = colors[1]; badge.style.borderColor = colors[0];
+    }
+
+    // Quick meta row
+    txt('adet-owner', a.owner || '—');
+    txt('adet-phase', a.phase || '—');
+    const dueFormatted = a.timing?.dueDate ? new Date(a.timing.dueDate + 'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+    txt('adet-due', dueFormatted);
+    txt('adet-priority', a.priority || '—');
+
+    // Tags chips
+    const tagsEl = document.getElementById('adet-tags');
+    if (tagsEl) {
+        tagsEl.innerHTML = (a.tags||[]).length > 0
+            ? (a.tags||[]).map(t => `<span style="font-size:0.72rem; padding:0.15rem 0.5rem; border-radius:100px; background:rgba(99,102,241,0.1); color:#6366f1; border:1px solid rgba(99,102,241,0.2);">${t}</span>`).join('')
+            : '<span style="font-size:0.82rem; color:var(--text-tertiary);">—</span>';
+    }
+
+    // Complexity dots
+    const compEl = document.getElementById('adet-complexity');
+    if (compEl) {
+        const n = parseInt(a.complexity || 0);
+        compEl.innerHTML = Array.from({length:5}).map((_,i) =>
+            `<span style="width:10px;height:10px;border-radius:50%;background:${i<n?'#6366f1':'var(--border-subtle)'};display:inline-block;"></span>`
+        ).join('');
+    }
+
+    // Definition
+    txt('adet-description', a.description);
+    html('adet-audience', (a.audience||[]).length > 0
+        ? (a.audience||[]).map(aud => `<span style="background:rgba(16,185,129,0.1);color:var(--energy-algae);border:1px solid rgba(16,185,129,0.3);border-radius:100px;padding:0.15rem 0.6rem;font-size:0.82rem;display:inline-block;margin:0.1rem;">${aud}</span>`).join('')
+        : '<span style="color:var(--text-tertiary);font-style:italic;font-size:0.85rem;">—</span>');
+
+    // Impact
+    const spine = window.getData('spine');
+    const obj = (spine?.objectives||[]).find(o => o.id === a.commsObjectiveId);
+    html('adet-objective', obj ? `<span style="display:inline-flex;align-items:center;gap:0.4rem;"><span>🎯</span> <em>${obj.text}</em></span>` : '<span style="color:var(--text-tertiary);">—</span>');
+    txt('adet-advanced-status', a.advancedStatus);
+    txt('adet-desired-outcome', a.desiredOutcome);
+    txt('adet-kpi', a.kpiTarget);
+
+    // Logistics
+    txt('adet-start-date', a.timing?.startDate ? new Date(a.timing.startDate+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—');
+    txt('adet-due-date', dueFormatted);
+    txt('adet-length', a.timing?.predictedLength || '—');
+    txt('adet-resource', a.resourceRequirement);
+
+    // To-Do list
+    const todosEl = document.getElementById('adet-todos');
+    if (todosEl) {
+        const todos = a.todos || [];
+        if (todos.length === 0) {
+            todosEl.innerHTML = '<span style="font-size:0.82rem;color:var(--text-tertiary);font-style:italic;">No to-dos added.</span>';
+        } else {
+            todosEl.innerHTML = todos.map(t => `
+                <div class="adet-todo-item">
+                    <span class="material-symbols-outlined" style="font-size:1.1rem;color:${t.completed?'var(--energy-algae)':'var(--text-tertiary)'};">
+                        ${t.completed?'check_box':'check_box_outline_blank'}
+                    </span>
+                    <span style="text-decoration:${t.completed?'line-through':'none'};color:${t.completed?'var(--text-tertiary)':'var(--text-primary)'};">${t.detail||''}</span>
+                </div>`).join('');
+        }
+    }
+
+    // Prerequisites
+    const prereqSection = document.getElementById('adet-prereqs-section');
+    const prereqsEl = document.getElementById('adet-prereqs');
+    const allActions = window.getData('actions') || [];
+    if (prereqsEl) {
+        const prereqs = a.prerequisites || [];
+        if (prereqs.length === 0) {
+            if (prereqSection) prereqSection.style.display = 'none';
+        } else {
+            if (prereqSection) prereqSection.style.display = 'block';
+            prereqsEl.innerHTML = prereqs.map(pid => {
+                const pa = allActions.find(x => x.id === pid);
+                return `<div class="adet-prereq-item">
+                    <span class="material-symbols-outlined" style="font-size:1rem;color:var(--text-tertiary);">subdirectory_arrow_right</span>
+                    <span>${pa?.activity || pid}</span>
+                </div>`;
+            }).join('');
+        }
+    }
+
+    // Version Control
+    const vc = a.versionControl || {};
+    txt('adet-vc-version', vc.currentVersion || '—');
+    txt('adet-vc-progress', vc.recentProgress || '—');
+    txt('adet-vc-blockers', vc.currentBlockers || '—');
+    txt('adet-vc-created', vc.taskCreated || '—');
+    txt('adet-vc-edited', vc.lastEdited || '—');
+    txt('adet-vc-who', vc.whoEdited || '—');
+    const completedRow = document.getElementById('adet-vc-completed-row');
+    if (completedRow) completedRow.style.display = vc.dateCompleted ? 'block' : 'none';
+    txt('adet-vc-completed', vc.dateCompleted || '');
+
+    // Other
+    txt('adet-other', a.other || '—');
+    txt('adet-privacy', a.privacy || '—');
+}
+
+// Open the edit overlay on detail page
+window.openActionDetailEdit = function() {
+    const id = window.currentActionId;
+    if (!id) return;
+    const actions = window.getData('actions') || [];
+    const a = actions.find(x => x.id === id);
+    if (!a) return;
+
+    window._adetOriginal = JSON.parse(JSON.stringify(a));
+
+    // Fill all form fields
+    const set = (elId, v) => { const el = document.getElementById(elId); if (el) el.value = v || ''; };
+    set('adet-e-title', a.activity);
+    set('adet-e-description', a.description);
+    set('adet-e-adv-status', a.advancedStatus);
+    set('adet-e-due', a.timing?.dueDate || '');
+    set('adet-e-start', a.timing?.startDate || '');
+    set('adet-e-length', a.timing?.predictedLength || '');
+    set('adet-e-resource', a.resourceRequirement);
+    set('adet-e-outcome', a.desiredOutcome);
+    set('adet-e-kpi', a.kpiTarget);
+    set('adet-e-progress', a.versionControl?.recentProgress || '');
+    set('adet-e-blockers', a.versionControl?.currentBlockers || '');
+    set('adet-e-other', a.other);
+
+    const statusEl = document.getElementById('adet-e-status');
+    if (statusEl) statusEl.value = a.status || 'Pending';
+    const objEl = document.getElementById('adet-e-objective');
+    if (objEl) objEl.value = a.commsObjectiveId || '';
+    const priEl = document.getElementById('adet-e-priority');
+    if (priEl) priEl.value = a.priority || 'Medium';
+    const cplxEl = document.getElementById('adet-e-complexity');
+    if (cplxEl) cplxEl.value = a.complexity || '3';
+
+    // Privacy
+    document.querySelectorAll('input[name="adet-priv"]').forEach(r => { r.checked = r.value === a.privacy; });
+
+    // Tags
+    document.querySelectorAll('.adet-tag-btn').forEach(btn => {
+        const tagName = btn.textContent.trim().replace(/^[^\s]+\s/, '');
+        btn.classList.toggle('active', (a.tags||[]).some(t => t.trim() === tagName.trim()));
+    });
+
+    // Audience chips
+    const audEl = document.getElementById('adet-e-audience-chips');
+    if (audEl) audEl.innerHTML = (a.audience||[]).map(aud => `<span style="background:rgba(16,185,129,0.1);color:var(--energy-algae);border:1px solid rgba(16,185,129,0.3);border-radius:100px;padding:0.15rem 0.5rem;font-size:0.72rem;display:inline-flex;align-items:center;gap:0.25rem;">${aud}<span onclick="this.parentElement.remove()" style="cursor:pointer;font-weight:700;">×</span></span>`).join('');
+
+    // Owner chips
+    const ownEl = document.getElementById('adet-e-owner-chips');
+    if (ownEl) {
+        const ownerColors = { 'Vant':'#ef4444', 'AET':'#3b82f6' };
+        ownEl.innerHTML = (a.owner ? a.owner.split('+').map(o=>o.trim()) : []).map(o =>
+            `<span style="background:${ownerColors[o]||'#6b7280'};color:#fff;border-radius:4px;padding:0.15rem 0.6rem;font-size:0.75rem;font-weight:600;display:inline-flex;align-items:center;gap:0.25rem;">${o}<span onclick="this.parentElement.remove()" style="cursor:pointer;opacity:0.8;font-weight:700;">×</span></span>`
+        ).join('');
+    }
+
+    // Todos
+    const todosEl = document.getElementById('adet-e-todos');
+    if (todosEl) todosEl.innerHTML = (a.todos||[]).map(t => _adetMakeTodoRow(t.id, t.completed, t.detail)).join('');
+
+    // Prereqs
+    const prereqsEl = document.getElementById('adet-e-prereqs');
+    if (prereqsEl) {
+        const allActs = window.getData('actions') || [];
+        prereqsEl.innerHTML = (a.prerequisites||[]).map(pid => {
+            const pa = allActs.find(x => x.id === pid);
+            return `<div style="font-size:0.8rem;color:var(--text-secondary);padding:0.3rem 0;display:flex;align-items:center;gap:0.4rem;" id="adet-prereq-${pid}">
+                <span class="material-symbols-outlined" style="font-size:0.9rem;">subdirectory_arrow_right</span>
+                ${pa?.activity || pid}
+                <button onclick="document.getElementById('adet-prereq-${pid}').remove()" style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;margin-left:auto;">×</button>
+            </div>`;
+        }).join('');
+    }
+
+    // VC meta
+    const vc = a.versionControl || {};
+    const vcMetaEl = document.getElementById('adet-e-vc-meta');
+    if (vcMetaEl) vcMetaEl.textContent = `Current Version: ${vc.currentVersion || '—'} | Created: ${vc.taskCreated || '—'} | Last Edited: ${vc.lastEdited || '—'} | By: ${vc.whoEdited || '—'}`;
+
+    const compCheck = document.getElementById('adet-e-completed-check');
+    if (compCheck) compCheck.checked = !!vc.dateCompleted;
+    const compDate = document.getElementById('adet-e-completed-date');
+    if (compDate) compDate.value = vc.dateCompleted || '';
+
+    document.getElementById('adet-modal-overlay').style.display = 'block';
+};
+
+window.closeActionDetailEdit = function() {
+    const overlay = document.getElementById('adet-modal-overlay');
+    if (overlay) overlay.style.display = 'none';
+};
+
+window.adetRevert = function() {
+    if (window._adetOriginal) window.openActionDetailEdit();
+};
+
+window.adetToggleTag = function(btn) {
+    btn.classList.toggle('active');
+};
+
+window.adetAddAudience = function() {
+    const name = prompt('Audience name:');
+    if (!name) return;
+    const el = document.getElementById('adet-e-audience-chips');
+    if (el) el.insertAdjacentHTML('beforeend', `<span style="background:rgba(16,185,129,0.1);color:var(--energy-algae);border:1px solid rgba(16,185,129,0.3);border-radius:100px;padding:0.15rem 0.5rem;font-size:0.72rem;display:inline-flex;align-items:center;gap:0.25rem;">${name.trim()}<span onclick="this.parentElement.remove()" style="cursor:pointer;font-weight:700;">×</span></span>`);
+};
+
+window.adetAddOwner = function() {
+    const name = prompt('Owner (e.g. Vant, AET):', 'Vant');
+    if (!name) return;
+    const colors = { 'Vant':'#ef4444', 'AET':'#3b82f6' };
+    const clr = colors[name.trim()] || '#6b7280';
+    const el = document.getElementById('adet-e-owner-chips');
+    if (el) el.insertAdjacentHTML('beforeend', `<span style="background:${clr};color:#fff;border-radius:4px;padding:0.15rem 0.6rem;font-size:0.75rem;font-weight:600;display:inline-flex;align-items:center;gap:0.25rem;">${name.trim()}<span onclick="this.parentElement.remove()" style="cursor:pointer;opacity:0.8;font-weight:700;">×</span></span>`);
+};
+
+function _adetMakeTodoRow(id, completed, detail) {
+    return `<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;" id="adet-todo-${id}">
+        <input type="checkbox" ${completed?'checked':''} style="flex-shrink:0;cursor:pointer;">
+        <input type="text" value="${(detail||'').replace(/"/g,'&quot;')}" style="flex:1;padding:0.25rem 0.5rem;border:1px solid var(--border-subtle);background:var(--bg-app);color:var(--text-primary);border-radius:4px;font-size:0.8rem;" placeholder="To-do item">
+        <button onclick="document.getElementById('adet-todo-${id}').remove()" style="background:#ef4444;border:none;color:#fff;width:20px;height:20px;border-radius:3px;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">−</button>
+    </div>`;
+}
+
+window.adetAddTodo = function() {
+    const el = document.getElementById('adet-e-todos');
+    if (!el) return;
+    const newId = 'new-' + Date.now();
+    el.insertAdjacentHTML('beforeend', _adetMakeTodoRow(newId, false, ''));
+};
+
+window.adetSave = function() {
+    const id = window.currentActionId;
+    if (!id) return;
+    const now = new Date();
+    const nowStr = now.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'}) + ' ' + now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+
+    const getTags = () => Array.from(document.querySelectorAll('.adet-tag-btn.active')).map(b => b.textContent.trim().replace(/^[^\s]*\s/,'').trim());
+    const getOwner = () => Array.from(document.querySelectorAll('#adet-e-owner-chips > span')).map(s => s.textContent.replace('×','').trim()).join(' + ');
+    const getAudience = () => Array.from(document.querySelectorAll('#adet-e-audience-chips > span')).map(s => s.textContent.replace('×','').trim());
+    const getTodos = () => Array.from(document.querySelectorAll('[id^="adet-todo-"]')).map((row, i) => ({
+        id: row.id.replace('adet-todo-','') || ('t'+i),
+        completed: row.querySelector('input[type=checkbox]')?.checked || false,
+        detail: row.querySelector('input[type=text]')?.value || ''
+    }));
+
+    const actions = window.getData('actions') || [];
+    const idx = actions.findIndex(x => x.id === id);
+    if (idx === -1) return;
+
+    const orig = actions[idx];
+    actions[idx] = {
+        ...orig,
+        activity: document.getElementById('adet-e-title')?.value || orig.activity,
+        description: document.getElementById('adet-e-description')?.value || '',
+        owner: getOwner() || orig.owner,
+        audience: getAudience(),
+        status: document.getElementById('adet-e-status')?.value || orig.status,
+        advancedStatus: document.getElementById('adet-e-adv-status')?.value || '',
+        tags: getTags(),
+        priority: document.getElementById('adet-e-priority')?.value || orig.priority,
+        complexity: document.getElementById('adet-e-complexity')?.value || orig.complexity,
+        commsObjectiveId: document.getElementById('adet-e-objective')?.value || '',
+        desiredOutcome: document.getElementById('adet-e-outcome')?.value || '',
+        kpiTarget: document.getElementById('adet-e-kpi')?.value || '',
+        timing: {
+            dueDate: document.getElementById('adet-e-due')?.value || '',
+            startDate: document.getElementById('adet-e-start')?.value || '',
+            predictedLength: document.getElementById('adet-e-length')?.value || ''
+        },
+        resourceRequirement: document.getElementById('adet-e-resource')?.value || '',
+        todos: getTodos(),
+        other: document.getElementById('adet-e-other')?.value || '',
+        privacy: document.querySelector('input[name="adet-priv"]:checked')?.value || orig.privacy,
+        versionControl: {
+            ...(orig.versionControl || {}),
+            currentVersion: nowStr,
+            recentProgress: document.getElementById('adet-e-progress')?.value || '',
+            currentBlockers: document.getElementById('adet-e-blockers')?.value || '',
+            lastEdited: nowStr,
+            whoEdited: 'Portal User',
+            dateCompleted: document.getElementById('adet-e-completed-check')?.checked
+                ? (document.getElementById('adet-e-completed-date')?.value || nowStr.split(' ')[0]) : ''
+        }
+    };
+
+    window.updateData('actions', actions);
+    window.closeActionDetailEdit();
+    renderActionDetail();
+};
+
+window.adetDelete = function() {
+    const id = window.currentActionId;
+    if (!id) return;
+    if (!confirm('Delete this action? This cannot be undone.')) return;
+    let actions = window.getData('actions') || [];
+    actions = actions.filter(x => x.id !== id);
+    window.updateData('actions', actions);
+    window.closeActionDetailEdit();
+    loadView('actions');
+};
 
 // ---- STRATEGY SPINE ----
 

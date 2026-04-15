@@ -1,0 +1,450 @@
+<!-- ============================================================
+     ACTION DETAIL PAGE — pages/action_detail.html
+     Loaded into #view-container in portal.html via fetch().
+     Renderer: renderActionDetail() in app.js
+============================================================ -->
+
+<!-- Header / Breadcrumb -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.75rem; flex-wrap:wrap; gap:1rem;">
+    <div>
+        <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.35rem; display:flex; align-items:center; gap:0.4rem;">
+            <span onclick="loadView('actions')" style="cursor:pointer; color:var(--energy-algae); font-weight:500;">Actions</span>
+            <span>›</span>
+            <span id="adet-breadcrumb"></span>
+        </div>
+        <h2 id="adet-title" style="margin:0; font-size:1.5rem;"></h2>
+    </div>
+    <div style="display:flex; align-items:center; gap:0.75rem;">
+        <span id="adet-status-badge" style="font-size:0.8rem; padding:0.3rem 0.9rem; border-radius:100px; border:1px solid; font-weight:600;"></span>
+        <button class="btn-secondary" onclick="loadView('actions')" style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.85rem;">
+            <span class="material-symbols-outlined" style="font-size:1rem;">arrow_back</span> Back
+        </button>
+        <button class="btn-primary" id="adet-edit-btn" onclick="window.openActionDetailEdit()" style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.85rem;">
+            <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit Action
+        </button>
+    </div>
+</div>
+
+<!-- Quick Meta Row -->
+<div style="display:flex; flex-wrap:wrap; gap:1.5rem; margin-bottom:2rem; padding:1rem 1.25rem; background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:12px; align-items:center;">
+    <div>
+        <div style="font-size:0.7rem; text-transform:uppercase; font-weight:700; color:var(--text-tertiary); letter-spacing:0.06em; margin-bottom:0.2rem;">Owner</div>
+        <div id="adet-owner" style="font-size:0.95rem; font-weight:600; color:var(--text-primary);"></div>
+    </div>
+    <div style="width:1px; height:30px; background:var(--border-subtle);"></div>
+    <div>
+        <div style="font-size:0.7rem; text-transform:uppercase; font-weight:700; color:var(--text-tertiary); letter-spacing:0.06em; margin-bottom:0.2rem;">Phase</div>
+        <div id="adet-phase" style="font-size:0.95rem; font-weight:600; color:var(--text-primary);"></div>
+    </div>
+    <div style="width:1px; height:30px; background:var(--border-subtle);"></div>
+    <div>
+        <div style="font-size:0.7rem; text-transform:uppercase; font-weight:700; color:var(--text-tertiary); letter-spacing:0.06em; margin-bottom:0.2rem;">Due Date</div>
+        <div id="adet-due" style="font-size:0.95rem; font-weight:600; color:var(--text-primary);"></div>
+    </div>
+    <div style="width:1px; height:30px; background:var(--border-subtle);"></div>
+    <div>
+        <div style="font-size:0.7rem; text-transform:uppercase; font-weight:700; color:var(--text-tertiary); letter-spacing:0.06em; margin-bottom:0.2rem;">Priority</div>
+        <div id="adet-priority" style="font-size:0.95rem; font-weight:600; color:var(--text-primary);"></div>
+    </div>
+    <div style="width:1px; height:30px; background:var(--border-subtle);"></div>
+    <div>
+        <div style="font-size:0.7rem; text-transform:uppercase; font-weight:700; color:var(--text-tertiary); letter-spacing:0.06em; margin-bottom:0.2rem;">Tags</div>
+        <div id="adet-tags" style="display:flex; gap:0.4rem; flex-wrap:wrap;"></div>
+    </div>
+    <div style="width:1px; height:30px; background:var(--border-subtle);"></div>
+    <div>
+        <div style="font-size:0.7rem; text-transform:uppercase; font-weight:700; color:var(--text-tertiary); letter-spacing:0.06em; margin-bottom:0.25rem;">Complexity</div>
+        <div id="adet-complexity" style="display:flex; gap:3px;"></div>
+    </div>
+</div>
+
+<!-- Main Content Grid -->
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; align-items:start;">
+
+    <!-- LEFT COLUMN -->
+    <div style="display:flex; flex-direction:column; gap:1.25rem;">
+
+        <!-- DEFINITION -->
+        <div class="adet-section">
+            <div class="adet-section-label">Definition</div>
+            <div class="adet-field">
+                <div class="adet-field-key">Description</div>
+                <div id="adet-description" class="adet-field-val"></div>
+            </div>
+            <div class="adet-field">
+                <div class="adet-field-key">Audience</div>
+                <div id="adet-audience" class="adet-field-val"></div>
+            </div>
+        </div>
+
+        <!-- IMPACT -->
+        <div class="adet-section">
+            <div class="adet-section-label">Impact</div>
+            <div class="adet-field">
+                <div class="adet-field-key">Comms Objective</div>
+                <div id="adet-objective" class="adet-field-val"></div>
+            </div>
+            <div class="adet-field">
+                <div class="adet-field-key">Advanced Status</div>
+                <div id="adet-advanced-status" class="adet-field-val"></div>
+            </div>
+            <div class="adet-field">
+                <div class="adet-field-key">Desired Outcome</div>
+                <div id="adet-desired-outcome" class="adet-field-val"></div>
+            </div>
+            <div class="adet-field">
+                <div class="adet-field-key">KPI / Success Metric</div>
+                <div id="adet-kpi" class="adet-field-val"></div>
+            </div>
+        </div>
+
+        <!-- OTHER + PRIVACY -->
+        <div class="adet-section">
+            <div class="adet-section-label">Other</div>
+            <div class="adet-field">
+                <div class="adet-field-key">Notes</div>
+                <div id="adet-other" class="adet-field-val"></div>
+            </div>
+            <div class="adet-field">
+                <div class="adet-field-key">Privacy</div>
+                <div id="adet-privacy" class="adet-field-val"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div style="display:flex; flex-direction:column; gap:1.25rem;">
+
+        <!-- LOGISTICS -->
+        <div class="adet-section">
+            <div class="adet-section-label">Logistics</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.75rem; margin-bottom:0.75rem;">
+                <div>
+                    <div class="adet-field-key" style="margin-bottom:0.2rem;">Start Date</div>
+                    <div id="adet-start-date" class="adet-field-val"></div>
+                </div>
+                <div>
+                    <div class="adet-field-key" style="margin-bottom:0.2rem;">Due Date</div>
+                    <div id="adet-due-date" class="adet-field-val"></div>
+                </div>
+                <div>
+                    <div class="adet-field-key" style="margin-bottom:0.2rem;">Est. Length</div>
+                    <div id="adet-length" class="adet-field-val"></div>
+                </div>
+            </div>
+            <div class="adet-field">
+                <div class="adet-field-key">Resource Requirement</div>
+                <div id="adet-resource" class="adet-field-val"></div>
+            </div>
+
+            <!-- To-Do List -->
+            <div style="margin-top:0.75rem;">
+                <div class="adet-field-key" style="margin-bottom:0.5rem;">To-Do</div>
+                <div id="adet-todos" style="display:flex; flex-direction:column; gap:0.4rem;"></div>
+            </div>
+
+            <!-- Prerequisites -->
+            <div style="margin-top:0.75rem;" id="adet-prereqs-section">
+                <div class="adet-field-key" style="margin-bottom:0.5rem;">Prerequisites</div>
+                <div id="adet-prereqs" style="display:flex; flex-direction:column; gap:0.35rem;"></div>
+            </div>
+        </div>
+
+        <!-- VERSION CONTROL -->
+        <div class="adet-section">
+            <div class="adet-section-label">Version Control</div>
+            <div style="display:flex; align-items:center; justify-content:center; font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.75rem; border:1px solid var(--border-subtle); border-radius:6px; padding:0.4rem;">
+                Current Version: <strong id="adet-vc-version" style="margin-left:0.4rem;"></strong>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.5rem;">
+                <div class="adet-field">
+                    <div class="adet-field-key">Most Recent Progress</div>
+                    <div id="adet-vc-progress" class="adet-field-val"></div>
+                </div>
+                <div class="adet-field">
+                    <div class="adet-field-key">Current Blockers</div>
+                    <div id="adet-vc-blockers" class="adet-field-val"></div>
+                </div>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:1rem; font-size:0.78rem; color:var(--text-secondary); padding-top:0.5rem; border-top:1px solid var(--border-subtle);">
+                <div>Task Created: <strong id="adet-vc-created"></strong></div>
+                <div>Last Edited: <strong id="adet-vc-edited"></strong></div>
+                <div>By: <span id="adet-vc-who" style="background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:100px; padding:0.1rem 0.6rem;"></span></div>
+                <div id="adet-vc-completed-row" style="display:none;">Completed: <strong id="adet-vc-completed"></strong></div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ============================================================
+     EDIT MODAL (self-contained in this page)
+============================================================ -->
+<div id="adet-modal-overlay" onclick="if(event.target===this)window.closeActionDetailEdit()"
+    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9000; overflow-y:auto; padding:2rem 1rem;">
+    <div style="background:var(--bg-app); border-radius:14px; max-width:620px; margin:0 auto; position:relative; font-size:0.875rem; color:var(--text-primary);">
+
+        <!-- Close -->
+        <button onclick="window.closeActionDetailEdit()" style="position:absolute; right:1rem; top:1rem; background:var(--text-tertiary); border:none; color:#fff; width:26px; height:26px; border-radius:50%; cursor:pointer; font-size:1rem; line-height:1; display:flex; align-items:center; justify-content:center; z-index:1;">×</button>
+
+        <!-- Breadcrumb inside modal -->
+        <div style="background:var(--bg-surface); border-radius:14px 14px 0 0; padding:0.75rem 1.5rem; font-size:0.8rem; color:var(--text-tertiary); border-bottom:1px solid var(--border-subtle);">
+            <span onclick="loadView('actions')" style="cursor:pointer; color:var(--energy-algae);">Actions</span>
+            <span style="margin:0 0.4rem;">›</span> [add / edit]
+        </div>
+
+        <div style="padding:1.5rem;">
+            <h3 style="margin:0 0 1.25rem 0; font-size:1.15rem;">Actions</h3>
+
+            <!-- DEFINITION -->
+            <div style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; padding:1.25rem; margin-bottom:1rem;">
+                <div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; color:var(--text-tertiary); text-align:center; margin-bottom:1rem; letter-spacing:0.08em;">Definition:</div>
+                <label class="adet-label">Action Title:</label>
+                <div style="position:relative; margin-bottom:1rem;">
+                    <input type="text" id="adet-e-title" style="width:100%; padding:0.5rem 2rem 0.5rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-family:inherit; font-size:0.875rem;">
+                    <span class="material-symbols-outlined" style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);font-size:0.9rem;color:var(--text-tertiary);">edit</span>
+                </div>
+                <label class="adet-label">Description:</label>
+                <div style="position:relative; margin-bottom:1rem;">
+                    <textarea id="adet-e-description" rows="3" style="width:100%; padding:0.5rem 2rem 0.5rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-family:inherit; font-size:0.875rem; resize:vertical;"></textarea>
+                    <span class="material-symbols-outlined" style="position:absolute;right:0.5rem;bottom:0.5rem;font-size:0.9rem;color:var(--text-tertiary);">edit</span>
+                </div>
+                <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:120px;">
+                        <label class="adet-label">Audience:</label>
+                        <button onclick="window.adetAddAudience()" class="btn-secondary" style="font-size:0.75rem; padding:0.2rem 0.6rem;"><span class="material-symbols-outlined" style="font-size:0.9rem;">add</span></button>
+                        <div id="adet-e-audience-chips" style="display:inline-flex; gap:0.4rem; flex-wrap:wrap; margin-left:0.5rem;"></div>
+                    </div>
+                    <div style="flex:1; min-width:160px;">
+                        <label class="adet-label">Owner(s):</label>
+                        <div style="display:flex; align-items:center; gap:0.4rem;">
+                            <button onclick="window.adetAddOwner()" class="btn-secondary" style="font-size:0.75rem; padding:0.2rem 0.6rem;"><span class="material-symbols-outlined" style="font-size:0.9rem;">add</span></button>
+                            <div id="adet-e-owner-chips" style="display:flex; gap:0.4rem; flex-wrap:wrap;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IMPACT -->
+            <div style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; padding:1.25rem; margin-bottom:1rem;">
+                <div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; color:var(--text-tertiary); text-align:center; margin-bottom:1rem; letter-spacing:0.08em;">Impact:</div>
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
+                    <label class="adet-label" style="white-space:nowrap; width:110px; margin:0;">Comms Objective:</label>
+                    <select id="adet-e-objective" style="flex:1; padding:0.4rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;"></select>
+                </div>
+                <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+                    <div style="flex:1; min-width:140px;">
+                        <label class="adet-label">Status:</label>
+                        <select id="adet-e-status" style="width:100%; padding:0.4rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                            <option>Pending</option><option>Planned</option><option>In Progress</option><option>Completed</option>
+                        </select>
+                    </div>
+                    <div style="flex:1; min-width:140px;">
+                        <label class="adet-label">Advanced Status note:</label>
+                        <input type="text" id="adet-e-adv-status" style="width:100%; padding:0.4rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                    </div>
+                </div>
+                <div style="margin-bottom:0.75rem;">
+                    <label class="adet-label">Tags:</label>
+                    <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-top:0.25rem;">
+                        <button onclick="window.adetToggleTag(this,'Financial')" class="adet-tag-btn" style="font-size:0.72rem; padding:0.2rem 0.7rem; border-radius:100px; border:1px solid var(--border-subtle); background:var(--bg-app); cursor:pointer; color:var(--text-secondary);">💰 Financial</button>
+                        <button onclick="window.adetToggleTag(this,'Comms')" class="adet-tag-btn" style="font-size:0.72rem; padding:0.2rem 0.7rem; border-radius:100px; border:1px solid var(--border-subtle); background:var(--bg-app); cursor:pointer; color:var(--text-secondary);">📡 Comms</button>
+                        <button onclick="window.adetToggleTag(this,'Legal')" class="adet-tag-btn" style="font-size:0.72rem; padding:0.2rem 0.7rem; border-radius:100px; border:1px solid var(--border-subtle); background:var(--bg-app); cursor:pointer; color:var(--text-secondary);">⚖️ Legal</button>
+                    </div>
+                </div>
+                <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+                    <div style="flex:1; min-width:120px;">
+                        <label class="adet-label">Priority:</label>
+                        <select id="adet-e-priority" style="width:100%; padding:0.35rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                            <option>ASAP</option><option>High</option><option>Medium</option><option>Low</option>
+                        </select>
+                    </div>
+                    <div style="flex:1; min-width:120px;">
+                        <label class="adet-label">Complexity: (1–5)</label>
+                        <select id="adet-e-complexity" style="width:100%; padding:0.35rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                            <option value="1">1 ★</option><option value="2">2 ★★</option><option value="3">3 ★★★</option><option value="4">4 ★★★★</option><option value="5">5 ★★★★★</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-bottom:0.5rem;">
+                    <label class="adet-label">Desired Outcome:</label>
+                    <div style="position:relative; margin-top:0.25rem;">
+                        <input type="text" id="adet-e-outcome" style="width:100%; padding:0.4rem 1.8rem 0.4rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                        <span class="material-symbols-outlined" style="position:absolute;right:0.4rem;top:50%;transform:translateY(-50%);font-size:0.8rem;color:var(--text-tertiary);">edit</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="adet-label">KPI / Success Metric:</label>
+                    <div style="position:relative; margin-top:0.25rem;">
+                        <input type="text" id="adet-e-kpi" placeholder='e.g. "Mayor interest +10%"' style="width:100%; padding:0.4rem 1.8rem 0.4rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                        <span class="material-symbols-outlined" style="position:absolute;right:0.4rem;top:50%;transform:translateY(-50%);font-size:0.8rem;color:var(--text-tertiary);">edit</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LOGISTICS -->
+            <div style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; padding:1.25rem; margin-bottom:1rem;">
+                <div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; color:var(--text-tertiary); text-align:center; margin-bottom:1rem; letter-spacing:0.08em;">Logistics:</div>
+                <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+                    <div style="flex:1; min-width:130px;">
+                        <label class="adet-label">Due Date:</label>
+                        <input type="date" id="adet-e-due" style="width:100%; padding:0.4rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                    </div>
+                    <div style="flex:1; min-width:130px;">
+                        <label class="adet-label">Start Date:</label>
+                        <input type="date" id="adet-e-start" style="width:100%; padding:0.4rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                    </div>
+                    <div style="flex:1; min-width:130px;">
+                        <label class="adet-label">Predicted Length:</label>
+                        <input type="text" id="adet-e-length" placeholder="e.g. 3 weeks" style="width:100%; padding:0.4rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                    </div>
+                </div>
+                <div style="margin-bottom:0.75rem;">
+                    <label class="adet-label">Resource Requirement:</label>
+                    <input type="text" id="adet-e-resource" placeholder="money, time, political capital" style="width:100%; margin-top:0.25rem; padding:0.4rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                </div>
+
+                <!-- To-Do -->
+                <div style="margin-bottom:0.5rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                        <label class="adet-label" style="margin:0;">To-Do:</label>
+                        <button onclick="window.adetAddTodo()" class="btn-secondary" style="font-size:0.7rem; padding:0.15rem 0.5rem; display:flex; align-items:center; gap:0.2rem;"><span class="material-symbols-outlined" style="font-size:0.8rem;">add</span></button>
+                    </div>
+                    <div id="adet-e-todos" style="display:flex; flex-direction:column; gap:0.4rem;"></div>
+                </div>
+
+                <!-- Prerequisites -->
+                <div>
+                    <label class="adet-label">Prerequisites:</label>
+                    <div id="adet-e-prereqs" style="display:flex; flex-direction:column; gap:0.35rem; margin-top:0.25rem; font-size:0.8rem; color:var(--text-secondary);"></div>
+                </div>
+            </div>
+
+            <!-- VERSION CONTROL -->
+            <div style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; padding:1.25rem; margin-bottom:1rem;">
+                <div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; color:var(--text-tertiary); text-align:center; margin-bottom:0.75rem; letter-spacing:0.08em;">Version Control:</div>
+                <div id="adet-e-vc-meta" style="text-align:center; font-size:0.78rem; color:var(--text-tertiary); margin-bottom:0.75rem;"></div>
+                <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:0.5rem;">
+                    <div style="flex:1; min-width:140px;">
+                        <label class="adet-label">Most Recent Progress:</label>
+                        <textarea id="adet-e-progress" rows="2" style="width:100%; margin-top:0.25rem; padding:0.35rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:4px; font-size:0.8rem; resize:none;"></textarea>
+                    </div>
+                    <div style="flex:1; min-width:140px;">
+                        <label class="adet-label">Current Blockers:</label>
+                        <textarea id="adet-e-blockers" rows="2" style="width:100%; margin-top:0.25rem; padding:0.35rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:4px; font-size:0.8rem; resize:none;"></textarea>
+                    </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; font-size:0.8rem; padding-top:0.5rem; border-top:1px solid var(--border-subtle);">
+                    <label style="display:flex; align-items:center; gap:0.3rem; cursor:pointer;">
+                        <input type="checkbox" id="adet-e-completed-check"> Completed:
+                    </label>
+                    <input type="date" id="adet-e-completed-date" style="padding:0.2rem 0.4rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:4px; font-size:0.78rem;">
+                </div>
+            </div>
+
+            <!-- OTHER -->
+            <div style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; padding:1.25rem; margin-bottom:1rem;">
+                <div style="display:flex; gap:0.75rem;">
+                    <div style="flex:1;">
+                        <label class="adet-label">Other notes:</label>
+                        <textarea id="adet-e-other" rows="2" style="width:100%; margin-top:0.25rem; padding:0.4rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem; resize:none;"></textarea>
+                    </div>
+                </div>
+                <div style="margin-top:0.75rem;">
+                    <label class="adet-label">Privacy:</label>
+                    <div style="display:flex; gap:0.75rem; margin-top:0.3rem; flex-wrap:wrap; font-size:0.8rem;">
+                        <label style="display:flex; align-items:center; gap:0.3rem; cursor:pointer;"><input type="radio" name="adet-priv" value="Public/Official"> Public/Official</label>
+                        <label style="display:flex; align-items:center; gap:0.3rem; cursor:pointer;"><input type="radio" name="adet-priv" value="Attendees"> Attendees</label>
+                        <label style="display:flex; align-items:center; gap:0.3rem; cursor:pointer;"><input type="radio" name="adet-priv" value="Restricted"> Restricted</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div style="display:flex; justify-content:space-between; align-items:center; padding-top:0.5rem;">
+                <div style="display:flex; gap:0.5rem;">
+                    <button class="btn-secondary" onclick="window.closeActionDetailEdit()">Close</button>
+                    <button class="btn-secondary" onclick="window.adetRevert()">Revert changes</button>
+                </div>
+                <div style="display:flex; gap:0.5rem;">
+                    <button class="btn-primary" style="background:#ef4444; border-color:#ef4444;" onclick="window.adetDelete()">Delete</button>
+                    <button class="btn-primary" onclick="window.adetSave()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.adet-section {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 1.25rem;
+}
+.adet-section-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-align: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--border-subtle);
+}
+.adet-field {
+    margin-bottom: 0.75rem;
+}
+.adet-field:last-child { margin-bottom: 0; }
+.adet-field-key {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    margin-bottom: 0.25rem;
+}
+.adet-field-val {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+.adet-field-val:empty::after { content: '—'; color: var(--text-tertiary); font-style: italic; }
+.adet-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    margin-bottom: 0.2rem;
+}
+.adet-tag-btn.active {
+    background: var(--energy-algae) !important;
+    color: #fff !important;
+    border-color: var(--energy-algae) !important;
+}
+.adet-todo-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.87rem;
+    color: var(--text-secondary);
+    padding: 0.35rem 0.5rem;
+    border-radius: 6px;
+    background: var(--bg-app);
+    border: 1px solid var(--border-subtle);
+}
+.adet-prereq-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    padding: 0.3rem 0.5rem;
+    border-radius: 6px;
+    background: var(--bg-app);
+    border: 1px solid var(--border-subtle);
+}
+</style>
