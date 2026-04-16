@@ -289,53 +289,69 @@ const mockData = {
         { id: 103, type: "Signal", title: "Policy Change Rumor", date: "2023-10-26", notes: "Heard rumors of new waste regulations.", attendees: "N/A", status: "Investigating" },
         { id: 104, type: "Meeting", title: "Partnership Kickoff", date: "2023-10-26", notes: "Kickoff with Green Initiative.", attendees: "Emily, Jessica", status: "Scheduled" }
     ],
-    // ACTIONS (Expanded with full data schema)
+    // ACTIONS (Expanded with full data schema v19)
     actions: [
         {
             id: "996cc5e6-a6f9-487e-8132-fb22b23d18bc",
             activity: "Stakeholder Messaging Toolkit",
-            description: "Create a toolkit to have easy messaging to stakeholders",
+            description: "Create a comprehensive toolkit providing clear, concise and repeatable messaging for stakeholders. This should cover core project benefits, risk mitigation, and responses to common objections.",
             owner: "Vant",
-            audience: [],
+            audience: ["City of Greater Bendigo (CoGB)", "Surrounding Councils", "Local Business Groups"],
             status: "Pending",
             advancedStatus: "At Risk",
-            tags: ["Comms"],
+            tags: ["Comms", "Strategy"],
             priority: "ASAP",
             complexity: "3",
             phase: "Phase 1",
             commsObjectiveId: "obj2",
-            desiredOutcome: "Stakeholders have clear, consistent messaging they can use.",
+            desiredOutcome: "Stakeholders have clear, consistent messaging they can use when asked about the project.",
+            desiredOutcomeType: "stakeholder_posture",
+            desiredOutcomeStakeholderId: "sh1",
+            desiredPosture: "Strong advocate",
+            successCriteria: "Toolkit delivered to all key stakeholders. At least 3 council reps can independently articulate the core project benefits.",
             kpiTarget: "Toolkit delivered and distributed",
             assetIds: [],
-            stakeholderPosture: "",
             timing: {
+                granularity: "month",
                 dueDate: "2026-03-01",
+                dueDateDisplay: "March 2026",
+                dueDetail: "Ideally delivered before end-of-month Council meeting",
                 startDate: "2026-02-10",
+                predecessorActions: [],
                 predictedLength: "3 weeks"
             },
-            resourceRequirement: "Design time + copywriting",
+            resourceRequirement: "Design time (~20hrs) + copywriting (~8hrs) + printing costs ($400-$600 est.)",
             todos: [
                 { id: "t1", completed: false, detail: "Draft core messaging pillars" },
-                { id: "t2", completed: false, detail: "Review with AET team" }
+                { id: "t2", completed: false, detail: "Review with AET team" },
+                { id: "t3", completed: false, detail: "Finalise design & layout" },
+                { id: "t4", completed: false, detail: "Distribute to stakeholder contacts" }
             ],
             prerequisites: [],
             versionControl: {
                 currentVersion: "24/03/26 17:40",
-                recentProgress: "",
-                currentBlockers: "",
+                recentProgress: "Messaging structure drafted — awaiting sign-off from Matt.",
+                currentBlockers: "Pending AET sign-off on core messaging pillars before design can begin.",
                 taskCreated: "24/03/26 17:38",
                 lastEdited: "24/03/26 17:40",
                 whoEdited: "Sarah Evans",
                 highlightChanges: false,
-                dateCompleted: ""
+                dateCompleted: "",
+                previousVersions: [
+                    { version: "24/03/26 17:38", note: "Task created", who: "Sarah Evans" }
+                ]
             },
-            other: "",
-            privacy: "Public/Official"
+            other: "Consider coordinating timing with Council Exec Briefings to avoid messaging overlap.",
+            privacy: {
+                level: "attendees",
+                customViewers: [],
+                customEditors: []
+            }
         },
         {
             id: "ce26e0fe-c915-455a-a934-75bed1df828a",
             activity: "Council Exec Briefings (CoGB)",
-            description: "-",
+            description: "Coordinate and facilitate a series of executive briefings with City of Greater Bendigo council leadership to align on project scope, timeline and benefits.",
             owner: "AET",
             audience: ["City of Greater Bendigo (CoGB)"],
             status: "Planned",
@@ -345,30 +361,51 @@ const mockData = {
             complexity: "4",
             phase: "Phase 1",
             commsObjectiveId: "obj1",
-            desiredOutcome: "Council executives briefed and aligned.",
+            desiredOutcome: "Council executives briefed, aligned and actively supportive of the project proceeding to next phase.",
+            desiredOutcomeType: "stakeholder_posture",
+            desiredOutcomeStakeholderId: "sh2",
+            desiredPosture: "Champion",
+            successCriteria: "Briefing completed with documented next steps agreed. Council exec rep agrees to co-present at community meeting.",
             kpiTarget: "Briefing completed; next steps agreed",
             assetIds: [],
-            stakeholderPosture: "",
             timing: {
+                granularity: "day",
                 dueDate: "2026-03-15",
+                dueDateDisplay: "15 Mar 2026",
+                dueDetail: "",
                 startDate: "2026-02-20",
+                predecessorActions: ["996cc5e6-a6f9-487e-8132-fb22b23d18bc"],
                 predictedLength: "4 weeks"
             },
-            resourceRequirement: "Meeting facilitation + presentation materials",
-            todos: [],
-            prerequisites: [],
+            resourceRequirement: "Meeting facilitation (~4hrs/session x 3 sessions) + presentation materials preparation (~12hrs)",
+            todos: [
+                { id: "t1", completed: true, detail: "Confirm exec contact at CoGB" },
+                { id: "t2", completed: true, detail: "Book initial meeting" },
+                { id: "t3", completed: false, detail: "Prepare briefing deck" },
+                { id: "t4", completed: false, detail: "Conduct briefing session 1" },
+                { id: "t5", completed: false, detail: "Follow up with agreed actions" }
+            ],
+            prerequisites: ["996cc5e6-a6f9-487e-8132-fb22b23d18bc"],
             versionControl: {
                 currentVersion: "14/03/26 09:00",
-                recentProgress: "Initial meeting booked",
-                currentBlockers: "Awaiting council calendar confirmation",
+                recentProgress: "Initial meeting booked for 20th March. Briefing deck structure agreed.",
+                currentBlockers: "Awaiting council calendar confirmation for sessions 2 & 3.",
                 taskCreated: "10/02/26 10:00",
                 lastEdited: "14/03/26 09:00",
                 whoEdited: "Matt Griffin",
                 highlightChanges: false,
-                dateCompleted: ""
+                dateCompleted: "",
+                previousVersions: [
+                    { version: "10/02/26 10:00", note: "Task created", who: "Matt Griffin" },
+                    { version: "01/03/26 14:30", note: "Status updated to Planned", who: "Sarah Evans" }
+                ]
             },
             other: "",
-            privacy: "Restricted"
+            privacy: {
+                level: "restricted",
+                customViewers: ["Matt Griffin", "Sarah Evans"],
+                customEditors: ["Matt Griffin"]
+            }
         },
         {
             id: "e4bd8482-852c-4107-8a1d-608101c5c5bb",
@@ -617,7 +654,7 @@ const mockData = {
 
 // Simulate local storage persistence
 // Bumping to v17 to ensure new structure loads (FRESH LOAD)
-const CACHE_VERSION = 'v18';
+const CACHE_VERSION = 'v19';
 if (!localStorage.getItem(CACHE_VERSION)) {
     localStorage.setItem(CACHE_VERSION, JSON.stringify(mockData));
 }

@@ -1258,6 +1258,40 @@ window.deleteCurrentAction = function() {
 
 // ---- ACTION DETAIL VIEW ----
 
+// ── Shared helpers ──────────────────────────────────────────────────
+
+function _adetGetPrivacyLevel(a) {
+    if (a.privacy && typeof a.privacy === 'object') return a.privacy.level || 'public';
+    if (typeof a.privacy === 'string') {
+        const map = { 'Public/Official':'public', 'Attendees':'attendees', 'Restricted':'restricted', 'Custom':'custom' };
+        return map[a.privacy] || 'public';
+    }
+    return 'public';
+}
+
+function _adetPrivacyMeta(level) {
+    return {
+        public:    { icon:'🌐', label:'Public / Official',  desc:'Visible to all team members' },
+        attendees: { icon:'👥', label:'Attendees',           desc:'All linked audience members' },
+        restricted:{ icon:'🔒', label:'Restricted',          desc:'Admin + creator only' },
+        custom:    { icon:'⚙️', label:'Advanced / Custom',   desc:'Custom viewer/editor list' },
+    }[level] || { icon:'🌐', label:'Public / Official', desc:'' };
+}
+
+const _adetStatusColors = {
+    'Pending':     { bg:'rgba(148,163,184,0.15)', color:'#64748b', border:'#94a3b8' },
+    'Planned':     { bg:'rgba(129,140,248,0.15)', color:'#6366f1', border:'#818cf8' },
+    'In Progress': { bg:'rgba(96,165,250,0.15)',  color:'#3b82f6', border:'#60a5fa' },
+    'Completed':   { bg:'rgba(52,211,153,0.15)',  color:'#059669', border:'#34d399' },
+};
+const _adetPriorityColors = {
+    'ASAP':   { bg:'#ef4444', text:'#fff' }, 'High':   { bg:'#f97316', text:'#fff' },
+    'Medium': { bg:'#f59e0b', text:'#fff' }, 'Low':    { bg:'#64748b', text:'#fff' },
+};
+const _adetOwnerColors = { 'Vant':'#ef4444','AET':'#3b82f6','AET + Vant':'#8b5cf6' };
+
+// ── Read-only renderer ───────────────────────────────────────────────
+
 function renderActionDetail() {
     const id = window.currentActionId;
     const actions = window.getData('actions') || [];
@@ -1269,8 +1303,734 @@ function renderActionDetail() {
         return;
     }
 
-    // Populate objective dropdown in edit modal
+    const txt = (elId, val) => { const el = document.getElementById(elId); if (el) el.textContent = val || '—'; };
+    const html = (elId, val) => { const el = document.getElementById(elId); if (el) el.innerHTML = val || ''; };
+    const show = (elId, vis) => { const el = document.getElementById(elId); if (el) el.style.display = vis ? '' : 'none'; };
+
+    // ── Header ──
+    const bname = document.getElementById('adet-breadcrumb');
+    if (bname) bname.textContent = a.activity;
+    txt('adet-title', a.activity);
+
+    const sc = _adetStatusColors[a.status] || _adetStatusColors['Pending'];
+    const badge = document.getElementById('adet-status-badge');
+    if (badge) {
+        badge.textContent = a.status || '—';
+        badge.style.color = sc.color; badge.style.background = sc.bg; badge.style.borderColor = sc.border;
+    }
+
+    // ── Definition ──
+    txt('adet-description', a.description);
+
+    const audEl = document.getElementById('adet-audience');
+    if (audEl) {
+        const aud = a.audience || [];
+        audEl.innerHTML = aud.length > 0
+            ? aud.map(s => `<span class="adet-audience-chip">🏛 ${s}</span>`).join('')
+            : '<span class="adet-chip-empty">No audience linked</span>';
+    }
+
+    const ownEl = document.getElementById('adet-owner-chips');
+    if (ownEl) {
+        const owners = a.owner ? a.owner.split('+').map(o=>o.trim()).filter(Boolean) : [];
+        ownEl.innerHTML = owners.length > 0
+            ? owners.map(o => {
+                const clr = _adetOwnerColors[o] || '#6b7280';
+                return `<span class="adet-owner-chip" style="background:${clr};">👤 ${o}</span>`;
+              }).join('')
+            : '<span class="adet-chip-empty">—</span>';
+    }
+
+    // ── Impact: Objective link ──
+    const spine = window.getData('spine');
+    const obj = (spine?.objectives||[]).find(o => o.id === a.commsObjectiveId);
+    const objEl = document.getElementById('adet-objective-link');
+    if (objEl) {
+        if (obj) {
+            objEl.innerHTML = `<span style="font-size:1.1rem;">🎯</span> <span style="flex:1;">${obj.text}</span> <span class="material-symbols-outlined" style="font-size:0.9rem;color:var(--text-tertiary);flex-shrink:0;">open_in_new</span>`;
+            objEl.title = 'View Strategy Spine';
+            objEl.onclick = () => loadView('strategy_spine');
+        } else {
+            objEl.innerHTML = '<span class="adet-obj-none">No comms objective linked</span>';
+            objEl.style.pointerEvents = 'none';
+        }
+    }
+
+    // ── Status pills ──
+    const pillsEl = document.getElementById('adet-status-selector');
+    if (pillsEl) {
+        const statuses = ['Pending','Planned','In Progress','Completed'];
+        pillsEl.innerHTML = statuses.map(s => {
+            const sCol = _adetStatusColors[s];
+            const isActive = s === a.status;
+            return `<span class="adet-status-pill-ro${isActive?' active':''}"
+                style="${isActive?`color:${sCol.color};background:${sCol.bg};border-color:${sCol.border};`:''}">
+                ${s}
+            </span>`;
+        }).join('');
+    }
+
+    // ── Priority ──
+    const priEl = document.getElementById('adet-priority-pill');
+    if (priEl && a.priority) {
+        const pc = _adetPriorityColors[a.priority] || {bg:'#64748b',text:'#fff'};
+        priEl.innerHTML = `<span class="adet-priority-pill" style="background:${pc.bg};color:${pc.text};">${a.priority}</span>`;
+    }
+
+    // ── Complexity dots ──
+    const cplxEl = document.getElementById('adet-complexity-dots');
+    if (cplxEl) {
+        const n = parseInt(a.complexity || 0);
+        cplxEl.innerHTML = Array.from({length:5}).map((_,i) =>
+            `<span class="adet-complexity-dot" style="background:${i<n?'#6366f1':'var(--border-subtle)'};" title="${i+1}/5"></span>`
+        ).join('');
+    }
+
+    // ── Tags ──
+    const tagsEl = document.getElementById('adet-tags');
+    if (tagsEl) {
+        tagsEl.innerHTML = (a.tags||[]).length > 0
+            ? (a.tags||[]).map(t => `<span class="adet-tag-chip">${t}</span>`).join('')
+            : '<span class="adet-chip-empty">No tags</span>';
+    }
+
+    // ── Advanced Status note ──
+    const advRow = document.getElementById('adet-adv-status-row');
+    if (advRow && a.advancedStatus) {
+        advRow.style.display = 'flex';
+        const isWarn = /risk|block|delay|urgent/i.test(a.advancedStatus);
+        advRow.style.background = isWarn ? 'rgba(239,68,68,0.08)' : 'rgba(251,191,36,0.1)';
+        advRow.style.color = isWarn ? '#ef4444' : '#b45309';
+        advRow.style.border = `1px solid ${isWarn?'rgba(239,68,68,0.25)':'rgba(251,191,36,0.25)'}`;
+        advRow.innerHTML = `<span class="material-symbols-outlined" style="font-size:1rem;">${isWarn?'warning':'info'}</span> ${a.advancedStatus}`;
+    } else if (advRow) advRow.style.display = 'none';
+
+    // ── Desired Outcome ──
+    const typeLabels = { text:'Free text', asset:'Asset', stakeholder_posture:'Stakeholder posture' };
+    const typePill = document.getElementById('adet-outcome-type-pill');
+    if (typePill) typePill.textContent = typeLabels[a.desiredOutcomeType] || 'Free text';
+    txt('adet-desired-outcome', a.desiredOutcome);
+
+    const linkedItem = document.getElementById('adet-outcome-linked-item');
+    if (linkedItem) {
+        if (a.desiredOutcomeType === 'stakeholder_posture' && a.desiredPosture) {
+            linkedItem.style.display = 'flex';
+            const sh = (window.getData('stakeholders')||[]).find(s=>s.id===a.desiredOutcomeStakeholderId);
+            linkedItem.innerHTML = `<span class="material-symbols-outlined" style="font-size:1rem;color:var(--energy-algae);">person</span>
+                <span>Stakeholder: <strong>${sh?.name||'—'}</strong></span>
+                <span style="margin-left:0.5rem;">→ Desired posture: <strong style="color:var(--energy-algae);">${a.desiredPosture}</strong></span>`;
+        } else if (a.desiredOutcomeType === 'asset' && a.desiredOutcomeAsset) {
+            linkedItem.style.display = 'flex';
+            linkedItem.innerHTML = `<span class="material-symbols-outlined" style="font-size:1rem;color:#6366f1;">attach_file</span>
+                <span>Asset: <strong>${a.desiredOutcomeAsset}</strong></span>`;
+        } else linkedItem.style.display = 'none';
+    }
+
+    // ── Success Criteria ──
+    txt('adet-success-criteria', a.successCriteria || a.kpiTarget);
+
+    // ── Logistics: Due Date ──
+    const granLabels = { month:'Month', week:'Week', day:'Day', datetime:'Day + Time' };
+    const gran = a.timing?.granularity || 'day';
+    const granPill = document.getElementById('adet-granularity-pill');
+    if (granPill) granPill.textContent = granLabels[gran] || 'Day';
+
+    let dueDisplay = '—';
+    if (a.timing?.dueDateDisplay) {
+        dueDisplay = a.timing.dueDateDisplay;
+    } else if (a.timing?.dueDate) {
+        const d = new Date(a.timing.dueDate + 'T00:00:00');
+        if (gran === 'month') dueDisplay = d.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+        else dueDisplay = d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    }
+    txt('adet-due-display', dueDisplay);
+
+    const dueDetailEl = document.getElementById('adet-due-detail');
+    if (dueDetailEl) {
+        const dd = a.timing?.dueDetail;
+        dueDetailEl.textContent = dd || '';
+        dueDetailEl.style.display = dd ? '' : 'none';
+    }
+
+    // ── Advanced Timing ──
+    const startDateEl = document.getElementById('adet-start-date');
+    if (startDateEl && a.timing?.startDate) {
+        const sd = new Date(a.timing.startDate + 'T00:00:00');
+        startDateEl.textContent = sd.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    } else if (startDateEl) startDateEl.textContent = '—';
+
+    txt('adet-predicted-length', a.timing?.predictedLength);
+
+    const predEl = document.getElementById('adet-predecessor-actions');
+    if (predEl) {
+        const preds = a.timing?.predecessorActions || a.prerequisites || [];
+        if (preds.length > 0) {
+            const allActs = window.getData('actions') || [];
+            predEl.innerHTML = preds.map(pid => {
+                const pa = allActs.find(x => x.id === pid);
+                return `<span class="adet-predecessor-chip"><span class="material-symbols-outlined" style="font-size:0.8rem;">arrow_right_alt</span>${pa?.activity||pid}</span>`;
+            }).join('');
+        } else predEl.innerHTML = '<span class="adet-chip-empty">None</span>';
+    }
+
+    // ── Resource Requirement ──
+    txt('adet-resource', a.resourceRequirement);
+
+    // ── To-Do List ──
+    const todos = a.todos || [];
+    const done = todos.filter(t=>t.completed).length;
+    const pct = todos.length > 0 ? Math.round((done/todos.length)*100) : 0;
+    const progText = document.getElementById('adet-todo-progress-text');
+    if (progText) progText.textContent = todos.length > 0 ? `${done}/${todos.length} complete — ${pct}%` : 'No items';
+    const progFill = document.getElementById('adet-todo-progress-fill');
+    if (progFill) progFill.style.width = pct + '%';
+    const todosEl = document.getElementById('adet-todos');
+    if (todosEl) {
+        todosEl.innerHTML = todos.length > 0
+            ? todos.map(t => `<div class="adet-todo-item${t.completed?' done':''}">
+                <span class="material-symbols-outlined adet-todo-check" style="color:${t.completed?'var(--energy-algae)':'var(--text-tertiary)'};">
+                    ${t.completed?'check_box':'check_box_outline_blank'}
+                </span>
+                <span style="text-decoration:${t.completed?'line-through':'none'};flex:1;">${t.detail||''}</span>
+              </div>`).join('')
+            : '<span class="adet-chip-empty" style="padding:0.5rem 0;">No to-do items added.</span>';
+    }
+
+    // ── Version Control ──
+    const vc = a.versionControl || {};
+    txt('adet-vc-version', vc.currentVersion || '—');
+    txt('adet-vc-created', vc.taskCreated || '—');
+    txt('adet-vc-edited', vc.lastEdited || '—');
+    txt('adet-vc-who', vc.whoEdited || '—');
+
+    const compPill = document.getElementById('adet-vc-completed-pill');
+    if (compPill) {
+        if (vc.dateCompleted) {
+            compPill.style.display = 'block';
+            compPill.textContent = `✓ Completed ${vc.dateCompleted}`;
+        } else compPill.style.display = 'none';
+    }
+
+    txt('adet-vc-progress', vc.recentProgress || '—');
+    txt('adet-vc-blockers', vc.currentBlockers || '—');
+
+    // Previous versions timeline
+    const prevEl = document.getElementById('adet-vc-prev-versions');
+    if (prevEl) {
+        const versions = vc.previousVersions || [];
+        const allVersions = [...versions, { version: vc.currentVersion, note: 'Current version', who: vc.whoEdited }];
+        prevEl.innerHTML = allVersions.reverse().map((v, i) => `
+            <div class="adet-vc-prev-item${i===0?' latest':''}">
+                <div class="adet-vc-prev-dot"></div>
+                <div>
+                    <div style="font-weight:600;color:var(--text-primary);">${v.version||'—'} ${i===0?'<span style="font-size:0.7rem;color:var(--energy-algae);font-weight:700;">(current)</span>':''}</div>
+                    <div>${v.note||''} ${v.who?`— by ${v.who}`:''}</div>
+                </div>
+            </div>`).join('');
+    }
+
+    // ── Other ──
+    txt('adet-other', a.other || '—');
+
+    // ── Privacy ──
+    const privLevel = _adetGetPrivacyLevel(a);
+    const privDisplay = document.getElementById('adet-privacy-display');
+    if (privDisplay) {
+        const levels = ['public','attendees','restricted','custom'];
+        const pm = _adetPrivacyMeta;
+        privDisplay.innerHTML = levels.map(lv => {
+            const m = pm(lv);
+            return `<div class="adet-privacy-opt-ro${lv===privLevel?' active':''}">
+                <span>${m.icon}</span>
+                <div>
+                    <div style="font-size:0.82rem;font-weight:600;">${m.label}</div>
+                    <div style="font-size:0.72rem;">${m.desc}</div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    const customDiv = document.getElementById('adet-privacy-custom-display');
+    if (customDiv) {
+        if (privLevel === 'custom' && typeof a.privacy === 'object') {
+            customDiv.style.display = 'block';
+            const viewers = (a.privacy.customViewers||[]).join(', ') || '—';
+            const editors = (a.privacy.customEditors||[]).join(', ') || '—';
+            customDiv.innerHTML = `
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                    <div><div class="adet-fl" style="margin-bottom:0.3rem;">Can view</div><div style="font-size:0.85rem;">${viewers}</div></div>
+                    <div><div class="adet-fl" style="margin-bottom:0.3rem;">Can edit</div><div style="font-size:0.85rem;">${editors}</div></div>
+                </div>`;
+        } else customDiv.style.display = 'none';
+    }
+
+    // Populate the objective dropdown in modal (now that DOM exists)
+    _adetPopulateObjectiveSelect();
+    _adetPopulateStakeholderSelect();
+}
+
+// ── Modal helpers ────────────────────────────────────────────────────
+
+function _adetPopulateObjectiveSelect() {
     const sel = document.getElementById('adet-e-objective');
+    if (!sel) return;
+    const spine = window.getData('spine');
+    sel.innerHTML = '<option value="">— No objective linked —</option>';
+    (spine?.objectives||[]).forEach(o => {
+        sel.innerHTML += `<option value="${o.id}">🎯 ${o.text.length>55?o.text.substring(0,52)+'...':o.text}</option>`;
+    });
+}
+
+function _adetPopulateStakeholderSelect() {
+    const sel = document.getElementById('adet-e-outcome-stakeholder');
+    if (!sel) return;
+    const stakeholders = window.getData('stakeholders') || [];
+    sel.innerHTML = '<option value="">— Select stakeholder —</option>';
+    stakeholders.forEach(s => { sel.innerHTML += `<option value="${s.id}">${s.name}</option>`; });
+}
+
+function _adetMakeEditChip(label, removeId) {
+    return `<span class="adet-edit-chip" id="${removeId}">
+        ${label}
+        <span class="adet-edit-chip-x" onclick="this.closest('span').remove()">×</span>
+    </span>`;
+}
+
+function _adetMakeEditTodoRow(id, completed, detail) {
+    return `<div style="display:flex;align-items:center;gap:0.5rem;" id="adet-todo-e-${id}">
+        <input type="checkbox" ${completed?'checked':''} style="flex-shrink:0;cursor:pointer;width:16px;height:16px;">
+        <input type="text" value="${(detail||'').replace(/"/g,'&quot;')}" placeholder="To-do item…"
+            style="flex:1;padding:0.3rem 0.55rem;border:1px solid var(--border-subtle);background:var(--bg-app);color:var(--text-primary);border-radius:5px;font-size:0.82rem;font-family:inherit;">
+        <button onclick="document.getElementById('adet-todo-e-${id}').remove()"
+            style="background:#ef4444;border:none;color:#fff;width:22px;height:22px;border-radius:4px;cursor:pointer;font-size:0.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">−</button>
+    </div>`;
+}
+
+// ── window.openActionDetailEdit ──────────────────────────────────────
+
+window.openActionDetailEdit = function() {
+    const id = window.currentActionId;
+    if (!id) return;
+    const actions = window.getData('actions') || [];
+    const a = actions.find(x => x.id === id);
+    if (!a) return;
+    window._adetOriginal = JSON.parse(JSON.stringify(a));
+
+    _adetPopulateObjectiveSelect();
+    _adetPopulateStakeholderSelect();
+
+    const set = (elId, v) => { const el = document.getElementById(elId); if (el) el.value = v || ''; };
+
+    // Modal title
+    const mt = document.getElementById('adet-modal-title-display');
+    if (mt) mt.textContent = a.activity;
+
+    // Definition
+    set('adet-e-title', a.activity);
+    set('adet-e-description', a.description);
+
+    // Audience chips
+    const audEl = document.getElementById('adet-e-audience-chips');
+    if (audEl) audEl.innerHTML = (a.audience||[]).map((aud,i) => _adetMakeEditChip('🏛 '+aud, 'aud-chip-'+i)).join('');
+
+    // Owner chips
+    const ownEl = document.getElementById('adet-e-owner-chips');
+    if (ownEl) {
+        const owners = a.owner ? a.owner.split('+').map(o=>o.trim()).filter(Boolean) : [];
+        ownEl.innerHTML = owners.map((o,i) => {
+            const clr = _adetOwnerColors[o]||'#6b7280';
+            return `<span class="adet-edit-chip" id="own-chip-${i}" style="background:${clr};color:#fff;border-color:${clr};">👤 ${o}<span class="adet-edit-chip-x" onclick="this.closest('span').remove()">×</span></span>`;
+        }).join('');
+    }
+
+    // Objective
+    set('adet-e-objective', a.commsObjectiveId);
+
+    // Status segmented control
+    document.querySelectorAll('#adet-e-status-seg .adet-seg-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.status === a.status);
+    });
+
+    set('adet-e-adv-status', a.advancedStatus);
+    set('adet-e-priority', a.priority || 'Medium');
+    window._adetComplexity = parseInt(a.complexity || 3);
+    _adetRefreshStars();
+
+    // Tags — preset buttons
+    document.querySelectorAll('.adet-tag-preset-btn').forEach(btn => {
+        const tag = btn.textContent.trim().replace(/^[^\s]+\s/,'').trim();
+        btn.classList.toggle('active', (a.tags||[]).some(t=>t.trim()===tag));
+    });
+    // Custom tags (non-preset)
+    const presets = ['Comms','Financial','Legal','Strategy'];
+    const customTags = (a.tags||[]).filter(t => !presets.includes(t.trim()));
+    const tagChipsEl = document.getElementById('adet-e-tag-chips');
+    if (tagChipsEl) tagChipsEl.innerHTML = customTags.map((t,i) => _adetMakeEditChip(t,'ctag-'+i)).join('');
+
+    // Desired Outcome type
+    const typeVal = a.desiredOutcomeType || 'text';
+    document.querySelectorAll('input[name="adet-outcome-type"]').forEach(r => { r.checked = r.value===typeVal; });
+    window.adetOutcomeTypeChanged();
+    set('adet-e-outcome', a.desiredOutcome);
+    const sh = document.getElementById('adet-e-outcome-stakeholder');
+    if (sh) sh.value = a.desiredOutcomeStakeholderId || '';
+    set('adet-e-outcome-posture', a.desiredPosture);
+    set('adet-e-outcome-asset', a.desiredOutcomeAsset);
+    set('adet-e-kpi', a.successCriteria || a.kpiTarget);
+
+    // Due date granularity
+    const gran = a.timing?.granularity || 'day';
+    window._adetGranularity = gran;
+    document.querySelectorAll('#adet-modal-overlay .adet-seg-btn[data-gran]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.gran === gran);
+    });
+    _adetRefreshDueDateInput(gran, a.timing);
+    set('adet-e-due-detail', a.timing?.dueDetail);
+    set('adet-e-start', a.timing?.startDate);
+    set('adet-e-length', a.timing?.predictedLength);
+
+    // Predecessor chips
+    const predEl = document.getElementById('adet-e-predecessor-chips');
+    if (predEl) {
+        const allActs = window.getData('actions') || [];
+        const preds = a.timing?.predecessorActions || [];
+        predEl.innerHTML = preds.map((pid,i) => {
+            const pa = allActs.find(x=>x.id===pid);
+            return _adetMakeEditChip((pa?.activity||pid), 'pred-chip-'+i);
+        }).join('');
+        predEl.dataset.preds = JSON.stringify(preds);
+    }
+
+    set('adet-e-resource', a.resourceRequirement);
+
+    // Todos
+    const todosEl = document.getElementById('adet-e-todos');
+    if (todosEl) todosEl.innerHTML = (a.todos||[]).map(t => _adetMakeEditTodoRow(t.id,t.completed,t.detail)).join('');
+
+    // VC
+    const vc = a.versionControl || {};
+    const vcMeta = document.getElementById('adet-e-vc-meta');
+    if (vcMeta) vcMeta.innerHTML = `Version <strong>${vc.currentVersion||'—'}</strong> · Created <strong>${vc.taskCreated||'—'}</strong> · By <strong>${vc.whoEdited||'—'}</strong>`;
+    set('adet-e-progress', vc.recentProgress);
+    set('adet-e-blockers', vc.currentBlockers);
+    const compCheck = document.getElementById('adet-e-completed-check');
+    if (compCheck) compCheck.checked = !!vc.dateCompleted;
+    set('adet-e-completed-date', vc.dateCompleted);
+
+    // Other
+    set('adet-e-other', a.other);
+
+    // Privacy
+    const privLevel = _adetGetPrivacyLevel(a);
+    document.querySelectorAll('input[name="adet-e-priv"]').forEach(r => { r.checked = r.value===privLevel; });
+    window.adetPrivacyChanged();
+    if (privLevel === 'custom' && typeof a.privacy === 'object') {
+        const viewEl = document.getElementById('adet-e-custom-viewers');
+        const editEl = document.getElementById('adet-e-custom-editors');
+        if (viewEl) viewEl.innerHTML = (a.privacy.customViewers||[]).map((p,i)=>_adetMakeEditChip(p,'cv-'+i)).join('');
+        if (editEl) editEl.innerHTML = (a.privacy.customEditors||[]).map((p,i)=>_adetMakeEditChip(p,'ce-'+i)).join('');
+    }
+
+    document.getElementById('adet-modal-overlay').style.display = 'block';
+};
+
+// ── Granularity helpers ──────────────────────────────────────────────
+
+window._adetGranularity = 'day';
+
+function _adetRefreshDueDateInput(gran, timing) {
+    const hides = ['adet-e-due-month-wrap','adet-e-due-date-wrap','adet-e-due-datetime-wrap'];
+    hides.forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
+    if (gran==='month') {
+        const wrap = document.getElementById('adet-e-due-month-wrap');
+        if (wrap) wrap.style.display='';
+        const inp = document.getElementById('adet-e-due-month');
+        if (inp && timing?.dueDate) inp.value = timing.dueDate.substring(0,7);
+    } else if (gran==='datetime') {
+        const wrap = document.getElementById('adet-e-due-datetime-wrap');
+        if (wrap) wrap.style.display='';
+        if (timing?.dueDate) {
+            const inp = document.getElementById('adet-e-due-datetime');
+            if (inp) inp.value = timing.dueDate + 'T00:00';
+        }
+    } else {
+        const wrap = document.getElementById('adet-e-due-date-wrap');
+        if (wrap) wrap.style.display='';
+        const inp = document.getElementById('adet-e-due-date');
+        if (inp && timing?.dueDate) inp.value = timing.dueDate;
+    }
+}
+
+window.adetSetGranularity = function(btn, gran) {
+    window._adetGranularity = gran;
+    document.querySelectorAll('#adet-modal-overlay .adet-seg-btn[data-gran]').forEach(b =>
+        b.classList.toggle('active', b.dataset.gran===gran));
+    _adetRefreshDueDateInput(gran, null);
+};
+
+// ── Status & Complexity helpers ──────────────────────────────────────
+
+window._adetCurrentStatus = 'Pending';
+window._adetComplexity = 3;
+
+window.adetSetStatus = function(btn, status) {
+    window._adetCurrentStatus = status;
+    document.querySelectorAll('#adet-e-status-seg .adet-seg-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.status===status));
+};
+
+window.adetSetComplexity = function(n) {
+    window._adetComplexity = n;
+    _adetRefreshStars();
+};
+
+function _adetRefreshStars() {
+    const n = window._adetComplexity;
+    document.querySelectorAll('#adet-e-complexity-stars .adet-star-btn').forEach((btn,i) =>
+        btn.classList.toggle('active', i < n));
+}
+
+// ── Tag helpers ──────────────────────────────────────────────────────
+
+window.adetTogglePresetTag = function(btn, tag) { btn.classList.toggle('active'); };
+
+window.adetAddCustomTag = function() {
+    const inp = document.getElementById('adet-e-tag-input');
+    if (!inp || !inp.value.trim()) return;
+    const tag = inp.value.trim();
+    const chips = document.getElementById('adet-e-tag-chips');
+    if (chips) chips.insertAdjacentHTML('beforeend', _adetMakeEditChip(tag,'ctag-'+Date.now()));
+    inp.value = '';
+};
+
+// ── Audience / Owner helpers ─────────────────────────────────────────
+
+window.adetAddAudience = function() {
+    const stakeholders = window.getData('stakeholders') || [];
+    let name;
+    if (stakeholders.length > 0) {
+        const nameList = stakeholders.map(s=>s.name).join('\n');
+        name = prompt(`Enter audience name (stakeholder/contact):\n\nExisting stakeholders:\n${nameList}`, stakeholders[0]?.name||'');
+    } else {
+        name = prompt('Enter audience name (stakeholder/contact):', '');
+    }
+    if (!name?.trim()) return;
+    const el = document.getElementById('adet-e-audience-chips');
+    if (el) el.insertAdjacentHTML('beforeend', _adetMakeEditChip('🏛 '+name.trim(),'aud-chip-'+Date.now()));
+};
+
+window.adetAddOwner = function() {
+    const name = prompt('Owner name (e.g. Vant, AET):', 'Vant');
+    if (!name?.trim()) return;
+    const clr = _adetOwnerColors[name.trim()] || '#6b7280';
+    const el = document.getElementById('adet-e-owner-chips');
+    if (el) el.insertAdjacentHTML('beforeend',
+        `<span class="adet-edit-chip" id="own-chip-${Date.now()}" style="background:${clr};color:#fff;border-color:${clr};">👤 ${name.trim()}<span class="adet-edit-chip-x" onclick="this.closest('span').remove()">×</span></span>`);
+};
+
+// ── Predecessor helpers ──────────────────────────────────────────────
+
+window.adetAddPredecessor = function() {
+    const allActs = window.getData('actions') || [];
+    const currentId = window.currentActionId;
+    const available = allActs.filter(x => x.id !== currentId);
+    if (available.length === 0) { alert('No other actions available to link.'); return; }
+    const list = available.map((a,i) => `${i+1}. ${a.activity}`).join('\n');
+    const choice = prompt(`Select a preceding action (enter the number):\n\n${list}`, '1');
+    const idx = parseInt(choice) - 1;
+    if (isNaN(idx) || idx < 0 || idx >= available.length) return;
+    const picked = available[idx];
+    const el = document.getElementById('adet-e-predecessor-chips');
+    if (el) el.insertAdjacentHTML('beforeend', _adetMakeEditChip(picked.activity,'pred-chip-'+Date.now()));
+};
+
+// ── Todo helpers ─────────────────────────────────────────────────────
+
+window.adetAddTodo = function() {
+    const el = document.getElementById('adet-e-todos');
+    if (!el) return;
+    el.insertAdjacentHTML('beforeend', _adetMakeEditTodoRow('new-'+Date.now(), false, ''));
+};
+
+// ── Desired Outcome type ─────────────────────────────────────────────
+
+window.adetOutcomeTypeChanged = function() {
+    const val = document.querySelector('input[name="adet-outcome-type"]:checked')?.value || 'text';
+    const pfEl = document.getElementById('adet-outcome-posture-fields');
+    const afEl = document.getElementById('adet-outcome-asset-fields');
+    if (pfEl) pfEl.style.display = val==='stakeholder_posture' ? '' : 'none';
+    if (afEl) afEl.style.display = val==='asset' ? '' : 'none';
+};
+
+// ── Privacy ──────────────────────────────────────────────────────────
+
+window.adetPrivacyChanged = function() {
+    const val = document.querySelector('input[name="adet-e-priv"]:checked')?.value || 'public';
+    const customEl = document.getElementById('adet-e-custom-privacy');
+    if (customEl) customEl.style.display = val==='custom' ? '' : 'none';
+};
+
+window.adetAddCustomPerson = function(role) {
+    const name = prompt(`Enter name for ${role==='viewers'?'viewer':'editor'}:`);
+    if (!name?.trim()) return;
+    const elId = role==='viewers' ? 'adet-e-custom-viewers' : 'adet-e-custom-editors';
+    const el = document.getElementById(elId);
+    if (el) el.insertAdjacentHTML('beforeend', _adetMakeEditChip(name.trim(),'cust-'+Date.now()));
+};
+
+// ── Accordion helper ─────────────────────────────────────────────────
+
+window.adetToggleSection = function(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const isOpen = el.style.display !== 'none';
+    el.style.display = isOpen ? 'none' : '';
+    // Rotate the chevron on the nearby toggle button
+    const toggle = el.previousElementSibling;
+    if (toggle) {
+        const icon = toggle.querySelector('.material-symbols-outlined');
+        if (icon) icon.style.transform = isOpen ? '' : 'rotate(90deg)';
+    }
+};
+
+// ── Save ─────────────────────────────────────────────────────────────
+
+window.closeActionDetailEdit = function() {
+    const overlay = document.getElementById('adet-modal-overlay');
+    if (overlay) overlay.style.display = 'none';
+};
+
+window.adetRevert = function() {
+    if (window._adetOriginal) window.openActionDetailEdit();
+};
+
+window.adetSave = function() {
+    const id = window.currentActionId;
+    if (!id) return;
+
+    const now = new Date();
+    const nowStr = now.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'})
+                 + ' ' + now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+
+    // Collect tags
+    const presets = ['Comms','Financial','Legal','Strategy'];
+    const activePre = Array.from(document.querySelectorAll('.adet-tag-preset-btn.active'))
+        .map(b => b.textContent.trim().replace(/^[^\s]+\s/,'').trim());
+    const customTags = Array.from(document.querySelectorAll('#adet-e-tag-chips .adet-edit-chip'))
+        .map(c => c.textContent.replace('×','').trim());
+    const allTags = [...new Set([...activePre,...customTags])];
+
+    // Collect audience chips (strip icon prefix)
+    const getAudience = () => Array.from(document.querySelectorAll('#adet-e-audience-chips .adet-edit-chip'))
+        .map(c => c.textContent.replace('×','').replace(/^[^\s]+\s/,'').trim());
+
+    // Collect owner chips
+    const getOwner = () => Array.from(document.querySelectorAll('#adet-e-owner-chips .adet-edit-chip'))
+        .map(c => c.textContent.replace('×','').replace(/^👤\s/,'').trim())
+        .join(' + ');
+
+    // Collect todos
+    const getTodos = () => Array.from(document.querySelectorAll('[id^="adet-todo-e-"]')).map((row,i) => ({
+        id: row.id.replace('adet-todo-e-','') || 't'+i,
+        completed: row.querySelector('input[type=checkbox]')?.checked || false,
+        detail: row.querySelector('input[type=text]')?.value || ''
+    }));
+
+    // Due date
+    const gran = window._adetGranularity || 'day';
+    let dueDate = '', dueDateDisplay = '';
+    if (gran==='month') {
+        const mv = document.getElementById('adet-e-due-month')?.value;
+        if (mv) { dueDate = mv+'-01'; const d=new Date(dueDate+'T00:00'); dueDateDisplay=d.toLocaleDateString('en-GB',{month:'long',year:'numeric'}); }
+    } else if (gran==='datetime') {
+        const dtv = document.getElementById('adet-e-due-datetime')?.value;
+        if (dtv) { dueDate = dtv.substring(0,10); dueDateDisplay = new Date(dtv).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+    } else {
+        const dv = document.getElementById('adet-e-due-date')?.value;
+        if (dv) { dueDate = dv; const d=new Date(dv+'T00:00'); dueDateDisplay=d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+    }
+
+    // Privacy
+    const privLevel = document.querySelector('input[name="adet-e-priv"]:checked')?.value || 'public';
+    const customViewers = Array.from(document.querySelectorAll('#adet-e-custom-viewers .adet-edit-chip')).map(c=>c.textContent.replace('×','').trim());
+    const customEditors = Array.from(document.querySelectorAll('#adet-e-custom-editors .adet-edit-chip')).map(c=>c.textContent.replace('×','').trim());
+
+    // Current status from segmented control
+    const currentStatus = document.querySelector('#adet-e-status-seg .adet-seg-btn.active')?.dataset.status
+        || document.querySelector('[value="status"]')?.value || 'Pending';
+
+    const actions = window.getData('actions') || [];
+    const idx = actions.findIndex(x => x.id === id);
+    if (idx === -1) return;
+    const orig = actions[idx];
+
+    actions[idx] = {
+        ...orig,
+        activity: document.getElementById('adet-e-title')?.value || orig.activity,
+        description: document.getElementById('adet-e-description')?.value || '',
+        owner: getOwner() || orig.owner,
+        audience: getAudience(),
+        status: currentStatus,
+        advancedStatus: document.getElementById('adet-e-adv-status')?.value || '',
+        tags: allTags,
+        priority: document.getElementById('adet-e-priority')?.value || orig.priority,
+        complexity: String(window._adetComplexity || 3),
+        commsObjectiveId: document.getElementById('adet-e-objective')?.value || '',
+        desiredOutcome: document.getElementById('adet-e-outcome')?.value || '',
+        desiredOutcomeType: document.querySelector('input[name="adet-outcome-type"]:checked')?.value || 'text',
+        desiredOutcomeStakeholderId: document.getElementById('adet-e-outcome-stakeholder')?.value || '',
+        desiredPosture: document.getElementById('adet-e-outcome-posture')?.value || '',
+        desiredOutcomeAsset: document.getElementById('adet-e-outcome-asset')?.value || '',
+        successCriteria: document.getElementById('adet-e-kpi')?.value || '',
+        kpiTarget: document.getElementById('adet-e-kpi')?.value || '',
+        timing: {
+            granularity: gran,
+            dueDate, dueDateDisplay,
+            dueDetail: document.getElementById('adet-e-due-detail')?.value || '',
+            startDate: document.getElementById('adet-e-start')?.value || '',
+            predecessorActions: orig.timing?.predecessorActions || [],
+            predictedLength: document.getElementById('adet-e-length')?.value || ''
+        },
+        resourceRequirement: document.getElementById('adet-e-resource')?.value || '',
+        todos: getTodos(),
+        other: document.getElementById('adet-e-other')?.value || '',
+        privacy: { level: privLevel, customViewers, customEditors },
+        versionControl: {
+            ...(orig.versionControl || {}),
+            currentVersion: nowStr,
+            recentProgress: document.getElementById('adet-e-progress')?.value || '',
+            currentBlockers: document.getElementById('adet-e-blockers')?.value || '',
+            lastEdited: nowStr,
+            whoEdited: 'Portal User',
+            dateCompleted: document.getElementById('adet-e-completed-check')?.checked
+                ? (document.getElementById('adet-e-completed-date')?.value || nowStr.split(' ')[0]) : '',
+            previousVersions: [
+                ...(orig.versionControl?.previousVersions || []),
+                { version: orig.versionControl?.currentVersion || nowStr, note: 'Auto-saved version', who: orig.versionControl?.whoEdited || '—' }
+            ]
+        }
+    };
+
+    window.updateData('actions', actions);
+    window.closeActionDetailEdit();
+    renderActionDetail();
+};
+
+window.adetDelete = function() {
+    const id = window.currentActionId;
+    if (!id) return;
+    if (!confirm('Delete this action? This cannot be undone.')) return;
+    let actions = window.getData('actions') || [];
+    actions = actions.filter(x => x.id !== id);
+    window.updateData('actions', actions);
+    window.closeActionDetailEdit();
+    loadView('actions');
+};
+
+
+// ---- STRATEGY SPINE ----
+
+
     if (sel) {
         const spine = window.getData('spine');
         sel.innerHTML = '<option value="">— Select Objective —</option>';
