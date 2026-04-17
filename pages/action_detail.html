@@ -4,22 +4,17 @@
 ============================================================ -->
 
 <!-- ── HEADER ─────────────────────────────────────────────── -->
+<div style="font-size:0.85rem; margin-bottom:1rem; color:var(--text-secondary); display:flex; align-items:center; gap:0.5rem;">
+    <span class="material-symbols-outlined" onclick="loadView('actions')" style="cursor:pointer; font-size:1.1rem; color:#3b82f6; top:2px; position:relative;">arrow_back</span>
+    <span style="color:#3b82f6; cursor:pointer;" onclick="loadView('actions')">Actions</span> > <span id="adet-breadcrumb">...</span>
+</div>
+
 <div class="adet-header">
     <div>
-        <nav class="adet-nav">
-            <span class="adet-nav-back" onclick="loadView('actions')">
-                <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">arrow_back_ios</span> Actions
-            </span>
-            <span class="adet-nav-sep">›</span>
-            <span id="adet-breadcrumb" class="adet-nav-current"></span>
-        </nav>
         <h2 id="adet-title" class="adet-page-title"></h2>
     </div>
     <div class="adet-header-right">
         <span id="adet-status-badge" class="adet-status-badge-lg"></span>
-        <button onclick="loadView('actions')" class="btn-secondary" style="display:inline-flex;align-items:center;gap:0.4rem;">
-            <span class="material-symbols-outlined" style="font-size:1rem;">list</span> All Actions
-        </button>
         <button onclick="window.openActionDetailEdit()" class="btn-primary" style="display:inline-flex;align-items:center;gap:0.4rem;">
             <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit Action
         </button>
@@ -586,27 +581,27 @@
     margin-bottom: 1.25rem;
 }
 .adet-card-label {
-    font-size: 0.62rem;
-    font-weight: 800;
+    font-size: 1rem;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--text-tertiary);
-    text-align: center;
+    color: var(--text-secondary);
+    text-align: left;
     margin-bottom: 1.5rem;
     padding-bottom: 0.75rem;
     border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 .adet-field { margin-bottom: 1.25rem; }
 .adet-field:last-child { margin-bottom: 0; }
 .adet-fl {
-    font-size: 0.68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: var(--text-tertiary);
-    margin-bottom: 0.4rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #3b82f6;
+    margin-bottom: 0.5rem;
 }
-.adet-fl-hint { font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 0.68rem; }
+.adet-fl-hint { font-weight: 400; font-size: 0.85rem; color: var(--text-tertiary); }
 .adet-description-text {
     font-size: 0.95rem;
     color: var(--text-primary);
