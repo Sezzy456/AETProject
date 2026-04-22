@@ -121,7 +121,9 @@ const VIEW_FILES = {
     'dashboard':          'pages/dashboard.html',
     'stakeholders':       'pages/stakeholders.html',
     'stakeholder_detail': 'pages/stakeholder_detail.html',
-    'activity_log':       'pages/activity_log.html',
+    'interactions':       'pages/interactions.html',
+    'interaction_detail': 'pages/interaction_detail.html',
+    'interaction_edit':   'pages/interaction_edit.html',
     'actions':            'pages/actions.html',
     'action_detail':      'pages/action_detail.html',
     'strategy_spine':     'pages/strategy_spine.html',
@@ -133,7 +135,9 @@ const VIEW_RENDERERS = {
     'dashboard':          renderDashboard,
     'stakeholders':       renderStakeholders,
     'stakeholder_detail': renderStakeholderDetail,
-    'activity_log':       renderActivityLog,
+    'interactions':       renderInteractions,
+    'interaction_detail': renderInteractionDetail,
+    'interaction_edit':   renderInteractionEdit,
     'actions':            renderActions,
     'action_detail':      renderActionDetail,
     'strategy_spine':     renderStrategySpine,
@@ -620,40 +624,172 @@ window.updateDetailStatus = function (newStatus) {
     renderStakeholderDetail();
 };
 
-function renderActivityLog() {
-    const activityLog = window.getData('activityLog');
-    const container = document.getElementById('activity-list');
+window.currentInteractionId = null;
+
+window.viewInteraction = function(id) {
+    window.currentInteractionId = id;
+    loadView('interaction_detail');
+    history.pushState(null, '', '#interaction_detail');
+};
+
+window.viewInteractionEdit = function(id = null) {
+    window.currentInteractionId = id;
+    loadView('interaction_edit');
+    history.pushState(null, '', '#interaction_edit');
+};
+
+function renderInteractions() {
+    const interactions = window.getData('interactions') || [];
+    const container = document.getElementById('interactions-list');
     if (!container) return;
     container.innerHTML = '';
 
-    activityLog.forEach(a => {
-        const card = document.createElement('div');
-        card.className = 'portal-list-card';
-        let typeIcon = '📄';
-        if (a.type === 'Meeting') typeIcon = '📅';
-        if (a.type === 'Decision') typeIcon = '⚖️';
-        if (a.type === 'Signal') typeIcon = '📡';
+    interactions.forEach(a => {
+        const isUpcoming = a.type === 'Upcoming';
+        let statusBadge = '';
+        if (isUpcoming) {
+            statusBadge = `<div style="font-size: 0.8rem; font-weight: 600; color: #ef4444; margin-bottom: 0.5rem;">Upcoming: In 3 Days</div>`;
+        } else {
+            statusBadge = `<div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <div style="width: 12px; height: 12px; border-radius: 50%; background: ${a.date.includes('27') ? '#22c55e' : '#f59e0b'};"></div>
+                <span style="font-size: 0.8rem; color: var(--text-tertiary);">"Good"</span>
+            </div>`;
+        }
 
+        const dateString = a.date || a.rawDate;
+
+        const agendaHtml = (a.topics || []).map(t => {
+            let icon = 'chat';
+            if (t.toLowerCase().includes('grant')) icon = 'add_circle';
+            if (t.toLowerCase().includes('council')) icon = 'edit';
+            return `<span class="interaction-pill agenda-item"><span class="material-symbols-outlined" style="font-size: 0.9rem;">${icon}</span> ${t}</span>`;
+        }).join(' ');
+
+        const attendeesHtml = (a.attendees || []).map(att => {
+            return `<span class="interaction-pill"><span class="material-symbols-outlined" style="font-size: 0.9rem;">person</span> ${att}</span>`;
+        }).join(' ');
+
+        const card = document.createElement('div');
+        card.className = `interaction-card-wrapper ${isUpcoming ? 'upcoming' : ''}`;
+        card.onclick = () => window.viewInteraction(a.id);
+        
         card.innerHTML = `
-            <div>
-                 <h2>${typeIcon} ${a.title}</h2>
-                 <p style="font-size:0.85rem; color:var(--text-secondary);">${a.notes}</p>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <div>
+                    ${statusBadge}
+                    <h3 style="margin: 0; font-size: 1.4rem; color: var(--text-primary); font-family: 'Space Grotesk', sans-serif; text-transform: none;">${a.title}</h3>
+                </div>
+                <div style="text-align: right;">
+                    ${!isUpcoming ? `<div style="font-size: 0.8rem; color: var(--text-tertiary); font-family: 'JetBrains Mono', monospace; margin-bottom: 0.25rem;">${a.rawDate || ''}</div>` : ''}
+                    <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary);">${dateString}</div>
+                </div>
             </div>
-            <div>
-                <h3>Date</h3>
-                <div style="font-family:'JetBrains Mono'; font-size:0.9rem;">${a.date}</div>
+            
+            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 0.5rem; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                <div style="color: var(--text-secondary);">Summary:</div>
+                <div style="color: var(--text-primary);">${a.agenda || a.discussed || ''}</div>
             </div>
-            <div>
-                <h3>Status</h3>
-                <span class="status-badge status-${a.status.toLowerCase()}">${a.status}</span>
-            </div>
-            <div>
-                <h3>Attendees</h3>
-                <div style="font-size:0.85rem; color:var(--text-tertiary);">${a.attendees}</div>
-            </div>
+            
+            ${agendaHtml ? `
+            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 0.5rem; font-size: 0.9rem; margin-bottom: 0.5rem; align-items: center;">
+                <div style="color: var(--text-secondary);">Agenda:</div>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">${agendaHtml}</div>
+            </div>` : ''}
+            
+            ${attendeesHtml ? `
+            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 0.5rem; font-size: 0.9rem; align-items: center;">
+                <div style="color: var(--text-secondary);">Attendees:</div>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">${attendeesHtml}</div>
+            </div>` : ''}
         `;
         container.appendChild(card);
     });
+}
+
+function renderInteractionDetail() {
+    const id = window.currentInteractionId;
+    if (!id) return;
+    
+    const interactions = window.getData('interactions') || [];
+    const interaction = interactions.find(i => i.id == id);
+    if (!interaction) return;
+
+    document.getElementById('detail-int-title').textContent = interaction.title;
+    document.getElementById('detail-int-date').textContent = interaction.rawDate + ' ' + interaction.date;
+    
+    const statusEl = document.getElementById('detail-int-status');
+    if (interaction.type === 'Upcoming') {
+        statusEl.textContent = 'Upcoming';
+        statusEl.style.color = '#ef4444';
+    } else {
+        statusEl.textContent = 'Completed';
+        statusEl.style.color = '#22c55e';
+    }
+
+    const descEl = document.getElementById('detail-int-description');
+    if (interaction.discussed) {
+        descEl.innerHTML = interaction.discussed.replace(/@\w+/g, match => `<span style="color: #3b82f6; font-weight: 500;">${match}</span>`).replace(/#[\w-]+/g, match => `<span style="color: #f59e0b; font-weight: 500;">${match}</span>`);
+    } else {
+        descEl.textContent = interaction.agenda || 'No description available.';
+    }
+
+    const attContainer = document.getElementById('detail-int-attendees');
+    if (attContainer && interaction.attendees) {
+        attContainer.innerHTML = interaction.attendees.map(a => `<div class="interaction-pill"><div style="width: 16px; height: 16px; background: #d1d5db; border-radius: 50%;"></div> ${a}</div>`).join('');
+    }
+}
+
+window.saveInteraction = function() {
+    // Collect data
+    const title = document.getElementById('edit-int-purpose')?.value || 'New Interaction';
+    const date = document.getElementById('edit-int-date')?.value || '';
+    const desc = document.getElementById('edit-int-description')?.value || '';
+    
+    const isNew = !window.currentInteractionId;
+    const interactions = window.getData('interactions') || [];
+    
+    if (isNew) {
+        const newInt = {
+            id: Date.now(),
+            title: title,
+            rawDate: date,
+            date: date,
+            type: 'Upcoming',
+            agenda: desc,
+            discussed: desc,
+            topics: [],
+            attendees: ["Vant", "Mayor of CoGB"]
+        };
+        interactions.unshift(newInt);
+    } else {
+        const idx = interactions.findIndex(i => i.id == window.currentInteractionId);
+        if (idx !== -1) {
+            interactions[idx].title = title;
+            interactions[idx].rawDate = date;
+            interactions[idx].date = date;
+            interactions[idx].agenda = desc;
+        }
+    }
+    
+    window.updateData('interactions', interactions);
+    loadView('interactions');
+    history.pushState(null, '', '#interactions');
+};
+
+function renderInteractionEdit() {
+    const id = window.currentInteractionId;
+    if (id) {
+        document.getElementById('edit-int-page-title').textContent = 'Edit Interaction';
+        const interactions = window.getData('interactions') || [];
+        const interaction = interactions.find(i => i.id == id);
+        if (interaction) {
+            document.getElementById('edit-int-purpose').value = interaction.title;
+            document.getElementById('edit-int-date').value = interaction.rawDate;
+            document.getElementById('edit-int-description').value = interaction.agenda || interaction.discussed || '';
+        }
+    } else {
+        document.getElementById('edit-int-page-title').textContent = 'Add Interaction';
+    }
 }
 
 // ---- ACTIONS ----

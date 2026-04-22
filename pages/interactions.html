@@ -1,0 +1,89 @@
+<header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <h2>Interactions</h2>
+        <p>Chronological record of interactions, decisions, and signals.</p>
+    </div>
+    <button class="btn-primary" onclick="window.viewInteractionEdit()">+ Add Meeting</button>
+</header>
+
+<!-- Filter Bar -->
+<div class="spine-section" style="padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center;">
+    <input type="text" id="interactions-search" placeholder="Search" style="width: 250px; background: rgba(0,0,0,0.02); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 0.5rem 1rem; outline: none;">
+    
+    <button class="btn-secondary" style="height: 36px; border-radius: 20px;">
+        <span class="material-symbols-outlined" style="font-size: 1rem;">filter_list</span> Filters
+    </button>
+    <button class="btn-secondary" style="height: 36px; border-radius: 20px; border: none;">
+        <span class="material-symbols-outlined" style="font-size: 1rem;">sort</span> Sorting
+    </button>
+</div>
+
+<div style="margin-bottom: 1.5rem;">
+    <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-tertiary); margin-bottom: 0.5rem; text-transform: uppercase;">Quick Filters</div>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <button class="quick-filter-btn"><span style="color: #ef4444;">🔴</span> Tense Only</button>
+        <button class="quick-filter-btn">📝 Has Actions</button>
+        <button class="quick-filter-btn">📁 Grants</button>
+        <button class="quick-filter-btn">📧 Emails</button>
+        <button class="quick-filter-btn">Follow-Ups</button>
+        <button class="quick-filter-btn">🔒 Restricted</button>
+    </div>
+</div>
+
+<style>
+.quick-filter-btn {
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: all 0.2s;
+}
+.quick-filter-btn:hover {
+    background: rgba(0,0,0,0.05);
+}
+.interaction-card-wrapper {
+    background: #f9fafb;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+.interaction-card-wrapper:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border-color: var(--energy-algae);
+}
+.interaction-card-wrapper.upcoming {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+.interaction-card-wrapper.upcoming:hover {
+    border-color: #ef4444;
+}
+.interaction-pill {
+    background: #fff;
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--text-secondary);
+}
+.interaction-pill.agenda-item {
+    background: rgba(0,0,0,0.02);
+}
+</style>
+
+<div id="interactions-list" style="display: flex; flex-direction: column;">
+    <!-- Populated by JS -->
+</div>
