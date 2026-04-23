@@ -21,15 +21,15 @@
     </div>
 </div>
 
+<!-- ── DESCRIPTION (page level, not on card) ──────────────── -->
+<div style="margin-bottom:1.5rem;">
+    <div class="adet-fl">Description</div>
+    <p id="adet-description" class="adet-description-text"></p>
+</div>
+
 <!-- ── DEFINITION CARD ─────────────────────────────────────── -->
 <div class="adet-card">
     <div class="adet-card-label">Definition</div>
-
-    <div class="adet-field" style="margin-bottom:1.25rem;">
-        <div class="adet-fl">Description</div>
-        <p id="adet-description" class="adet-description-text"></p>
-    </div>
-
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
         <div>
             <div class="adet-fl">Audience <span class="adet-fl-hint">(linked stakeholders / contacts)</span></div>
@@ -198,20 +198,18 @@
 </div>
 
 <!-- ================================================================
-     EDIT MODAL – self-contained, triggered by window.openActionDetailEdit()
+     INLINE EDIT — triggered by window.openActionDetailEdit()
 ================================================================ -->
-<div id="adet-modal-overlay" onclick="if(event.target===this)window.closeActionDetailEdit()"
-    style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9000;overflow-y:auto;padding:2rem 1rem;">
+<div id="adet-modal-overlay" style="display:none; margin-top:2rem; border-top:2px solid var(--energy-algae); padding-top:1.5rem;">
 
-    <div class="adet-modal-shell">
-        <!-- Modal header -->
+    <div class="adet-modal-shell" style="max-width:100%;">
+        <!-- Inline edit header -->
         <div class="adet-modal-hdr">
             <div style="font-size:0.8rem;color:var(--text-tertiary);">
                 <span onclick="loadView('actions')" style="cursor:pointer;color:var(--energy-algae);">Actions</span>
                 <span style="margin:0 0.35rem;">›</span> Edit
             </div>
             <h3 class="adet-modal-title" id="adet-modal-title-display"></h3>
-            <button onclick="window.closeActionDetailEdit()" class="adet-modal-close">×</button>
         </div>
 
         <div class="adet-modal-body">
@@ -547,7 +545,7 @@
 
         </div><!-- /adet-modal-body -->
     </div><!-- /adet-modal-shell -->
-</div><!-- /overlay -->
+</div><!-- /inline-edit -->
 
 <!-- ── STYLES ──────────────────────────────────────────────── -->
 <style>
@@ -598,7 +596,7 @@
 .adet-fl {
     font-size: 1rem;
     font-weight: 600;
-    color: #3b82f6;
+    color: #6b7280;
     margin-bottom: 0.5rem;
 }
 .adet-fl-hint { font-weight: 400; font-size: 0.85rem; color: var(--text-tertiary); }
@@ -956,8 +954,7 @@
 .adet-modal-shell {
     background: var(--bg-app);
     border-radius: 14px;
-    max-width: 900px;
-    margin: 0 auto;
+    max-width: 100%;
     position: relative;
     color: var(--text-primary);
     font-size: 0.875rem;

@@ -634,8 +634,9 @@ window.viewInteraction = function(id) {
 
 window.viewInteractionEdit = function(id = null) {
     window.currentInteractionId = id;
-    loadView('interaction_edit');
-    history.pushState(null, '', '#interaction_edit');
+    window._interactionOpenInEditMode = true;
+    loadView('interaction_detail');
+    history.pushState(null, '', '#interaction_detail');
 };
 
 function renderInteractions() {
@@ -735,7 +736,25 @@ function renderInteractionDetail() {
 
     const attContainer = document.getElementById('detail-int-attendees');
     if (attContainer && interaction.attendees) {
-        attContainer.innerHTML = interaction.attendees.map(a => `<div class="interaction-pill"><div style="width: 16px; height: 16px; background: #d1d5db; border-radius: 50%;"></div> ${a}</div>`).join('');
+        const avatarColors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
+        attContainer.innerHTML = interaction.attendees.map((a, i) => {
+            const initials = a.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+            const color = avatarColors[i % avatarColors.length];
+            return `<div class="interaction-pill" style="display: flex; align-items: center; gap: 0.5rem;">
+                <div class="int-avatar" style="background: ${color};">${initials}</div>
+                ${a}
+            </div>`;
+        }).join('');
+    }
+
+    // Auto-open edit mode if flagged
+    if (window._interactionOpenInEditMode) {
+        window._interactionOpenInEditMode = false;
+        setTimeout(() => {
+            if (typeof window.toggleInteractionEdit === 'function') {
+                window.toggleInteractionEdit();
+            }
+        }, 50);
     }
 }
 
@@ -1817,7 +1836,7 @@ window.openActionDetailEdit = function() {
     // Due date granularity
     const gran = a.timing?.granularity || 'day';
     window._adetGranularity = gran;
-    document.querySelectorAll('#adet-modal-overlay .adet-seg-btn[data-gran]').forEach(btn => {
+    document.querySelectorAll('.adet-seg-btn[data-gran]').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.gran === gran);
     });
     _adetRefreshDueDateInput(gran, a.timing);
@@ -1867,7 +1886,11 @@ window.openActionDetailEdit = function() {
         if (editEl) editEl.innerHTML = (a.privacy.customEditors||[]).map((p,i)=>_adetMakeEditChip(p,'ce-'+i)).join('');
     }
 
-    document.getElementById('adet-modal-overlay').style.display = 'block';
+    const overlay = document.getElementById('adet-modal-overlay');
+    if (overlay) {
+        overlay.style.display = 'block';
+        overlay.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 };
 
 // ── Granularity helpers ──────────────────────────────────────────────
@@ -1899,7 +1922,7 @@ function _adetRefreshDueDateInput(gran, timing) {
 
 window.adetSetGranularity = function(btn, gran) {
     window._adetGranularity = gran;
-    document.querySelectorAll('#adet-modal-overlay .adet-seg-btn[data-gran]').forEach(b =>
+    document.querySelectorAll('.adet-seg-btn[data-gran]').forEach(b =>
         b.classList.toggle('active', b.dataset.gran===gran));
     _adetRefreshDueDateInput(gran, null);
 };
@@ -2034,6 +2057,7 @@ window.adetToggleSection = function(id) {
 window.closeActionDetailEdit = function() {
     const overlay = document.getElementById('adet-modal-overlay');
     if (overlay) overlay.style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 window.adetRevert = function() {
