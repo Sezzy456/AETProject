@@ -164,12 +164,36 @@ async function fetchSpine() {
     if (!_sb) return null;
     try {
         const { data: objectives } = await _sb.from('tbl_strategy_objective').select('*').eq('so_active', true).order('so_order', { ascending: true });
-        if (!objectives || objectives.length === 0) return null;
+
+        // Fetch content cards for the Strategy page (page 1)
+        const { data: cards } = await _sb.from('tbl_content_card').select('*').eq('cc_page_id', 1).eq('cc_active', true).order('cc_order', { ascending: true });
+
+        // Extract purpose from first card (order 1)
+        const purposeCard = (cards||[]).find(c => c.cc_order === 1 && c.cc_card_type === 'card');
+        const purpose = purposeCard ? purposeCard.cc_content : "The single source of truth for AET's Communication & Engagement Strategy (Phase 1).";
+
+        // Extract narrative from the narrative card (order 5)
+        const narrativeCard = (cards||[]).find(c => c.cc_order === 5 && c.cc_card_type === 'card');
+        let narrative = { core: '', simple: '' };
+        if (narrativeCard && narrativeCard.cc_content) {
+            const parts = narrativeCard.cc_content.split('\n\nSimple: ');
+            narrative.core = parts[0] || '';
+            narrative.simple = parts[1] || '';
+        }
+
+        // Extract pillars: cards after the "Strategic Pillars" section (order > 6)
+        const pillarCards = (cards||[]).filter(c => c.cc_order > 6 && c.cc_card_type === 'card');
+        const pillars = pillarCards.map(c => {
+            const lines = (c.cc_content || '').split('\n').filter(l => l.trim());
+            const message = lines[0] || '';
+            const proofPoints = lines.slice(1).map(l => l.replace(/^[•\-]\s*/, '').trim()).filter(Boolean);
+            return { id: 'p' + c.cc_id, title: c.cc_title || '', message, proofPoints };
+        });
+
         return {
-            purpose: "The single source of truth for AET's Communication & Engagement Strategy (Phase 1).",
-            narrative: { core: "AET is turning regional waste into regional opportunity – keeping value, jobs and skills in the Loddon Mallee through one of Australia's most advanced resource recovery projects.", simple: "We take household waste, clean it, sort it, and recover useful materials. Local businesses turn those materials into new products. It's smart recycling that keeps value in the region." },
-            objectives: objectives.map(o => ({ id:'obj'+o.so_id, text:o.so_text||'' })),
-            pillars: [], qa_library: []
+            purpose, narrative,
+            objectives: (objectives||[]).map(o => ({ id:'obj'+o.so_id, text:o.so_text||'' })),
+            pillars, qa_library: []
         };
     } catch (e) { console.error('[Supabase] fetchSpine error:', e); return null; }
 }
