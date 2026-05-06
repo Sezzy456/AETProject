@@ -281,8 +281,10 @@ function renderDashboard(pageIdOverride) {
                 else if (filter === 'overdue') filtered = filtered.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate + 'T00:00:00') < now && a.status !== 'Complete' && a.status !== 'Completed');
                 else if (filter === 'upcoming') filtered = filtered.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate + 'T00:00:00') >= now && a.status !== 'Complete' && a.status !== 'Completed');
                 filtered.sort((a,b) => {
-                    const aDone = a.status === 'Complete' || a.status === 'Completed';
-                    const bDone = b.status === 'Complete' || b.status === 'Completed';
+                    const aStatus = (a.status||'').toLowerCase();
+                    const bStatus = (b.status||'').toLowerCase();
+                    const aDone = aStatus === 'complete' || aStatus === 'completed';
+                    const bDone = bStatus === 'complete' || bStatus === 'completed';
                     if (aDone !== bDone) return aDone ? 1 : -1;
                     const aDate = a.timing?.dueDate || '9999-12-31';
                     const bDate = b.timing?.dueDate || '9999-12-31';
