@@ -820,3 +820,9 @@ body.bio-mode input:checked+.slider {
     font-size: 1.8rem;
   }
 }
+
+/* --- UTILITY ANIMATIONS --- */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

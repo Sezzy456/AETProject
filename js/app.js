@@ -283,8 +283,13 @@ function renderDashboard(pageIdOverride) {
                 filtered.sort((a,b) => (b.versionControl?.lastEdited||'').localeCompare(a.versionControl?.lastEdited||''));
                 const items = filtered.slice(0,3);
                 const itemsHtml = items.length > 0 ? items.map(a => {
-                    const dueStr = a.timing?.dueDate ? new Date(a.timing.dueDate+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}) : 'TBD';
-                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;" onclick="event.stopPropagation();window.viewAction('${a.id}')" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'"><div style="display:flex;justify-content:space-between;align-items:center;"><div><span class="status-badge" style="font-size:0.7rem;padding:0.1rem 0.5rem;border-color:var(--energy-algae);color:var(--energy-algae);">${a.status}</span><h4 style="margin:0.25rem 0 0;font-size:1rem;color:var(--text-primary);text-transform:none;">${a.activity}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;">Owner: ${a.owner||'—'} | Due: ${dueStr}</div></div><span class="material-symbols-outlined" style="font-size:1.2rem;color:var(--text-tertiary);">open_in_new</span></div></div>`;
+                    const dueDate = a.timing?.dueDate ? new Date(a.timing.dueDate+'T00:00:00') : null;
+                    const dueStr = dueDate ? dueDate.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}) : 'TBD';
+                    const isOverdue = dueDate && dueDate < now && a.status !== 'Complete' && a.status !== 'Completed';
+                    const overdueStyle = isOverdue ? 'border-left:3px solid #ef4444;' : '';
+                    const dueLabelStyle = isOverdue ? 'color:#ef4444;font-weight:600;' : '';
+                    const badgeStyle = isOverdue ? 'border-color:#ef4444;color:#ef4444;' : 'border-color:var(--energy-algae);color:var(--energy-algae);';
+                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;${overdueStyle}" onclick="event.stopPropagation();window.viewAction('${a.id}')" onmouseover="this.style.borderColor='${isOverdue?'#ef4444':'var(--energy-algae)'}';" onmouseout="this.style.borderColor='var(--border-subtle)'"><div style="display:flex;justify-content:space-between;align-items:center;"><div><span class="status-badge" style="font-size:0.7rem;padding:0.1rem 0.5rem;${badgeStyle}">${a.status}</span><h4 style="margin:0.25rem 0 0;font-size:1rem;color:var(--text-primary);text-transform:none;">${a.activity}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;">Owner: ${a.owner||'—'} | <span style="${dueLabelStyle}">Due: ${dueStr}${isOverdue?' — OVERDUE':''}</span></div></div><span class="material-symbols-outlined" style="font-size:1.2rem;color:var(--text-tertiary);">open_in_new</span></div></div>`;
                 }).join('') : '<div style="padding:1rem;color:var(--text-tertiary);font-style:italic;">No actions found.</div>';
                 return `<div class="card" style="${colSpan}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title||'Actions'}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="loadView('actions');history.pushState(null,'','#actions')">View All</button></div><div style="display:flex;flex-direction:column;gap:0.5rem;">${itemsHtml}</div></div>`;
             }
@@ -318,19 +323,26 @@ function renderDashboard(pageIdOverride) {
     }).join('');
 }
 
-// Tab switching handler
+// Tab switching handler — caches loaded cards
+window._dashCardCache = {};
 window._switchDashTab = async function(pageId) {
-    // Show loading spinner on the clicked tab button
     const btn = document.getElementById('dash-tab-' + pageId);
-    const origLabel = btn ? btn.textContent : '';
-    if (btn) btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;animation:spin 1s linear infinite;">autorenew</span>';
+    const origLabel = btn ? btn.textContent.trim() : '';
 
     if (pageId === 3) {
+        // Overview — always cached from preload
         window._dashTabCards = null;
         renderDashboard(3);
+    } else if (window._dashCardCache[pageId]) {
+        // Already fetched — use cache, no loading needed
+        window._dashTabCards = window._dashCardCache[pageId];
+        renderDashboard(pageId);
     } else {
+        // First load — show spinner next to label
+        if (btn) btn.innerHTML = `${origLabel} <span class="material-symbols-outlined" style="font-size:0.9rem;vertical-align:middle;margin-left:0.25rem;animation:spin 0.8s linear infinite;">autorenew</span>`;
         const cards = await window.fetchContentCards(pageId);
-        window._dashTabCards = cards || [];
+        window._dashCardCache[pageId] = cards || [];
+        window._dashTabCards = window._dashCardCache[pageId];
         renderDashboard(pageId);
     }
 };
