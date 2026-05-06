@@ -39,27 +39,32 @@ INSERT INTO tbl_content_card
   (cc_page_id, cc_card_type, cc_title, cc_content, cc_width, cc_order, cc_active, cc_created, cc_created_by, cc_modified, cc_modified_by)
 VALUES (3, 'card', 'Executive Summary', 'AI summary of what you specifically should be doing goes here', 'half', 5, true, NOW(), 1, NOW(), 1);
 
--- ─── LINK CARDS (order 6-8) ───
--- Actions link (3 most recent)
+-- ─── LINK CARDS (order 6-10) ───
+-- Overdue Actions
 INSERT INTO tbl_content_card
   (cc_page_id, cc_card_type, cc_title, cc_width, cc_order, cc_filter, cc_active, cc_created, cc_created_by, cc_modified, cc_modified_by)
-VALUES (3, 'actions_link', 'Actions', 'full', 6, NULL, true, NOW(), 1, NOW(), 1);
+VALUES (3, 'actions_link', 'Overdue Actions', 'full', 6, 'overdue', true, NOW(), 1, NOW(), 1);
+
+-- Upcoming Actions
+INSERT INTO tbl_content_card
+  (cc_page_id, cc_card_type, cc_title, cc_width, cc_order, cc_filter, cc_active, cc_created, cc_created_by, cc_modified, cc_modified_by)
+VALUES (3, 'actions_link', 'Upcoming Actions', 'full', 7, 'upcoming', true, NOW(), 1, NOW(), 1);
 
 -- Upcoming Interactions
 INSERT INTO tbl_content_card
   (cc_page_id, cc_card_type, cc_title, cc_width, cc_order, cc_filter, cc_active, cc_created, cc_created_by, cc_modified, cc_modified_by)
-VALUES (3, 'interactions_link', 'Upcoming Interactions', 'full', 7, 'upcoming', true, NOW(), 1, NOW(), 1);
+VALUES (3, 'interactions_link', 'Upcoming Interactions', 'full', 8, 'upcoming', true, NOW(), 1, NOW(), 1);
 
 -- Recent Interactions
 INSERT INTO tbl_content_card
   (cc_page_id, cc_card_type, cc_title, cc_width, cc_order, cc_filter, cc_active, cc_created, cc_created_by, cc_modified, cc_modified_by)
-VALUES (3, 'interactions_link', 'Recent Interactions', 'full', 8, 'recent', true, NOW(), 1, NOW(), 1);
+VALUES (3, 'interactions_link', 'Recent Interactions', 'full', 9, 'recent', true, NOW(), 1, NOW(), 1);
 
--- ─── PAGE LINK (order 9) ───
+-- ─── PAGE LINK (order 10) ───
 -- Strategy Room link card
 INSERT INTO tbl_content_card
   (cc_page_id, cc_card_type, cc_title, cc_width, cc_order, cc_filter, cc_active, cc_created, cc_created_by, cc_modified, cc_modified_by)
-VALUES (3, 'page_link', 'Strategy Room', 'full', 9, 'objectives', true, NOW(), 1, NOW(), 1);
+VALUES (3, 'page_link', 'Strategy Room', 'full', 10, 'objectives', true, NOW(), 1, NOW(), 1);
 
 -- Link the page_link card to the Strategy page (cp_id = 1)
 -- We need the cc_id of the card we just inserted, so use a subquery
@@ -68,7 +73,7 @@ INSERT INTO tbl_content_page_content
 VALUES (
   3,  -- Dashboard
   1,  -- Strategy page
-  (SELECT cc_id FROM tbl_content_card WHERE cc_page_id = 3 AND cc_card_type = 'page_link' AND cc_order = 9 LIMIT 1),
+  (SELECT cc_id FROM tbl_content_card WHERE cc_page_id = 3 AND cc_card_type = 'page_link' AND cc_order = 10 LIMIT 1),
   'objectives',
   true, NOW(), 1, NOW(), 1
 );

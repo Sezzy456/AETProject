@@ -220,8 +220,8 @@ function renderDashboard(pageIdOverride) {
     if (tabsContainer && variations.length > 0) {
         tabsContainer.innerHTML = variations.map(v => {
             const isActive = v.cp_id === activePageId;
-            return `<button class="btn-secondary" style="border-radius:20px;font-size:0.85rem;height:32px;padding:0 1rem;${isActive ? 'background:var(--energy-algae);color:#fff;border-color:var(--energy-algae);' : ''}" onclick="window._switchDashTab(${v.cp_id})">${v.cp_variation_label || v.cp_title}</button>`;
-        }).join('');
+            return `<button id="dash-tab-${v.cp_id}" class="btn-secondary" style="border-radius:20px;font-size:0.85rem;height:32px;padding:0 1rem;${isActive ? 'background:var(--energy-algae);color:#fff;border-color:var(--energy-algae);' : ''}" onclick="window._switchDashTab(${v.cp_id})">${v.cp_variation_label || v.cp_title}</button>`;
+        }).join('') + '<button class="btn-secondary" style="border-radius:20px;font-size:0.85rem;height:32px;padding:0 1rem;opacity:0.4;pointer-events:none;">+ Layout</button>';
     }
 
     // ── Get cards (from cache or override) ──
@@ -276,7 +276,10 @@ function renderDashboard(pageIdOverride) {
             case 'actions_link': {
                 const filter = card.cc_filter || '';
                 let filtered = [...actions];
+                const now = new Date();
                 if (filter === 'completed') filtered = filtered.filter(a => a.status === 'Complete' || a.status === 'Completed');
+                else if (filter === 'overdue') filtered = filtered.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate + 'T00:00:00') < now && a.status !== 'Complete' && a.status !== 'Completed');
+                else if (filter === 'upcoming') filtered = filtered.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate + 'T00:00:00') >= now && a.status !== 'Complete' && a.status !== 'Completed');
                 filtered.sort((a,b) => (b.versionControl?.lastEdited||'').localeCompare(a.versionControl?.lastEdited||''));
                 const items = filtered.slice(0,3);
                 const itemsHtml = items.length > 0 ? items.map(a => {
@@ -317,12 +320,15 @@ function renderDashboard(pageIdOverride) {
 
 // Tab switching handler
 window._switchDashTab = async function(pageId) {
+    // Show loading spinner on the clicked tab button
+    const btn = document.getElementById('dash-tab-' + pageId);
+    const origLabel = btn ? btn.textContent : '';
+    if (btn) btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;animation:spin 1s linear infinite;">autorenew</span>';
+
     if (pageId === 3) {
-        // Default Overview — use cached cards
         window._dashTabCards = null;
         renderDashboard(3);
     } else {
-        // Load cards for the other variation
         const cards = await window.fetchContentCards(pageId);
         window._dashTabCards = cards || [];
         renderDashboard(pageId);
