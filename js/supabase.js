@@ -250,20 +250,41 @@ async function saveInteraction(uiData, isNew) {
     } catch (e) { console.error('[Supabase] saveInteraction error:', e); return false; }
 }
 
+// ── DASHBOARD CARDS ─────────────────────────────────────────────
+
+async function fetchDashboardCards() {
+    if (!_sb) return null;
+    try {
+        const { data: cards } = await _sb.from('tbl_content_card').select('*').eq('cc_page_id', 3).eq('cc_active', true).order('cc_order', { ascending: true });
+        return cards || [];
+    } catch (e) { console.error('[Supabase] fetchDashboardCards error:', e); return null; }
+}
+
+async function fetchPageLinks() {
+    if (!_sb) return null;
+    try {
+        const { data: links } = await _sb.from('tbl_content_page_content').select('*').eq('cpc_active', true);
+        return links || [];
+    } catch (e) { console.error('[Supabase] fetchPageLinks error:', e); return null; }
+}
+
 // ── PRE-FETCH + CACHE ───────────────────────────────────────────
 
 async function preloadSupabaseData() {
     if (!_sb) return false;
     console.log('[Supabase] Pre-loading data...');
     try {
-        const [stakeholders, actions, interactions, spine, stats] = await Promise.all([
-            fetchStakeholders(), fetchActions(), fetchInteractions(), fetchSpine(), fetchStats()
+        const [stakeholders, actions, interactions, spine, stats, dashCards, pageLinks] = await Promise.all([
+            fetchStakeholders(), fetchActions(), fetchInteractions(), fetchSpine(), fetchStats(),
+            fetchDashboardCards(), fetchPageLinks()
         ]);
         if (stakeholders) _sbCache.stakeholders = stakeholders;
         if (actions) _sbCache.actions = actions;
         if (interactions) _sbCache.interactions = interactions;
         if (spine) _sbCache.spine = spine;
         if (stats) _sbCache.stats = stats;
+        if (dashCards) _sbCache.dashboardCards = dashCards;
+        if (pageLinks) _sbCache.pageLinks = pageLinks;
         _sbReady = Object.keys(_sbCache).length > 0;
         console.log('[Supabase] Cache loaded:', Object.keys(_sbCache).join(', '));
         return _sbReady;
