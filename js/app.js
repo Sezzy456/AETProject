@@ -277,31 +277,34 @@ function renderDashboard(pageIdOverride) {
                 const filter = card.cc_filter || '';
                 let filtered = [...actions];
                 const now = new Date();
-                if (filter === 'completed') filtered = filtered.filter(a => a.status === 'Complete' || a.status === 'Completed');
-                else if (filter === 'overdue') filtered = filtered.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate + 'T00:00:00') < now && a.status !== 'Complete' && a.status !== 'Completed');
-                else if (filter === 'upcoming') filtered = filtered.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate + 'T00:00:00') >= now && a.status !== 'Complete' && a.status !== 'Completed');
-                filtered.sort((a,b) => {
-                    const aStatus = (a.status||'').toLowerCase();
-                    const bStatus = (b.status||'').toLowerCase();
-                    const aDone = aStatus === 'complete' || aStatus === 'completed';
-                    const bDone = bStatus === 'complete' || bStatus === 'completed';
-                    if (aDone !== bDone) return aDone ? 1 : -1;
-                    const aDate = a.timing?.dueDate || '9999-12-31';
-                    const bDate = b.timing?.dueDate || '9999-12-31';
-                    return aDate.localeCompare(bDate);
-                });
+                const isDone = a => /^complete[d]?$/i.test(a.status||'');
+                if (filter === 'completed') filtered = filtered.filter(a => isDone(a));
+                else if (filter === 'overdue') filtered = filtered.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate + 'T00:00:00') < now && !isDone(a));
+                else if (filter === 'upcoming') filtered = filtered.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate + 'T00:00:00') >= now && !isDone(a));
+                // Partition: incomplete sorted by due date asc, then completed at bottom
+                const incArr = filtered.filter(a => !isDone(a)).sort((a,b) => (a.timing?.dueDate||'9999-12-31').localeCompare(b.timing?.dueDate||'9999-12-31'));
+                const doneArr = filtered.filter(a => isDone(a));
+                filtered = [...incArr, ...doneArr];
                 const items = filtered.slice(0,3);
                 const itemsHtml = items.length > 0 ? items.map(a => {
                     const dueDate = a.timing?.dueDate ? new Date(a.timing.dueDate+'T00:00:00') : null;
                     const dueStr = dueDate ? dueDate.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}) : 'TBD';
-                    const isOverdue = dueDate && dueDate < now && a.status !== 'Complete' && a.status !== 'Completed';
-                    const overdueStyle = isOverdue ? 'border-left:3px solid #ef4444;' : '';
-                    const dueLabelStyle = isOverdue ? 'color:#ef4444;font-weight:600;' : '';
-                    const badgeStyle = isOverdue ? 'border-color:#ef4444;color:#ef4444;' : 'border-color:var(--energy-algae);color:var(--energy-algae);';
-                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;${overdueStyle}" onclick="event.stopPropagation();window.viewAction('${a.id}')" onmouseover="this.style.borderColor='${isOverdue?'#ef4444':'var(--energy-algae)'}';" onmouseout="this.style.borderColor='var(--border-subtle)'"><div style="display:flex;justify-content:space-between;align-items:center;"><div><span class="status-badge" style="font-size:0.7rem;padding:0.1rem 0.5rem;${badgeStyle}">${a.status}</span><h4 style="margin:0.25rem 0 0;font-size:1rem;color:var(--text-primary);text-transform:none;">${a.activity}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;">Owner: ${a.owner||'—'} | <span style="${dueLabelStyle}">Due: ${dueStr}${isOverdue?' — OVERDUE':''}</span></div></div><span class="material-symbols-outlined" style="font-size:1.2rem;color:var(--text-tertiary);">open_in_new</span></div></div>`;
+                    const isOver = dueDate && dueDate < now && !isDone(a);
+                    const overdueStyle = isOver ? 'border-left:3px solid #ef4444;' : '';
+                    const dueLabelStyle = isOver ? 'color:#ef4444;font-weight:600;' : '';
+                    const badgeStyle = isOver ? 'border-color:#ef4444;color:#ef4444;' : 'border-color:var(--energy-algae);color:var(--energy-algae);';
+                    const hoverBorder = isOver ? '#ef4444' : 'var(--energy-algae)';
+                    const mouseoutCode = isOver
+                        ? "this.style.border='1px solid var(--border-subtle)';this.style.borderLeft='3px solid #ef4444'"
+                        : "this.style.borderColor='var(--border-subtle)'";
+                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;${overdueStyle}" onclick="event.stopPropagation();window.viewAction('${a.id}')" onmouseover="this.style.borderColor='${hoverBorder}'" onmouseout="${mouseoutCode}"><div style="display:flex;justify-content:space-between;align-items:center;"><div><span class="status-badge" style="font-size:0.7rem;padding:0.1rem 0.5rem;${badgeStyle}">${a.status}</span><h4 style="margin:0.25rem 0 0;font-size:1rem;color:var(--text-primary);text-transform:none;">${a.activity}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;">Owner: ${a.owner||'\u2014'} | <span style="${dueLabelStyle}">Due: ${dueStr}${isOver?' \u2014 OVERDUE':''}</span></div></div><span class="material-symbols-outlined" style="font-size:1.2rem;color:var(--text-tertiary);">open_in_new</span></div></div>`;
                 }).join('') : '<div style="padding:1rem;color:var(--text-tertiary);font-style:italic;">No actions found.</div>';
                 return `<div class="card" style="${colSpan}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title||'Actions'}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="loadView('actions');history.pushState(null,'','#actions')">View All</button></div><div style="display:flex;flex-direction:column;gap:0.5rem;">${itemsHtml}</div></div>`;
             }
+
+
+
+
 
             case 'interactions_link': {
                 const filter = card.cc_filter || '';
@@ -321,7 +324,7 @@ function renderDashboard(pageIdOverride) {
                 if (link && spine) {
                     const filter = card.cc_filter || link.cpc_filter || '';
                     if (filter === 'objectives' && spine.objectives) {
-                        previewHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;"><div class="card" style="background:var(--bg-app);border:1px solid var(--border-subtle);"><h4 style="margin-bottom:1rem;font-size:0.9rem;">Objectives</h4><ul style="list-style:none;padding:0;font-size:0.85rem;display:flex;flex-direction:column;gap:0.5rem;">${spine.objectives.slice(0,3).map(o=>`<li style="display:flex;gap:0.5rem;"><span style="color:var(--energy-algae);">✅</span> ${o.text}</li>`).join('')}</ul></div><div class="card" style="background:var(--bg-app);border:1px solid var(--border-subtle);"><h4 style="margin-bottom:1rem;font-size:0.9rem;">Strategic Pillars</h4><div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.85rem;">${(spine.pillars||[]).slice(0,4).map(p=>`<div style="padding:0.5rem 0.75rem;background:rgba(0,0,0,0.02);border:1px solid var(--border-subtle);border-radius:4px;color:var(--text-secondary);">${p.title}</div>`).join('')}</div></div></div>`;
+                        previewHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;"><div class="card" style="background:var(--bg-app);border:1px solid var(--border-subtle);"><h4 style="margin-bottom:1rem;font-size:0.9rem;">Objectives</h4><div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.85rem;">${spine.objectives.slice(0,3).map(o=>`<div style="padding:0.5rem 0.75rem;background:rgba(0,0,0,0.02);border:1px solid var(--border-subtle);border-radius:4px;color:var(--text-secondary);">${o.text}</div>`).join('')}</div></div><div class="card" style="background:var(--bg-app);border:1px solid var(--border-subtle);"><h4 style="margin-bottom:1rem;font-size:0.9rem;">Strategic Pillars</h4><div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.85rem;">${(spine.pillars||[]).slice(0,4).map(p=>`<div style="padding:0.5rem 0.75rem;background:rgba(0,0,0,0.02);border:1px solid var(--border-subtle);border-radius:4px;color:var(--text-secondary);">${p.title}</div>`).join('')}</div></div></div>`;
                     }
                 }
                 return `<div class="card" style="${colSpan}cursor:pointer;" onclick="loadView('${targetView}');history.pushState(null,'','#${targetView}')"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title||'Linked Page'}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="event.stopPropagation();loadView('${targetView}');history.pushState(null,'','#${targetView}')">View</button></div>${previewHtml}</div>`;
