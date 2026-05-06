@@ -1,0 +1,659 @@
+// ═══════════════════════════════════════════════════
+//  AET PROJECT — DATABASE SCHEMA v4.2
+//  Inline versioning · Composable content cards · Page access control
+//  Standard audit fields on ALL tables · Content Card entity junctions
+// ═══════════════════════════════════════════════════
+//
+//  CHANGES from v4.1:
+//  - ALL tables now have standardised audit fields:
+//      _active boolean
+//      _created datetime
+//      _created_by integer [ref: > tbl_User.US_ID]
+//      _modified datetime
+//      _modified_by integer [ref: > tbl_User.US_ID]
+//    Replaced any prior partial variants (e.g. CO_created_at, CO_inactive,
+//    STA_active, STA_created, CC_edited_at, CC_edited_by, etc.)
+//
+//  - Three new junction tables added:
+//      tbl_Content_Card_Actions
+//      tbl_Content_Card_Interactions
+//      tbl_Content_Card_Stakeholders
+//
+//  TABLE COUNT: v4.1 had 25 tables → v4.2 has 28 tables (+3 junction)
+// ═══════════════════════════════════════════════════
+
+
+// ─────────────────────────────────────────────────
+//  CONTACTS (unified contactable person)
+// ─────────────────────────────────────────────────
+
+Table tbl_Contact {
+  CO_ID integer [primary key, increment]
+  CO_first_name varchar
+  CO_last_name varchar
+  CO_email varchar
+  CO_phone varchar
+  CO_avatar_colour varchar [note: 'Hex colour for UI badge']
+  CO_photo_url varchar [note: 'Avatar / profile photo path']
+  CO_is_internal boolean [note: 'true = internal team member']
+  CO_organisation varchar [note: 'e.g. CoGB, Vant, AET']
+  CO_role varchar [note: 'e.g. Comms, CEO, Web Developer (within Organisation)']
+  CO_notes text
+
+  // Audit
+  CO_active boolean
+  CO_created datetime
+  CO_created_by integer [ref: > tbl_User.US_ID]
+  CO_modified datetime
+  CO_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+Table tbl_Contact_Relationship {
+  CR_ID integer [primary key, increment]
+  CR_contact_a_ID integer [ref: > tbl_Contact.CO_ID]
+  CR_contact_b_ID integer [ref: > tbl_Contact.CO_ID]
+  CR_type varchar [note: 'reports_to, works_with, tension, ally']
+  CR_notes text
+
+  // Audit
+  CR_active boolean
+  CR_created datetime
+  CR_created_by integer [ref: > tbl_User.US_ID]
+  CR_modified datetime
+  CR_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+
+// ─────────────────────────────────────────────────
+//  USERS & TEAMS
+// ─────────────────────────────────────────────────
+
+Table tbl_User {
+  US_ID integer [primary key, increment]
+  US_contact_ID integer [ref: - tbl_Contact.CO_ID, note: 'One-to-one: every user IS a contact']
+  US_password_hash varchar [note: 'bcrypt hash — never store plaintext passwords']
+  US_is_admin boolean [note: 'true = can manage users, page access, and system settings']
+
+  // Audit
+  US_active boolean
+  US_created datetime
+  US_created_by integer [ref: > tbl_User.US_ID]
+  US_modified datetime
+  US_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+Table tbl_Team {
+  TE_ID integer [primary key, increment]
+  TE_name varchar
+
+  // Audit
+  TE_active boolean
+  TE_created datetime
+  TE_created_by integer [ref: > tbl_User.US_ID]
+  TE_modified datetime
+  TE_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+Table tbl_Team_User {
+  TU_ID integer [primary key, increment]
+  TU_team_ID integer [ref: > tbl_Team.TE_ID]
+  TU_user_ID integer [ref: > tbl_User.US_ID]
+  TU_role varchar [note: 'Team permissions | 1 create, 2 edit, 3 view']
+
+  // Audit
+  TU_active boolean
+  TU_created datetime
+  TU_created_by integer [ref: > tbl_User.US_ID]
+  TU_modified datetime
+  TU_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+
+// ─────────────────────────────────────────────────
+//  PAGE ACCESS
+// ─────────────────────────────────────────────────
+
+Table tbl_Page_Access {
+  PAC_ID integer [primary key, increment]
+  PAC_page_ID integer [ref: > tbl_Content_Page.CP_ID, note: 'Which page']
+  PAC_user_ID integer [ref: > tbl_User.US_ID, note: 'Which user']
+  PAC_can_view boolean [note: 'Admin-set: user can see this page']
+  PAC_can_edit boolean [note: 'Admin-set: user can edit content on this page']
+  PAC_user_hidden boolean [note: 'Self-managed: user has chosen to hide this from their navigation']
+
+  // Audit
+  PAC_active boolean
+  PAC_created datetime
+  PAC_created_by integer [ref: > tbl_User.US_ID, note: 'Admin who set this access']
+  PAC_modified datetime
+  PAC_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+
+// ─────────────────────────────────────────────────
+//  PRIVACY RULES
+// ─────────────────────────────────────────────────
+
+Table tbl_Privacy_Rule {
+  PR_ID integer [primary key, increment]
+  PR_target_type varchar [note: 'action, interaction, stakeholder']
+  PR_target_original_ID varchar [note: 'AC_original_ID, IN_original_ID, or STA_original_ID — polymorphic, no single ref']
+  PR_grantee_type varchar [note: 'everyone, team, user']
+  PR_grantee_ID integer [note: 'TE_ID or US_ID — polymorphic, no single ref. NULL if everyone']
+  PR_permission varchar [note: 'viewer, editor']
+
+  // Audit
+  PR_active boolean
+  PR_created datetime
+  PR_created_by integer [ref: > tbl_User.US_ID]
+  PR_modified datetime
+  PR_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+
+// ─────────────────────────────────────────────────
+//  ASSETS
+// ─────────────────────────────────────────────────
+
+Table tbl_Asset {
+  AS_ID integer [primary key, increment]
+  AS_description text
+
+  // Audit
+  AS_active boolean
+  AS_created datetime
+  AS_created_by integer [ref: > tbl_User.US_ID]
+  AS_modified datetime
+  AS_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+
+// ─────────────────────────────────────────────────
+//  STRATEGY SPINE
+// ─────────────────────────────────────────────────
+
+Table tbl_Strategy_Objective {
+  SO_ID integer [primary key, increment]
+  SO_strategy_ID integer
+  SO_text varchar
+  SO_order integer
+
+  // Audit
+  SO_active boolean
+  SO_created datetime
+  SO_created_by integer [ref: > tbl_User.US_ID]
+  SO_modified datetime
+  SO_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+Table tbl_Objective_Content_Card {
+  OCC_ID integer [primary key, increment]
+  OCC_objective_ID integer [ref: > tbl_Strategy_Objective.SO_ID]
+  OCC_content_card_ID integer [ref: > tbl_Content_Card.CC_ID]
+
+  // Audit
+  OCC_active boolean
+  OCC_created datetime
+  OCC_created_by integer [ref: > tbl_User.US_ID]
+  OCC_modified datetime
+  OCC_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+
+// ─────────────────────────────────────────────────
+//  STAKEHOLDERS (inline versioning)
+// ─────────────────────────────────────────────────
+
+Table tbl_Stakeholder {
+  STA_ID integer [primary key, increment, note: 'Version-specific PK']
+  STA_original_ID varchar [note: 'Entity UUID — groups all versions']
+
+  // Identity
+  STA_name varchar
+  STA_role varchar
+  STA_narrative_hook text
+  STA_status integer [note: 'Operational, Stable, Friction Points, Strained, Critical/At Risk, Dormant']
+
+  // Power Dynamics
+  STA_influence integer [note: '1=Low, 2=Medium, 3=High']
+  STA_interest integer [note: '1=Low, 2=Medium, 3=High']
+  STA_decision_authority text
+
+  // Values (JSON array — versions with row)
+  STA_values json [note: '["job creation","budget savings"]']
+
+  // Posture Journey
+  STA_posture_current varchar
+  STA_posture_desired varchar
+  STA_posture_next_step varchar
+  STA_posture_target_date varchar
+
+  // Strategic Approach
+  STA_barriers text
+  STA_engagement_approach text
+
+  // Communication
+  STA_comm_preference text
+  STA_email_tone text
+  STA_elevator_pitch text
+
+  // Ownership
+  STA_owner_contact_ID integer [ref: > tbl_Contact.CO_ID, note: 'Primary owner']
+
+  // KB link
+  STA_audience_message_card_ID integer [ref: > tbl_Content_Card.CC_ID, note: 'Linked audience message card']
+
+  // Other
+  STA_note text
+
+  // Audit
+  STA_active boolean
+  STA_created datetime [note: 'Date the entity was first created — copied forward on every version']
+  STA_created_by integer [ref: > tbl_User.US_ID]
+  STA_modified datetime [note: 'Date this specific version was created']
+  STA_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+Table tbl_Stakeholder_Contact {
+  STC_ID integer [primary key, increment]
+  STC_stakeholder_original_ID varchar [ref: > tbl_Stakeholder.STA_original_ID, note: 'Relationship is to the entity, not a version']
+  STC_contact_ID integer [ref: > tbl_Contact.CO_ID]
+  STC_is_lead boolean [note: 'Primary contact for this stakeholder']
+
+  // Audit
+  STC_active boolean
+  STC_created datetime
+  STC_created_by integer [ref: > tbl_User.US_ID]
+  STC_modified datetime
+  STC_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+
+// ─────────────────────────────────────────────────
+//  ACTIONS (inline versioning)
+// ─────────────────────────────────────────────────
+
+Table tbl_Action {
+  AC_ID integer [primary key, increment, note: 'Version-specific PK']
+  AC_original_ID integer [note: 'Entity UUID — groups all versions']
+
+  // Definition
+  AC_title varchar
+  AC_description text
+  AC_status varchar [note: 'Pending, Planned, In Progress, Completed']
+  AC_status_detail varchar [note: 'Free-text detail e.g. At Risk, Underway']
+  AC_priority varchar [note: 'ASAP, High, Medium, Low']
+  AC_complexity integer [note: '1–5, plain integer']
+  AC_phase integer [note: 'Phase number, plain integer']
+  AC_tags json [note: '["Comms","Strategy","Legal"]']
+
+  // Links
+  AC_objective_ID integer [ref: > tbl_Strategy_Objective.SO_ID, note: 'Nullable']
+
+  // Desired Outcome
+  AC_desired_outcome text
+  AC_desired_outcome_type varchar [note: 'text, asset, stakeholder_posture']
+  AC_outcome_stakeholder_original_ID varchar [ref: > tbl_Stakeholder.STA_original_ID, note: 'If outcome type = stakeholder_posture']
+  AC_desired_posture varchar
+  AC_success_criteria text
+  AC_kpi_target varchar
+
+  // Timing
+  AC_due_date_granularity varchar [note: 'month, week, day, datetime']
+  AC_due_date datetime
+  AC_due_date_display varchar
+  AC_due_detail varchar
+  AC_start_date datetime
+  AC_predicted_length varchar
+
+  // Resource
+  AC_resource_requirement text
+
+  // Todos (JSON)
+  AC_todos json [note: '[{"id":"t1","detail":"Draft pillars","completed":false,"order":1}]']
+
+  // Note
+  AC_note text
+
+  // Version control progress fields
+  AC_recent_progress text
+  AC_current_blockers text
+  AC_date_completed datetime
+
+  // Audit
+  AC_active boolean
+  AC_created datetime [note: 'Date the entity was first created — copied forward on every version']
+  AC_created_by integer [ref: > tbl_User.US_ID]
+  AC_modified datetime [note: 'Date this specific version was created']
+  AC_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+Table tbl_Action_Audience {
+  AA_ID integer [primary key, increment]
+  AA_action_original_ID varchar [ref: > tbl_Action.AC_original_ID]
+  AA_stakeholder_original_ID varchar [ref: > tbl_Stakeholder.STA_original_ID]
+
+  // Audit
+  AA_active boolean
+  AA_created datetime
+  AA_created_by integer [ref: > tbl_User.US_ID]
+  AA_modified datetime
+  AA_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+Table tbl_Action_Owner {
+  AO_ID integer [primary key, increment]
+  AO_action_original_ID varchar [ref: > tbl_Action.AC_original_ID]
+  AO_contact_ID integer [ref: > tbl_Contact.CO_ID]
+
+  // Audit
+  AO_active boolean
+  AO_created datetime
+  AO_created_by integer [ref: > tbl_User.US_ID]
+  AO_modified datetime
+  AO_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+Table tbl_Action_Predecessor {
+  AP_ID integer [primary key, increment]
+  AP_action_original_ID varchar [ref: > tbl_Action.AC_original_ID, note: 'The action']
+  AP_predecessor_original_ID varchar [ref: > tbl_Action.AC_original_ID, note: 'The predecessor action']
+
+  // Audit
+  AP_active boolean
+  AP_created datetime
+  AP_created_by integer [ref: > tbl_User.US_ID]
+  AP_modified datetime
+  AP_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+Table tbl_Action_Asset {
+  AAS_ID integer [primary key, increment]
+  AAS_action_original_ID varchar [ref: > tbl_Action.AC_original_ID]
+  AAS_asset_ID integer [ref: > tbl_Asset.AS_ID]
+  AAS_is_outcome boolean [note: 'true = this asset defines the success/outcome criteria for the action']
+
+  // Audit
+  AAS_active boolean
+  AAS_created datetime
+  AAS_created_by integer [ref: > tbl_User.US_ID]
+  AAS_modified datetime
+  AAS_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+
+// ─────────────────────────────────────────────────
+//  INTERACTIONS (inline versioning)
+// ─────────────────────────────────────────────────
+
+Table tbl_Interaction {
+  IN_ID integer [primary key, increment, note: 'Version-specific PK']
+  IN_original_ID varchar [note: 'Entity UUID — groups all versions']
+
+  // Core
+  IN_title varchar
+  IN_date datetime
+  IN_type varchar [note: 'Phone, Email, In-Person, Video, Other']
+  IN_purpose varchar
+  IN_description text
+
+  // Outcome
+  IN_outcome_score integer [note: '1–5']
+  IN_outcome_notes text
+
+  // Follow-up
+  IN_follow_up_date datetime
+
+  // Audit
+  IN_active boolean
+  IN_created datetime [note: 'Date the entity was first created — copied forward on every version']
+  IN_created_by integer [ref: > tbl_User.US_ID]
+  IN_modified datetime [note: 'Date this specific version was created']
+  IN_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+Table tbl_Interaction_Attendee {
+  IA_ID integer [primary key, increment]
+  IA_interaction_original_ID varchar [ref: > tbl_Interaction.IN_original_ID]
+  IA_contact_ID integer [ref: > tbl_Contact.CO_ID]
+
+  // Audit
+  IA_active boolean
+  IA_created datetime
+  IA_created_by integer [ref: > tbl_User.US_ID]
+  IA_modified datetime
+  IA_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+Table tbl_Interaction_Agenda_Item {
+  IAI_ID integer [primary key, increment]
+  IAI_interaction_original_ID varchar [ref: > tbl_Interaction.IN_original_ID]
+  IAI_type varchar [note: 'discuss, edit, add, link']
+  IAI_linked_action_original_ID varchar [ref: > tbl_Action.AC_original_ID, note: 'Linked action if applicable']
+  IAI_linked_objective_ID integer [ref: > tbl_Strategy_Objective.SO_ID]
+  IAI_details text
+  IAI_order integer
+
+  // Audit
+  IAI_active boolean
+  IAI_created datetime
+  IAI_created_by integer [ref: > tbl_User.US_ID]
+  IAI_modified datetime
+  IAI_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+
+// ─────────────────────────────────────────────────
+//  RISK / ISSUES TABLE
+// ─────────────────────────────────────────────────
+
+Table tbl_Risk {
+  RI_ID integer [primary key, increment]
+  RI_type varchar [note: 'stakeholder_friction, action_blocker, general']
+  RI_stakeholder_ID integer
+  RI_description text
+  RI_severity integer [note: '1–5']
+  RI_status varchar [note: 'open, mitigated, resolved']
+  RI_resolved_date datetime
+
+  // Audit
+  RI_active boolean
+  RI_created datetime
+  RI_created_by integer [ref: > tbl_User.US_ID]
+  RI_modified datetime
+  RI_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+
+// ─────────────────────────────────────────────────
+//  CONTENT PAGES & CARDS
+// ─────────────────────────────────────────────────
+
+Table tbl_Content_Page {
+  CP_ID integer [primary key, increment]
+  CP_code varchar [note: 'Short human-readable prefix, e.g. PA']
+  CP_slug varchar [note: 'URL-friendly identifier']
+  CP_title varchar [note: 'Display title']
+
+  // Audit
+  CP_active boolean
+  CP_created datetime
+  CP_created_by integer [ref: > tbl_User.US_ID]
+  CP_modified datetime
+  CP_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+Table tbl_Content_Card {
+  CC_ID integer [primary key, increment]
+  CC_page_ID integer [ref: > tbl_Content_Page.CP_ID]
+
+  CC_card_type varchar [note: 'card, section, link']
+
+  // Card identity
+  CC_title varchar
+  CC_content text [note: 'Rich text with markup: #bold#, - bullets, |csv|']
+
+  // Composable features
+  CC_is_collapsible boolean [note: 'true = renders as expandable/collapsible dropdown']
+
+  // Layout
+  CC_width varchar [note: 'full, half, third — controls card width on the page']
+  CC_order integer [note: 'Display order on the page']
+
+  // Nesting
+  CC_parent_card_ID integer [ref: > tbl_Content_Card.CC_ID, note: 'Self-reference for sub-items']
+
+  // Optional entity linkages
+  CC_stakeholder_original_ID varchar [ref: > tbl_Stakeholder.STA_original_ID, note: 'For audience-specific messages']
+
+  // Audit
+  CC_active boolean
+  CC_created datetime
+  CC_created_by integer [ref: > tbl_User.US_ID]
+  CC_modified datetime
+  CC_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+
+// ─────────────────────────────────────────────────
+//  CONTENT CARD ↔ ENTITY JUNCTION TABLES (NEW in v4.2)
+//  Link content cards to actions, interactions, and stakeholders.
+// ─────────────────────────────────────────────────
+
+Table tbl_Content_Card_Actions {
+  CCA_ID integer [primary key, increment]
+  CCA_content_card_ID integer [ref: > tbl_Content_Card.CC_ID]
+  CCA_action_original_ID varchar [ref: > tbl_Action.AC_original_ID]
+
+  // Audit
+  CCA_active boolean
+  CCA_created datetime
+  CCA_created_by integer [ref: > tbl_User.US_ID]
+  CCA_modified datetime
+  CCA_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+Table tbl_Content_Card_Interactions {
+  CCI_ID integer [primary key, increment]
+  CCI_content_card_ID integer [ref: > tbl_Content_Card.CC_ID]
+  CCI_interaction_original_ID varchar [ref: > tbl_Interaction.IN_original_ID]
+
+  // Audit
+  CCI_active boolean
+  CCI_created datetime
+  CCI_created_by integer [ref: > tbl_User.US_ID]
+  CCI_modified datetime
+  CCI_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+Table tbl_Content_Card_Stakeholders {
+  CCS_ID integer [primary key, increment]
+  CCS_content_card_ID integer [ref: > tbl_Content_Card.CC_ID]
+  CCS_stakeholder_original_ID varchar [ref: > tbl_Stakeholder.STA_original_ID]
+
+  // Audit
+  CCS_active boolean
+  CCS_created datetime
+  CCS_created_by integer [ref: > tbl_User.US_ID]
+  CCS_modified datetime
+  CCS_modified_by integer [ref: > tbl_User.US_ID]
+}
+
+
+// ═══════════════════════════════════════════════════
+//  NOTES / DESIGN DECISIONS
+// ═══════════════════════════════════════════════════
+//
+//  STANDARD AUDIT FIELDS (v4.2):
+//  Every table now has exactly five audit columns:
+//    _active   boolean    — soft delete flag
+//    _created  datetime   — row creation timestamp
+//    _created_by integer  — ref to tbl_User.US_ID
+//    _modified datetime   — last modification timestamp
+//    _modified_by integer — ref to tbl_User.US_ID
+//  This replaces prior inconsistent variants like _inactive,
+//  _created_at, _edited_at, _edited_by, etc.
+//
+//  VERSIONING PATTERN:
+//  ┌──────────────────────────────────────────────────┐
+//  │ tbl_Stakeholder                                  │
+//  │ STA_ID=1  original_ID="abc"  active=false  Jan 5 │
+//  │ STA_ID=7  original_ID="abc"  active=false  Feb 12│
+//  │ STA_ID=14 original_ID="abc"  active=true   Mar 20│
+//  └──────────────────────────────────────────────────┘
+//
+//  Current state:  WHERE _active = true
+//  Full history:   WHERE _original_ID = ? ORDER BY _modified
+//  Status timeline: SELECT STA_status, STA_modified
+//                   WHERE STA_original_ID = ? ORDER BY STA_modified
+//
+//  For versioned tables (Stakeholder, Action, Interaction):
+//    _created = date the entity was first created (copied forward)
+//    _modified = date this specific version was created
+//  _active replaces the old _is_current flag.
+//
+//  JSON CHILD DATA:
+//  Simple lists (values, tags, todos) are JSON columns on the parent.
+//  When you create a new version, the JSON comes along —
+//  no child table duplication.
+//
+//  JUNCTION TABLES:
+//  Relationships (contacts, audiences, owners, predecessors)
+//  reference the entity _original_ID, NOT the version-specific _ID.
+//  These are about the entity, not a snapshot of it.
+//
+//  CONTENT CARDS — COMPOSABLE MODEL:
+//  Cards are NOT typed by semantic purpose (pillar, faq, metric).
+//  Instead they are composable: any card can have content,
+//  be collapsible, and/or have a link, simultaneously.
+//  Only "section" is a distinct type (divider, not a card).
+//  Layout is controlled by CC_width and CC_order.
+//
+//  CONTENT CARD ENTITY JUNCTIONS (v4.2):
+//  tbl_Content_Card_Actions, _Interactions, _Stakeholders
+//  allow any content card to reference one or more entities.
+//  This replaces ad-hoc direct FK linkages and is more flexible.
+//
+//  ACCESS CONTROL — TWO-TIER MODEL:
+//  Parent gate: tbl_Page_Access (per-user, per-page)
+//  Child gate: tbl_Privacy_Rule (per-entity)
+//  Admin flag: US_is_admin on tbl_User
+//
+//  AUTH — PROTOTYPE APPROACH:
+//  US_password_hash stores a bcrypt hash.
+//  US_is_admin flag controls system-level permissions.
+//
+//  USER vs CONTACT SEPARATION:
+//  tbl_User = auth/security ONLY (password, is_admin).
+//  tbl_Contact = ALL identity data (name, email, org, role, avatar colour).
+//
+//  ACTION ASSETS — UNIFIED:
+//  tbl_Action_Asset handles both general assets and outcome-defining
+//  assets via AAS_is_outcome boolean.
+//
+//  NAMING CONVENTIONS:
+//  - All ID suffixes are uppercase: _ID
+//  - Entity grouping field: _original_ID (consistent across Stakeholder, Action, Interaction)
+//  - Audit fields: _active, _created, _created_by, _modified, _modified_by
+//  - _active on versioned tables replaces the old _is_current flag
+//
+//  FIELDS REMOVED in v4.2 (vs v4.1):
+//  - All _inactive fields (replaced by _active)
+//  - All _created_at fields (replaced by _created)
+//  - All _edited_at / _edited_by fields (replaced by _modified / _modified_by)
+//  - AC_entity_created_at, AC_version_created_at (replaced by _created / _modified)
+//  - IN_entity_created_at, IN_version_created_at (replaced by _created / _modified)
+//  - AC_edited_by, AC_edited_at (replaced by _modified_by, _modified)
+//  - IN_edited_by, IN_edited_at (replaced by _modified_by, _modified)
+//  - _is_current on versioned tables (replaced by _active)
+//  - AC_UID (renamed to AC_original_ID)
+//  - IN_UID (renamed to IN_original_ID)
+//  - All _UID junction refs (renamed to _original_ID for consistency)
+//  - AC_other (renamed to AC_note)
+//
+//  TABLES ADDED in v4.2:
+//  - tbl_Content_Card_Actions
+//  - tbl_Content_Card_Interactions
+//  - tbl_Content_Card_Stakeholders
+//
+//  TABLE COUNT: v4.1 had 25 tables → v4.2 has 28 tables (+3 junction)
