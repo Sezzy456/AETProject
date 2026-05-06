@@ -280,7 +280,14 @@ function renderDashboard(pageIdOverride) {
                 if (filter === 'completed') filtered = filtered.filter(a => a.status === 'Complete' || a.status === 'Completed');
                 else if (filter === 'overdue') filtered = filtered.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate + 'T00:00:00') < now && a.status !== 'Complete' && a.status !== 'Completed');
                 else if (filter === 'upcoming') filtered = filtered.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate + 'T00:00:00') >= now && a.status !== 'Complete' && a.status !== 'Completed');
-                filtered.sort((a,b) => (b.versionControl?.lastEdited||'').localeCompare(a.versionControl?.lastEdited||''));
+                filtered.sort((a,b) => {
+                    const aDone = a.status === 'Complete' || a.status === 'Completed';
+                    const bDone = b.status === 'Complete' || b.status === 'Completed';
+                    if (aDone !== bDone) return aDone ? 1 : -1;
+                    const aDate = a.timing?.dueDate || '9999-12-31';
+                    const bDate = b.timing?.dueDate || '9999-12-31';
+                    return aDate.localeCompare(bDate);
+                });
                 const items = filtered.slice(0,3);
                 const itemsHtml = items.length > 0 ? items.map(a => {
                     const dueDate = a.timing?.dueDate ? new Date(a.timing.dueDate+'T00:00:00') : null;
