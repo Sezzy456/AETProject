@@ -48,12 +48,12 @@ VALUES (3, 'actions_link', 'Actions', 'full', 6, NULL, true, NOW(), 1, NOW(), 1)
 -- Upcoming Interactions
 INSERT INTO tbl_content_card
   (cc_page_id, cc_card_type, cc_title, cc_width, cc_order, cc_filter, cc_active, cc_created, cc_created_by, cc_modified, cc_modified_by)
-VALUES (3, 'interactions_link', 'Upcoming Interactions', 'half', 7, 'upcoming', true, NOW(), 1, NOW(), 1);
+VALUES (3, 'interactions_link', 'Upcoming Interactions', 'full', 7, 'upcoming', true, NOW(), 1, NOW(), 1);
 
 -- Recent Interactions
 INSERT INTO tbl_content_card
   (cc_page_id, cc_card_type, cc_title, cc_width, cc_order, cc_filter, cc_active, cc_created, cc_created_by, cc_modified, cc_modified_by)
-VALUES (3, 'interactions_link', 'Recent Interactions', 'half', 8, 'recent', true, NOW(), 1, NOW(), 1);
+VALUES (3, 'interactions_link', 'Recent Interactions', 'full', 8, 'recent', true, NOW(), 1, NOW(), 1);
 
 -- ─── PAGE LINK (order 9) ───
 -- Strategy Room link card

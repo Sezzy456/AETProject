@@ -250,15 +250,28 @@ async function saveInteraction(uiData, isNew) {
     } catch (e) { console.error('[Supabase] saveInteraction error:', e); return false; }
 }
 
-// ── DASHBOARD CARDS ─────────────────────────────────────────────
+// ── CONTENT CARDS + VARIATIONS ──────────────────────────────────
 
-async function fetchDashboardCards() {
+// Fetch cards for any content page by ID
+async function fetchContentCards(pageId) {
     if (!_sb) return null;
     try {
-        const { data: cards } = await _sb.from('tbl_content_card').select('*').eq('cc_page_id', 3).eq('cc_active', true).order('cc_order', { ascending: true });
+        const { data: cards } = await _sb.from('tbl_content_card').select('*').eq('cc_page_id', pageId).eq('cc_active', true).order('cc_order', { ascending: true });
         return cards || [];
-    } catch (e) { console.error('[Supabase] fetchDashboardCards error:', e); return null; }
+    } catch (e) { console.error('[Supabase] fetchContentCards error:', e); return null; }
 }
+
+// Fetch all variation pages for a group (e.g. 'dashboard', 'strategy')
+async function fetchVariationPages(group) {
+    if (!_sb) return null;
+    try {
+        const { data: pages } = await _sb.from('tbl_content_page').select('*').eq('cp_variation_group', group).eq('cp_active', true).order('cp_variation', { ascending: true });
+        return pages || [];
+    } catch (e) { console.error('[Supabase] fetchVariationPages error:', e); return null; }
+}
+
+// Backwards compat — fetch default dashboard cards (variation 1 = page 3)
+async function fetchDashboardCards() { return fetchContentCards(3); }
 
 async function fetchPageLinks() {
     if (!_sb) return null;
@@ -268,15 +281,18 @@ async function fetchPageLinks() {
     } catch (e) { console.error('[Supabase] fetchPageLinks error:', e); return null; }
 }
 
+// Expose for tab switching
+window.fetchContentCards = fetchContentCards;
+
 // ── PRE-FETCH + CACHE ───────────────────────────────────────────
 
 async function preloadSupabaseData() {
     if (!_sb) return false;
     console.log('[Supabase] Pre-loading data...');
     try {
-        const [stakeholders, actions, interactions, spine, stats, dashCards, pageLinks] = await Promise.all([
+        const [stakeholders, actions, interactions, spine, stats, dashCards, pageLinks, dashVariations] = await Promise.all([
             fetchStakeholders(), fetchActions(), fetchInteractions(), fetchSpine(), fetchStats(),
-            fetchDashboardCards(), fetchPageLinks()
+            fetchDashboardCards(), fetchPageLinks(), fetchVariationPages('dashboard')
         ]);
         if (stakeholders) _sbCache.stakeholders = stakeholders;
         if (actions) _sbCache.actions = actions;
@@ -285,6 +301,7 @@ async function preloadSupabaseData() {
         if (stats) _sbCache.stats = stats;
         if (dashCards) _sbCache.dashboardCards = dashCards;
         if (pageLinks) _sbCache.pageLinks = pageLinks;
+        if (dashVariations) _sbCache.dashboardVariations = dashVariations;
         _sbReady = Object.keys(_sbCache).length > 0;
         console.log('[Supabase] Cache loaded:', Object.keys(_sbCache).join(', '));
         return _sbReady;

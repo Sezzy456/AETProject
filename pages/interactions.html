@@ -1,10 +1,63 @@
 <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
     <div>
-        <h2>Interactions</h2>
+        <h2>Update Log</h2>
         <p>Chronological record of interactions, decisions, and signals.</p>
     </div>
-    <button class="btn-primary" onclick="window.viewInteractionEdit()">+ Add Meeting</button>
+    <div style="display: flex; gap: 0.5rem;">
+        <button class="btn-secondary" onclick="document.getElementById('upload-modal').style.display='flex'">
+            <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:0.25rem;">upload</span> Upload
+        </button>
+        <button class="btn-primary" onclick="window.viewInteractionEdit()">+ Add Update</button>
+    </div>
 </header>
+
+<!-- Upload Modal -->
+<div id="upload-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="card" style="width:600px; max-width:90vw; max-height:85vh; overflow-y:auto; padding:2rem; position:relative;">
+        <button style="position:absolute;top:1rem;right:1rem;background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-size:1.5rem;" onclick="document.getElementById('upload-modal').style.display='none'">✕</button>
+
+        <h3 style="margin-bottom:0.25rem;">Upload Content</h3>
+        <p style="color:var(--text-tertiary);font-size:0.85rem;margin-bottom:1.5rem;">Drag and drop files or select a content type below.</p>
+
+        <!-- Drag & Drop Zone -->
+        <div id="upload-dropzone" style="border:2px dashed var(--border-subtle); border-radius:12px; padding:3rem 2rem; text-align:center; cursor:pointer; transition:all 0.2s; margin-bottom:1.5rem; background:var(--bg-app);" onmouseover="this.style.borderColor='var(--energy-algae)';this.style.background='rgba(16,185,129,0.03)'" onmouseout="this.style.borderColor='var(--border-subtle)';this.style.background='var(--bg-app)'">
+            <span class="material-symbols-outlined" style="font-size:3rem;color:var(--text-tertiary);display:block;margin-bottom:0.75rem;">cloud_upload</span>
+            <div style="font-size:1rem;color:var(--text-primary);font-weight:600;margin-bottom:0.25rem;">Drag content here</div>
+            <div style="font-size:0.85rem;color:var(--text-tertiary);">or click to browse files</div>
+            <input type="file" multiple style="display:none;">
+        </div>
+
+        <!-- Content Type Buttons -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;margin-bottom:1.5rem;">
+            <div class="card" style="padding:1rem;text-align:center;cursor:pointer;border:1px solid var(--border-subtle);transition:all 0.15s;" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+                <span class="material-symbols-outlined" style="font-size:2rem;color:var(--energy-algae);display:block;margin-bottom:0.5rem;">mic</span>
+                <div style="font-size:0.85rem;font-weight:600;">Audio</div>
+                <div style="font-size:0.75rem;color:var(--text-tertiary);">MP3, WAV, M4A</div>
+            </div>
+            <div class="card" style="padding:1rem;text-align:center;cursor:pointer;border:1px solid var(--border-subtle);transition:all 0.15s;" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+                <span class="material-symbols-outlined" style="font-size:2rem;color:var(--energy-algae);display:block;margin-bottom:0.5rem;">videocam</span>
+                <div style="font-size:0.85rem;font-weight:600;">Video</div>
+                <div style="font-size:0.75rem;color:var(--text-tertiary);">MP4, MOV, WEBM</div>
+            </div>
+            <div class="card" style="padding:1rem;text-align:center;cursor:pointer;border:1px solid var(--border-subtle);transition:all 0.15s;" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+                <span class="material-symbols-outlined" style="font-size:2rem;color:var(--energy-algae);display:block;margin-bottom:0.5rem;">description</span>
+                <div style="font-size:0.85rem;font-weight:600;">Transcript</div>
+                <div style="font-size:0.75rem;color:var(--text-tertiary);">TXT, DOCX, PDF</div>
+            </div>
+            <div class="card" style="padding:1rem;text-align:center;cursor:pointer;border:1px solid var(--border-subtle);transition:all 0.15s;" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+                <span class="material-symbols-outlined" style="font-size:2rem;color:var(--energy-algae);display:block;margin-bottom:0.5rem;">image</span>
+                <div style="font-size:0.85rem;font-weight:600;">Image</div>
+                <div style="font-size:0.75rem;color:var(--text-tertiary);">PNG, JPG, SVG</div>
+            </div>
+        </div>
+
+        <!-- Upload actions -->
+        <div style="display:flex;justify-content:flex-end;gap:0.5rem;">
+            <button class="btn-secondary" onclick="document.getElementById('upload-modal').style.display='none'">Cancel</button>
+            <button class="btn-primary" style="opacity:0.5;pointer-events:none;">Upload</button>
+        </div>
+    </div>
+</div>
 
 <!-- Filter Bar -->
 <div class="spine-section" style="padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center;">

@@ -207,11 +207,31 @@ function loadView(viewName, pushState = true) {
 
 // ---- RENDER FUNCTIONS ----
 
-function renderDashboard() {
+function renderDashboard(pageIdOverride) {
     const container = document.getElementById('dash-cards-container');
+    const tabsContainer = document.getElementById('dash-tabs');
     if (!container) return;
 
-    const cards = window.getData('dashboardCards') || [];
+    // ── Render variation tabs ──
+    const variations = window.getData('dashboardVariations') || [];
+    const activePageId = pageIdOverride || 3; // default to Overview (page 3)
+    window._dashActivePageId = activePageId;
+
+    if (tabsContainer && variations.length > 0) {
+        tabsContainer.innerHTML = variations.map(v => {
+            const isActive = v.cp_id === activePageId;
+            return `<button class="btn-secondary" style="border-radius:20px;font-size:0.85rem;height:32px;padding:0 1rem;${isActive ? 'background:var(--energy-algae);color:#fff;border-color:var(--energy-algae);' : ''}" onclick="window._switchDashTab(${v.cp_id})">${v.cp_variation_label || v.cp_title}</button>`;
+        }).join('');
+    }
+
+    // ── Get cards (from cache or override) ──
+    let cards;
+    if (pageIdOverride && pageIdOverride !== 3) {
+        cards = window._dashTabCards || [];
+    } else {
+        cards = window.getData('dashboardCards') || [];
+    }
+
     const stats = window.getData('stats');
     const actions = window.getData('actions') || [];
     const interactions = window.getData('interactions') || [];
@@ -219,165 +239,95 @@ function renderDashboard() {
     const pageLinks = window.getData('pageLinks') || [];
 
     if (cards.length === 0) {
-        // Fallback if no cards from DB — show a simple message
         container.innerHTML = '<div style="grid-column:1/-1;padding:2rem;text-align:center;color:var(--text-tertiary);font-style:italic;">Dashboard cards loading...</div>';
         return;
     }
 
+    // ── Width mapping for 6-col grid ──
+    const widthToSpan = { 'full': 'grid-column:1/-1;', 'half': 'grid-column:span 3;', 'third': 'grid-column:span 2;' };
+
     container.innerHTML = cards.map(card => {
-        const width = card.cc_width || 'full';
-        const colSpan = width === 'full' ? 'grid-column:1/-1;' : width === 'half' ? 'grid-column:span 2;' : '';
+        const colSpan = widthToSpan[card.cc_width || 'full'] || widthToSpan['full'];
 
         switch (card.cc_card_type) {
 
-            // ── OVERVIEW CARD ──────────────────────────────
             case 'overview_card': {
                 const title = card.cc_title || '';
-                let statsHtml = '';
-                let clickView = 'dashboard';
-
+                let statsHtml = '', clickView = 'dashboard';
                 if (title === 'Stakeholders' && stats) {
                     clickView = 'stakeholders';
-                    statsHtml = `
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <div>
-                                <div style="font-size:2.5rem;font-weight:700;">${stats.stakeholders.total}</div>
-                                <div style="font-size:0.75rem;color:var(--text-tertiary);">Total</div>
-                            </div>
-                            <div style="font-size:0.8rem;line-height:1.6;">
-                                <div><span style="color:var(--energy-algae);">●</span> ${stats.stakeholders.healthy} Healthy</div>
-                                <div><span style="color:var(--energy-solar);">●</span> ${stats.stakeholders.neutral} Neutral</div>
-                                <div><span style="color:var(--energy-alert);">●</span> ${stats.stakeholders.atRisk} At Risk</div>
-                            </div>
-                        </div>`;
+                    statsHtml = `<div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div><div style="font-size:2.5rem;font-weight:700;">${stats.stakeholders.total}</div><div style="font-size:0.75rem;color:var(--text-tertiary);">Total</div></div>
+                        <div style="font-size:0.8rem;line-height:1.6;"><div><span style="color:var(--energy-algae);">●</span> ${stats.stakeholders.healthy} Healthy</div><div><span style="color:var(--energy-solar);">●</span> ${stats.stakeholders.neutral} Neutral</div><div><span style="color:var(--energy-alert);">●</span> ${stats.stakeholders.atRisk} At Risk</div></div></div>`;
                 } else if (title === 'Interactions' && stats) {
                     clickView = 'interactions';
-                    statsHtml = `
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <div><div style="font-size:2.5rem;font-weight:700;">${stats.interactions.upcoming}</div><div style="font-size:0.75rem;color:var(--text-tertiary);">Upcoming</div></div>
-                            <div style="text-align:right;"><div style="font-size:2.5rem;font-weight:700;">${stats.interactions.total}</div><div style="font-size:0.75rem;color:var(--text-tertiary);">Total</div></div>
-                        </div>`;
+                    statsHtml = `<div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:2.5rem;font-weight:700;">${stats.interactions.upcoming}</div><div style="font-size:0.75rem;color:var(--text-tertiary);">Upcoming</div></div><div style="text-align:right;"><div style="font-size:2.5rem;font-weight:700;">${stats.interactions.total}</div><div style="font-size:0.75rem;color:var(--text-tertiary);">Total</div></div></div>`;
                 } else if (title === 'Actions' && stats) {
                     clickView = 'actions';
-                    statsHtml = `
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <div><div style="font-size:2.5rem;font-weight:700;">${stats.actions.total}</div><div style="font-size:0.75rem;color:var(--text-tertiary);">Total</div></div>
-                            <div style="text-align:right;"><div style="font-size:2.5rem;font-weight:700;">${stats.actions.active}</div><div style="font-size:0.75rem;color:var(--text-tertiary);">Active</div></div>
-                        </div>`;
+                    statsHtml = `<div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:2.5rem;font-weight:700;">${stats.actions.total}</div><div style="font-size:0.75rem;color:var(--text-tertiary);">Total</div></div><div style="text-align:right;"><div style="font-size:2.5rem;font-weight:700;">${stats.actions.active}</div><div style="font-size:0.75rem;color:var(--text-tertiary);">Active</div></div></div>`;
                 }
-
-                return `<div class="card" style="${colSpan}cursor:pointer;transition:all 0.2s;" onclick="loadView('${clickView}');history.pushState(null,'','#${clickView}')" onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)';this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='none';this.style.transform='none'">
-                    <h3 style="color:var(--text-tertiary);margin-bottom:0.5rem;">${title}</h3>
-                    ${statsHtml}
-                </div>`;
+                return `<div class="card" style="${colSpan}cursor:pointer;transition:all 0.2s;" onclick="loadView('${clickView}');history.pushState(null,'','#${clickView}')" onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)';this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='none';this.style.transform='none'"><h3 style="color:var(--text-tertiary);margin-bottom:0.5rem;">${title}</h3>${statsHtml}</div>`;
             }
 
-            // ── CONTENT CARD ───────────────────────────────
             case 'card': {
-                return `<div class="card" style="${colSpan}">
-                    <h3 style="color:var(--text-tertiary);margin-bottom:0.5rem;">${card.cc_title || ''}</h3>
-                    <p style="font-size:1rem;color:var(--text-secondary);margin:0;">${card.cc_content || ''}</p>
-                </div>`;
+                return `<div class="card" style="${colSpan}"><h3 style="color:var(--text-tertiary);margin-bottom:0.5rem;">${card.cc_title||''}</h3><p style="font-size:1rem;color:var(--text-secondary);margin:0;">${card.cc_content||''}</p></div>`;
             }
 
-            // ── ACTIONS LINK ───────────────────────────────
             case 'actions_link': {
-                const sorted = [...actions].sort((a, b) => (b.versionControl?.lastEdited || '').localeCompare(a.versionControl?.lastEdited || ''));
-                const items = sorted.slice(0, 3);
+                const filter = card.cc_filter || '';
+                let filtered = [...actions];
+                if (filter === 'completed') filtered = filtered.filter(a => a.status === 'Complete' || a.status === 'Completed');
+                filtered.sort((a,b) => (b.versionControl?.lastEdited||'').localeCompare(a.versionControl?.lastEdited||''));
+                const items = filtered.slice(0,3);
                 const itemsHtml = items.length > 0 ? items.map(a => {
-                    const dueStr = a.timing?.dueDate ? new Date(a.timing.dueDate + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'TBD';
-                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;" onclick="event.stopPropagation();window.viewAction('${a.id}')" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <div>
-                                <span class="status-badge" style="font-size:0.7rem;padding:0.1rem 0.5rem;border-color:var(--energy-algae);color:var(--energy-algae);">${a.status}</span>
-                                <h4 style="margin:0.25rem 0 0;font-size:1rem;color:var(--text-primary);text-transform:none;">${a.activity}</h4>
-                                <div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;">Owner: ${a.owner || '—'} <span style="margin:0 0.5rem;">|</span> Due: ${dueStr}</div>
-                            </div>
-                            <span class="material-symbols-outlined" style="font-size:1.2rem;color:var(--text-tertiary);">open_in_new</span>
-                        </div>
-                    </div>`;
+                    const dueStr = a.timing?.dueDate ? new Date(a.timing.dueDate+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}) : 'TBD';
+                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;" onclick="event.stopPropagation();window.viewAction('${a.id}')" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'"><div style="display:flex;justify-content:space-between;align-items:center;"><div><span class="status-badge" style="font-size:0.7rem;padding:0.1rem 0.5rem;border-color:var(--energy-algae);color:var(--energy-algae);">${a.status}</span><h4 style="margin:0.25rem 0 0;font-size:1rem;color:var(--text-primary);text-transform:none;">${a.activity}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;">Owner: ${a.owner||'—'} | Due: ${dueStr}</div></div><span class="material-symbols-outlined" style="font-size:1.2rem;color:var(--text-tertiary);">open_in_new</span></div></div>`;
                 }).join('') : '<div style="padding:1rem;color:var(--text-tertiary);font-style:italic;">No actions found.</div>';
-
-                return `<div class="card" style="${colSpan}cursor:pointer;" onclick="loadView('actions');history.pushState(null,'','#actions')">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-                        <h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title || 'Actions'}</h3>
-                        <button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="event.stopPropagation();loadView('actions');history.pushState(null,'','#actions')">View All</button>
-                    </div>
-                    <div style="display:flex;flex-direction:column;gap:0.5rem;" onclick="event.stopPropagation()">
-                        ${itemsHtml}
-                    </div>
-                </div>`;
+                return `<div class="card" style="${colSpan}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title||'Actions'}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="loadView('actions');history.pushState(null,'','#actions')">View All</button></div><div style="display:flex;flex-direction:column;gap:0.5rem;">${itemsHtml}</div></div>`;
             }
 
-            // ── INTERACTIONS LINK ──────────────────────────
             case 'interactions_link': {
                 const filter = card.cc_filter || '';
                 let filtered = interactions;
                 if (filter === 'upcoming') filtered = interactions.filter(i => i.type === 'Upcoming');
                 else if (filter === 'recent') filtered = interactions.filter(i => i.type === 'Recent');
-                const items = filtered.slice(0, 3);
+                const items = filtered.slice(0,3);
                 const itemsHtml = items.length > 0 ? items.map(i => {
-                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;" onclick="event.stopPropagation();window.currentInteractionId=window.currentInteractionId||'${i.id}';loadView('interaction_detail');history.pushState(null,'','#interaction_detail')" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
-                            <span style="font-size:0.75rem;color:${i.type==='Upcoming'?'var(--energy-alert)':'var(--text-tertiary)'};font-weight:600;text-transform:uppercase;">${i.rawDate} — ${i.type}</span>
-                            <span class="material-symbols-outlined" style="font-size:1rem;color:var(--text-tertiary);">open_in_new</span>
-                        </div>
-                        <h4 style="margin:0;font-size:1rem;color:var(--text-primary);text-transform:none;">${i.title}</h4>
-                        <div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;">${i.agenda || i.discussed || ''}</div>
-                    </div>`;
+                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;" onclick="window.currentInteractionId='${i.id}';loadView('interaction_detail');history.pushState(null,'','#interaction_detail')" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;"><span style="font-size:0.75rem;color:${i.type==='Upcoming'?'var(--energy-alert)':'var(--text-tertiary)'};font-weight:600;text-transform:uppercase;">${i.rawDate} — ${i.type}</span><span class="material-symbols-outlined" style="font-size:1rem;color:var(--text-tertiary);">open_in_new</span></div><h4 style="margin:0;font-size:1rem;color:var(--text-primary);text-transform:none;">${i.title}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;">${i.agenda||i.discussed||''}</div></div>`;
                 }).join('') : '<div style="padding:1rem;color:var(--text-tertiary);font-style:italic;">No interactions found.</div>';
-
-                return `<div class="card" style="${colSpan}">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-                        <h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title || 'Interactions'}</h3>
-                        <button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="loadView('interactions');history.pushState(null,'','#interactions')">View All</button>
-                    </div>
-                    <div style="display:flex;flex-direction:column;gap:0.5rem;">
-                        ${itemsHtml}
-                    </div>
-                </div>`;
+                return `<div class="card" style="${colSpan}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title||'Interactions'}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="loadView('interactions');history.pushState(null,'','#interactions')">View All</button></div><div style="display:flex;flex-direction:column;gap:0.5rem;">${itemsHtml}</div></div>`;
             }
 
-            // ── PAGE LINK ──────────────────────────────────
             case 'page_link': {
                 const link = pageLinks.find(l => l.cpc_content_card_id === card.cc_id);
-                let previewHtml = '';
-                let targetView = 'strategy_spine';
-
+                let previewHtml = '', targetView = 'strategy_spine';
                 if (link && spine) {
                     const filter = card.cc_filter || link.cpc_filter || '';
                     if (filter === 'objectives' && spine.objectives) {
-                        previewHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
-                            <div class="card" style="background:var(--bg-app);border:1px solid var(--border-subtle);">
-                                <h4 style="margin-bottom:1rem;font-size:0.9rem;">Objectives</h4>
-                                <ul style="list-style:none;padding:0;font-size:0.85rem;display:flex;flex-direction:column;gap:0.5rem;">
-                                    ${spine.objectives.slice(0, 3).map(o => `<li style="display:flex;gap:0.5rem;"><span style="color:var(--energy-algae);">✅</span> ${o.text}</li>`).join('')}
-                                </ul>
-                            </div>
-                            <div class="card" style="background:var(--bg-app);border:1px solid var(--border-subtle);">
-                                <h4 style="margin-bottom:1rem;font-size:0.9rem;">Strategic Pillars</h4>
-                                <div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.85rem;">
-                                    ${(spine.pillars || []).slice(0, 4).map(p => `<div style="padding:0.5rem 0.75rem;background:rgba(0,0,0,0.02);border:1px solid var(--border-subtle);border-radius:4px;color:var(--text-secondary);">${p.title}</div>`).join('')}
-                                </div>
-                            </div>
-                        </div>`;
+                        previewHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;"><div class="card" style="background:var(--bg-app);border:1px solid var(--border-subtle);"><h4 style="margin-bottom:1rem;font-size:0.9rem;">Objectives</h4><ul style="list-style:none;padding:0;font-size:0.85rem;display:flex;flex-direction:column;gap:0.5rem;">${spine.objectives.slice(0,3).map(o=>`<li style="display:flex;gap:0.5rem;"><span style="color:var(--energy-algae);">✅</span> ${o.text}</li>`).join('')}</ul></div><div class="card" style="background:var(--bg-app);border:1px solid var(--border-subtle);"><h4 style="margin-bottom:1rem;font-size:0.9rem;">Strategic Pillars</h4><div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.85rem;">${(spine.pillars||[]).slice(0,4).map(p=>`<div style="padding:0.5rem 0.75rem;background:rgba(0,0,0,0.02);border:1px solid var(--border-subtle);border-radius:4px;color:var(--text-secondary);">${p.title}</div>`).join('')}</div></div></div>`;
                     }
                 }
-
-                return `<div class="card" style="${colSpan}cursor:pointer;" onclick="loadView('${targetView}');history.pushState(null,'','#${targetView}')">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-                        <h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title || 'Linked Page'}</h3>
-                        <button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="event.stopPropagation();loadView('${targetView}');history.pushState(null,'','#${targetView}')">View</button>
-                    </div>
-                    ${previewHtml}
-                </div>`;
+                return `<div class="card" style="${colSpan}cursor:pointer;" onclick="loadView('${targetView}');history.pushState(null,'','#${targetView}')"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title||'Linked Page'}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="event.stopPropagation();loadView('${targetView}');history.pushState(null,'','#${targetView}')">View</button></div>${previewHtml}</div>`;
             }
 
-            default:
-                return '';
+            default: return '';
         }
     }).join('');
 }
+
+// Tab switching handler
+window._switchDashTab = async function(pageId) {
+    if (pageId === 3) {
+        // Default Overview — use cached cards
+        window._dashTabCards = null;
+        renderDashboard(3);
+    } else {
+        // Load cards for the other variation
+        const cards = await window.fetchContentCards(pageId);
+        window._dashTabCards = cards || [];
+        renderDashboard(pageId);
+    }
+};
 
 function renderStakeholders() {
     const stakeholders = window.getData('stakeholders');

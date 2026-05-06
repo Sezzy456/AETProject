@@ -1,8 +1,13 @@
-<header style="display: flex; justify-content: center; align-items: center; margin-bottom: 2rem;">
+<header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
     <h2>Dashboard</h2>
 </header>
 
-<!-- Dynamic card container — populated by renderDashboard() from content cards -->
-<div id="dash-cards-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+<!-- Variation Tabs -->
+<div id="dash-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">
+    <!-- Populated by renderDashboard() -->
+</div>
+
+<!-- Dynamic card container — 6-col grid for proper half/third/full widths -->
+<div id="dash-cards-container" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 1rem;">
     <!-- Cards rendered dynamically from tbl_content_card -->
 </div>
