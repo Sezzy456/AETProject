@@ -1,48 +1,14 @@
-<header style="display: flex; justify-content: center; align-items: center; margin-bottom: 2rem; position: relative;">
-    <h2>Knowledge Bank</h2>
-    <button id="kb-edit-toggle" class="btn-secondary" style="position: absolute; right: 0; display:flex; align-items:center; gap:0.25rem;">
+<header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+    <h2 style="margin:0;">Messaging & Q&As</h2>
+    <button id="msg-edit-toggle" class="btn-secondary" style="display:flex; align-items:center; gap:0.25rem;">
         <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit
     </button>
 </header>
 
-<!-- Project Key Messages -->
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
-    <h3 style="color:var(--text-tertiary); margin:0;">Project key messages<br><span style="font-size:0.8rem; font-weight:normal;">Benefits:</span></h3>
-    <button class="btn-primary kb-edit-btn" onclick="openKbModal('add-key-message')" style="display:none; font-size:0.75rem; padding: 0.2rem 0.5rem;">+ Add Message</button>
-</div>
-<div id="kb-key-messages-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:1.5rem; margin-bottom:3rem;">
-    <!-- Loaded by JS -->
-</div>
-
-<!-- FAQs -->
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
-    <h3 style="color:var(--text-tertiary); margin:0;">FAQs</h3>
-    <button class="btn-primary kb-edit-btn" onclick="openKbModal('add-faq')" style="display:none; font-size:0.75rem; padding: 0.2rem 0.5rem;">+ Add FAQ</button>
-</div>
-<div id="kb-faqs-grid" style="display:grid; grid-template-columns: 1fr; gap:1rem; margin-bottom:3rem;">
-    <!-- Loaded by JS -->
-</div>
-
-<!-- Audience Messages -->
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
-    <h3 style="color:var(--text-tertiary); margin:0;">Key Audience Specific Messages</h3>
-    <button class="btn-primary kb-edit-btn" onclick="openKbModal('add-audience')" style="display:none; font-size:0.75rem; padding: 0.2rem 0.5rem;">+ Add Audience</button>
-</div>
-<div id="kb-audiences-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:1.5rem; margin-bottom:3rem;">
-    <!-- Loaded by JS -->
-</div>
-
-<!-- KB Modal -->
-<dialog id="kb-modal" onmousedown="if(event.target===this)this.close()" style="border:1px solid var(--border-subtle); border-radius:8px; padding:1.5rem; width:500px; max-width:90vw; background:var(--bg-surface); color:var(--text-primary); box-shadow:0 10px 30px rgba(0,0,0,0.3); margin:auto;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; cursor:move;" id="kb-modal-header">
-        <h3 id="kb-modal-title">Edit</h3>
-        <button onclick="document.getElementById('kb-modal').close()" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined">close</span></button>
+<div id="messaging-cards-container">
+    <!-- Rendered dynamically from tbl_content_card page 2 -->
+    <div style="padding:3rem; text-align:center; color:var(--text-tertiary);">
+        <span class="material-symbols-outlined" style="font-size:2rem; animation:spin 1s linear infinite;">autorenew</span>
+        <p style="margin-top:0.5rem;">Loading messaging cards...</p>
     </div>
-    <div id="kb-modal-body" style="display:flex; flex-direction:column; gap:1rem;">
-        <!-- dynamic inputs -->
-    </div>
-    <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
-        <button class="btn-secondary" onclick="document.getElementById('kb-modal').close()">Cancel</button>
-        <button class="btn-primary" id="kb-modal-save">Save</button>
-    </div>
-</dialog>
+</div>

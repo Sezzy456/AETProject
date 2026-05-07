@@ -141,7 +141,7 @@ const VIEW_RENDERERS = {
     'actions':            renderActions,
     'action_detail':      renderActionDetail,
     'strategy_spine':     renderStrategySpine,
-    'knowledge_bank':     renderKnowledgeBank,
+    'knowledge_bank':     renderMessaging,
 };
 
 // Track current action being viewed/edited
@@ -2499,11 +2499,181 @@ window.addObjectiveInline = function () {
     setTimeout(() => window.enableObjectiveInlineEdit(newId), 0);
 };
 
-// ---- KNOWLEDGE BANK ----
+// ---- MESSAGING & Q&As (Card-driven, replaces Knowledge Bank) ----
 
-let isKbEditMode = false;
+let isMsgEditMode = false;
+let _msgCards = null;
 
-function renderKnowledgeBank() {
+async function renderMessaging() {
+    isMsgEditMode = false;
+    if (!_msgCards && window.fetchContentCards) {
+        _msgCards = await window.fetchContentCards(2);
+    }
+    if (!_msgCards || _msgCards.length === 0) {
+        renderMessagingFromMock();
+        return;
+    }
+    renderMsgCards(_msgCards);
+    setupMsgEditToggle();
+}
+
+function renderMsgCards(cards) {
+    const container = document.getElementById('messaging-cards-container');
+    if (!container) return;
+    const topCards = cards.filter(c => !c.cc_parent_card_id).sort((a,b) => a.cc_order - b.cc_order);
+    const childMap = {};
+    cards.filter(c => c.cc_parent_card_id).forEach(c => {
+        if (!childMap[c.cc_parent_card_id]) childMap[c.cc_parent_card_id] = [];
+        childMap[c.cc_parent_card_id].push(c);
+    });
+    const sections = [];
+    let cur = null;
+    topCards.forEach(card => {
+        if (card.cc_card_type === 'section') {
+            cur = { title: card.cc_title, cards: [] };
+            sections.push(cur);
+        } else if (cur) {
+            cur.cards.push(card);
+        } else {
+            if (!sections.length) sections.push({ title: null, cards: [] });
+            sections[0].cards.push(card);
+        }
+    });
+    let html = '';
+    sections.forEach(section => {
+        if (section.title) {
+            html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;margin-top:2rem;"><h3 style="color:var(--text-tertiary);margin:0;">${section.title}</h3></div>`;
+        }
+        const st = (section.title || '').toLowerCase();
+        if (st.includes('faq')) {
+            html += '<div style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:3rem;">';
+            section.cards.forEach(c => { html += renderFaqCard(c); });
+            html += '</div>';
+        } else if (st.includes('audience')) {
+            html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.5rem;margin-bottom:3rem;">';
+            section.cards.forEach(c => { html += renderAudienceCard(c); });
+            html += '</div>';
+        } else {
+            html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.5rem;margin-bottom:3rem;">';
+            section.cards.forEach(c => { html += renderKeyMessageCard(c, childMap[c.cc_id] || []); });
+            html += '</div>';
+        }
+    });
+    container.innerHTML = html;
+}
+
+function renderKeyMessageCard(card, children) {
+    let childHtml = '';
+    children.sort((a,b) => a.cc_order - b.cc_order).forEach(child => {
+        const points = (child.cc_content || '').split('\n').filter(l => l.trim());
+        childHtml += `<div id="msg-accordion-${child.cc_id}" style="border:1px solid var(--border-subtle);border-radius:8px;padding:0.75rem;cursor:pointer;transition:all 0.2s;" onclick="window.toggleMsgAccordion(${child.cc_id})"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:0.9rem;font-weight:500;">${child.cc_title}</span><span id="msg-icon-${child.cc_id}" class="material-symbols-outlined" style="font-size:1.2rem;transition:transform 0.2s;transform:rotate(0deg);">arrow_right</span></div><div id="msg-content-${child.cc_id}" style="display:none;margin-top:1rem;"><ul style="padding-left:1.5rem;margin:0;font-size:0.85rem;color:var(--text-secondary);display:flex;flex-direction:column;gap:0.5rem;">${points.map(pp => `<li>${pp}</li>`).join('')}</ul></div></div>`;
+    });
+    return `<div class="card" style="position:relative;background:var(--bg-surface);padding:1.5rem;display:flex;flex-direction:column;justify-content:flex-start;border:1px solid var(--border-subtle);border-radius:12px;"><h4 style="margin:0 0 0.5rem 0;font-size:1.1rem;color:var(--text-primary);">${card.cc_title}</h4><p style="font-size:0.85rem;color:var(--text-tertiary);margin:0 0 0.5rem 0;">Key Message</p><p class="msg-editable-content" data-card-id="${card.cc_id}" style="font-size:0.95rem;color:var(--text-secondary);margin:0 0 1.5rem 0;">${card.cc_content || ''}</p>${childHtml}</div>`;
+}
+
+function renderFaqCard(card) {
+    return `<div class="card" style="position:relative;background:var(--bg-surface);outline:1px solid var(--border-subtle);border-radius:12px;overflow:hidden;"><div id="msg-faq-header-${card.cc_id}" style="padding:0.75rem 1.5rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:500;font-size:0.95rem;" onclick="window.toggleMsgFaq(${card.cc_id})"><span style="padding-right:2rem;">${card.cc_title}</span><span id="msg-faq-icon-${card.cc_id}" class="material-symbols-outlined" style="font-size:1.5rem;transition:transform 0.2s;transform:rotate(0deg);">arrow_right</span></div><div id="msg-faq-content-${card.cc_id}" style="display:none;padding:0 1.5rem 1.5rem;border-top:1px solid var(--border-subtle);"><p class="msg-editable-content" data-card-id="${card.cc_id}" style="margin-top:1rem;font-size:0.9rem;color:var(--text-secondary);line-height:1.5;white-space:pre-wrap;">${card.cc_content || ''}</p></div></div>`;
+}
+
+function renderAudienceCard(card) {
+    const sId = card.cc_stakeholder_original_id;
+    const click = sId ? `onclick="window.currentStakeholderId='${sId}';loadView('stakeholder_detail');history.pushState(null,'','#stakeholder_detail')"` : '';
+    const cur = sId ? 'cursor:pointer;' : '';
+    return `<div class="card" style="position:relative;border:1px solid var(--border-subtle);border-radius:12px;padding:1.5rem;background:var(--bg-surface);${cur}" ${click}><div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;color:var(--text-primary);font-weight:600;"><span class="material-symbols-outlined" style="color:var(--energy-algae);">groups</span> ${card.cc_title}${sId ? '<span class="material-symbols-outlined" style="font-size:1rem;color:var(--text-tertiary);margin-left:auto;">open_in_new</span>' : ''}</div><p class="msg-editable-content" data-card-id="${card.cc_id}" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.5;">${card.cc_content || ''}</p></div>`;
+}
+
+function renderMessagingFromMock() {
+    const kb = window.getData('knowledgeBank');
+    if (!kb) return;
+    const fakeCards = [];
+    let order = 1;
+    fakeCards.push({ cc_id: 900, cc_card_type: 'section', cc_title: 'Project Key Messages', cc_order: order++ });
+    (kb.keyMessages||[]).forEach(km => {
+        const pid = 900 + order;
+        fakeCards.push({ cc_id: pid, cc_card_type: 'card', cc_title: km.title, cc_content: km.message, cc_order: order++ });
+        fakeCards.push({ cc_id: 900 + order, cc_card_type: 'card', cc_title: 'Proof Points', cc_content: km.proofPoints.join('\n'), cc_order: order++, cc_is_collapsible: true, cc_parent_card_id: pid });
+    });
+    fakeCards.push({ cc_id: 900 + order, cc_card_type: 'section', cc_title: 'FAQs', cc_order: order++ });
+    (kb.faqs||[]).forEach(f => {
+        fakeCards.push({ cc_id: 900 + order, cc_card_type: 'card', cc_title: f.question, cc_content: f.answer, cc_order: order++, cc_is_collapsible: true });
+    });
+    fakeCards.push({ cc_id: 900 + order, cc_card_type: 'section', cc_title: 'Key Audience Specific Messages', cc_order: order++ });
+    (kb.audienceMessages||[]).forEach(a => {
+        fakeCards.push({ cc_id: 900 + order, cc_card_type: 'card', cc_title: a.title, cc_content: a.text, cc_order: order++ });
+    });
+    renderMsgCards(fakeCards);
+    setupMsgEditToggle();
+}
+
+window.toggleMsgAccordion = function(id) {
+    if (isMsgEditMode) return;
+    const content = document.getElementById('msg-content-' + id);
+    const icon = document.getElementById('msg-icon-' + id);
+    const el = document.getElementById('msg-accordion-' + id);
+    if (!content) return;
+    if (content.style.display === 'none') {
+        content.style.display = 'block'; icon.style.transform = 'rotate(90deg)'; el.style.background = 'var(--bg-app)';
+    } else {
+        content.style.display = 'none'; icon.style.transform = 'rotate(0deg)'; el.style.background = 'transparent';
+    }
+};
+
+window.toggleMsgFaq = function(id) {
+    if (isMsgEditMode) return;
+    const content = document.getElementById('msg-faq-content-' + id);
+    const icon = document.getElementById('msg-faq-icon-' + id);
+    const header = document.getElementById('msg-faq-header-' + id);
+    if (!content) return;
+    if (content.style.display === 'none') {
+        content.style.display = 'block'; icon.style.transform = 'rotate(90deg)'; if(header) header.style.fontWeight = '600';
+    } else {
+        content.style.display = 'none'; icon.style.transform = 'rotate(0deg)'; if(header) header.style.fontWeight = '500';
+    }
+};
+
+function setupMsgEditToggle() {
+    const editToggle = document.getElementById('msg-edit-toggle');
+    if (!editToggle) return;
+    editToggle.addEventListener('click', () => {
+        isMsgEditMode = !isMsgEditMode;
+        editToggle.style.background = isMsgEditMode ? 'var(--energy-algae)' : '';
+        editToggle.style.color = isMsgEditMode ? '#000' : '';
+        editToggle.innerHTML = isMsgEditMode
+            ? '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done'
+            : '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
+        document.querySelectorAll('.msg-editable-content').forEach(el => {
+            if (isMsgEditMode) {
+                const ta = document.createElement('textarea');
+                ta.value = el.textContent;
+                ta.className = 'msg-edit-textarea';
+                ta.dataset.cardId = el.dataset.cardId;
+                ta.style.cssText = 'width:100%;min-height:80px;resize:vertical;padding:0.5rem;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);border-radius:4px;font-family:Inter,sans-serif;font-size:0.9rem;line-height:1.5;';
+                el.replaceWith(ta);
+            }
+        });
+        if (!isMsgEditMode) {
+            document.querySelectorAll('.msg-edit-textarea').forEach(ta => {
+                const p = document.createElement('p');
+                p.textContent = ta.value;
+                p.className = 'msg-editable-content';
+                p.dataset.cardId = ta.dataset.cardId;
+                p.style.cssText = 'font-size:0.9rem;color:var(--text-secondary);line-height:1.5;white-space:pre-wrap;';
+                ta.replaceWith(p);
+            });
+        }
+        document.querySelectorAll('[id^="msg-content-"]').forEach(el => { el.style.display = isMsgEditMode ? 'block' : 'none'; });
+        document.querySelectorAll('[id^="msg-icon-"]').forEach(el => { el.style.transform = isMsgEditMode ? 'rotate(90deg)' : 'rotate(0deg)'; });
+        document.querySelectorAll('[id^="msg-faq-content-"]').forEach(el => { el.style.display = isMsgEditMode ? 'block' : 'none'; });
+        document.querySelectorAll('[id^="msg-faq-icon-"]').forEach(el => { el.style.transform = isMsgEditMode ? 'rotate(90deg)' : 'rotate(0deg)'; });
+    });
+}
+
+// ---- SCROLL FORWARDING ----
+
+let isMsgEditMode = false;
+let _msgCards = null;
+
+function _oldRemovedKB() { /* replaced by renderMessaging */ }
     isKbEditMode = false;
     refreshKbUI();
 
