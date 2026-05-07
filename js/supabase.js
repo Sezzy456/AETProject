@@ -75,7 +75,8 @@ async function fetchStakeholders() {
                 strategicApproach: { barriers: r.sta_barriers||'', engagementApproach: r.sta_engagement_approach||'', tactics: [] },
                 contactConduct: { preferences: r.sta_comm_preference||'', emailTone: r.sta_email_tone||'', elevatorPitches: r.sta_elevator_pitch||'' },
                 relationships: { internalLink:'', externalTension:'', keyTies: contactsList.filter(c=>c.isLead).map(c=>c.name), frictionPoints:[] },
-                owner: ownerName, contacts: contactsList, _note: r.sta_note||''
+                owner: ownerName, contacts: contactsList, _note: r.sta_note||'',
+                audienceMessage: r.sta_audience_message||''
             };
         });
     } catch (e) { console.error('[Supabase] fetchStakeholders error:', e); return null; }
@@ -281,8 +282,97 @@ async function fetchPageLinks() {
     } catch (e) { console.error('[Supabase] fetchPageLinks error:', e); return null; }
 }
 
-// Expose for tab switching
+// ── CONTENT CARD CRUD ───────────────────────────────────────────
+
+async function updateContentCard(ccId, fields) {
+    if (!_sb) return false;
+    try {
+        const updateFields = { ...fields, cc_modified: new Date().toISOString(), cc_modified_by: 1 };
+        const { error } = await _sb.from('tbl_content_card').update(updateFields).eq('cc_id', ccId);
+        if (error) throw error;
+        console.log('[Supabase] Content card updated:', ccId);
+        return true;
+    } catch (e) { console.error('[Supabase] updateContentCard error:', e); return false; }
+}
+
+async function insertContentCard(fields) {
+    if (!_sb) return null;
+    try {
+        const row = { ...fields, cc_active: true, cc_created: new Date().toISOString(), cc_created_by: 1, cc_modified: new Date().toISOString(), cc_modified_by: 1 };
+        const { data, error } = await _sb.from('tbl_content_card').insert(row).select().single();
+        if (error) throw error;
+        console.log('[Supabase] Content card inserted:', data.cc_id);
+        return data;
+    } catch (e) { console.error('[Supabase] insertContentCard error:', e); return null; }
+}
+
+async function softDeleteContentCard(ccId) {
+    if (!_sb) return false;
+    try {
+        const { error } = await _sb.from('tbl_content_card').update({ cc_active: false, cc_modified: new Date().toISOString(), cc_modified_by: 1 }).eq('cc_id', ccId);
+        if (error) throw error;
+        console.log('[Supabase] Content card soft-deleted:', ccId);
+        return true;
+    } catch (e) { console.error('[Supabase] softDeleteContentCard error:', e); return false; }
+}
+
+async function reorderContentCards(updates) {
+    if (!_sb) return false;
+    try {
+        for (const { ccId, newOrder } of updates) {
+            const { error } = await _sb.from('tbl_content_card').update({ cc_order: newOrder, cc_modified: new Date().toISOString(), cc_modified_by: 1 }).eq('cc_id', ccId);
+            if (error) throw error;
+        }
+        console.log('[Supabase] Content cards reordered:', updates.length, 'cards');
+        return true;
+    } catch (e) { console.error('[Supabase] reorderContentCards error:', e); return false; }
+}
+
+// ── STRATEGY OBJECTIVE CRUD ─────────────────────────────────────
+
+async function updateStrategyObjective(soId, text) {
+    if (!_sb) return false;
+    try {
+        const { error } = await _sb.from('tbl_strategy_objective').update({ so_text: text, so_modified: new Date().toISOString(), so_modified_by: 1 }).eq('so_id', soId);
+        if (error) throw error;
+        console.log('[Supabase] Strategy objective updated:', soId);
+        return true;
+    } catch (e) { console.error('[Supabase] updateStrategyObjective error:', e); return false; }
+}
+
+async function insertStrategyObjective(text, order) {
+    if (!_sb) return null;
+    try {
+        const { data, error } = await _sb.from('tbl_strategy_objective').insert({
+            so_text: text, so_order: order, so_active: true,
+            so_created: new Date().toISOString(), so_created_by: 1,
+            so_modified: new Date().toISOString(), so_modified_by: 1
+        }).select().single();
+        if (error) throw error;
+        console.log('[Supabase] Strategy objective inserted:', data.so_id);
+        return data;
+    } catch (e) { console.error('[Supabase] insertStrategyObjective error:', e); return null; }
+}
+
+async function softDeleteStrategyObjective(soId) {
+    if (!_sb) return false;
+    try {
+        const { error } = await _sb.from('tbl_strategy_objective').update({ so_active: false, so_modified: new Date().toISOString(), so_modified_by: 1 }).eq('so_id', soId);
+        if (error) throw error;
+        console.log('[Supabase] Strategy objective soft-deleted:', soId);
+        return true;
+    } catch (e) { console.error('[Supabase] softDeleteStrategyObjective error:', e); return false; }
+}
+
+// Expose for tab switching and editing
 window.fetchContentCards = fetchContentCards;
+window.updateContentCard = updateContentCard;
+window.insertContentCard = insertContentCard;
+window.softDeleteContentCard = softDeleteContentCard;
+window.reorderContentCards = reorderContentCards;
+window.updateStrategyObjective = updateStrategyObjective;
+window.insertStrategyObjective = insertStrategyObjective;
+window.softDeleteStrategyObjective = softDeleteStrategyObjective;
 
 // ── PRE-FETCH + CACHE ───────────────────────────────────────────
 

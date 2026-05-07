@@ -2432,18 +2432,45 @@ window.addProofPointInput = function () {
     container.appendChild(div);
 };
 
-window.saveAndCloseSpine = function (spine, modal) {
+window.saveAndCloseSpine = async function (spine, modal) {
     window.updateData('spine', spine);
     refreshSpineUI();
     modal.close();
+    // Persist to Supabase — fetch current cards to find IDs
+    if (window.updateContentCard) {
+        try {
+            const cards = await window.fetchContentCards(1);
+            if (!cards) return;
+            const purposeCard = cards.find(c => c.cc_order === 1 && c.cc_card_type === 'card');
+            if (purposeCard) await window.updateContentCard(purposeCard.cc_id, { cc_content: spine.purpose });
+            const narrativeCard = cards.find(c => c.cc_order === 5 && c.cc_card_type === 'card');
+            if (narrativeCard) await window.updateContentCard(narrativeCard.cc_id, { cc_content: spine.narrative.core + '\n\nSimple: ' + spine.narrative.simple });
+            // Pillars: cards with cc_order > 6
+            const pillarCards = cards.filter(c => c.cc_order > 6 && c.cc_card_type === 'card');
+            for (const pc of pillarCards) {
+                const pillar = spine.pillars.find(p => p.id === 'p' + pc.cc_id);
+                if (pillar) {
+                    const content = [pillar.message, ...pillar.proofPoints.map(pp => '• ' + pp)].join('\n');
+                    await window.updateContentCard(pc.cc_id, { cc_title: pillar.title, cc_content: content });
+                }
+            }
+            console.log('[Strategy] All changes persisted to Supabase');
+        } catch (e) { console.error('[Strategy] Persist error:', e); }
+    }
 };
 
-window.deleteSpineItem = function (type, id) {
-    const pwd = prompt('Enter administrator password to perform deletion (hint: "abracadabra"):');
-    if (pwd !== 'abracadabra') { alert('Invalid password. Deletion cancelled.'); return; }
+window.deleteSpineItem = async function (type, id) {
+    if (!confirm('Are you sure you want to remove this item?')) return;
     const spine = window.getData('spine');
-    if (type === 'objective') spine.objectives = spine.objectives.filter(o => o.id !== id);
-    else if (type === 'pillar') spine.pillars = spine.pillars.filter(p => p.id !== id);
+    if (type === 'objective') {
+        spine.objectives = spine.objectives.filter(o => o.id !== id);
+        const soId = parseInt(id.replace('obj', ''));
+        if (soId && window.softDeleteStrategyObjective) await window.softDeleteStrategyObjective(soId);
+    } else if (type === 'pillar') {
+        spine.pillars = spine.pillars.filter(p => p.id !== id);
+        const ccId = parseInt(id.replace('p', ''));
+        if (ccId && window.softDeleteContentCard) await window.softDeleteContentCard(ccId);
+    }
     window.updateData('spine', spine);
     refreshSpineUI();
 };
@@ -2458,11 +2485,16 @@ window.moveProofPointDown = function (btn) {
     if (row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row);
 };
 
-window.saveObjectiveInline = function (id, val) {
+window.saveObjectiveInline = async function (id, val) {
     if (!val.trim()) return;
     const spine = window.getData('spine');
     const obj = spine.objectives.find(o => o.id === id);
-    if (obj) { obj.text = val; window.updateData('spine', spine); }
+    if (obj) {
+        obj.text = val;
+        window.updateData('spine', spine);
+        const soId = parseInt(id.replace('obj', ''));
+        if (soId && window.updateStrategyObjective) await window.updateStrategyObjective(soId, val);
+    }
     refreshSpineUI();
 };
 
@@ -2490,8 +2522,20 @@ window.moveObjective = function (id, dir) {
     refreshSpineUI();
 };
 
-window.addObjectiveInline = function () {
+window.addObjectiveInline = async function () {
     const spine = window.getData('spine');
+    const order = spine.objectives.length + 1;
+    if (window.insertStrategyObjective) {
+        const row = await window.insertStrategyObjective('', order);
+        if (row) {
+            const newId = 'obj' + row.so_id;
+            spine.objectives.push({ id: newId, text: '' });
+            window.updateData('spine', spine);
+            refreshSpineUI();
+            setTimeout(() => window.enableObjectiveInlineEdit(newId), 0);
+            return;
+        }
+    }
     const newId = 'obj' + Date.now();
     spine.objectives.push({ id: newId, text: '' });
     window.updateData('spine', spine);
@@ -2526,60 +2570,81 @@ function renderMsgCards(cards) {
         if (!childMap[c.cc_parent_card_id]) childMap[c.cc_parent_card_id] = [];
         childMap[c.cc_parent_card_id].push(c);
     });
+
+    // Build sections with width inheritance
     const sections = [];
     let cur = null;
     topCards.forEach(card => {
         if (card.cc_card_type === 'section') {
-            cur = { title: card.cc_title, cards: [] };
+            cur = { sectionCard: card, title: card.cc_title, width: card.cc_width || 'full', cards: [] };
             sections.push(cur);
         } else if (cur) {
             cur.cards.push(card);
         } else {
-            if (!sections.length) sections.push({ title: null, cards: [] });
+            if (!sections.length) sections.push({ sectionCard: null, title: null, width: 'full', cards: [] });
             sections[0].cards.push(card);
         }
     });
+
     let html = '';
     sections.forEach(section => {
+        const secId = section.sectionCard ? section.sectionCard.cc_id : null;
         if (section.title) {
-            html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;margin-top:2rem;"><h3 style="color:var(--text-tertiary);margin:0;">${section.title}</h3></div>`;
+            const editControls = `<div class="msg-edit-ctrl" style="display:none;gap:0.5rem;align-items:center;">
+                <button onclick="window.msgMoveCard(${secId},-1)" class="btn-secondary" style="padding:0.15rem 0.3rem;font-size:0.7rem;" title="Move up"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_upward</span></button>
+                <button onclick="window.msgMoveCard(${secId},1)" class="btn-secondary" style="padding:0.15rem 0.3rem;font-size:0.7rem;" title="Move down"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
+                <button onclick="window.msgDeleteCard(${secId})" class="btn-secondary" style="padding:0.15rem 0.3rem;font-size:0.7rem;color:var(--energy-alert);" title="Remove section"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
+            </div>`;
+            html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;margin-top:2rem;" data-section-id="${secId}">
+                <h3 class="msg-section-title" data-card-id="${secId}" style="color:var(--text-tertiary);margin:0;">${section.title}</h3>
+                ${editControls}
+            </div>`;
         }
+
+        // Section width determines grid layout for child cards
+        const gridCols = section.width === 'half' ? 'repeat(auto-fit,minmax(320px,1fr))' : 
+                         section.width === 'third' ? 'repeat(auto-fit,minmax(250px,1fr))' : 
+                         section.width === 'full' ? '1fr' : 'repeat(auto-fit,minmax(320px,1fr))';
+        
         const st = (section.title || '').toLowerCase();
-        if (st.includes('faq')) {
-            html += '<div style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:3rem;">';
-            section.cards.forEach(c => { html += renderFaqCard(c); });
-            html += '</div>';
-        } else if (st.includes('audience')) {
-            html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.5rem;margin-bottom:3rem;">';
-            section.cards.forEach(c => { html += renderAudienceCard(c); });
-            html += '</div>';
-        } else {
-            html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.5rem;margin-bottom:3rem;">';
-            section.cards.forEach(c => { html += renderKeyMessageCard(c, childMap[c.cc_id] || []); });
-            html += '</div>';
-        }
+        html += `<div style="display:grid;grid-template-columns:${gridCols};gap:1.5rem;margin-bottom:3rem;">`;
+        section.cards.forEach(c => {
+            const editWrap = `<div class="msg-edit-ctrl" style="display:none;position:absolute;right:0.5rem;top:0.5rem;gap:0.25rem;align-items:center;z-index:2;">
+                <button onclick="event.stopPropagation();window.msgMoveCard(${c.cc_id},-1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;" title="Move up"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_upward</span></button>
+                <button onclick="event.stopPropagation();window.msgMoveCard(${c.cc_id},1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;" title="Move down"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
+                <button onclick="event.stopPropagation();window.msgDeleteCard(${c.cc_id})" style="background:none;border:none;cursor:pointer;color:var(--energy-alert);padding:2px;" title="Remove"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
+            </div>`;
+            if (st.includes('faq')) {
+                html += renderFaqCard(c, editWrap);
+            } else if (st.includes('audience')) {
+                html += renderAudienceCard(c, editWrap);
+            } else {
+                html += renderKeyMessageCard(c, childMap[c.cc_id] || [], editWrap);
+            }
+        });
+        html += '</div>';
     });
     container.innerHTML = html;
 }
 
-function renderKeyMessageCard(card, children) {
+function renderKeyMessageCard(card, children, editWrap) {
     let childHtml = '';
     children.sort((a, b) => a.cc_order - b.cc_order).forEach(child => {
         const points = (child.cc_content || '').split('\n').filter(l => l.trim());
         childHtml += `<div id="msg-accordion-${child.cc_id}" style="border:1px solid var(--border-subtle);border-radius:8px;padding:0.75rem;cursor:pointer;transition:all 0.2s;" onclick="window.toggleMsgAccordion(${child.cc_id})"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:0.9rem;font-weight:500;">${child.cc_title}</span><span id="msg-icon-${child.cc_id}" class="material-symbols-outlined" style="font-size:1.2rem;transition:transform 0.2s;transform:rotate(0deg);">arrow_right</span></div><div id="msg-content-${child.cc_id}" style="display:none;margin-top:1rem;"><ul style="padding-left:1.5rem;margin:0;font-size:0.85rem;color:var(--text-secondary);display:flex;flex-direction:column;gap:0.5rem;">${points.map(pp => `<li>${pp}</li>`).join('')}</ul></div></div>`;
     });
-    return `<div class="card" style="position:relative;background:var(--bg-surface);padding:1.5rem;display:flex;flex-direction:column;justify-content:flex-start;border:1px solid var(--border-subtle);border-radius:12px;"><h4 style="margin:0 0 0.5rem 0;font-size:1.1rem;color:var(--text-primary);">${card.cc_title}</h4><p style="font-size:0.85rem;color:var(--text-tertiary);margin:0 0 0.5rem 0;">Key Message</p><p class="msg-editable-content" data-card-id="${card.cc_id}" style="font-size:0.95rem;color:var(--text-secondary);margin:0 0 1.5rem 0;">${card.cc_content || ''}</p>${childHtml}</div>`;
+    return `<div class="card" style="position:relative;background:var(--bg-surface);padding:1.5rem;display:flex;flex-direction:column;justify-content:flex-start;border:1px solid var(--border-subtle);border-radius:12px;">${editWrap||''}<h4 class="msg-editable-title" data-card-id="${card.cc_id}" style="margin:0 0 0.5rem 0;font-size:1.1rem;color:var(--text-primary);">${card.cc_title}</h4><p style="font-size:0.85rem;color:var(--text-tertiary);margin:0 0 0.5rem 0;">Key Message</p><p class="msg-editable-content" data-card-id="${card.cc_id}" style="font-size:0.95rem;color:var(--text-secondary);margin:0 0 1.5rem 0;">${card.cc_content || ''}</p>${childHtml}</div>`;
 }
 
-function renderFaqCard(card) {
-    return `<div class="card" style="position:relative;background:var(--bg-surface);outline:1px solid var(--border-subtle);border-radius:12px;overflow:hidden;"><div id="msg-faq-header-${card.cc_id}" style="padding:0.75rem 1.5rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:500;font-size:0.95rem;" onclick="window.toggleMsgFaq(${card.cc_id})"><span style="padding-right:2rem;">${card.cc_title}</span><span id="msg-faq-icon-${card.cc_id}" class="material-symbols-outlined" style="font-size:1.5rem;transition:transform 0.2s;transform:rotate(0deg);">arrow_right</span></div><div id="msg-faq-content-${card.cc_id}" style="display:none;padding:0 1.5rem 1.5rem;border-top:1px solid var(--border-subtle);"><p class="msg-editable-content" data-card-id="${card.cc_id}" style="margin-top:1rem;font-size:0.9rem;color:var(--text-secondary);line-height:1.5;white-space:pre-wrap;">${card.cc_content || ''}</p></div></div>`;
+function renderFaqCard(card, editWrap) {
+    return `<div class="card" style="position:relative;background:var(--bg-surface);outline:1px solid var(--border-subtle);border-radius:12px;overflow:hidden;">${editWrap||''}<div id="msg-faq-header-${card.cc_id}" style="padding:0.75rem 1.5rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:500;font-size:0.95rem;" onclick="window.toggleMsgFaq(${card.cc_id})"><span class="msg-editable-title" data-card-id="${card.cc_id}" style="padding-right:2rem;">${card.cc_title}</span><span id="msg-faq-icon-${card.cc_id}" class="material-symbols-outlined" style="font-size:1.5rem;transition:transform 0.2s;transform:rotate(0deg);">arrow_right</span></div><div id="msg-faq-content-${card.cc_id}" style="display:none;padding:0 1.5rem 1.5rem;border-top:1px solid var(--border-subtle);"><p class="msg-editable-content" data-card-id="${card.cc_id}" style="margin-top:1rem;font-size:0.9rem;color:var(--text-secondary);line-height:1.5;white-space:pre-wrap;">${card.cc_content || ''}</p></div></div>`;
 }
 
-function renderAudienceCard(card) {
+function renderAudienceCard(card, editWrap) {
     const sId = card.cc_stakeholder_original_id;
     const click = sId ? `onclick="window.currentStakeholderId='${sId}';loadView('stakeholder_detail');history.pushState(null,'','#stakeholder_detail')"` : '';
     const cur = sId ? 'cursor:pointer;' : '';
-    return `<div class="card" style="position:relative;border:1px solid var(--border-subtle);border-radius:12px;padding:1.5rem;background:var(--bg-surface);${cur}" ${click}><div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;color:var(--text-primary);font-weight:600;"><span class="material-symbols-outlined" style="color:var(--energy-algae);">groups</span> ${card.cc_title}${sId ? '<span class="material-symbols-outlined" style="font-size:1rem;color:var(--text-tertiary);margin-left:auto;">open_in_new</span>' : ''}</div><p class="msg-editable-content" data-card-id="${card.cc_id}" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.5;">${card.cc_content || ''}</p></div>`;
+    return `<div class="card" style="position:relative;border:1px solid var(--border-subtle);border-radius:12px;padding:1.5rem;background:var(--bg-surface);${cur}" ${click}>${editWrap||''}<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;color:var(--text-primary);font-weight:600;"><span class="material-symbols-outlined" style="color:var(--energy-algae);">groups</span> <span class="msg-editable-title" data-card-id="${card.cc_id}">${card.cc_title}</span>${sId ? '<span class="material-symbols-outlined" style="font-size:1rem;color:var(--text-tertiary);margin-left:auto;">open_in_new</span>' : ''}</div><p class="msg-editable-content" data-card-id="${card.cc_id}" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.5;">${card.cc_content || ''}</p></div>`;
 }
 
 function renderMessagingFromMock() {
@@ -2634,39 +2699,155 @@ window.toggleMsgFaq = function (id) {
 function setupMsgEditToggle() {
     const editToggle = document.getElementById('msg-edit-toggle');
     if (!editToggle) return;
-    editToggle.addEventListener('click', () => {
+    editToggle.addEventListener('click', async () => {
         isMsgEditMode = !isMsgEditMode;
         editToggle.style.background = isMsgEditMode ? 'var(--energy-algae)' : '';
         editToggle.style.color = isMsgEditMode ? '#000' : '';
         editToggle.innerHTML = isMsgEditMode
             ? '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done'
             : '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
-        document.querySelectorAll('.msg-editable-content').forEach(el => {
-            if (isMsgEditMode) {
+
+        if (isMsgEditMode) {
+            // Show edit controls
+            document.querySelectorAll('.msg-edit-ctrl').forEach(el => { el.style.display = 'flex'; });
+
+            // Make section titles editable
+            document.querySelectorAll('.msg-section-title').forEach(el => {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = el.textContent;
+                input.className = 'msg-edit-section-title';
+                input.dataset.cardId = el.dataset.cardId;
+                input.style.cssText = 'font-size:1.17rem;font-weight:600;color:var(--text-tertiary);background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:4px;padding:0.25rem 0.5rem;';
+                el.replaceWith(input);
+            });
+
+            // Make card titles editable
+            document.querySelectorAll('.msg-editable-title').forEach(el => {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = el.textContent;
+                input.className = 'msg-edit-title-input';
+                input.dataset.cardId = el.dataset.cardId;
+                input.style.cssText = 'font-size:inherit;font-weight:inherit;color:inherit;background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:4px;padding:0.2rem 0.4rem;width:100%;';
+                el.replaceWith(input);
+            });
+
+            // Make content editable
+            document.querySelectorAll('.msg-editable-content').forEach(el => {
                 const ta = document.createElement('textarea');
                 ta.value = el.textContent;
                 ta.className = 'msg-edit-textarea';
                 ta.dataset.cardId = el.dataset.cardId;
                 ta.style.cssText = 'width:100%;min-height:80px;resize:vertical;padding:0.5rem;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);border-radius:4px;font-family:Inter,sans-serif;font-size:0.9rem;line-height:1.5;';
                 el.replaceWith(ta);
-            }
-        });
-        if (!isMsgEditMode) {
-            document.querySelectorAll('.msg-edit-textarea').forEach(ta => {
-                const p = document.createElement('p');
-                p.textContent = ta.value;
-                p.className = 'msg-editable-content';
-                p.dataset.cardId = ta.dataset.cardId;
-                p.style.cssText = 'font-size:0.9rem;color:var(--text-secondary);line-height:1.5;white-space:pre-wrap;';
-                ta.replaceWith(p);
             });
+
+            // Expand all accordions
+            document.querySelectorAll('[id^="msg-content-"]').forEach(el => { el.style.display = 'block'; });
+            document.querySelectorAll('[id^="msg-icon-"]').forEach(el => { el.style.transform = 'rotate(90deg)'; });
+            document.querySelectorAll('[id^="msg-faq-content-"]').forEach(el => { el.style.display = 'block'; });
+            document.querySelectorAll('[id^="msg-faq-icon-"]').forEach(el => { el.style.transform = 'rotate(90deg)'; });
+        } else {
+            // "Done" clicked — persist all changes to Supabase
+            const updates = [];
+
+            // Collect section title changes
+            document.querySelectorAll('.msg-edit-section-title').forEach(input => {
+                const cardId = parseInt(input.dataset.cardId);
+                if (cardId) updates.push({ ccId: cardId, fields: { cc_title: input.value } });
+            });
+
+            // Collect card title changes
+            document.querySelectorAll('.msg-edit-title-input').forEach(input => {
+                const cardId = parseInt(input.dataset.cardId);
+                if (cardId) {
+                    const existing = updates.find(u => u.ccId === cardId);
+                    if (existing) existing.fields.cc_title = input.value;
+                    else updates.push({ ccId: cardId, fields: { cc_title: input.value } });
+                }
+            });
+
+            // Collect content changes
+            document.querySelectorAll('.msg-edit-textarea').forEach(ta => {
+                const cardId = parseInt(ta.dataset.cardId);
+                if (cardId) {
+                    const existing = updates.find(u => u.ccId === cardId);
+                    if (existing) existing.fields.cc_content = ta.value;
+                    else updates.push({ ccId: cardId, fields: { cc_content: ta.value } });
+                }
+            });
+
+            // Persist all updates
+            if (window.updateContentCard && updates.length > 0) {
+                for (const { ccId, fields } of updates) {
+                    await window.updateContentCard(ccId, fields);
+                }
+                console.log('[Messaging] Persisted', updates.length, 'card updates');
+            }
+
+            // Re-fetch and re-render
+            _msgCards = await window.fetchContentCards(2);
+            if (_msgCards && _msgCards.length > 0) {
+                renderMsgCards(_msgCards);
+                setupMsgEditToggle();
+            }
         }
-        document.querySelectorAll('[id^="msg-content-"]').forEach(el => { el.style.display = isMsgEditMode ? 'block' : 'none'; });
-        document.querySelectorAll('[id^="msg-icon-"]').forEach(el => { el.style.transform = isMsgEditMode ? 'rotate(90deg)' : 'rotate(0deg)'; });
-        document.querySelectorAll('[id^="msg-faq-content-"]').forEach(el => { el.style.display = isMsgEditMode ? 'block' : 'none'; });
-        document.querySelectorAll('[id^="msg-faq-icon-"]').forEach(el => { el.style.transform = isMsgEditMode ? 'rotate(90deg)' : 'rotate(0deg)'; });
     });
 }
+
+// ---- MESSAGING CARD OPERATIONS ----
+
+window.msgMoveCard = async function (ccId, direction) {
+    if (!_msgCards) return;
+    const topCards = _msgCards.filter(c => !c.cc_parent_card_id).sort((a, b) => a.cc_order - b.cc_order);
+    const idx = topCards.findIndex(c => c.cc_id === ccId);
+    if (idx === -1) return;
+    const swapIdx = idx + direction;
+    if (swapIdx < 0 || swapIdx >= topCards.length) return;
+
+    // Swap orders
+    const tmpOrder = topCards[idx].cc_order;
+    topCards[idx].cc_order = topCards[swapIdx].cc_order;
+    topCards[swapIdx].cc_order = tmpOrder;
+
+    // Persist reorder
+    if (window.reorderContentCards) {
+        await window.reorderContentCards([
+            { ccId: topCards[idx].cc_id, newOrder: topCards[idx].cc_order },
+            { ccId: topCards[swapIdx].cc_id, newOrder: topCards[swapIdx].cc_order }
+        ]);
+    }
+
+    // Re-render keeping edit mode
+    renderMsgCards(_msgCards);
+    setupMsgEditToggle();
+    // Re-enter edit mode
+    if (isMsgEditMode) {
+        isMsgEditMode = false;
+        document.getElementById('msg-edit-toggle')?.click();
+    }
+};
+
+window.msgDeleteCard = async function (ccId) {
+    if (!confirm('Remove this card?')) return;
+    if (window.softDeleteContentCard) {
+        await window.softDeleteContentCard(ccId);
+    }
+    // Also soft-delete children
+    const children = (_msgCards || []).filter(c => c.cc_parent_card_id === ccId);
+    for (const child of children) {
+        if (window.softDeleteContentCard) await window.softDeleteContentCard(child.cc_id);
+    }
+    // Remove from local cache
+    _msgCards = (_msgCards || []).filter(c => c.cc_id !== ccId && c.cc_parent_card_id !== ccId);
+    renderMsgCards(_msgCards);
+    setupMsgEditToggle();
+    if (isMsgEditMode) {
+        isMsgEditMode = false;
+        document.getElementById('msg-edit-toggle')?.click();
+    }
+};
 
 // ---- SCROLL FORWARDING ----
 window.addEventListener('wheel', (e) => {

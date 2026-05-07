@@ -240,8 +240,8 @@ Table tbl_Stakeholder {
   // Ownership
   STA_owner_contact_ID integer [ref: > tbl_Contact.CO_ID, note: 'Primary owner']
 
-  // KB link
-  STA_audience_message_card_ID integer [ref: > tbl_Content_Card.CC_ID, note: 'Linked audience message card']
+  // Audience message
+  STA_audience_message text [note: 'Audience-specific key message for this stakeholder']
 
   // Other
   STA_note text
