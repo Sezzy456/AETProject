@@ -2252,296 +2252,329 @@ window.adetDelete = function () {
 
 
 
-// ---- STRATEGY SPINE ----
+// ---- STRATEGY SPINE (inline card-driven editing) ----
 
 let isSpineEditMode = false;
-let currentEditId = null;
+let _spineCards = null;
 
-function renderStrategySpine() {
+async function renderStrategySpine() {
     isSpineEditMode = false;
-    refreshSpineUI();
-
-    const editToggle = document.getElementById('spine-edit-toggle');
-    if (editToggle) {
-        editToggle.addEventListener('click', () => {
-            isSpineEditMode = !isSpineEditMode;
-            editToggle.style.background = isSpineEditMode ? 'var(--energy-algae)' : '';
-            editToggle.style.color = isSpineEditMode ? '#000' : '';
-            editToggle.innerHTML = isSpineEditMode
-                ? '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done'
-                : '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
-            const btns = document.querySelectorAll('.spine-edit-btn');
-            btns.forEach(btn => btn.style.display = isSpineEditMode ? 'flex' : 'none');
-            refreshSpineUI();
-        });
-    }
-
-    // Draggable modal
-    const modal = document.getElementById('spine-modal');
-    const header = document.getElementById('spine-modal-header');
-    if (modal && header) {
-        let isDragging = false, offset = { x: 0, y: 0 };
-        header.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            const rect = modal.getBoundingClientRect();
-            offset.x = e.clientX - rect.left;
-            offset.y = e.clientY - rect.top;
-        });
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            modal.style.margin = '0';
-            modal.style.left = (e.clientX - offset.x) + 'px';
-            modal.style.top = (e.clientY - offset.y) + 'px';
-        });
-        document.addEventListener('mouseup', () => { isDragging = false; });
-    }
+    _spineCards = await window.fetchContentCards(1);
+    renderSpineCards();
+    setupSpineEditToggle();
 }
 
-function refreshSpineUI() {
-    const spine = window.getData('spine');
-    if (!spine) return;
-
-    const purposeEl = document.getElementById('spine-purpose');
-    if (purposeEl) purposeEl.textContent = spine.purpose;
-
-    const objList = document.getElementById('spine-objectives-list');
-    if (objList) {
-        objList.innerHTML = spine.objectives.map((o, idx) => `
-            <li id="spine-obj-li-${o.id}" style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.03); padding:0.4rem 0.8rem; border-radius:4px; gap:1rem;">
-                <div style="display:flex; align-items:center; gap:0.5rem; flex:1;">
-                    <span style="color:var(--energy-alert);">🎯</span>
-                    <span class="obj-text">${o.text}</span>
-                </div>
-                <div class="spine-edit-btn" style="display:${isSpineEditMode ? 'flex' : 'none'}; gap:0.25rem; align-items:center;">
-                    <button onclick="window.enableObjectiveInlineEdit('${o.id}')" style="background:none; border:none; cursor:pointer; color:var(--text-secondary);"><span class="material-symbols-outlined" style="font-size:1.1rem;">edit</span></button>
-                    <button onclick="window.moveObjective('${o.id}', -1)" style="background:none; border:none; cursor:pointer; color:var(--text-secondary); opacity:${idx === 0 ? '0.2' : '1'};" ${idx === 0 ? 'disabled' : ''}><span class="material-symbols-outlined" style="font-size:1.1rem;">arrow_upward</span></button>
-                    <button onclick="window.moveObjective('${o.id}', 1)" style="background:none; border:none; cursor:pointer; color:var(--text-secondary); opacity:${idx === spine.objectives.length - 1 ? '0.2' : '1'};" ${idx === spine.objectives.length - 1 ? 'disabled' : ''}><span class="material-symbols-outlined" style="font-size:1.1rem;">arrow_downward</span></button>
-                    <button onclick="deleteSpineItem('objective', '${o.id}')" style="background:none; border:none; cursor:pointer; color:var(--energy-alert); margin-left:0.5rem;"><span class="material-symbols-outlined" style="font-size:1.1rem;">delete</span></button>
-                </div>
-            </li>
-        `).join('');
-    }
-
-    const coreEl = document.getElementById('spine-narrative-core');
-    const simpleEl = document.getElementById('spine-narrative-simple');
-    if (coreEl) coreEl.textContent = `"${spine.narrative.core}"`;
-    if (simpleEl) simpleEl.innerHTML = `<strong>Simple:</strong> ${spine.narrative.simple}`;
-
-    const pGrid = document.getElementById('spine-pillars-grid');
-    if (pGrid) {
-        pGrid.innerHTML = spine.pillars.map(p => `
-            <div class="card" style="position:relative;">
-                <h4 style="margin-bottom:0.5rem;">${p.title}</h4>
-                <div class="spine-edit-btn" style="display:${isSpineEditMode ? 'flex' : 'none'}; position:absolute; right:0.5rem; top:0.5rem; gap:0.25rem;">
-                    <button onclick="openSpineModal('edit-pillar', '${p.id}')" style="background:none; border:none; cursor:pointer; color:var(--text-secondary);"><span class="material-symbols-outlined" style="font-size:1rem;">edit</span></button>
-                    <button onclick="deleteSpineItem('pillar', '${p.id}')" style="background:none; border:none; cursor:pointer; color:var(--energy-alert);"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
-                </div>
-                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">${p.message}</p>
-                <ul style="font-size:0.85rem; padding-left:1.2rem; margin:0;">
-                    ${p.proofPoints.map(pp => `<li style="font-size:inherit;">${pp}</li>`).join('')}
-                </ul>
-            </div>
-        `).join('');
-    }
-}
-
-window.openSpineModal = function (type, id = null) {
-    const modal = document.getElementById('spine-modal');
-    const title = document.getElementById('spine-modal-title');
-    const body = document.getElementById('spine-modal-body');
-    const saveBtn = document.getElementById('spine-modal-save');
-    const spine = window.getData('spine');
-    currentEditId = id;
-    body.innerHTML = '';
-
-    if (type === 'purpose') {
-        title.textContent = 'Edit Comms Strategy Core';
-        body.innerHTML = `
-            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Comms Strategy Core Purpose</label>
-            <textarea id="spine-input-purpose" style="width:100%; height:120px; resize:none; overflow-y:auto; padding:0.5rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${spine.purpose}</textarea>
-        `;
-        saveBtn.onclick = () => {
-            spine.purpose = document.getElementById('spine-input-purpose').value;
-            saveAndCloseSpine(spine, modal);
-        };
-    } else if (type === 'add-objective' || type === 'edit-objective') {
-        modal.close(); return;
-    } else if (type === 'narrative') {
-        title.textContent = 'Edit Core Narrative';
-        body.innerHTML = `
-            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Core Narrative</label>
-            <textarea id="spine-input-ncore" style="width:100%; height:120px; resize:none; overflow-y:auto; margin-bottom:1rem; padding:0.5rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${spine.narrative.core}</textarea>
-            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Simple Translation</label>
-            <textarea id="spine-input-nsimple" style="width:100%; height:120px; resize:none; overflow-y:auto; padding:0.5rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${spine.narrative.simple}</textarea>
-        `;
-        saveBtn.onclick = () => {
-            spine.narrative.core = document.getElementById('spine-input-ncore').value;
-            spine.narrative.simple = document.getElementById('spine-input-nsimple').value;
-            saveAndCloseSpine(spine, modal);
-        };
-    } else if (type === 'add-pillar' || type === 'edit-pillar') {
-        title.textContent = id ? 'Edit Pillar' : 'Add Pillar';
-        const p = id ? spine.pillars.find(x => x.id === id) : { title: '', message: '', proofPoints: [] };
-        body.innerHTML = `
-            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Pillar Title</label>
-            <input type="text" id="spine-input-ptitle" value="${p.title}" style="width:100%; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
-            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Pillar Message</label>
-            <textarea id="spine-input-pmsg" style="width:100%; height:80px; resize:none; overflow-y:auto; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${p.message}</textarea>
-            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Proof Points</label>
-            <div id="spine-proof-container" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:0.5rem;">
-                ${p.proofPoints.map(pp => `
-                    <div style="display:flex; gap:0.5rem; align-items:center;">
-                        <span style="color:var(--text-secondary);">•</span>
-                        <input type="text" class="spine-proof-input" value="${pp}" style="flex:1; padding:0.4rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
-                        <button onclick="window.moveProofPointUp(this)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">arrow_upward</span></button>
-                        <button onclick="window.moveProofPointDown(this)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">arrow_downward</span></button>
-                        <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--energy-alert); cursor:pointer; margin-left:0.25rem;"><span class="material-symbols-outlined" style="font-size:1.2rem;">delete</span></button>
-                    </div>
-                `).join('')}
-            </div>
-            <button class="btn-secondary" onclick="window.addProofPointInput()" style="font-size:0.75rem; padding:0.2rem 0.6rem;">+ Add Point</button>
-        `;
-        saveBtn.onclick = () => {
-            const titleVal = document.getElementById('spine-input-ptitle').value;
-            const msgVal = document.getElementById('spine-input-pmsg').value;
-            const proofs = Array.from(document.querySelectorAll('.spine-proof-input')).map(el => el.value).filter(x => x.trim() !== '');
-            if (id) {
-                const target = spine.pillars.find(x => x.id === id);
-                target.title = titleVal; target.message = msgVal; target.proofPoints = proofs;
-            } else {
-                spine.pillars.push({ id: 'p' + Date.now(), title: titleVal, message: msgVal, proofPoints: proofs });
-            }
-            saveAndCloseSpine(spine, modal);
-        };
-    }
-    modal.showModal();
-};
-
-window.addProofPointInput = function () {
-    const container = document.getElementById('spine-proof-container');
+function renderSpineCards() {
+    const container = document.getElementById('strategy-cards-container');
     if (!container) return;
-    const div = document.createElement('div');
-    div.style.cssText = 'display:flex; gap:0.5rem; align-items:center;';
-    div.innerHTML = `
-        <span style="color:var(--text-secondary);">•</span>
-        <input type="text" class="spine-proof-input" value="" style="flex:1; padding:0.4rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
-        <button onclick="window.moveProofPointUp(this)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">arrow_upward</span></button>
-        <button onclick="window.moveProofPointDown(this)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">arrow_downward</span></button>
-        <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--energy-alert); cursor:pointer; margin-left:0.25rem;"><span class="material-symbols-outlined" style="font-size:1.2rem;">delete</span></button>
-    `;
-    container.appendChild(div);
-};
-
-window.saveAndCloseSpine = async function (spine, modal) {
-    window.updateData('spine', spine);
-    refreshSpineUI();
-    modal.close();
-    // Persist to Supabase — fetch current cards to find IDs
-    if (window.updateContentCard) {
-        try {
-            const cards = await window.fetchContentCards(1);
-            if (!cards) return;
-            const purposeCard = cards.find(c => c.cc_order === 1 && c.cc_card_type === 'card');
-            if (purposeCard) await window.updateContentCard(purposeCard.cc_id, { cc_content: spine.purpose });
-            const narrativeCard = cards.find(c => c.cc_order === 5 && c.cc_card_type === 'card');
-            if (narrativeCard) await window.updateContentCard(narrativeCard.cc_id, { cc_content: spine.narrative.core + '\n\nSimple: ' + spine.narrative.simple });
-            // Pillars: cards with cc_order > 6
-            const pillarCards = cards.filter(c => c.cc_order > 6 && c.cc_card_type === 'card');
-            for (const pc of pillarCards) {
-                const pillar = spine.pillars.find(p => p.id === 'p' + pc.cc_id);
-                if (pillar) {
-                    const content = [pillar.message, ...pillar.proofPoints.map(pp => '• ' + pp)].join('\n');
-                    await window.updateContentCard(pc.cc_id, { cc_title: pillar.title, cc_content: content });
-                }
-            }
-            console.log('[Strategy] All changes persisted to Supabase');
-        } catch (e) { console.error('[Strategy] Persist error:', e); }
-    }
-};
-
-window.deleteSpineItem = async function (type, id) {
-    if (!confirm('Are you sure you want to remove this item?')) return;
     const spine = window.getData('spine');
-    if (type === 'objective') {
-        spine.objectives = spine.objectives.filter(o => o.id !== id);
+    const cards = (_spineCards || []).filter(c => c.cc_active !== false).sort((a, b) => a.cc_order - b.cc_order);
+    const topCards = cards.filter(c => !c.cc_parent_card_id);
+
+    // Group into sections with width inheritance
+    const sections = [];
+    let cur = null;
+    topCards.forEach(card => {
+        if (card.cc_card_type === 'section') {
+            cur = { sectionCard: card, width: card.cc_width || 'full', cards: [] };
+            sections.push(cur);
+        } else {
+            if (!cur) { cur = { sectionCard: null, width: 'full', cards: [] }; sections.push(cur); }
+            cur.cards.push(card);
+        }
+    });
+
+    let html = '';
+    sections.forEach(section => {
+        const sc = section.sectionCard;
+        if (sc) {
+            html += `<div class="spine-section-row" data-card-id="${sc.cc_id}" style="display:flex;justify-content:space-between;align-items:center;margin:2rem 0 1rem;">
+                <h3 class="spine-section-title" data-card-id="${sc.cc_id}" style="color:var(--text-tertiary);margin:0;">${sc.cc_title||''}</h3>
+                <div class="spine-edit-ctrl" style="display:none;gap:0.5rem;align-items:center;">
+                    <select class="spine-width-select" data-card-id="${sc.cc_id}" style="display:none;font-size:0.75rem;padding:0.15rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);">
+                        <option value="full"${sc.cc_width==='full'?' selected':''}>Full</option>
+                        <option value="half"${sc.cc_width==='half'?' selected':''}>Half</option>
+                        <option value="third"${sc.cc_width==='third'?' selected':''}>Third</option>
+                    </select>
+                    <button onclick="window.spineMoveCard(${sc.cc_id},-1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;" title="Move up"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_upward</span></button>
+                    <button onclick="window.spineMoveCard(${sc.cc_id},1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;" title="Move down"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
+                    <button onclick="window.spineDeleteCard(${sc.cc_id})" style="background:none;border:none;cursor:pointer;color:var(--energy-alert);padding:2px;" title="Remove"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
+                </div>
+            </div>`;
+        }
+
+        // Check if this section title contains "Objectives" — render objectives from tbl_strategy_objective
+        const secTitle = (sc?.cc_title || '').toLowerCase();
+        if (secTitle.includes('objective') && spine && spine.objectives) {
+            html += renderSpineObjectives(spine.objectives);
+        }
+
+        // Render content cards in this section
+        const gridCols = section.width === 'half' ? 'repeat(auto-fit,minmax(320px,1fr))' :
+                         section.width === 'third' ? 'repeat(auto-fit,minmax(250px,1fr))' : '1fr';
+        if (section.cards.length > 0) {
+            html += `<div style="display:grid;grid-template-columns:${gridCols};gap:1.5rem;margin-bottom:1.5rem;">`;
+            section.cards.forEach(c => {
+                const editCtrl = `<div class="spine-edit-ctrl" style="display:none;position:absolute;right:0.5rem;top:0.5rem;gap:0.25rem;align-items:center;z-index:2;">
+                    <button onclick="event.stopPropagation();window.spineMoveCard(${c.cc_id},-1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_upward</span></button>
+                    <button onclick="event.stopPropagation();window.spineMoveCard(${c.cc_id},1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
+                    <button onclick="event.stopPropagation();window.spineDeleteCard(${c.cc_id})" style="background:none;border:none;cursor:pointer;color:var(--energy-alert);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
+                </div>`;
+                html += `<div class="card" style="position:relative;padding:1.5rem;" data-card-id="${c.cc_id}">
+                    ${editCtrl}
+                    <h4 class="spine-card-title" data-card-id="${c.cc_id}" style="margin:0 0 0.75rem 0;">${c.cc_title||''}</h4>
+                    <div class="spine-card-content" data-card-id="${c.cc_id}" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap;">${c.cc_content||''}</div>
+                </div>`;
+            });
+            html += '</div>';
+        }
+    });
+
+    // Add card/section buttons (visible in edit mode)
+    html += `<div class="spine-edit-ctrl" style="display:none;gap:0.5rem;margin-top:1rem;">
+        <button class="btn-secondary" onclick="window.spineAddSection()" style="font-size:0.8rem;padding:0.3rem 0.8rem;">+ Add Section</button>
+        <button class="btn-secondary" onclick="window.spineAddCard()" style="font-size:0.8rem;padding:0.3rem 0.8rem;">+ Add Card</button>
+    </div>`;
+
+    container.innerHTML = html;
+}
+
+function renderSpineObjectives(objectives) {
+    let html = '<div class="card" style="margin-bottom:1.5rem;"><ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:0.5rem;">';
+    objectives.forEach((o, idx) => {
+        html += `<li class="spine-obj-li" data-obj-id="${o.id}" style="display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,0.03);padding:0.4rem 0.8rem;border-radius:4px;gap:1rem;">
+            <div style="display:flex;align-items:center;gap:0.5rem;flex:1;">
+                <span style="color:var(--energy-alert);">🎯</span>
+                <span class="spine-obj-text" data-obj-id="${o.id}">${o.text}</span>
+            </div>
+            <div class="spine-edit-ctrl" style="display:none;gap:0.25rem;align-items:center;">
+                <button onclick="window.spineMoveObj('${o.id}',-1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);opacity:${idx===0?'0.2':'1'};" ${idx===0?'disabled':''}><span class="material-symbols-outlined" style="font-size:1.1rem;">arrow_upward</span></button>
+                <button onclick="window.spineMoveObj('${o.id}',1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);opacity:${idx===objectives.length-1?'0.2':'1'};" ${idx===objectives.length-1?'disabled':''}><span class="material-symbols-outlined" style="font-size:1.1rem;">arrow_downward</span></button>
+                <button onclick="window.spineDeleteObj('${o.id}')" style="background:none;border:none;cursor:pointer;color:var(--energy-alert);"><span class="material-symbols-outlined" style="font-size:1.1rem;">delete</span></button>
+            </div>
+        </li>`;
+    });
+    html += '</ul>';
+    html += '<button class="btn-secondary spine-edit-ctrl" onclick="window.spineAddObj()" style="display:none;font-size:0.75rem;padding:0.2rem 0.5rem;margin-top:0.5rem;">+ Add Objective</button>';
+    html += '</div>';
+    return html;
+}
+
+function setupSpineEditToggle() {
+    const editToggle = document.getElementById('spine-edit-toggle');
+    if (!editToggle) return;
+    editToggle.addEventListener('click', async () => {
+        isSpineEditMode = !isSpineEditMode;
+        editToggle.style.background = isSpineEditMode ? 'var(--energy-algae)' : '';
+        editToggle.style.color = isSpineEditMode ? '#000' : '';
+        editToggle.innerHTML = isSpineEditMode
+            ? '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done'
+            : '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
+
+        if (isSpineEditMode) {
+            // Show edit controls
+            document.querySelectorAll('.spine-edit-ctrl').forEach(el => { el.style.display = 'flex'; });
+            document.querySelectorAll('.spine-width-select').forEach(el => { el.style.display = 'inline-block'; });
+
+            // Section titles → inputs
+            document.querySelectorAll('.spine-section-title').forEach(el => {
+                const input = document.createElement('input');
+                input.type = 'text'; input.value = el.textContent;
+                input.className = 'spine-edit-sec-title'; input.dataset.cardId = el.dataset.cardId;
+                input.style.cssText = 'font-size:1.17rem;font-weight:600;color:var(--text-tertiary);background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:4px;padding:0.25rem 0.5rem;';
+                el.replaceWith(input);
+            });
+
+            // Card titles → inputs
+            document.querySelectorAll('.spine-card-title').forEach(el => {
+                const input = document.createElement('input');
+                input.type = 'text'; input.value = el.textContent;
+                input.className = 'spine-edit-card-title'; input.dataset.cardId = el.dataset.cardId;
+                input.style.cssText = 'font-size:1.1rem;font-weight:600;color:var(--text-primary);background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:4px;padding:0.3rem 0.5rem;width:100%;margin-bottom:0.5rem;';
+                el.replaceWith(input);
+            });
+
+            // Card content → textareas
+            document.querySelectorAll('.spine-card-content').forEach(el => {
+                const ta = document.createElement('textarea');
+                ta.value = el.textContent; ta.className = 'spine-edit-card-content'; ta.dataset.cardId = el.dataset.cardId;
+                ta.style.cssText = 'width:100%;min-height:150px;resize:vertical;padding:0.5rem;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);border-radius:4px;font-family:Inter,sans-serif;font-size:0.9rem;line-height:1.6;';
+                el.replaceWith(ta);
+            });
+
+            // Objective text → inputs
+            document.querySelectorAll('.spine-obj-text').forEach(el => {
+                const input = document.createElement('input');
+                input.type = 'text'; input.value = el.textContent;
+                input.className = 'spine-edit-obj-text'; input.dataset.objId = el.dataset.objId;
+                input.style.cssText = 'flex:1;padding:0.3rem 0.5rem;background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:4px;font-size:0.95rem;color:var(--text-primary);';
+                el.replaceWith(input);
+            });
+        } else {
+            // "Done" — persist everything
+            await persistSpineEdits();
+        }
+    });
+}
+
+async function persistSpineEdits() {
+    const spine = window.getData('spine');
+    const updates = [];
+
+    // Collect section title & width changes
+    document.querySelectorAll('.spine-edit-sec-title').forEach(input => {
+        const id = parseInt(input.dataset.cardId);
+        if (id) updates.push({ ccId: id, fields: { cc_title: input.value } });
+    });
+    document.querySelectorAll('.spine-width-select').forEach(sel => {
+        const id = parseInt(sel.dataset.cardId);
+        if (id) {
+            const existing = updates.find(u => u.ccId === id);
+            if (existing) existing.fields.cc_width = sel.value;
+            else updates.push({ ccId: id, fields: { cc_width: sel.value } });
+        }
+    });
+
+    // Collect card title + content changes
+    document.querySelectorAll('.spine-edit-card-title').forEach(input => {
+        const id = parseInt(input.dataset.cardId);
+        if (id) updates.push({ ccId: id, fields: { cc_title: input.value } });
+    });
+    document.querySelectorAll('.spine-edit-card-content').forEach(ta => {
+        const id = parseInt(ta.dataset.cardId);
+        if (id) {
+            const existing = updates.find(u => u.ccId === id);
+            if (existing) existing.fields.cc_content = ta.value;
+            else updates.push({ ccId: id, fields: { cc_content: ta.value } });
+        }
+    });
+
+    // Persist card updates
+    if (window.updateContentCard && updates.length > 0) {
+        for (const { ccId, fields } of updates) {
+            await window.updateContentCard(ccId, fields);
+        }
+        console.log('[Strategy] Persisted', updates.length, 'card updates');
+    }
+
+    // Persist objective text changes
+    const objInputs = document.querySelectorAll('.spine-edit-obj-text');
+    for (const input of objInputs) {
+        const id = input.dataset.objId;
         const soId = parseInt(id.replace('obj', ''));
-        if (soId && window.softDeleteStrategyObjective) await window.softDeleteStrategyObjective(soId);
-    } else if (type === 'pillar') {
-        spine.pillars = spine.pillars.filter(p => p.id !== id);
-        const ccId = parseInt(id.replace('p', ''));
-        if (ccId && window.softDeleteContentCard) await window.softDeleteContentCard(ccId);
-    }
-    window.updateData('spine', spine);
-    refreshSpineUI();
-};
-
-window.moveProofPointUp = function (btn) {
-    const row = btn.closest('div');
-    if (row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling);
-};
-
-window.moveProofPointDown = function (btn) {
-    const row = btn.closest('div');
-    if (row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row);
-};
-
-window.saveObjectiveInline = async function (id, val) {
-    if (!val.trim()) return;
-    const spine = window.getData('spine');
-    const obj = spine.objectives.find(o => o.id === id);
-    if (obj) {
-        obj.text = val;
-        window.updateData('spine', spine);
-        const soId = parseInt(id.replace('obj', ''));
-        if (soId && window.updateStrategyObjective) await window.updateStrategyObjective(soId, val);
-    }
-    refreshSpineUI();
-};
-
-window.enableObjectiveInlineEdit = function (id) {
-    const li = document.getElementById(`spine-obj-li-${id}`);
-    if (!li) return;
-    const oText = li.querySelector('.obj-text').innerText;
-    li.innerHTML = `
-        <div style="display:flex; align-items:center; gap:0.5rem; flex:1;">
-            <span style="color:var(--energy-alert);">🎯</span>
-            <input type="text" id="spine-input-inline-${id}" value="${oText.replace(/"/g, '&quot;')}" style="flex:1; padding:0.4rem 0.6rem; background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:4px; font-size:0.95rem; color:var(--text-primary);">
-            <button class="btn-primary" onclick="window.saveObjectiveInline('${id}', document.getElementById('spine-input-inline-${id}').value)" style="font-size:0.75rem; padding:0.2rem 0.5rem;">Save</button>
-            <button class="btn-secondary" onclick="refreshSpineUI()" style="font-size:0.75rem; padding:0.2rem 0.5rem;">Cancel</button>
-        </div>
-    `;
-};
-
-window.moveObjective = function (id, dir) {
-    const spine = window.getData('spine');
-    const idx = spine.objectives.findIndex(o => o.id === id);
-    if (idx === -1) return;
-    if (dir === -1 && idx > 0) { const t = spine.objectives[idx]; spine.objectives[idx] = spine.objectives[idx - 1]; spine.objectives[idx - 1] = t; }
-    else if (dir === 1 && idx < spine.objectives.length - 1) { const t = spine.objectives[idx]; spine.objectives[idx] = spine.objectives[idx + 1]; spine.objectives[idx + 1] = t; }
-    window.updateData('spine', spine);
-    refreshSpineUI();
-};
-
-window.addObjectiveInline = async function () {
-    const spine = window.getData('spine');
-    const order = spine.objectives.length + 1;
-    if (window.insertStrategyObjective) {
-        const row = await window.insertStrategyObjective('', order);
-        if (row) {
-            const newId = 'obj' + row.so_id;
-            spine.objectives.push({ id: newId, text: '' });
-            window.updateData('spine', spine);
-            refreshSpineUI();
-            setTimeout(() => window.enableObjectiveInlineEdit(newId), 0);
-            return;
+        if (soId && window.updateStrategyObjective) {
+            await window.updateStrategyObjective(soId, input.value);
+        }
+        if (spine) {
+            const obj = spine.objectives.find(o => o.id === id);
+            if (obj) obj.text = input.value;
         }
     }
-    const newId = 'obj' + Date.now();
-    spine.objectives.push({ id: newId, text: '' });
-    window.updateData('spine', spine);
-    refreshSpineUI();
-    setTimeout(() => window.enableObjectiveInlineEdit(newId), 0);
+    if (spine) window.updateData('spine', spine);
+
+    // Refresh spine cache and re-render
+    _spineCards = await window.fetchContentCards(1);
+    // Also refresh spine data for objectives
+    const freshSpine = await window.getData('spine');
+    renderSpineCards();
+    setupSpineEditToggle();
+}
+
+// ---- STRATEGY CARD OPERATIONS ----
+
+window.spineMoveCard = async function (ccId, direction) {
+    if (!_spineCards) return;
+    const topCards = _spineCards.filter(c => !c.cc_parent_card_id && c.cc_active !== false).sort((a, b) => a.cc_order - b.cc_order);
+    const idx = topCards.findIndex(c => c.cc_id === ccId);
+    if (idx === -1) return;
+    const swapIdx = idx + direction;
+    if (swapIdx < 0 || swapIdx >= topCards.length) return;
+    const tmpOrder = topCards[idx].cc_order;
+    topCards[idx].cc_order = topCards[swapIdx].cc_order;
+    topCards[swapIdx].cc_order = tmpOrder;
+    if (window.reorderContentCards) {
+        await window.reorderContentCards([
+            { ccId: topCards[idx].cc_id, newOrder: topCards[idx].cc_order },
+            { ccId: topCards[swapIdx].cc_id, newOrder: topCards[swapIdx].cc_order }
+        ]);
+    }
+    renderSpineCards();
+    setupSpineEditToggle();
+    if (isSpineEditMode) { isSpineEditMode = false; document.getElementById('spine-edit-toggle')?.click(); }
 };
+
+window.spineDeleteCard = async function (ccId) {
+    if (!confirm('Remove this card?')) return;
+    if (window.softDeleteContentCard) await window.softDeleteContentCard(ccId);
+    _spineCards = (_spineCards || []).filter(c => c.cc_id !== ccId);
+    // Also update spine cache for pillars
+    const spine = window.getData('spine');
+    if (spine) { spine.pillars = spine.pillars.filter(p => p.id !== 'p' + ccId); window.updateData('spine', spine); }
+    renderSpineCards(); setupSpineEditToggle();
+    if (isSpineEditMode) { isSpineEditMode = false; document.getElementById('spine-edit-toggle')?.click(); }
+};
+
+window.spineAddSection = async function () {
+    const maxOrder = (_spineCards || []).reduce((m, c) => Math.max(m, c.cc_order || 0), 0);
+    if (window.insertContentCard) {
+        const card = await window.insertContentCard({ cc_page_id: 1, cc_card_type: 'section', cc_title: 'New Section', cc_width: 'full', cc_order: maxOrder + 1 });
+        if (card) { _spineCards.push(card); renderSpineCards(); setupSpineEditToggle(); if (isSpineEditMode) { isSpineEditMode = false; document.getElementById('spine-edit-toggle')?.click(); } }
+    }
+};
+
+window.spineAddCard = async function () {
+    const maxOrder = (_spineCards || []).reduce((m, c) => Math.max(m, c.cc_order || 0), 0);
+    if (window.insertContentCard) {
+        const card = await window.insertContentCard({ cc_page_id: 1, cc_card_type: 'card', cc_title: 'New Card', cc_content: '', cc_width: 'full', cc_order: maxOrder + 1 });
+        if (card) { _spineCards.push(card); renderSpineCards(); setupSpineEditToggle(); if (isSpineEditMode) { isSpineEditMode = false; document.getElementById('spine-edit-toggle')?.click(); } }
+    }
+};
+
+window.spineMoveObj = function (id, dir) {
+    const spine = window.getData('spine');
+    if (!spine) return;
+    const idx = spine.objectives.findIndex(o => o.id === id);
+    if (idx === -1) return;
+    if (dir === -1 && idx > 0) { [spine.objectives[idx], spine.objectives[idx-1]] = [spine.objectives[idx-1], spine.objectives[idx]]; }
+    else if (dir === 1 && idx < spine.objectives.length - 1) { [spine.objectives[idx], spine.objectives[idx+1]] = [spine.objectives[idx+1], spine.objectives[idx]]; }
+    window.updateData('spine', spine);
+    renderSpineCards(); setupSpineEditToggle();
+    if (isSpineEditMode) { isSpineEditMode = false; document.getElementById('spine-edit-toggle')?.click(); }
+};
+
+window.spineDeleteObj = async function (id) {
+    if (!confirm('Remove this objective?')) return;
+    const spine = window.getData('spine');
+    if (!spine) return;
+    spine.objectives = spine.objectives.filter(o => o.id !== id);
+    const soId = parseInt(id.replace('obj', ''));
+    if (soId && window.softDeleteStrategyObjective) await window.softDeleteStrategyObjective(soId);
+    window.updateData('spine', spine);
+    renderSpineCards(); setupSpineEditToggle();
+    if (isSpineEditMode) { isSpineEditMode = false; document.getElementById('spine-edit-toggle')?.click(); }
+};
+
+window.spineAddObj = async function () {
+    const spine = window.getData('spine');
+    if (!spine) return;
+    const order = spine.objectives.length + 1;
+    if (window.insertStrategyObjective) {
+        const row = await window.insertStrategyObjective('New Objective', order);
+        if (row) { spine.objectives.push({ id: 'obj' + row.so_id, text: 'New Objective' }); }
+    } else { spine.objectives.push({ id: 'obj' + Date.now(), text: 'New Objective' }); }
+    window.updateData('spine', spine);
+    renderSpineCards(); setupSpineEditToggle();
+    if (isSpineEditMode) { isSpineEditMode = false; document.getElementById('spine-edit-toggle')?.click(); }
+};
+
+
+
+
+
+
+
+
+
 
 // ---- MESSAGING & Q&As (Card-driven, replaces Knowledge Bank) ----
 
@@ -2624,16 +2657,30 @@ function renderMsgCards(cards) {
         });
         html += '</div>';
     });
+
+    // Add card/section buttons (visible in edit mode)
+    html += `<div class="msg-edit-ctrl" style="display:none;gap:0.5rem;margin-top:1rem;">
+        <button class="btn-secondary" onclick="window.msgAddSection()" style="font-size:0.8rem;padding:0.3rem 0.8rem;">+ Add Section</button>
+        <button class="btn-secondary" onclick="window.msgAddCard()" style="font-size:0.8rem;padding:0.3rem 0.8rem;">+ Add Card</button>
+    </div>`;
+
     container.innerHTML = html;
 }
 
 function renderKeyMessageCard(card, children, editWrap) {
     let childHtml = '';
     children.sort((a, b) => a.cc_order - b.cc_order).forEach(child => {
-        const points = (child.cc_content || '').split('\n').filter(l => l.trim());
-        childHtml += `<div id="msg-accordion-${child.cc_id}" style="border:1px solid var(--border-subtle);border-radius:8px;padding:0.75rem;cursor:pointer;transition:all 0.2s;" onclick="window.toggleMsgAccordion(${child.cc_id})"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:0.9rem;font-weight:500;">${child.cc_title}</span><span id="msg-icon-${child.cc_id}" class="material-symbols-outlined" style="font-size:1.2rem;transition:transform 0.2s;transform:rotate(0deg);">arrow_right</span></div><div id="msg-content-${child.cc_id}" style="display:none;margin-top:1rem;"><ul style="padding-left:1.5rem;margin:0;font-size:0.85rem;color:var(--text-secondary);display:flex;flex-direction:column;gap:0.5rem;">${points.map(pp => `<li>${pp}</li>`).join('')}</ul></div></div>`;
+        childHtml += `<div id="msg-accordion-${child.cc_id}" style="border:1px solid var(--border-subtle);border-radius:8px;padding:0.75rem;cursor:pointer;transition:all 0.2s;margin-top:0.5rem;" onclick="window.toggleMsgAccordion(${child.cc_id})">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span class="msg-editable-title" data-card-id="${child.cc_id}" style="font-size:0.9rem;font-weight:500;">${child.cc_title}</span>
+                <span id="msg-icon-${child.cc_id}" class="material-symbols-outlined" style="font-size:1.2rem;transition:transform 0.2s;transform:rotate(0deg);">arrow_right</span>
+            </div>
+            <div id="msg-content-${child.cc_id}" style="display:none;margin-top:1rem;">
+                <div class="msg-editable-content" data-card-id="${child.cc_id}" style="font-size:0.85rem;color:var(--text-secondary);line-height:1.5;white-space:pre-wrap;">${child.cc_content || ''}</div>
+            </div>
+        </div>`;
     });
-    return `<div class="card" style="position:relative;background:var(--bg-surface);padding:1.5rem;display:flex;flex-direction:column;justify-content:flex-start;border:1px solid var(--border-subtle);border-radius:12px;">${editWrap||''}<h4 class="msg-editable-title" data-card-id="${card.cc_id}" style="margin:0 0 0.5rem 0;font-size:1.1rem;color:var(--text-primary);">${card.cc_title}</h4><p style="font-size:0.85rem;color:var(--text-tertiary);margin:0 0 0.5rem 0;">Key Message</p><p class="msg-editable-content" data-card-id="${card.cc_id}" style="font-size:0.95rem;color:var(--text-secondary);margin:0 0 1.5rem 0;">${card.cc_content || ''}</p>${childHtml}</div>`;
+    return `<div class="card" style="position:relative;background:var(--bg-surface);padding:1.5rem;display:flex;flex-direction:column;justify-content:flex-start;border:1px solid var(--border-subtle);border-radius:12px;">${editWrap||''}<h4 class="msg-editable-title" data-card-id="${card.cc_id}" style="margin:0 0 0.5rem 0;font-size:1.1rem;color:var(--text-primary);">${card.cc_title}</h4><p style="font-size:0.85rem;color:var(--text-tertiary);margin:0 0 0.5rem 0;">Key Message</p><p class="msg-editable-content" data-card-id="${card.cc_id}" style="font-size:0.95rem;color:var(--text-secondary);margin:0 0 1.5rem 0;white-space:pre-wrap;">${card.cc_content || ''}</p>${childHtml}</div>`;
 }
 
 function renderFaqCard(card, editWrap) {
@@ -2739,7 +2786,7 @@ function setupMsgEditToggle() {
                 ta.value = el.textContent;
                 ta.className = 'msg-edit-textarea';
                 ta.dataset.cardId = el.dataset.cardId;
-                ta.style.cssText = 'width:100%;min-height:80px;resize:vertical;padding:0.5rem;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);border-radius:4px;font-family:Inter,sans-serif;font-size:0.9rem;line-height:1.5;';
+                ta.style.cssText = 'width:100%;min-height:150px;resize:vertical;padding:0.5rem;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);border-radius:4px;font-family:Inter,sans-serif;font-size:0.9rem;line-height:1.5;';
                 el.replaceWith(ta);
             });
 
