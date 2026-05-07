@@ -2669,16 +2669,20 @@ function setupMsgEditToggle() {
 }
 
 // ---- SCROLL FORWARDING ----
+window.addEventListener('wheel', (e) => {
+    const vc = document.getElementById('view-container');
+    if (vc && !vc.contains(e.target)) {
+        const nav = document.getElementById('nav-links-container');
+        if (nav && nav.contains(e.target) && nav.scrollHeight > nav.clientHeight) return;
+        vc.scrollTop += e.deltaY;
+    }
+}, { passive: true });
 
-let isMsgEditMode = false;
-let _msgCards = null;
 
-function _oldRemovedKB() { /* replaced by renderMessaging */ }
-    isKbEditMode = false;
-    refreshKbUI();
 
-    const editToggle = document.getElementById('kb-edit-toggle');
-    if (editToggle) {
+
+
+
         editToggle.addEventListener('click', () => {
             isKbEditMode = !isKbEditMode;
             editToggle.style.background = isKbEditMode ? 'var(--energy-algae)' : '';
@@ -2690,7 +2694,7 @@ function _oldRemovedKB() { /* replaced by renderMessaging */ }
         });
     }
 
-    // Modal drag
+
     const modal = document.getElementById('kb-modal');
     const header = document.getElementById('kb-modal-header');
     if (modal && header) {
@@ -2710,7 +2714,8 @@ function _oldRemovedKB() { /* replaced by renderMessaging */ }
     }
 }
 
-window.toggleKbAccordion = function (id) {
+
+
     if (isKbEditMode) return;
     const el = document.getElementById('kb-accordion-' + id);
     const content = document.getElementById('kb-content-' + id);
