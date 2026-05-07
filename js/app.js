@@ -118,37 +118,37 @@ function initNavigation() {
 
 // Maps view names to their page fragment files
 const VIEW_FILES = {
-    'dashboard':          'pages/dashboard.html',
-    'stakeholders':       'pages/stakeholders.html',
+    'dashboard': 'pages/dashboard.html',
+    'stakeholders': 'pages/stakeholders.html',
     'stakeholder_detail': 'pages/stakeholder_detail.html',
-    'interactions':       'pages/interactions.html',
+    'interactions': 'pages/interactions.html',
     'interaction_detail': 'pages/interaction_detail.html',
-    'interaction_edit':   'pages/interaction_edit.html',
-    'actions':            'pages/actions.html',
-    'action_detail':      'pages/action_detail.html',
-    'strategy_spine':     'pages/strategy_spine.html',
-    'knowledge_bank':     'pages/knowledge_bank.html',
+    'interaction_edit': 'pages/interaction_edit.html',
+    'actions': 'pages/actions.html',
+    'action_detail': 'pages/action_detail.html',
+    'strategy_spine': 'pages/strategy_spine.html',
+    'knowledge_bank': 'pages/knowledge_bank.html',
 };
 
 // Maps view names to their post-load render functions
 const VIEW_RENDERERS = {
-    'dashboard':          renderDashboard,
-    'stakeholders':       renderStakeholders,
+    'dashboard': renderDashboard,
+    'stakeholders': renderStakeholders,
     'stakeholder_detail': renderStakeholderDetail,
-    'interactions':       renderInteractions,
+    'interactions': renderInteractions,
     'interaction_detail': renderInteractionDetail,
-    'interaction_edit':   renderInteractionEdit,
-    'actions':            renderActions,
-    'action_detail':      renderActionDetail,
-    'strategy_spine':     renderStrategySpine,
-    'knowledge_bank':     renderMessaging,
+    'interaction_edit': renderInteractionEdit,
+    'actions': renderActions,
+    'action_detail': renderActionDetail,
+    'strategy_spine': renderStrategySpine,
+    'knowledge_bank': renderMessaging,
 };
 
 // Track current action being viewed/edited
 window.currentActionId = null;
 
 // Navigate to action detail page
-window.viewAction = function(id) {
+window.viewAction = function (id) {
     window.currentActionId = id;
     loadView('action_detail');
     history.pushState(null, '', '#action_detail');
@@ -270,25 +270,25 @@ function renderDashboard(pageIdOverride) {
             }
 
             case 'card': {
-                return `<div class="card" style="${colSpan}"><h3 style="color:var(--text-tertiary);margin-bottom:0.5rem;">${card.cc_title||''}</h3><p style="font-size:1rem;color:var(--text-secondary);margin:0;">${card.cc_content||''}</p></div>`;
+                return `<div class="card" style="${colSpan}"><h3 style="color:var(--text-tertiary);margin-bottom:0.5rem;">${card.cc_title || ''}</h3><p style="font-size:1rem;color:var(--text-secondary);margin:0;">${card.cc_content || ''}</p></div>`;
             }
 
             case 'actions_link': {
                 const filter = card.cc_filter || '';
                 let filtered = [...actions];
                 const now = new Date();
-                const isDone = a => /^complete[d]?$/i.test(a.status||'');
+                const isDone = a => /^complete[d]?$/i.test(a.status || '');
                 if (filter === 'completed') filtered = filtered.filter(a => isDone(a));
                 else if (filter === 'overdue') filtered = filtered.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate + 'T00:00:00') < now && !isDone(a));
                 else if (filter === 'upcoming') filtered = filtered.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate + 'T00:00:00') >= now && !isDone(a));
                 // Partition: incomplete sorted by due date asc, then completed at bottom
-                const incArr = filtered.filter(a => !isDone(a)).sort((a,b) => (a.timing?.dueDate||'9999-12-31').localeCompare(b.timing?.dueDate||'9999-12-31'));
+                const incArr = filtered.filter(a => !isDone(a)).sort((a, b) => (a.timing?.dueDate || '9999-12-31').localeCompare(b.timing?.dueDate || '9999-12-31'));
                 const doneArr = filtered.filter(a => isDone(a));
                 filtered = [...incArr, ...doneArr];
-                const items = filtered.slice(0,3);
+                const items = filtered.slice(0, 3);
                 const itemsHtml = items.length > 0 ? items.map(a => {
-                    const dueDate = a.timing?.dueDate ? new Date(a.timing.dueDate+'T00:00:00') : null;
-                    const dueStr = dueDate ? dueDate.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}) : 'TBD';
+                    const dueDate = a.timing?.dueDate ? new Date(a.timing.dueDate + 'T00:00:00') : null;
+                    const dueStr = dueDate ? dueDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'TBD';
                     const isOver = dueDate && dueDate < now && !isDone(a);
                     const overdueStyle = isOver ? 'border-left:3px solid #ef4444;' : '';
                     const dueLabelStyle = isOver ? 'color:#ef4444;font-weight:600;' : '';
@@ -297,9 +297,9 @@ function renderDashboard(pageIdOverride) {
                     const mouseoutCode = isOver
                         ? "this.style.border='1px solid var(--border-subtle)';this.style.borderLeft='3px solid #ef4444'"
                         : "this.style.borderColor='var(--border-subtle)'";
-                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;${overdueStyle}" onclick="event.stopPropagation();window.viewAction('${a.id}')" onmouseover="this.style.borderColor='${hoverBorder}'" onmouseout="${mouseoutCode}"><div style="display:flex;justify-content:space-between;align-items:center;"><div><span class="status-badge" style="font-size:0.7rem;padding:0.1rem 0.5rem;${badgeStyle}">${a.status}</span><h4 style="margin:0.25rem 0 0;font-size:1rem;color:var(--text-primary);text-transform:none;">${a.activity}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;">Owner: ${a.owner||'\u2014'} | <span style="${dueLabelStyle}">Due: ${dueStr}${isOver?' \u2014 OVERDUE':''}</span></div></div><span class="material-symbols-outlined" style="font-size:1.2rem;color:var(--text-tertiary);">open_in_new</span></div></div>`;
+                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;${overdueStyle}" onclick="event.stopPropagation();window.viewAction('${a.id}')" onmouseover="this.style.borderColor='${hoverBorder}'" onmouseout="${mouseoutCode}"><div style="display:flex;justify-content:space-between;align-items:center;"><div><span class="status-badge" style="font-size:0.7rem;padding:0.1rem 0.5rem;${badgeStyle}">${a.status}</span><h4 style="margin:0.25rem 0 0;font-size:1rem;color:var(--text-primary);text-transform:none;">${a.activity}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;">Owner: ${a.owner || '\u2014'} | <span style="${dueLabelStyle}">Due: ${dueStr}${isOver ? ' \u2014 OVERDUE' : ''}</span></div></div><span class="material-symbols-outlined" style="font-size:1.2rem;color:var(--text-tertiary);">open_in_new</span></div></div>`;
                 }).join('') : '<div style="padding:1rem;color:var(--text-tertiary);font-style:italic;">No actions found.</div>';
-                return `<div class="card" style="${colSpan}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title||'Actions'}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="loadView('actions');history.pushState(null,'','#actions')">View All</button></div><div style="display:flex;flex-direction:column;gap:0.5rem;">${itemsHtml}</div></div>`;
+                return `<div class="card" style="${colSpan}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title || 'Actions'}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="loadView('actions');history.pushState(null,'','#actions')">View All</button></div><div style="display:flex;flex-direction:column;gap:0.5rem;">${itemsHtml}</div></div>`;
             }
 
 
@@ -311,11 +311,11 @@ function renderDashboard(pageIdOverride) {
                 let filtered = interactions;
                 if (filter === 'upcoming') filtered = interactions.filter(i => i.type === 'Upcoming');
                 else if (filter === 'recent') filtered = interactions.filter(i => i.type === 'Recent');
-                const items = filtered.slice(0,3);
+                const items = filtered.slice(0, 3);
                 const itemsHtml = items.length > 0 ? items.map(i => {
-                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;" onclick="window.currentInteractionId='${i.id}';loadView('interaction_detail');history.pushState(null,'','#interaction_detail')" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;"><span style="font-size:0.75rem;color:${i.type==='Upcoming'?'var(--energy-alert)':'var(--text-tertiary)'};font-weight:600;text-transform:uppercase;">${i.rawDate} — ${i.type}</span><span class="material-symbols-outlined" style="font-size:1rem;color:var(--text-tertiary);">open_in_new</span></div><h4 style="margin:0;font-size:1rem;color:var(--text-primary);text-transform:none;">${i.title}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;">${i.agenda||i.discussed||''}</div></div>`;
+                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;" onclick="window.currentInteractionId='${i.id}';loadView('interaction_detail');history.pushState(null,'','#interaction_detail')" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;"><span style="font-size:0.75rem;color:${i.type === 'Upcoming' ? 'var(--energy-alert)' : 'var(--text-tertiary)'};font-weight:600;text-transform:uppercase;">${i.rawDate} — ${i.type}</span><span class="material-symbols-outlined" style="font-size:1rem;color:var(--text-tertiary);">open_in_new</span></div><h4 style="margin:0;font-size:1rem;color:var(--text-primary);text-transform:none;">${i.title}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;">${i.agenda || i.discussed || ''}</div></div>`;
                 }).join('') : '<div style="padding:1rem;color:var(--text-tertiary);font-style:italic;">No interactions found.</div>';
-                return `<div class="card" style="${colSpan}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title||'Interactions'}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="loadView('interactions');history.pushState(null,'','#interactions')">View All</button></div><div style="display:flex;flex-direction:column;gap:0.5rem;">${itemsHtml}</div></div>`;
+                return `<div class="card" style="${colSpan}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title || 'Interactions'}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="loadView('interactions');history.pushState(null,'','#interactions')">View All</button></div><div style="display:flex;flex-direction:column;gap:0.5rem;">${itemsHtml}</div></div>`;
             }
 
             case 'page_link': {
@@ -324,10 +324,10 @@ function renderDashboard(pageIdOverride) {
                 if (link && spine) {
                     const filter = card.cc_filter || link.cpc_filter || '';
                     if (filter === 'objectives' && spine.objectives) {
-                        previewHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;"><div class="card" style="background:var(--bg-app);border:1px solid var(--border-subtle);"><h4 style="margin-bottom:1rem;font-size:0.9rem;">Objectives</h4><div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.85rem;">${spine.objectives.slice(0,3).map(o=>`<div style="padding:0.5rem 0.75rem;background:rgba(0,0,0,0.02);border:1px solid var(--border-subtle);border-radius:4px;color:var(--text-secondary);">${o.text}</div>`).join('')}</div></div><div class="card" style="background:var(--bg-app);border:1px solid var(--border-subtle);"><h4 style="margin-bottom:1rem;font-size:0.9rem;">Strategic Pillars</h4><div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.85rem;">${(spine.pillars||[]).slice(0,4).map(p=>`<div style="padding:0.5rem 0.75rem;background:rgba(0,0,0,0.02);border:1px solid var(--border-subtle);border-radius:4px;color:var(--text-secondary);">${p.title}</div>`).join('')}</div></div></div>`;
+                        previewHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;"><div class="card" style="background:var(--bg-app);border:1px solid var(--border-subtle);"><h4 style="margin-bottom:1rem;font-size:0.9rem;">Objectives</h4><div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.85rem;">${spine.objectives.slice(0, 3).map(o => `<div style="padding:0.5rem 0.75rem;background:rgba(0,0,0,0.02);border:1px solid var(--border-subtle);border-radius:4px;color:var(--text-secondary);">${o.text}</div>`).join('')}</div></div><div class="card" style="background:var(--bg-app);border:1px solid var(--border-subtle);"><h4 style="margin-bottom:1rem;font-size:0.9rem;">Strategic Pillars</h4><div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.85rem;">${(spine.pillars || []).slice(0, 4).map(p => `<div style="padding:0.5rem 0.75rem;background:rgba(0,0,0,0.02);border:1px solid var(--border-subtle);border-radius:4px;color:var(--text-secondary);">${p.title}</div>`).join('')}</div></div></div>`;
                     }
                 }
-                return `<div class="card" style="${colSpan}cursor:pointer;" onclick="loadView('${targetView}');history.pushState(null,'','#${targetView}')"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title||'Linked Page'}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="event.stopPropagation();loadView('${targetView}');history.pushState(null,'','#${targetView}')">View</button></div>${previewHtml}</div>`;
+                return `<div class="card" style="${colSpan}cursor:pointer;" onclick="loadView('${targetView}');history.pushState(null,'','#${targetView}')"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title || 'Linked Page'}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="event.stopPropagation();loadView('${targetView}');history.pushState(null,'','#${targetView}')">View</button></div>${previewHtml}</div>`;
             }
 
             default: return '';
@@ -337,7 +337,7 @@ function renderDashboard(pageIdOverride) {
 
 // Tab switching handler — caches loaded cards
 window._dashCardCache = {};
-window._switchDashTab = async function(pageId) {
+window._switchDashTab = async function (pageId) {
     const btn = document.getElementById('dash-tab-' + pageId);
     const origLabel = btn ? btn.textContent.trim() : '';
 
@@ -688,13 +688,13 @@ window.updateDetailStatus = function (newStatus) {
 
 window.currentInteractionId = null;
 
-window.viewInteraction = function(id) {
+window.viewInteraction = function (id) {
     window.currentInteractionId = id;
     loadView('interaction_detail');
     history.pushState(null, '', '#interaction_detail');
 };
 
-window.viewInteractionEdit = function(id = null) {
+window.viewInteractionEdit = function (id = null) {
     window.currentInteractionId = id;
     window._interactionOpenInEditMode = true;
     loadView('interaction_detail');
@@ -735,7 +735,7 @@ function renderInteractions() {
         const card = document.createElement('div');
         card.className = `interaction-card-wrapper ${isUpcoming ? 'upcoming' : ''}`;
         card.onclick = () => window.viewInteraction(a.id);
-        
+
         card.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
                 <div>
@@ -772,14 +772,14 @@ function renderInteractions() {
 function renderInteractionDetail() {
     const id = window.currentInteractionId;
     if (!id) return;
-    
+
     const interactions = window.getData('interactions') || [];
     const interaction = interactions.find(i => i.id == id);
     if (!interaction) return;
 
     document.getElementById('detail-int-title').textContent = interaction.title;
     document.getElementById('detail-int-date').textContent = interaction.rawDate + ' ' + interaction.date;
-    
+
     const statusEl = document.getElementById('detail-int-status');
     if (interaction.type === 'Upcoming') {
         statusEl.textContent = 'Upcoming';
@@ -820,15 +820,15 @@ function renderInteractionDetail() {
     }
 }
 
-window.saveInteraction = function() {
+window.saveInteraction = function () {
     // Collect data
     const title = document.getElementById('edit-int-purpose')?.value || 'New Interaction';
     const date = document.getElementById('edit-int-date')?.value || '';
     const desc = document.getElementById('edit-int-description')?.value || '';
-    
+
     const isNew = !window.currentInteractionId;
     const interactions = window.getData('interactions') || [];
-    
+
     if (isNew) {
         const newInt = {
             id: Date.now(),
@@ -851,7 +851,7 @@ window.saveInteraction = function() {
             interactions[idx].agenda = desc;
         }
     }
-    
+
     window.updateData('interactions', interactions);
     loadView('interactions');
     history.pushState(null, '', '#interactions');
@@ -903,12 +903,12 @@ function _actGetObjectiveText(id) {
 // Helper: get status color
 function _actStatusColor(status) {
     const map = {
-        'Pending':     { bg:'rgba(148,163,184,0.15)', color:'#64748b', dot:'#94a3b8' },
-        'Planned':     { bg:'rgba(129,140,248,0.15)', color:'#6366f1', dot:'#818cf8' },
-        'In Progress': { bg:'rgba(96,165,250,0.15)',  color:'#3b82f6', dot:'#60a5fa' },
-        'Completed':   { bg:'rgba(52,211,153,0.15)',  color:'#059669', dot:'#34d399' },
+        'Pending': { bg: 'rgba(148,163,184,0.15)', color: '#64748b', dot: '#94a3b8' },
+        'Planned': { bg: 'rgba(129,140,248,0.15)', color: '#6366f1', dot: '#818cf8' },
+        'In Progress': { bg: 'rgba(96,165,250,0.15)', color: '#3b82f6', dot: '#60a5fa' },
+        'Completed': { bg: 'rgba(52,211,153,0.15)', color: '#059669', dot: '#34d399' },
     };
-    return map[status] || { bg:'rgba(0,0,0,0.05)', color:'var(--text-secondary)', dot:'#aaa' };
+    return map[status] || { bg: 'rgba(0,0,0,0.05)', color: 'var(--text-secondary)', dot: '#aaa' };
 }
 
 // Populate objective <select> in modal
@@ -919,37 +919,37 @@ function _actPopulateObjectiveDropdown() {
     sel.innerHTML = '<option value="">— Select Objective —</option>';
     if (spine && spine.objectives) {
         spine.objectives.forEach(o => {
-            sel.innerHTML += `<option value="${o.id}">🎯 ${o.text.length > 50 ? o.text.substring(0,47)+'...' : o.text}</option>`;
+            sel.innerHTML += `<option value="${o.id}">🎯 ${o.text.length > 50 ? o.text.substring(0, 47) + '...' : o.text}</option>`;
         });
     }
 }
 
 // Filter + re-render
-window.filterActions = function() {
+window.filterActions = function () {
     const search = (document.getElementById('act-search')?.value || '').toLowerCase();
     const statusF = document.getElementById('act-filter-status')?.value || '';
-    const ownerF  = document.getElementById('act-filter-owner')?.value  || '';
-    const phaseF  = document.getElementById('act-filter-phase')?.value  || '';
+    const ownerF = document.getElementById('act-filter-owner')?.value || '';
+    const phaseF = document.getElementById('act-filter-phase')?.value || '';
 
     let actions = window.getData('actions') || [];
-    if (search)  actions = actions.filter(a => (a.activity||'').toLowerCase().includes(search) || (a.description||'').toLowerCase().includes(search));
+    if (search) actions = actions.filter(a => (a.activity || '').toLowerCase().includes(search) || (a.description || '').toLowerCase().includes(search));
     if (statusF) actions = actions.filter(a => a.status === statusF);
-    if (ownerF)  actions = actions.filter(a => (a.owner||'').includes(ownerF));
-    if (phaseF)  actions = actions.filter(a => a.phase === phaseF);
+    if (ownerF) actions = actions.filter(a => (a.owner || '').includes(ownerF));
+    if (phaseF) actions = actions.filter(a => a.phase === phaseF);
 
     // Sort
     if (_actSortMode === 'due') {
-        actions.sort((a,b) => (a.timing?.dueDate || '9999') < (b.timing?.dueDate || '9999') ? -1 : 1);
+        actions.sort((a, b) => (a.timing?.dueDate || '9999') < (b.timing?.dueDate || '9999') ? -1 : 1);
     } else if (_actSortMode === 'status') {
-        const order = ['In Progress','Planned','Pending','Completed'];
-        actions.sort((a,b) => order.indexOf(a.status) - order.indexOf(b.status));
+        const order = ['In Progress', 'Planned', 'Pending', 'Completed'];
+        actions.sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status));
     } else if (_actSortMode === 'owner') {
-        actions.sort((a,b) => (a.owner||'').localeCompare(b.owner||''));
+        actions.sort((a, b) => (a.owner || '').localeCompare(b.owner || ''));
     }
 
     const sortLabel = document.getElementById('act-sort-label');
     if (sortLabel) {
-        const sortNames = { due:'Due Date ↑', status:'Status', owner:'Owner A–Z' };
+        const sortNames = { due: 'Due Date ↑', status: 'Status', owner: 'Owner A–Z' };
         sortLabel.textContent = sortNames[_actSortMode] || '';
     }
 
@@ -958,30 +958,30 @@ window.filterActions = function() {
     _actRenderGantt(actions);
 };
 
-window.cycleActionsSort = function() {
-    const modes = ['due','status','owner'];
-    _actSortMode = modes[(modes.indexOf(_actSortMode)+1) % modes.length];
+window.cycleActionsSort = function () {
+    const modes = ['due', 'status', 'owner'];
+    _actSortMode = modes[(modes.indexOf(_actSortMode) + 1) % modes.length];
     window.filterActions();
 };
 
-window.toggleActionsFilter = function() {
+window.toggleActionsFilter = function () {
     _actFilterOpen = !_actFilterOpen;
     const panel = document.getElementById('act-filter-panel');
     if (panel) panel.style.display = _actFilterOpen ? 'flex' : 'none';
 };
 
-window.clearActionsFilters = function() {
-    ['act-filter-status','act-filter-owner','act-filter-phase'].forEach(id => {
+window.clearActionsFilters = function () {
+    ['act-filter-status', 'act-filter-owner', 'act-filter-phase'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
     });
     window.filterActions();
 };
 
-window.switchActionsTab = function(tab, btn) {
+window.switchActionsTab = function (tab, btn) {
     _actCurrentTab = tab;
-    ['list','kanban','gantt'].forEach(t => {
-        const v = document.getElementById('act-view-'+t);
+    ['list', 'kanban', 'gantt'].forEach(t => {
+        const v = document.getElementById('act-view-' + t);
         if (v) v.style.display = t === tab ? 'block' : 'none';
         if (t === 'gantt' && tab === 'gantt') v.style.display = 'block';
     });
@@ -1005,16 +1005,16 @@ function _actRenderList(actions) {
     }
     container.innerHTML = actions.map(a => {
         const sc = _actStatusColor(a.status);
-        const isOverdue = a.timing?.dueDate && a.timing.dueDate < new Date().toISOString().substring(0,10) && a.status !== 'Completed';
+        const isOverdue = a.timing?.dueDate && a.timing.dueDate < new Date().toISOString().substring(0, 10) && a.status !== 'Completed';
         const objText = _actGetObjectiveText(a.commsObjectiveId);
-        const dueStr = a.timing?.dueDate ? new Date(a.timing.dueDate + 'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}) : 'DD/MM/YYYY';
-        const advStatus = a.advancedStatus ? `<span style="font-size:0.75rem; color:${isOverdue?'#ef4444':'var(--energy-algae)'};">⚠ ${a.advancedStatus}</span>` : '';
-        const tags = (a.tags||[]).map(t => `<span style="font-size:0.68rem; padding:0.1rem 0.45rem; border-radius:100px; background:rgba(99,102,241,0.1); color:#6366f1; border:1px solid rgba(99,102,241,0.2);">${t}</span>`).join('');
+        const dueStr = a.timing?.dueDate ? new Date(a.timing.dueDate + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'DD/MM/YYYY';
+        const advStatus = a.advancedStatus ? `<span style="font-size:0.75rem; color:${isOverdue ? '#ef4444' : 'var(--energy-algae)'};">⚠ ${a.advancedStatus}</span>` : '';
+        const tags = (a.tags || []).map(t => `<span style="font-size:0.68rem; padding:0.1rem 0.45rem; border-radius:100px; background:rgba(99,102,241,0.1); color:#6366f1; border:1px solid rgba(99,102,241,0.2);">${t}</span>`).join('');
 
         // Progress dots (complexity)
-        const dots = Array.from({length:5}).map((_,i) => `<span style="width:7px;height:7px;border-radius:50%;background:${i<parseInt(a.complexity||0)?sc.dot:'var(--border-subtle)'};display:inline-block;"></span>`).join('');
+        const dots = Array.from({ length: 5 }).map((_, i) => `<span style="width:7px;height:7px;border-radius:50%;background:${i < parseInt(a.complexity || 0) ? sc.dot : 'var(--border-subtle)'};display:inline-block;"></span>`).join('');
 
-        return `<div class="act-card${isOverdue?' overdue':''}" onclick="window.viewAction('${a.id}')" style="cursor:pointer;">
+        return `<div class="act-card${isOverdue ? ' overdue' : ''}" onclick="window.viewAction('${a.id}')" style="cursor:pointer;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
                 <div style="flex:1; min-width:0;">
                     <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem; flex-wrap:wrap;">
@@ -1026,15 +1026,15 @@ function _actRenderList(actions) {
                     <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.4rem;">${a.description || ''}</div>
                     <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap; font-size:0.8rem; color:var(--text-tertiary);">
                         ${a.audience && a.audience.length > 0 ? `<span style="display:inline-flex;align-items:center;gap:0.25rem;"><span class="material-symbols-outlined" style="font-size:0.9rem;">groups</span>${a.audience.join(', ')}</span>` : ''}
-                        ${a.commsObjectiveId ? `<span style="display:inline-flex;align-items:center;gap:0.25rem;"><span style="font-size:0.85rem;">🎯</span> ${objText.length>50?objText.substring(0,47)+'...':objText}</span>` : ''}
+                        ${a.commsObjectiveId ? `<span style="display:inline-flex;align-items:center;gap:0.25rem;"><span style="font-size:0.85rem;">🎯</span> ${objText.length > 50 ? objText.substring(0, 47) + '...' : objText}</span>` : ''}
                     </div>
                 </div>
                 <div style="text-align:right; flex-shrink:0; min-width:110px;">
                     <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.2rem; display:flex; align-items:center; gap:0.25rem; justify-content:flex-end;">
-                        <span class="material-symbols-outlined" style="font-size:0.9rem;">person</span> ${a.owner||'-'}
+                        <span class="material-symbols-outlined" style="font-size:0.9rem;">person</span> ${a.owner || '-'}
                     </div>
                     ${advStatus ? `<div style="margin-bottom:0.2rem;">${advStatus}</div>` : ''}
-                    <div style="font-size:0.8rem; color:${isOverdue?'#ef4444':'var(--text-tertiary)'};">
+                    <div style="font-size:0.8rem; color:${isOverdue ? '#ef4444' : 'var(--text-tertiary)'};">
                         due: ${dueStr}
                     </div>
                     <button onclick="event.stopPropagation(); window.viewAction('${a.id}')" class="btn-secondary" style="margin-top:0.5rem; font-size:0.75rem; padding:0.25rem 0.6rem; display:inline-flex; align-items:center; gap:0.25rem;">
@@ -1050,25 +1050,25 @@ function _actRenderList(actions) {
 function _actRenderKanban(actions) {
     const container = document.getElementById('act-kanban-container');
     if (!container) return;
-    const columns = ['Pending','Planned','In Progress','Completed'];
-    const colColors = { 'Pending':'#94a3b8','Planned':'#818cf8','In Progress':'#60a5fa','Completed':'#34d399' };
+    const columns = ['Pending', 'Planned', 'In Progress', 'Completed'];
+    const colColors = { 'Pending': '#94a3b8', 'Planned': '#818cf8', 'In Progress': '#60a5fa', 'Completed': '#34d399' };
 
     container.innerHTML = columns.map(col => {
         const colActions = actions.filter(a => a.status === col);
         const cards = colActions.map(a => {
-            const isOverdue = a.timing?.dueDate && a.timing.dueDate < new Date().toISOString().substring(0,10) && col !== 'Completed';
-            const dueStr = a.timing?.dueDate ? new Date(a.timing.dueDate + 'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}) : 'DD/MM/YYYY';
+            const isOverdue = a.timing?.dueDate && a.timing.dueDate < new Date().toISOString().substring(0, 10) && col !== 'Completed';
+            const dueStr = a.timing?.dueDate ? new Date(a.timing.dueDate + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'DD/MM/YYYY';
             const objText = _actGetObjectiveText(a.commsObjectiveId);
-            return `<div class="act-kanban-card${isOverdue?' overdue':''}" onclick="window.viewAction('${a.id}')"
-                style="${col==='Completed'?'border-left:3px solid #34d399;':''}${isOverdue?'border-left:3px solid #ef4444;border-color:#ef4444;background:rgba(239,68,68,0.03);':''}">
-                <div style="font-size:0.72rem; color:${isOverdue?'#ef4444':'var(--text-tertiary)'}; margin-bottom:0.3rem;">due: ${dueStr} ${isOverdue?'<span style="color:#ef4444;">⊘</span>':''}</div>
-                ${col==='Completed' ? `<div style="font-size:0.7rem;color:#059669;font-weight:600;margin-bottom:0.2rem;">completed: ${a.versionControl?.dateCompleted||dueStr}</div>` : ''}
+            return `<div class="act-kanban-card${isOverdue ? ' overdue' : ''}" onclick="window.viewAction('${a.id}')"
+                style="${col === 'Completed' ? 'border-left:3px solid #34d399;' : ''}${isOverdue ? 'border-left:3px solid #ef4444;border-color:#ef4444;background:rgba(239,68,68,0.03);' : ''}">
+                <div style="font-size:0.72rem; color:${isOverdue ? '#ef4444' : 'var(--text-tertiary)'}; margin-bottom:0.3rem;">due: ${dueStr} ${isOverdue ? '<span style="color:#ef4444;">⊘</span>' : ''}</div>
+                ${col === 'Completed' ? `<div style="font-size:0.7rem;color:#059669;font-weight:600;margin-bottom:0.2rem;">completed: ${a.versionControl?.dateCompleted || dueStr}</div>` : ''}
                 <div style="font-weight:700; font-size:0.88rem; color:var(--text-primary); margin-bottom:0.4rem; line-height:1.3;">${a.activity}</div>
-                <div style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:0.4rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${a.description||''}</div>
+                <div style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:0.4rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${a.description || ''}</div>
                 <div style="font-size:0.75rem; color:var(--text-tertiary); display:flex; flex-direction:column; gap:0.2rem; margin-bottom:0.5rem;">
-                    ${a.audience&&a.audience.length>0?`<span><span class="material-symbols-outlined" style="font-size:0.8rem;vertical-align:middle;">groups</span> ${a.audience.slice(0,1).join(', ')}${a.audience.length>1?` + ${a.audience.length-1} more`:''}</span>`:''}
-                    ${a.commsObjectiveId?`<span>🎯 ${objText.length>30?objText.substring(0,28)+'...':objText}</span>`:''}
-                    <span><span class="material-symbols-outlined" style="font-size:0.8rem;vertical-align:middle;">person</span> ${a.owner||'-'}</span>
+                    ${a.audience && a.audience.length > 0 ? `<span><span class="material-symbols-outlined" style="font-size:0.8rem;vertical-align:middle;">groups</span> ${a.audience.slice(0, 1).join(', ')}${a.audience.length > 1 ? ` + ${a.audience.length - 1} more` : ''}</span>` : ''}
+                    ${a.commsObjectiveId ? `<span>🎯 ${objText.length > 30 ? objText.substring(0, 28) + '...' : objText}</span>` : ''}
+                    <span><span class="material-symbols-outlined" style="font-size:0.8rem;vertical-align:middle;">person</span> ${a.owner || '-'}</span>
                 </div>
                 <div style="display:flex; justify-content:flex-end;">
                     <button onclick="event.stopPropagation();window.viewAction('${a.id}')" class="btn-secondary" style="font-size:0.7rem; padding:0.2rem 0.5rem; display:inline-flex; align-items:center; gap:0.2rem;">
@@ -1083,7 +1083,7 @@ function _actRenderKanban(actions) {
                 <span style="width:10px;height:10px;background:${colColors[col]};border-radius:2px;display:inline-block;flex-shrink:0;"></span>
                 <span>${col}</span>
                 <span style="font-size:0.8rem;font-weight:400;color:var(--text-tertiary);margin-left:auto;">${colActions.length}</span>
-                <span style="display:inline-flex; gap:2px;">${Array(3).fill('<span style="width:4px;height:14px;border-radius:2px;background:'+colColors[col]+';opacity:0.6;display:inline-block;"></span>').join('')}</span>
+                <span style="display:inline-flex; gap:2px;">${Array(3).fill('<span style="width:4px;height:14px;border-radius:2px;background:' + colColors[col] + ';opacity:0.6;display:inline-block;"></span>').join('')}</span>
             </div>
             ${cards}
         </div>`;
@@ -1100,11 +1100,11 @@ function _actRenderGantt(actions) {
     const months = [];
     for (let i = -1; i <= 5; i++) {
         const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-        months.push({ label: d.toLocaleString('default',{month:'long'}), year: d.getFullYear(), month: d.getMonth(), date: d });
+        months.push({ label: d.toLocaleString('default', { month: 'long' }), year: d.getFullYear(), month: d.getMonth(), date: d });
     }
     const rangeStart = months[0].date;
-    const rangeEnd   = new Date(months[months.length-1].year, months[months.length-1].month + 1, 0);
-    const totalDays  = (rangeEnd - rangeStart) / 86400000;
+    const rangeEnd = new Date(months[months.length - 1].year, months[months.length - 1].month + 1, 0);
+    const totalDays = (rangeEnd - rangeStart) / 86400000;
 
     const getLeft = (dateStr) => {
         if (!dateStr) return 0;
@@ -1112,8 +1112,8 @@ function _actRenderGantt(actions) {
         return Math.max(0, Math.min(100, ((d - rangeStart) / 86400000 / totalDays) * 100));
     };
     const getWidth = (startStr, endStr, length) => {
-        let start = startStr ? new Date(startStr+'T00:00:00') : rangeStart;
-        let end = endStr ? new Date(endStr+'T00:00:00') : start;
+        let start = startStr ? new Date(startStr + 'T00:00:00') : rangeStart;
+        let end = endStr ? new Date(endStr + 'T00:00:00') : start;
         if (!startStr && length) {
             const wks = parseFloat(length) || 4;
             end = new Date(start.getTime() + wks * 7 * 86400000);
@@ -1127,7 +1127,7 @@ function _actRenderGantt(actions) {
     const todayPct = ((new Date() - rangeStart) / 86400000 / totalDays) * 100;
 
     // Bar colors by status
-    const barColors = { 'Pending':'#94a3b8','Planned':'#818cf8','In Progress':'#60a5fa','Completed':'#34d399' };
+    const barColors = { 'Pending': '#94a3b8', 'Planned': '#818cf8', 'In Progress': '#60a5fa', 'Completed': '#34d399' };
 
     const LABEL_W = 200; // px for task label column
 
@@ -1135,7 +1135,7 @@ function _actRenderGantt(actions) {
         <div style="display:flex; position:sticky; top:0; z-index:10; background:var(--bg-surface); border-bottom:1px solid var(--border-subtle); margin-bottom:0.5rem;">
             <div style="width:${LABEL_W}px; flex-shrink:0;"></div>
             <div style="flex:1; display:flex; position:relative; overflow:hidden;">
-                ${months.map((m,i) => `<div style="flex:1; padding:0.4rem 0.75rem; font-size:0.82rem; font-weight:600; color:var(--text-secondary); border-left:1px solid var(--border-subtle);">${m.label}</div>`).join('')}
+                ${months.map((m, i) => `<div style="flex:1; padding:0.4rem 0.75rem; font-size:0.82rem; font-weight:600; color:var(--text-secondary); border-left:1px solid var(--border-subtle);">${m.label}</div>`).join('')}
                 <div style="position:absolute; top:0; left:${todayPct.toFixed(1)}%; width:2px; height:100%; background:#ef4444; z-index:5;"></div>
                 <div style="position:absolute; top:0; left:${todayPct.toFixed(1)}%; background:#ef4444; color:#fff; font-size:0.6rem; font-weight:700; padding:1px 4px; border-radius:2px; transform:translateX(-50%);">Now</div>
             </div>
@@ -1145,18 +1145,18 @@ function _actRenderGantt(actions) {
     const groupedObjectives = objectives.filter(o => actions.some(a => a.commsObjectiveId === o.id));
     const ungrouped = actions.filter(a => !a.commsObjectiveId);
 
-    const renderGroup = (objText, groupActions, color='#818cf8') => {
+    const renderGroup = (objText, groupActions, color = '#818cf8') => {
         if (groupActions.length === 0) return '';
         const rows = groupActions.map(a => {
-            const left  = getLeft(a.timing?.startDate || a.timing?.dueDate);
+            const left = getLeft(a.timing?.startDate || a.timing?.dueDate);
             const width = getWidth(a.timing?.startDate, a.timing?.dueDate, a.timing?.predictedLength);
-            const clr   = barColors[a.status] || '#94a3b8';
+            const clr = barColors[a.status] || '#94a3b8';
             return `<div style="display:flex; align-items:center; margin-bottom:0.5rem; min-height:28px;">
                 <div style="width:${LABEL_W}px; flex-shrink:0; font-size:0.78rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:0.75rem; cursor:pointer;" onclick="window.openActionModal('${a.id}')" title="${a.activity}">
                     ${a.activity}
                 </div>
                 <div style="flex:1; position:relative; height:20px;">
-                    ${Array.from({length:months.length}).map((_,i)=>`<div style="position:absolute; top:0; left:${(i/months.length*100).toFixed(1)}%; width:${(100/months.length).toFixed(1)}%; height:100%; border-left:1px solid var(--border-subtle); opacity:0.4;"></div>`).join('')}
+                    ${Array.from({ length: months.length }).map((_, i) => `<div style="position:absolute; top:0; left:${(i / months.length * 100).toFixed(1)}%; width:${(100 / months.length).toFixed(1)}%; height:100%; border-left:1px solid var(--border-subtle); opacity:0.4;"></div>`).join('')}
                     <div style="position:absolute; left:${left.toFixed(1)}%; width:${width.toFixed(1)}%; height:100%; background:${clr}; border-radius:4px; opacity:0.85; cursor:pointer; display:flex; align-items:center; padding-left:4px; font-size:0.65rem; color:#fff; font-weight:600; white-space:nowrap; overflow:hidden;" onclick="window.openActionModal('${a.id}')" title="${a.status}"></div>
                     <div style="position:absolute; top:0; left:${todayPct.toFixed(1)}%; width:1px; height:100%; background:#ef4444; opacity:0.6;"></div>
                 </div>
@@ -1190,7 +1190,7 @@ function _actRenderGantt(actions) {
 }
 
 // ---- MODAL OPEN/CLOSE ----
-window.openActionModal = function(id) {
+window.openActionModal = function (id) {
     _actCurrentId = id;
     const overlay = document.getElementById('act-modal-overlay');
     if (!overlay) return;
@@ -1212,19 +1212,19 @@ window.openActionModal = function(id) {
     }
 };
 
-window.closeActionModal = function() {
+window.closeActionModal = function () {
     const overlay = document.getElementById('act-modal-overlay');
     if (overlay) overlay.style.display = 'none';
     _actCurrentId = null;
 };
 
-window.toggleActSection = function(id) {
+window.toggleActSection = function (id) {
     const el = document.getElementById(id);
     if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
 };
 
 function _actClearModal() {
-    const fields = ['act-f-title','act-f-description','act-f-desired-outcome','act-f-kpi','act-f-due-date','act-f-start-date','act-f-predicted-length','act-f-resource','act-f-vc-progress','act-f-vc-blockers','act-f-other'];
+    const fields = ['act-f-title', 'act-f-description', 'act-f-desired-outcome', 'act-f-kpi', 'act-f-due-date', 'act-f-start-date', 'act-f-predicted-length', 'act-f-resource', 'act-f-vc-progress', 'act-f-vc-blockers', 'act-f-other'];
     fields.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     const sel = document.getElementById('act-f-status');
     if (sel) sel.value = 'Pending';
@@ -1266,33 +1266,33 @@ function _actFillModal(a) {
 
     // Tags
     document.querySelectorAll('.act-tag-btn').forEach(btn => {
-        const tag = btn.textContent.trim().replace(/^[^\s]+\s/,'');
-        btn.classList.toggle('active', (a.tags||[]).includes(tag.trim()));
+        const tag = btn.textContent.trim().replace(/^[^\s]+\s/, '');
+        btn.classList.toggle('active', (a.tags || []).includes(tag.trim()));
     });
 
     // Audience chips
     const audContainer = document.getElementById('act-f-audience-chips');
     if (audContainer) {
-        audContainer.innerHTML = (a.audience||[]).map(aud => _actMakeChip(aud,'audience')).join('');
+        audContainer.innerHTML = (a.audience || []).map(aud => _actMakeChip(aud, 'audience')).join('');
     }
 
     // Owner chips
     const ownContainer = document.getElementById('act-f-owner-chips');
     if (ownContainer) {
-        ownContainer.innerHTML = (a.owner ? a.owner.split('+').map(o=>o.trim()) : []).map(o => _actMakeOwnerChip(o)).join('');
+        ownContainer.innerHTML = (a.owner ? a.owner.split('+').map(o => o.trim()) : []).map(o => _actMakeOwnerChip(o)).join('');
     }
 
     // Todos
     const todosEl = document.getElementById('act-f-todos');
     if (todosEl) {
-        todosEl.innerHTML = (a.todos||[]).map(t => _actMakeTodoRow(t.id,t.completed,t.detail)).join('');
+        todosEl.innerHTML = (a.todos || []).map(t => _actMakeTodoRow(t.id, t.completed, t.detail)).join('');
     }
 
     // Prereqs
     const prereqsEl = document.getElementById('act-f-prereqs');
     if (prereqsEl) {
         const allActions = window.getData('actions') || [];
-        prereqsEl.innerHTML = (a.prerequisites||[]).map(pid => {
+        prereqsEl.innerHTML = (a.prerequisites || []).map(pid => {
             const prereq = allActions.find(x => x.id === pid);
             return _actMakePrereqRow(pid, prereq?.activity || pid);
         }).join('');
@@ -1326,7 +1326,7 @@ function _actMakeChip(label, type) {
 }
 
 function _actMakeOwnerChip(label) {
-    const colors = { 'Vant':'#ef4444', 'AET':'#3b82f6', 'AET + Vant':'#8b5cf6' };
+    const colors = { 'Vant': '#ef4444', 'AET': '#3b82f6', 'AET + Vant': '#8b5cf6' };
     const clr = colors[label] || '#6b7280';
     return `<span style="background:${clr};color:#fff;border-radius:4px;padding:0.15rem 0.6rem;font-size:0.75rem;font-weight:600;display:inline-flex;align-items:center;gap:0.25rem;">
         ${label}
@@ -1336,10 +1336,10 @@ function _actMakeOwnerChip(label) {
 
 function _actMakeTodoRow(id, completed, detail) {
     return `<div style="display:flex;align-items:center;gap:0.5rem;" id="todo-row-${id}">
-        <input type="checkbox" ${completed?'checked':''} onchange="window.toggleTodo('${id}',this.checked)" style="flex-shrink:0;cursor:pointer;">
+        <input type="checkbox" ${completed ? 'checked' : ''} onchange="window.toggleTodo('${id}',this.checked)" style="flex-shrink:0;cursor:pointer;">
         <span style="font-size:0.75rem;color:var(--text-tertiary);text-decoration:none;font-weight:600;width:70px;">Completed</span>
         <span style="font-size:0.75rem;color:var(--text-tertiary);">Details:</span>
-        <input type="text" value="${detail||''}" style="flex:1;padding:0.25rem 0.5rem;border:1px solid var(--border-subtle);background:var(--bg-app);color:var(--text-primary);border-radius:4px;font-size:0.8rem;" placeholder="input text">
+        <input type="text" value="${detail || ''}" style="flex:1;padding:0.25rem 0.5rem;border:1px solid var(--border-subtle);background:var(--bg-app);color:var(--text-primary);border-radius:4px;font-size:0.8rem;" placeholder="input text">
         <button onclick="document.getElementById('todo-row-${id}').remove()" style="background:#34d399;border:none;color:#fff;width:20px;height:20px;border-radius:3px;cursor:pointer;font-size:0.9rem;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
         <button onclick="document.getElementById('todo-row-${id}').remove()" style="background:#ef4444;border:none;color:#fff;width:20px;height:20px;border-radius:3px;cursor:pointer;font-size:0.9rem;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
     </div>`;
@@ -1353,40 +1353,40 @@ function _actMakePrereqRow(id, label) {
     </div>`;
 }
 
-window.addTodoItem = function() {
+window.addTodoItem = function () {
     const el = document.getElementById('act-f-todos');
     if (!el) return;
     const newId = 'new-' + Date.now();
     el.insertAdjacentHTML('beforeend', _actMakeTodoRow(newId, false, ''));
 };
 
-window.addPrereqItem = function() {
+window.addPrereqItem = function () {
     const el = document.getElementById('act-f-prereqs');
     if (!el) return;
     const newId = 'new-' + Date.now();
     el.insertAdjacentHTML('beforeend', _actMakePrereqRow(newId, 'Sub Action (action that needs to be done before this one)'));
 };
 
-window.addAudienceChip = function() {
+window.addAudienceChip = function () {
     const stakeholders = window.getData('stakeholders') || [];
-    const name = prompt('Enter audience name (or stakeholder):',  stakeholders.length ? stakeholders[0].name : '');
+    const name = prompt('Enter audience name (or stakeholder):', stakeholders.length ? stakeholders[0].name : '');
     if (!name) return;
     const el = document.getElementById('act-f-audience-chips');
-    if (el) el.insertAdjacentHTML('beforeend', _actMakeChip(name,'audience'));
+    if (el) el.insertAdjacentHTML('beforeend', _actMakeChip(name, 'audience'));
 };
 
-window.addOwnerChip = function() {
+window.addOwnerChip = function () {
     const val = prompt('Owner name (e.g. Vant, AET):', 'Vant');
     if (!val) return;
     const el = document.getElementById('act-f-owner-chips');
     if (el) el.insertAdjacentHTML('beforeend', _actMakeOwnerChip(val.trim()));
 };
 
-window.toggleTag = function(btn, tag) {
+window.toggleTag = function (btn, tag) {
     btn.classList.toggle('active');
 };
 
-window.toggleTodo = function(id, checked) {
+window.toggleTodo = function (id, checked) {
     const row = document.getElementById('todo-row-' + id);
     if (row) {
         const input = row.querySelector('input[type=text]');
@@ -1394,21 +1394,21 @@ window.toggleTodo = function(id, checked) {
     }
 };
 
-window.revertActionChanges = function() {
+window.revertActionChanges = function () {
     if (_actOriginalData) _actFillModal(_actOriginalData);
     else _actClearModal();
 };
 
-window.saveCurrentAction = function() {
+window.saveCurrentAction = function () {
     const id = _actCurrentId;
     const now = new Date();
-    const nowStr = now.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'}) + ' ' + now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    const nowStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }) + ' ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
-    const getTags = () => Array.from(document.querySelectorAll('.act-tag-btn.active')).map(b => b.textContent.trim().replace(/^[^\s]*\s/,''));
-    const getOwner = () => Array.from(document.querySelectorAll('#act-f-owner-chips > span')).map(s => s.textContent.replace('×','').trim()).join(' + ');
-    const getAudience = () => Array.from(document.querySelectorAll('#act-f-audience-chips > span')).map(s => s.textContent.replace('×','').trim());
-    const getTodos = () => Array.from(document.querySelectorAll('#act-f-todos > div')).map((row,i) => ({
-        id: row.id.replace('todo-row-','') || ('t'+i),
+    const getTags = () => Array.from(document.querySelectorAll('.act-tag-btn.active')).map(b => b.textContent.trim().replace(/^[^\s]*\s/, ''));
+    const getOwner = () => Array.from(document.querySelectorAll('#act-f-owner-chips > span')).map(s => s.textContent.replace('×', '').trim()).join(' + ');
+    const getAudience = () => Array.from(document.querySelectorAll('#act-f-audience-chips > span')).map(s => s.textContent.replace('×', '').trim());
+    const getTodos = () => Array.from(document.querySelectorAll('#act-f-todos > div')).map((row, i) => ({
+        id: row.id.replace('todo-row-', '') || ('t' + i),
         completed: row.querySelector('input[type=checkbox]')?.checked || false,
         detail: row.querySelector('input[type=text]')?.value || ''
     }));
@@ -1462,7 +1462,7 @@ window.saveCurrentAction = function() {
     window.filterActions();
 };
 
-window.deleteCurrentAction = function() {
+window.deleteCurrentAction = function () {
     if (!_actCurrentId) return;
     if (!confirm('Delete this action? This cannot be undone.')) return;
     let actions = window.getData('actions') || [];
@@ -1480,7 +1480,7 @@ window.deleteCurrentAction = function() {
 function _adetGetPrivacyLevel(a) {
     if (a.privacy && typeof a.privacy === 'object') return a.privacy.level || 'public';
     if (typeof a.privacy === 'string') {
-        const map = { 'Public/Official':'public', 'Attendees':'attendees', 'Restricted':'restricted', 'Custom':'custom' };
+        const map = { 'Public/Official': 'public', 'Attendees': 'attendees', 'Restricted': 'restricted', 'Custom': 'custom' };
         return map[a.privacy] || 'public';
     }
     return 'public';
@@ -1488,24 +1488,24 @@ function _adetGetPrivacyLevel(a) {
 
 function _adetPrivacyMeta(level) {
     return {
-        public:    { icon:'🌐', label:'Public / Official',  desc:'Visible to all team members' },
-        attendees: { icon:'👥', label:'Attendees',           desc:'All linked audience members' },
-        restricted:{ icon:'🔒', label:'Restricted',          desc:'Admin + creator only' },
-        custom:    { icon:'⚙️', label:'Advanced / Custom',   desc:'Custom viewer/editor list' },
-    }[level] || { icon:'🌐', label:'Public / Official', desc:'' };
+        public: { icon: '🌐', label: 'Public / Official', desc: 'Visible to all team members' },
+        attendees: { icon: '👥', label: 'Attendees', desc: 'All linked audience members' },
+        restricted: { icon: '🔒', label: 'Restricted', desc: 'Admin + creator only' },
+        custom: { icon: '⚙️', label: 'Advanced / Custom', desc: 'Custom viewer/editor list' },
+    }[level] || { icon: '🌐', label: 'Public / Official', desc: '' };
 }
 
 const _adetStatusColors = {
-    'Pending':     { bg:'rgba(148,163,184,0.15)', color:'#64748b', border:'#94a3b8' },
-    'Planned':     { bg:'rgba(129,140,248,0.15)', color:'#6366f1', border:'#818cf8' },
-    'In Progress': { bg:'rgba(96,165,250,0.15)',  color:'#3b82f6', border:'#60a5fa' },
-    'Completed':   { bg:'rgba(52,211,153,0.15)',  color:'#059669', border:'#34d399' },
+    'Pending': { bg: 'rgba(148,163,184,0.15)', color: '#64748b', border: '#94a3b8' },
+    'Planned': { bg: 'rgba(129,140,248,0.15)', color: '#6366f1', border: '#818cf8' },
+    'In Progress': { bg: 'rgba(96,165,250,0.15)', color: '#3b82f6', border: '#60a5fa' },
+    'Completed': { bg: 'rgba(52,211,153,0.15)', color: '#059669', border: '#34d399' },
 };
 const _adetPriorityColors = {
-    'ASAP':   { bg:'#ef4444', text:'#fff' }, 'High':   { bg:'#f97316', text:'#fff' },
-    'Medium': { bg:'#f59e0b', text:'#fff' }, 'Low':    { bg:'#64748b', text:'#fff' },
+    'ASAP': { bg: '#ef4444', text: '#fff' }, 'High': { bg: '#f97316', text: '#fff' },
+    'Medium': { bg: '#f59e0b', text: '#fff' }, 'Low': { bg: '#64748b', text: '#fff' },
 };
-const _adetOwnerColors = { 'Vant':'#ef4444','AET':'#3b82f6','AET + Vant':'#8b5cf6' };
+const _adetOwnerColors = { 'Vant': '#ef4444', 'AET': '#3b82f6', 'AET + Vant': '#8b5cf6' };
 
 // ── Read-only renderer ───────────────────────────────────────────────
 
@@ -1549,18 +1549,18 @@ function renderActionDetail() {
 
     const ownEl = document.getElementById('adet-owner-chips');
     if (ownEl) {
-        const owners = a.owner ? a.owner.split('+').map(o=>o.trim()).filter(Boolean) : [];
+        const owners = a.owner ? a.owner.split('+').map(o => o.trim()).filter(Boolean) : [];
         ownEl.innerHTML = owners.length > 0
             ? owners.map(o => {
                 const clr = _adetOwnerColors[o] || '#6b7280';
                 return `<span class="adet-owner-chip" style="background:${clr};">👤 ${o}</span>`;
-              }).join('')
+            }).join('')
             : '<span class="adet-chip-empty">—</span>';
     }
 
     // ── Impact: Objective link ──
     const spine = window.getData('spine');
-    const obj = (spine?.objectives||[]).find(o => o.id === a.commsObjectiveId);
+    const obj = (spine?.objectives || []).find(o => o.id === a.commsObjectiveId);
     const objEl = document.getElementById('adet-objective-link');
     if (objEl) {
         if (obj) {
@@ -1576,12 +1576,12 @@ function renderActionDetail() {
     // ── Status pills ──
     const pillsEl = document.getElementById('adet-status-selector');
     if (pillsEl) {
-        const statuses = ['Pending','Planned','In Progress','Completed'];
+        const statuses = ['Pending', 'Planned', 'In Progress', 'Completed'];
         pillsEl.innerHTML = statuses.map(s => {
             const sCol = _adetStatusColors[s];
             const isActive = s === a.status;
-            return `<span class="adet-status-pill-ro${isActive?' active':''}"
-                style="${isActive?`color:${sCol.color};background:${sCol.bg};border-color:${sCol.border};`:''}">
+            return `<span class="adet-status-pill-ro${isActive ? ' active' : ''}"
+                style="${isActive ? `color:${sCol.color};background:${sCol.bg};border-color:${sCol.border};` : ''}">
                 ${s}
             </span>`;
         }).join('');
@@ -1590,7 +1590,7 @@ function renderActionDetail() {
     // ── Priority ──
     const priEl = document.getElementById('adet-priority-pill');
     if (priEl && a.priority) {
-        const pc = _adetPriorityColors[a.priority] || {bg:'#64748b',text:'#fff'};
+        const pc = _adetPriorityColors[a.priority] || { bg: '#64748b', text: '#fff' };
         priEl.innerHTML = `<span class="adet-priority-pill" style="background:${pc.bg};color:${pc.text};">${a.priority}</span>`;
     }
 
@@ -1598,16 +1598,16 @@ function renderActionDetail() {
     const cplxEl = document.getElementById('adet-complexity-dots');
     if (cplxEl) {
         const n = parseInt(a.complexity || 0);
-        cplxEl.innerHTML = Array.from({length:5}).map((_,i) =>
-            `<span class="adet-complexity-dot" style="background:${i<n?'#6366f1':'var(--border-subtle)'};" title="${i+1}/5"></span>`
+        cplxEl.innerHTML = Array.from({ length: 5 }).map((_, i) =>
+            `<span class="adet-complexity-dot" style="background:${i < n ? '#6366f1' : 'var(--border-subtle)'};" title="${i + 1}/5"></span>`
         ).join('');
     }
 
     // ── Tags ──
     const tagsEl = document.getElementById('adet-tags');
     if (tagsEl) {
-        tagsEl.innerHTML = (a.tags||[]).length > 0
-            ? (a.tags||[]).map(t => `<span class="adet-tag-chip">${t}</span>`).join('')
+        tagsEl.innerHTML = (a.tags || []).length > 0
+            ? (a.tags || []).map(t => `<span class="adet-tag-chip">${t}</span>`).join('')
             : '<span class="adet-chip-empty">No tags</span>';
     }
 
@@ -1618,12 +1618,12 @@ function renderActionDetail() {
         const isWarn = /risk|block|delay|urgent/i.test(a.advancedStatus);
         advRow.style.background = isWarn ? 'rgba(239,68,68,0.08)' : 'rgba(251,191,36,0.1)';
         advRow.style.color = isWarn ? '#ef4444' : '#b45309';
-        advRow.style.border = `1px solid ${isWarn?'rgba(239,68,68,0.25)':'rgba(251,191,36,0.25)'}`;
-        advRow.innerHTML = `<span class="material-symbols-outlined" style="font-size:1rem;">${isWarn?'warning':'info'}</span> ${a.advancedStatus}`;
+        advRow.style.border = `1px solid ${isWarn ? 'rgba(239,68,68,0.25)' : 'rgba(251,191,36,0.25)'}`;
+        advRow.innerHTML = `<span class="material-symbols-outlined" style="font-size:1rem;">${isWarn ? 'warning' : 'info'}</span> ${a.advancedStatus}`;
     } else if (advRow) advRow.style.display = 'none';
 
     // ── Desired Outcome ──
-    const typeLabels = { text:'Free text', asset:'Asset', stakeholder_posture:'Stakeholder posture' };
+    const typeLabels = { text: 'Free text', asset: 'Asset', stakeholder_posture: 'Stakeholder posture' };
     const typePill = document.getElementById('adet-outcome-type-pill');
     if (typePill) typePill.textContent = typeLabels[a.desiredOutcomeType] || 'Free text';
     txt('adet-desired-outcome', a.desiredOutcome);
@@ -1632,9 +1632,9 @@ function renderActionDetail() {
     if (linkedItem) {
         if (a.desiredOutcomeType === 'stakeholder_posture' && a.desiredPosture) {
             linkedItem.style.display = 'flex';
-            const sh = (window.getData('stakeholders')||[]).find(s=>s.id===a.desiredOutcomeStakeholderId);
+            const sh = (window.getData('stakeholders') || []).find(s => s.id === a.desiredOutcomeStakeholderId);
             linkedItem.innerHTML = `<span class="material-symbols-outlined" style="font-size:1rem;color:var(--energy-algae);">person</span>
-                <span>Stakeholder: <strong>${sh?.name||'—'}</strong></span>
+                <span>Stakeholder: <strong>${sh?.name || '—'}</strong></span>
                 <span style="margin-left:0.5rem;">→ Desired posture: <strong style="color:var(--energy-algae);">${a.desiredPosture}</strong></span>`;
         } else if (a.desiredOutcomeType === 'asset' && a.desiredOutcomeAsset) {
             linkedItem.style.display = 'flex';
@@ -1647,7 +1647,7 @@ function renderActionDetail() {
     txt('adet-success-criteria', a.successCriteria || a.kpiTarget);
 
     // ── Logistics: Due Date ──
-    const granLabels = { month:'Month', week:'Week', day:'Day', datetime:'Day + Time' };
+    const granLabels = { month: 'Month', week: 'Week', day: 'Day', datetime: 'Day + Time' };
     const gran = a.timing?.granularity || 'day';
     const granPill = document.getElementById('adet-granularity-pill');
     if (granPill) granPill.textContent = granLabels[gran] || 'Day';
@@ -1657,8 +1657,8 @@ function renderActionDetail() {
         dueDisplay = a.timing.dueDateDisplay;
     } else if (a.timing?.dueDate) {
         const d = new Date(a.timing.dueDate + 'T00:00:00');
-        if (gran === 'month') dueDisplay = d.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
-        else dueDisplay = d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+        if (gran === 'month') dueDisplay = d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+        else dueDisplay = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     }
     txt('adet-due-display', dueDisplay);
 
@@ -1673,7 +1673,7 @@ function renderActionDetail() {
     const startDateEl = document.getElementById('adet-start-date');
     if (startDateEl && a.timing?.startDate) {
         const sd = new Date(a.timing.startDate + 'T00:00:00');
-        startDateEl.textContent = sd.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+        startDateEl.textContent = sd.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     } else if (startDateEl) startDateEl.textContent = '—';
 
     txt('adet-predicted-length', a.timing?.predictedLength);
@@ -1685,7 +1685,7 @@ function renderActionDetail() {
             const allActs = window.getData('actions') || [];
             predEl.innerHTML = preds.map(pid => {
                 const pa = allActs.find(x => x.id === pid);
-                return `<span class="adet-predecessor-chip"><span class="material-symbols-outlined" style="font-size:0.8rem;">arrow_right_alt</span>${pa?.activity||pid}</span>`;
+                return `<span class="adet-predecessor-chip"><span class="material-symbols-outlined" style="font-size:0.8rem;">arrow_right_alt</span>${pa?.activity || pid}</span>`;
             }).join('');
         } else predEl.innerHTML = '<span class="adet-chip-empty">None</span>';
     }
@@ -1695,8 +1695,8 @@ function renderActionDetail() {
 
     // ── To-Do List ──
     const todos = a.todos || [];
-    const done = todos.filter(t=>t.completed).length;
-    const pct = todos.length > 0 ? Math.round((done/todos.length)*100) : 0;
+    const done = todos.filter(t => t.completed).length;
+    const pct = todos.length > 0 ? Math.round((done / todos.length) * 100) : 0;
     const progText = document.getElementById('adet-todo-progress-text');
     if (progText) progText.textContent = todos.length > 0 ? `${done}/${todos.length} complete — ${pct}%` : 'No items';
     const progFill = document.getElementById('adet-todo-progress-fill');
@@ -1704,11 +1704,11 @@ function renderActionDetail() {
     const todosEl = document.getElementById('adet-todos');
     if (todosEl) {
         todosEl.innerHTML = todos.length > 0
-            ? todos.map(t => `<div class="adet-todo-item${t.completed?' done':''}">
-                <span class="material-symbols-outlined adet-todo-check" style="color:${t.completed?'var(--energy-algae)':'var(--text-tertiary)'};">
-                    ${t.completed?'check_box':'check_box_outline_blank'}
+            ? todos.map(t => `<div class="adet-todo-item${t.completed ? ' done' : ''}">
+                <span class="material-symbols-outlined adet-todo-check" style="color:${t.completed ? 'var(--energy-algae)' : 'var(--text-tertiary)'};">
+                    ${t.completed ? 'check_box' : 'check_box_outline_blank'}
                 </span>
-                <span style="text-decoration:${t.completed?'line-through':'none'};flex:1;">${t.detail||''}</span>
+                <span style="text-decoration:${t.completed ? 'line-through' : 'none'};flex:1;">${t.detail || ''}</span>
               </div>`).join('')
             : '<span class="adet-chip-empty" style="padding:0.5rem 0;">No to-do items added.</span>';
     }
@@ -1737,11 +1737,11 @@ function renderActionDetail() {
         const versions = vc.previousVersions || [];
         const allVersions = [...versions, { version: vc.currentVersion, note: 'Current version', who: vc.whoEdited }];
         prevEl.innerHTML = allVersions.reverse().map((v, i) => `
-            <div class="adet-vc-prev-item${i===0?' latest':''}">
+            <div class="adet-vc-prev-item${i === 0 ? ' latest' : ''}">
                 <div class="adet-vc-prev-dot"></div>
                 <div>
-                    <div style="font-weight:600;color:var(--text-primary);">${v.version||'—'} ${i===0?'<span style="font-size:0.7rem;color:var(--energy-algae);font-weight:700;">(current)</span>':''}</div>
-                    <div>${v.note||''} ${v.who?`— by ${v.who}`:''}</div>
+                    <div style="font-weight:600;color:var(--text-primary);">${v.version || '—'} ${i === 0 ? '<span style="font-size:0.7rem;color:var(--energy-algae);font-weight:700;">(current)</span>' : ''}</div>
+                    <div>${v.note || ''} ${v.who ? `— by ${v.who}` : ''}</div>
                 </div>
             </div>`).join('');
     }
@@ -1753,11 +1753,11 @@ function renderActionDetail() {
     const privLevel = _adetGetPrivacyLevel(a);
     const privDisplay = document.getElementById('adet-privacy-display');
     if (privDisplay) {
-        const levels = ['public','attendees','restricted','custom'];
+        const levels = ['public', 'attendees', 'restricted', 'custom'];
         const pm = _adetPrivacyMeta;
         privDisplay.innerHTML = levels.map(lv => {
             const m = pm(lv);
-            return `<div class="adet-privacy-opt-ro${lv===privLevel?' active':''}">
+            return `<div class="adet-privacy-opt-ro${lv === privLevel ? ' active' : ''}">
                 <span>${m.icon}</span>
                 <div>
                     <div style="font-size:0.82rem;font-weight:600;">${m.label}</div>
@@ -1771,8 +1771,8 @@ function renderActionDetail() {
     if (customDiv) {
         if (privLevel === 'custom' && typeof a.privacy === 'object') {
             customDiv.style.display = 'block';
-            const viewers = (a.privacy.customViewers||[]).join(', ') || '—';
-            const editors = (a.privacy.customEditors||[]).join(', ') || '—';
+            const viewers = (a.privacy.customViewers || []).join(', ') || '—';
+            const editors = (a.privacy.customEditors || []).join(', ') || '—';
             customDiv.innerHTML = `
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
                     <div><div class="adet-fl" style="margin-bottom:0.3rem;">Can view</div><div style="font-size:0.85rem;">${viewers}</div></div>
@@ -1793,8 +1793,8 @@ function _adetPopulateObjectiveSelect() {
     if (!sel) return;
     const spine = window.getData('spine');
     sel.innerHTML = '<option value="">— No objective linked —</option>';
-    (spine?.objectives||[]).forEach(o => {
-        sel.innerHTML += `<option value="${o.id}">🎯 ${o.text.length>55?o.text.substring(0,52)+'...':o.text}</option>`;
+    (spine?.objectives || []).forEach(o => {
+        sel.innerHTML += `<option value="${o.id}">🎯 ${o.text.length > 55 ? o.text.substring(0, 52) + '...' : o.text}</option>`;
     });
 }
 
@@ -1815,8 +1815,8 @@ function _adetMakeEditChip(label, removeId) {
 
 function _adetMakeEditTodoRow(id, completed, detail) {
     return `<div style="display:flex;align-items:center;gap:0.5rem;" id="adet-todo-e-${id}">
-        <input type="checkbox" ${completed?'checked':''} style="flex-shrink:0;cursor:pointer;width:16px;height:16px;">
-        <input type="text" value="${(detail||'').replace(/"/g,'&quot;')}" placeholder="To-do item…"
+        <input type="checkbox" ${completed ? 'checked' : ''} style="flex-shrink:0;cursor:pointer;width:16px;height:16px;">
+        <input type="text" value="${(detail || '').replace(/"/g, '&quot;')}" placeholder="To-do item…"
             style="flex:1;padding:0.3rem 0.55rem;border:1px solid var(--border-subtle);background:var(--bg-app);color:var(--text-primary);border-radius:5px;font-size:0.82rem;font-family:inherit;">
         <button onclick="document.getElementById('adet-todo-e-${id}').remove()"
             style="background:#ef4444;border:none;color:#fff;width:22px;height:22px;border-radius:4px;cursor:pointer;font-size:0.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">−</button>
@@ -1825,7 +1825,7 @@ function _adetMakeEditTodoRow(id, completed, detail) {
 
 // ── window.openActionDetailEdit ──────────────────────────────────────
 
-window.openActionDetailEdit = function() {
+window.openActionDetailEdit = function () {
     const id = window.currentActionId;
     if (!id) return;
     const actions = window.getData('actions') || [];
@@ -1848,14 +1848,14 @@ window.openActionDetailEdit = function() {
 
     // Audience chips
     const audEl = document.getElementById('adet-e-audience-chips');
-    if (audEl) audEl.innerHTML = (a.audience||[]).map((aud,i) => _adetMakeEditChip('🏛 '+aud, 'aud-chip-'+i)).join('');
+    if (audEl) audEl.innerHTML = (a.audience || []).map((aud, i) => _adetMakeEditChip('🏛 ' + aud, 'aud-chip-' + i)).join('');
 
     // Owner chips
     const ownEl = document.getElementById('adet-e-owner-chips');
     if (ownEl) {
-        const owners = a.owner ? a.owner.split('+').map(o=>o.trim()).filter(Boolean) : [];
-        ownEl.innerHTML = owners.map((o,i) => {
-            const clr = _adetOwnerColors[o]||'#6b7280';
+        const owners = a.owner ? a.owner.split('+').map(o => o.trim()).filter(Boolean) : [];
+        ownEl.innerHTML = owners.map((o, i) => {
+            const clr = _adetOwnerColors[o] || '#6b7280';
             return `<span class="adet-edit-chip" id="own-chip-${i}" style="background:${clr};color:#fff;border-color:${clr};">👤 ${o}<span class="adet-edit-chip-x" onclick="this.closest('span').remove()">×</span></span>`;
         }).join('');
     }
@@ -1875,18 +1875,18 @@ window.openActionDetailEdit = function() {
 
     // Tags — preset buttons
     document.querySelectorAll('.adet-tag-preset-btn').forEach(btn => {
-        const tag = btn.textContent.trim().replace(/^[^\s]+\s/,'').trim();
-        btn.classList.toggle('active', (a.tags||[]).some(t=>t.trim()===tag));
+        const tag = btn.textContent.trim().replace(/^[^\s]+\s/, '').trim();
+        btn.classList.toggle('active', (a.tags || []).some(t => t.trim() === tag));
     });
     // Custom tags (non-preset)
-    const presets = ['Comms','Financial','Legal','Strategy'];
-    const customTags = (a.tags||[]).filter(t => !presets.includes(t.trim()));
+    const presets = ['Comms', 'Financial', 'Legal', 'Strategy'];
+    const customTags = (a.tags || []).filter(t => !presets.includes(t.trim()));
     const tagChipsEl = document.getElementById('adet-e-tag-chips');
-    if (tagChipsEl) tagChipsEl.innerHTML = customTags.map((t,i) => _adetMakeEditChip(t,'ctag-'+i)).join('');
+    if (tagChipsEl) tagChipsEl.innerHTML = customTags.map((t, i) => _adetMakeEditChip(t, 'ctag-' + i)).join('');
 
     // Desired Outcome type
     const typeVal = a.desiredOutcomeType || 'text';
-    document.querySelectorAll('input[name="adet-outcome-type"]').forEach(r => { r.checked = r.value===typeVal; });
+    document.querySelectorAll('input[name="adet-outcome-type"]').forEach(r => { r.checked = r.value === typeVal; });
     window.adetOutcomeTypeChanged();
     set('adet-e-outcome', a.desiredOutcome);
     const sh = document.getElementById('adet-e-outcome-stakeholder');
@@ -1911,9 +1911,9 @@ window.openActionDetailEdit = function() {
     if (predEl) {
         const allActs = window.getData('actions') || [];
         const preds = a.timing?.predecessorActions || [];
-        predEl.innerHTML = preds.map((pid,i) => {
-            const pa = allActs.find(x=>x.id===pid);
-            return _adetMakeEditChip((pa?.activity||pid), 'pred-chip-'+i);
+        predEl.innerHTML = preds.map((pid, i) => {
+            const pa = allActs.find(x => x.id === pid);
+            return _adetMakeEditChip((pa?.activity || pid), 'pred-chip-' + i);
         }).join('');
         predEl.dataset.preds = JSON.stringify(preds);
     }
@@ -1922,12 +1922,12 @@ window.openActionDetailEdit = function() {
 
     // Todos
     const todosEl = document.getElementById('adet-e-todos');
-    if (todosEl) todosEl.innerHTML = (a.todos||[]).map(t => _adetMakeEditTodoRow(t.id,t.completed,t.detail)).join('');
+    if (todosEl) todosEl.innerHTML = (a.todos || []).map(t => _adetMakeEditTodoRow(t.id, t.completed, t.detail)).join('');
 
     // VC
     const vc = a.versionControl || {};
     const vcMeta = document.getElementById('adet-e-vc-meta');
-    if (vcMeta) vcMeta.innerHTML = `Version <strong>${vc.currentVersion||'—'}</strong> · Created <strong>${vc.taskCreated||'—'}</strong> · By <strong>${vc.whoEdited||'—'}</strong>`;
+    if (vcMeta) vcMeta.innerHTML = `Version <strong>${vc.currentVersion || '—'}</strong> · Created <strong>${vc.taskCreated || '—'}</strong> · By <strong>${vc.whoEdited || '—'}</strong>`;
     set('adet-e-progress', vc.recentProgress);
     set('adet-e-blockers', vc.currentBlockers);
     const compCheck = document.getElementById('adet-e-completed-check');
@@ -1939,13 +1939,13 @@ window.openActionDetailEdit = function() {
 
     // Privacy
     const privLevel = _adetGetPrivacyLevel(a);
-    document.querySelectorAll('input[name="adet-e-priv"]').forEach(r => { r.checked = r.value===privLevel; });
+    document.querySelectorAll('input[name="adet-e-priv"]').forEach(r => { r.checked = r.value === privLevel; });
     window.adetPrivacyChanged();
     if (privLevel === 'custom' && typeof a.privacy === 'object') {
         const viewEl = document.getElementById('adet-e-custom-viewers');
         const editEl = document.getElementById('adet-e-custom-editors');
-        if (viewEl) viewEl.innerHTML = (a.privacy.customViewers||[]).map((p,i)=>_adetMakeEditChip(p,'cv-'+i)).join('');
-        if (editEl) editEl.innerHTML = (a.privacy.customEditors||[]).map((p,i)=>_adetMakeEditChip(p,'ce-'+i)).join('');
+        if (viewEl) viewEl.innerHTML = (a.privacy.customViewers || []).map((p, i) => _adetMakeEditChip(p, 'cv-' + i)).join('');
+        if (editEl) editEl.innerHTML = (a.privacy.customEditors || []).map((p, i) => _adetMakeEditChip(p, 'ce-' + i)).join('');
     }
 
     const overlay = document.getElementById('adet-modal-overlay');
@@ -1960,32 +1960,32 @@ window.openActionDetailEdit = function() {
 window._adetGranularity = 'day';
 
 function _adetRefreshDueDateInput(gran, timing) {
-    const hides = ['adet-e-due-month-wrap','adet-e-due-date-wrap','adet-e-due-datetime-wrap'];
-    hides.forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
-    if (gran==='month') {
+    const hides = ['adet-e-due-month-wrap', 'adet-e-due-date-wrap', 'adet-e-due-datetime-wrap'];
+    hides.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    if (gran === 'month') {
         const wrap = document.getElementById('adet-e-due-month-wrap');
-        if (wrap) wrap.style.display='';
+        if (wrap) wrap.style.display = '';
         const inp = document.getElementById('adet-e-due-month');
-        if (inp && timing?.dueDate) inp.value = timing.dueDate.substring(0,7);
-    } else if (gran==='datetime') {
+        if (inp && timing?.dueDate) inp.value = timing.dueDate.substring(0, 7);
+    } else if (gran === 'datetime') {
         const wrap = document.getElementById('adet-e-due-datetime-wrap');
-        if (wrap) wrap.style.display='';
+        if (wrap) wrap.style.display = '';
         if (timing?.dueDate) {
             const inp = document.getElementById('adet-e-due-datetime');
             if (inp) inp.value = timing.dueDate + 'T00:00';
         }
     } else {
         const wrap = document.getElementById('adet-e-due-date-wrap');
-        if (wrap) wrap.style.display='';
+        if (wrap) wrap.style.display = '';
         const inp = document.getElementById('adet-e-due-date');
         if (inp && timing?.dueDate) inp.value = timing.dueDate;
     }
 }
 
-window.adetSetGranularity = function(btn, gran) {
+window.adetSetGranularity = function (btn, gran) {
     window._adetGranularity = gran;
     document.querySelectorAll('.adet-seg-btn[data-gran]').forEach(b =>
-        b.classList.toggle('active', b.dataset.gran===gran));
+        b.classList.toggle('active', b.dataset.gran === gran));
     _adetRefreshDueDateInput(gran, null);
 };
 
@@ -1994,53 +1994,53 @@ window.adetSetGranularity = function(btn, gran) {
 window._adetCurrentStatus = 'Pending';
 window._adetComplexity = 3;
 
-window.adetSetStatus = function(btn, status) {
+window.adetSetStatus = function (btn, status) {
     window._adetCurrentStatus = status;
     document.querySelectorAll('#adet-e-status-seg .adet-seg-btn').forEach(b =>
-        b.classList.toggle('active', b.dataset.status===status));
+        b.classList.toggle('active', b.dataset.status === status));
 };
 
-window.adetSetComplexity = function(n) {
+window.adetSetComplexity = function (n) {
     window._adetComplexity = n;
     _adetRefreshStars();
 };
 
 function _adetRefreshStars() {
     const n = window._adetComplexity;
-    document.querySelectorAll('#adet-e-complexity-stars .adet-star-btn').forEach((btn,i) =>
+    document.querySelectorAll('#adet-e-complexity-stars .adet-star-btn').forEach((btn, i) =>
         btn.classList.toggle('active', i < n));
 }
 
 // ── Tag helpers ──────────────────────────────────────────────────────
 
-window.adetTogglePresetTag = function(btn, tag) { btn.classList.toggle('active'); };
+window.adetTogglePresetTag = function (btn, tag) { btn.classList.toggle('active'); };
 
-window.adetAddCustomTag = function() {
+window.adetAddCustomTag = function () {
     const inp = document.getElementById('adet-e-tag-input');
     if (!inp || !inp.value.trim()) return;
     const tag = inp.value.trim();
     const chips = document.getElementById('adet-e-tag-chips');
-    if (chips) chips.insertAdjacentHTML('beforeend', _adetMakeEditChip(tag,'ctag-'+Date.now()));
+    if (chips) chips.insertAdjacentHTML('beforeend', _adetMakeEditChip(tag, 'ctag-' + Date.now()));
     inp.value = '';
 };
 
 // ── Audience / Owner helpers ─────────────────────────────────────────
 
-window.adetAddAudience = function() {
+window.adetAddAudience = function () {
     const stakeholders = window.getData('stakeholders') || [];
     let name;
     if (stakeholders.length > 0) {
-        const nameList = stakeholders.map(s=>s.name).join('\n');
-        name = prompt(`Enter audience name (stakeholder/contact):\n\nExisting stakeholders:\n${nameList}`, stakeholders[0]?.name||'');
+        const nameList = stakeholders.map(s => s.name).join('\n');
+        name = prompt(`Enter audience name (stakeholder/contact):\n\nExisting stakeholders:\n${nameList}`, stakeholders[0]?.name || '');
     } else {
         name = prompt('Enter audience name (stakeholder/contact):', '');
     }
     if (!name?.trim()) return;
     const el = document.getElementById('adet-e-audience-chips');
-    if (el) el.insertAdjacentHTML('beforeend', _adetMakeEditChip('🏛 '+name.trim(),'aud-chip-'+Date.now()));
+    if (el) el.insertAdjacentHTML('beforeend', _adetMakeEditChip('🏛 ' + name.trim(), 'aud-chip-' + Date.now()));
 };
 
-window.adetAddOwner = function() {
+window.adetAddOwner = function () {
     const name = prompt('Owner name (e.g. Vant, AET):', 'Vant');
     if (!name?.trim()) return;
     const clr = _adetOwnerColors[name.trim()] || '#6b7280';
@@ -2051,57 +2051,57 @@ window.adetAddOwner = function() {
 
 // ── Predecessor helpers ──────────────────────────────────────────────
 
-window.adetAddPredecessor = function() {
+window.adetAddPredecessor = function () {
     const allActs = window.getData('actions') || [];
     const currentId = window.currentActionId;
     const available = allActs.filter(x => x.id !== currentId);
     if (available.length === 0) { alert('No other actions available to link.'); return; }
-    const list = available.map((a,i) => `${i+1}. ${a.activity}`).join('\n');
+    const list = available.map((a, i) => `${i + 1}. ${a.activity}`).join('\n');
     const choice = prompt(`Select a preceding action (enter the number):\n\n${list}`, '1');
     const idx = parseInt(choice) - 1;
     if (isNaN(idx) || idx < 0 || idx >= available.length) return;
     const picked = available[idx];
     const el = document.getElementById('adet-e-predecessor-chips');
-    if (el) el.insertAdjacentHTML('beforeend', _adetMakeEditChip(picked.activity,'pred-chip-'+Date.now()));
+    if (el) el.insertAdjacentHTML('beforeend', _adetMakeEditChip(picked.activity, 'pred-chip-' + Date.now()));
 };
 
 // ── Todo helpers ─────────────────────────────────────────────────────
 
-window.adetAddTodo = function() {
+window.adetAddTodo = function () {
     const el = document.getElementById('adet-e-todos');
     if (!el) return;
-    el.insertAdjacentHTML('beforeend', _adetMakeEditTodoRow('new-'+Date.now(), false, ''));
+    el.insertAdjacentHTML('beforeend', _adetMakeEditTodoRow('new-' + Date.now(), false, ''));
 };
 
 // ── Desired Outcome type ─────────────────────────────────────────────
 
-window.adetOutcomeTypeChanged = function() {
+window.adetOutcomeTypeChanged = function () {
     const val = document.querySelector('input[name="adet-outcome-type"]:checked')?.value || 'text';
     const pfEl = document.getElementById('adet-outcome-posture-fields');
     const afEl = document.getElementById('adet-outcome-asset-fields');
-    if (pfEl) pfEl.style.display = val==='stakeholder_posture' ? '' : 'none';
-    if (afEl) afEl.style.display = val==='asset' ? '' : 'none';
+    if (pfEl) pfEl.style.display = val === 'stakeholder_posture' ? '' : 'none';
+    if (afEl) afEl.style.display = val === 'asset' ? '' : 'none';
 };
 
 // ── Privacy ──────────────────────────────────────────────────────────
 
-window.adetPrivacyChanged = function() {
+window.adetPrivacyChanged = function () {
     const val = document.querySelector('input[name="adet-e-priv"]:checked')?.value || 'public';
     const customEl = document.getElementById('adet-e-custom-privacy');
-    if (customEl) customEl.style.display = val==='custom' ? '' : 'none';
+    if (customEl) customEl.style.display = val === 'custom' ? '' : 'none';
 };
 
-window.adetAddCustomPerson = function(role) {
-    const name = prompt(`Enter name for ${role==='viewers'?'viewer':'editor'}:`);
+window.adetAddCustomPerson = function (role) {
+    const name = prompt(`Enter name for ${role === 'viewers' ? 'viewer' : 'editor'}:`);
     if (!name?.trim()) return;
-    const elId = role==='viewers' ? 'adet-e-custom-viewers' : 'adet-e-custom-editors';
+    const elId = role === 'viewers' ? 'adet-e-custom-viewers' : 'adet-e-custom-editors';
     const el = document.getElementById(elId);
-    if (el) el.insertAdjacentHTML('beforeend', _adetMakeEditChip(name.trim(),'cust-'+Date.now()));
+    if (el) el.insertAdjacentHTML('beforeend', _adetMakeEditChip(name.trim(), 'cust-' + Date.now()));
 };
 
 // ── Accordion helper ─────────────────────────────────────────────────
 
-window.adetToggleSection = function(id) {
+window.adetToggleSection = function (id) {
     const el = document.getElementById(id);
     if (!el) return;
     const isOpen = el.style.display !== 'none';
@@ -2116,44 +2116,44 @@ window.adetToggleSection = function(id) {
 
 // ── Save ─────────────────────────────────────────────────────────────
 
-window.closeActionDetailEdit = function() {
+window.closeActionDetailEdit = function () {
     const overlay = document.getElementById('adet-modal-overlay');
     if (overlay) overlay.style.display = 'none';
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
-window.adetRevert = function() {
+window.adetRevert = function () {
     if (window._adetOriginal) window.openActionDetailEdit();
 };
 
-window.adetSave = function() {
+window.adetSave = function () {
     const id = window.currentActionId;
     if (!id) return;
 
     const now = new Date();
-    const nowStr = now.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'})
-                 + ' ' + now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    const nowStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })
+        + ' ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
     // Collect tags
-    const presets = ['Comms','Financial','Legal','Strategy'];
+    const presets = ['Comms', 'Financial', 'Legal', 'Strategy'];
     const activePre = Array.from(document.querySelectorAll('.adet-tag-preset-btn.active'))
-        .map(b => b.textContent.trim().replace(/^[^\s]+\s/,'').trim());
+        .map(b => b.textContent.trim().replace(/^[^\s]+\s/, '').trim());
     const customTags = Array.from(document.querySelectorAll('#adet-e-tag-chips .adet-edit-chip'))
-        .map(c => c.textContent.replace('×','').trim());
-    const allTags = [...new Set([...activePre,...customTags])];
+        .map(c => c.textContent.replace('×', '').trim());
+    const allTags = [...new Set([...activePre, ...customTags])];
 
     // Collect audience chips (strip icon prefix)
     const getAudience = () => Array.from(document.querySelectorAll('#adet-e-audience-chips .adet-edit-chip'))
-        .map(c => c.textContent.replace('×','').replace(/^[^\s]+\s/,'').trim());
+        .map(c => c.textContent.replace('×', '').replace(/^[^\s]+\s/, '').trim());
 
     // Collect owner chips
     const getOwner = () => Array.from(document.querySelectorAll('#adet-e-owner-chips .adet-edit-chip'))
-        .map(c => c.textContent.replace('×','').replace(/^👤\s/,'').trim())
+        .map(c => c.textContent.replace('×', '').replace(/^👤\s/, '').trim())
         .join(' + ');
 
     // Collect todos
-    const getTodos = () => Array.from(document.querySelectorAll('[id^="adet-todo-e-"]')).map((row,i) => ({
-        id: row.id.replace('adet-todo-e-','') || 't'+i,
+    const getTodos = () => Array.from(document.querySelectorAll('[id^="adet-todo-e-"]')).map((row, i) => ({
+        id: row.id.replace('adet-todo-e-', '') || 't' + i,
         completed: row.querySelector('input[type=checkbox]')?.checked || false,
         detail: row.querySelector('input[type=text]')?.value || ''
     }));
@@ -2161,21 +2161,21 @@ window.adetSave = function() {
     // Due date
     const gran = window._adetGranularity || 'day';
     let dueDate = '', dueDateDisplay = '';
-    if (gran==='month') {
+    if (gran === 'month') {
         const mv = document.getElementById('adet-e-due-month')?.value;
-        if (mv) { dueDate = mv+'-01'; const d=new Date(dueDate+'T00:00'); dueDateDisplay=d.toLocaleDateString('en-GB',{month:'long',year:'numeric'}); }
-    } else if (gran==='datetime') {
+        if (mv) { dueDate = mv + '-01'; const d = new Date(dueDate + 'T00:00'); dueDateDisplay = d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }); }
+    } else if (gran === 'datetime') {
         const dtv = document.getElementById('adet-e-due-datetime')?.value;
-        if (dtv) { dueDate = dtv.substring(0,10); dueDateDisplay = new Date(dtv).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+        if (dtv) { dueDate = dtv.substring(0, 10); dueDateDisplay = new Date(dtv).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
     } else {
         const dv = document.getElementById('adet-e-due-date')?.value;
-        if (dv) { dueDate = dv; const d=new Date(dv+'T00:00'); dueDateDisplay=d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+        if (dv) { dueDate = dv; const d = new Date(dv + 'T00:00'); dueDateDisplay = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); }
     }
 
     // Privacy
     const privLevel = document.querySelector('input[name="adet-e-priv"]:checked')?.value || 'public';
-    const customViewers = Array.from(document.querySelectorAll('#adet-e-custom-viewers .adet-edit-chip')).map(c=>c.textContent.replace('×','').trim());
-    const customEditors = Array.from(document.querySelectorAll('#adet-e-custom-editors .adet-edit-chip')).map(c=>c.textContent.replace('×','').trim());
+    const customViewers = Array.from(document.querySelectorAll('#adet-e-custom-viewers .adet-edit-chip')).map(c => c.textContent.replace('×', '').trim());
+    const customEditors = Array.from(document.querySelectorAll('#adet-e-custom-editors .adet-edit-chip')).map(c => c.textContent.replace('×', '').trim());
 
     // Current status from segmented control
     const currentStatus = document.querySelector('#adet-e-status-seg .adet-seg-btn.active')?.dataset.status
@@ -2238,7 +2238,7 @@ window.adetSave = function() {
     renderActionDetail();
 };
 
-window.adetDelete = function() {
+window.adetDelete = function () {
     const id = window.currentActionId;
     if (!id) return;
     if (!confirm('Delete this action? This cannot be undone.')) return;
@@ -2484,8 +2484,8 @@ window.moveObjective = function (id, dir) {
     const spine = window.getData('spine');
     const idx = spine.objectives.findIndex(o => o.id === id);
     if (idx === -1) return;
-    if (dir === -1 && idx > 0) { const t = spine.objectives[idx]; spine.objectives[idx] = spine.objectives[idx-1]; spine.objectives[idx-1] = t; }
-    else if (dir === 1 && idx < spine.objectives.length - 1) { const t = spine.objectives[idx]; spine.objectives[idx] = spine.objectives[idx+1]; spine.objectives[idx+1] = t; }
+    if (dir === -1 && idx > 0) { const t = spine.objectives[idx]; spine.objectives[idx] = spine.objectives[idx - 1]; spine.objectives[idx - 1] = t; }
+    else if (dir === 1 && idx < spine.objectives.length - 1) { const t = spine.objectives[idx]; spine.objectives[idx] = spine.objectives[idx + 1]; spine.objectives[idx + 1] = t; }
     window.updateData('spine', spine);
     refreshSpineUI();
 };
@@ -2520,7 +2520,7 @@ async function renderMessaging() {
 function renderMsgCards(cards) {
     const container = document.getElementById('messaging-cards-container');
     if (!container) return;
-    const topCards = cards.filter(c => !c.cc_parent_card_id).sort((a,b) => a.cc_order - b.cc_order);
+    const topCards = cards.filter(c => !c.cc_parent_card_id).sort((a, b) => a.cc_order - b.cc_order);
     const childMap = {};
     cards.filter(c => c.cc_parent_card_id).forEach(c => {
         if (!childMap[c.cc_parent_card_id]) childMap[c.cc_parent_card_id] = [];
@@ -2564,7 +2564,7 @@ function renderMsgCards(cards) {
 
 function renderKeyMessageCard(card, children) {
     let childHtml = '';
-    children.sort((a,b) => a.cc_order - b.cc_order).forEach(child => {
+    children.sort((a, b) => a.cc_order - b.cc_order).forEach(child => {
         const points = (child.cc_content || '').split('\n').filter(l => l.trim());
         childHtml += `<div id="msg-accordion-${child.cc_id}" style="border:1px solid var(--border-subtle);border-radius:8px;padding:0.75rem;cursor:pointer;transition:all 0.2s;" onclick="window.toggleMsgAccordion(${child.cc_id})"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:0.9rem;font-weight:500;">${child.cc_title}</span><span id="msg-icon-${child.cc_id}" class="material-symbols-outlined" style="font-size:1.2rem;transition:transform 0.2s;transform:rotate(0deg);">arrow_right</span></div><div id="msg-content-${child.cc_id}" style="display:none;margin-top:1rem;"><ul style="padding-left:1.5rem;margin:0;font-size:0.85rem;color:var(--text-secondary);display:flex;flex-direction:column;gap:0.5rem;">${points.map(pp => `<li>${pp}</li>`).join('')}</ul></div></div>`;
     });
@@ -2588,24 +2588,24 @@ function renderMessagingFromMock() {
     const fakeCards = [];
     let order = 1;
     fakeCards.push({ cc_id: 900, cc_card_type: 'section', cc_title: 'Project Key Messages', cc_order: order++ });
-    (kb.keyMessages||[]).forEach(km => {
+    (kb.keyMessages || []).forEach(km => {
         const pid = 900 + order;
         fakeCards.push({ cc_id: pid, cc_card_type: 'card', cc_title: km.title, cc_content: km.message, cc_order: order++ });
         fakeCards.push({ cc_id: 900 + order, cc_card_type: 'card', cc_title: 'Proof Points', cc_content: km.proofPoints.join('\n'), cc_order: order++, cc_is_collapsible: true, cc_parent_card_id: pid });
     });
     fakeCards.push({ cc_id: 900 + order, cc_card_type: 'section', cc_title: 'FAQs', cc_order: order++ });
-    (kb.faqs||[]).forEach(f => {
+    (kb.faqs || []).forEach(f => {
         fakeCards.push({ cc_id: 900 + order, cc_card_type: 'card', cc_title: f.question, cc_content: f.answer, cc_order: order++, cc_is_collapsible: true });
     });
     fakeCards.push({ cc_id: 900 + order, cc_card_type: 'section', cc_title: 'Key Audience Specific Messages', cc_order: order++ });
-    (kb.audienceMessages||[]).forEach(a => {
+    (kb.audienceMessages || []).forEach(a => {
         fakeCards.push({ cc_id: 900 + order, cc_card_type: 'card', cc_title: a.title, cc_content: a.text, cc_order: order++ });
     });
     renderMsgCards(fakeCards);
     setupMsgEditToggle();
 }
 
-window.toggleMsgAccordion = function(id) {
+window.toggleMsgAccordion = function (id) {
     if (isMsgEditMode) return;
     const content = document.getElementById('msg-content-' + id);
     const icon = document.getElementById('msg-icon-' + id);
@@ -2618,16 +2618,16 @@ window.toggleMsgAccordion = function(id) {
     }
 };
 
-window.toggleMsgFaq = function(id) {
+window.toggleMsgFaq = function (id) {
     if (isMsgEditMode) return;
     const content = document.getElementById('msg-faq-content-' + id);
     const icon = document.getElementById('msg-faq-icon-' + id);
     const header = document.getElementById('msg-faq-header-' + id);
     if (!content) return;
     if (content.style.display === 'none') {
-        content.style.display = 'block'; icon.style.transform = 'rotate(90deg)'; if(header) header.style.fontWeight = '600';
+        content.style.display = 'block'; icon.style.transform = 'rotate(90deg)'; if (header) header.style.fontWeight = '600';
     } else {
-        content.style.display = 'none'; icon.style.transform = 'rotate(0deg)'; if(header) header.style.fontWeight = '500';
+        content.style.display = 'none'; icon.style.transform = 'rotate(0deg)'; if (header) header.style.fontWeight = '500';
     }
 };
 
@@ -2678,236 +2678,3 @@ window.addEventListener('wheel', (e) => {
     }
 }, { passive: true });
 
-
-
-
-
-
-        editToggle.addEventListener('click', () => {
-            isKbEditMode = !isKbEditMode;
-            editToggle.style.background = isKbEditMode ? 'var(--energy-algae)' : '';
-            editToggle.style.color = isKbEditMode ? '#000' : '';
-            editToggle.innerHTML = isKbEditMode
-                ? '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done'
-                : '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
-            refreshKbUI();
-        });
-    }
-
-
-    const modal = document.getElementById('kb-modal');
-    const header = document.getElementById('kb-modal-header');
-    if (modal && header) {
-        let dragging = false, startX, startY, initialX, initialY;
-        header.addEventListener('mousedown', e => {
-            if (e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
-            dragging = true;
-            startX = e.clientX; startY = e.clientY;
-            const style = window.getComputedStyle(modal);
-            const matrix = new DOMMatrixReadOnly(style.transform !== 'none' ? style.transform : 'matrix(1,0,0,1,0,0)');
-            initialX = matrix.m41; initialY = matrix.m42;
-            const onMove = e => { if (!dragging) return; modal.style.transform = `translate(${initialX + e.clientX - startX}px, ${initialY + e.clientY - startY}px)`; };
-            const onUp = () => { dragging = false; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
-            document.addEventListener('mousemove', onMove);
-            document.addEventListener('mouseup', onUp);
-        });
-    }
-}
-
-
-
-    if (isKbEditMode) return;
-    const el = document.getElementById('kb-accordion-' + id);
-    const content = document.getElementById('kb-content-' + id);
-    const icon = document.getElementById('kb-icon-' + id);
-    if (content.style.display === 'none') {
-        content.style.display = 'block'; icon.style.transform = 'rotate(90deg)'; el.style.background = 'var(--bg-app)';
-    } else {
-        content.style.display = 'none'; icon.style.transform = 'rotate(0deg)'; el.style.background = 'transparent';
-    }
-};
-
-window.toggleKbFaq = function (id) {
-    if (isKbEditMode) return;
-    const content = document.getElementById('kb-faq-content-' + id);
-    const icon = document.getElementById('kb-faq-icon-' + id);
-    const el = document.getElementById('kb-faq-' + id);
-    if (content.style.display === 'none') {
-        content.style.display = 'block'; icon.style.transform = 'rotate(90deg)'; el.style.fontWeight = '600';
-    } else {
-        content.style.display = 'none'; icon.style.transform = 'rotate(0deg)'; el.style.fontWeight = '500';
-    }
-};
-
-function refreshKbUI() {
-    const kb = window.getData('knowledgeBank');
-    if (!kb) return;
-
-    document.querySelectorAll('.kb-edit-btn').forEach(btn => btn.style.display = isKbEditMode ? 'flex' : 'none');
-
-    // Key Messages
-    const keyMsgGrid = document.getElementById('kb-key-messages-grid');
-    if (keyMsgGrid) {
-        keyMsgGrid.innerHTML = kb.keyMessages.map(km => `
-            <div class="card" style="position:relative; background:var(--bg-surface); padding:1.5rem; display:flex; flex-direction:column; justify-content:flex-start; border:1px solid var(--border-subtle); border-radius:12px;">
-                ${isKbEditMode ? `<button onclick="openKbModal('edit-key-message', '${km.id}')" style="position:absolute; right:1rem; top:1rem; background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined">edit</span></button>` : ''}
-                <h4 style="margin:0 0 0.5rem 0; font-size:1.1rem; color:var(--text-primary);">${km.title}</h4>
-                <p style="font-size:0.85rem; color:var(--text-tertiary); margin:0 0 0.5rem 0;">Key Message</p>
-                <p style="font-size:0.95rem; color:var(--text-secondary); margin:0 0 1.5rem 0;">${km.message}</p>
-                <div id="kb-accordion-${km.id}" style="border:1px solid var(--border-subtle); border-radius:8px; padding:0.75rem; cursor:${isKbEditMode ? 'default' : 'pointer'}; transition:all 0.2s;" onclick="window.toggleKbAccordion('${km.id}')">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-size:0.9rem; font-weight:500;">Proof Points</span>
-                        <span id="kb-icon-${km.id}" class="material-symbols-outlined" style="font-size:1.2rem; transition:transform 0.2s; transform:${isKbEditMode ? 'rotate(90deg)' : 'rotate(0deg)'};">arrow_right</span>
-                    </div>
-                    <div id="kb-content-${km.id}" style="display:${isKbEditMode ? 'block' : 'none'}; margin-top:1rem;">
-                        <ul style="padding-left:1.5rem; margin:0; font-size:0.85rem; color:var(--text-secondary); display:flex; flex-direction:column; gap:0.5rem;">
-                            ${km.proofPoints.map(pp => `<li>${pp}</li>`).join('')}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    // FAQs
-    const faqsGrid = document.getElementById('kb-faqs-grid');
-    if (faqsGrid) {
-        faqsGrid.innerHTML = kb.faqs.map(f => `
-            <div class="card" style="position:relative; background:var(--bg-surface); outline:1px solid var(--border-subtle); border-radius:12px; overflow:hidden;">
-                ${isKbEditMode ? `<button onclick="openKbModal('edit-faq', '${f.id}')" style="position:absolute; right:1rem; top:1rem; z-index:10; background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined">edit</span></button>` : ''}
-                <div id="kb-faq-${f.id}" style="padding:0.75rem 1.5rem; cursor:${isKbEditMode ? 'default' : 'pointer'}; display:flex; justify-content:space-between; align-items:center; font-weight:500; font-size:0.95rem;" onclick="window.toggleKbFaq('${f.id}')">
-                    <span style="padding-right:2rem;">${f.question}</span>
-                    <span id="kb-faq-icon-${f.id}" class="material-symbols-outlined" style="font-size:1.5rem; transition:transform 0.2s; transform:${isKbEditMode ? 'rotate(90deg)' : 'rotate(0deg)'};">arrow_right</span>
-                </div>
-                <div id="kb-faq-content-${f.id}" style="display:${isKbEditMode ? 'block' : 'none'}; padding:0 1.5rem 1.5rem; border-top:1px solid var(--border-subtle);">
-                    <p style="margin-top:1rem; font-size:0.9rem; color:var(--text-secondary); line-height:1.5; white-space:pre-wrap;">${f.answer}</p>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    // Audience Messages
-    const audienceGrid = document.getElementById('kb-audiences-grid');
-    if (audienceGrid) {
-        audienceGrid.innerHTML = kb.audienceMessages.map(a => `
-            <div class="card" style="position:relative; border:1px solid var(--border-subtle); border-radius:12px; padding:1.5rem; background:var(--bg-surface);">
-                ${isKbEditMode ? `<button onclick="openKbModal('edit-audience', '${a.id}')" style="position:absolute; right:1rem; top:1rem; background:none; border:none; color:var(--text-secondary); cursor:pointer;"><span class="material-symbols-outlined">edit</span></button>` : ''}
-                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem; color:var(--text-primary); font-weight:600;">
-                    <span class="material-symbols-outlined" style="color:var(--energy-algae);">${a.icon}</span> ${a.title}
-                </div>
-                <p style="font-size:0.9rem; color:var(--text-secondary); line-height:1.5;">${a.text}</p>
-            </div>
-        `).join('');
-    }
-}
-
-window.openKbModal = function (type, id) {
-    const kb = window.getData('knowledgeBank');
-    if (!kb) return;
-    const modal = document.getElementById('kb-modal');
-    const title = document.getElementById('kb-modal-title');
-    const body = document.getElementById('kb-modal-body');
-    const saveBtn = document.getElementById('kb-modal-save');
-    modal.style.transform = 'none';
-
-    if (type === 'add-key-message' || type === 'edit-key-message') {
-        title.textContent = id ? 'Edit Key Message' : 'Add Key Message';
-        const msg = id ? kb.keyMessages.find(m => m.id === id) : { title: '', message: '', proofPoints: [] };
-        body.innerHTML = `
-            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Title</label>
-            <input type="text" id="kb-input-title" value="${msg.title.replace(/"/g, '&quot;')}" style="width:100%; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
-            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Key Message Statement</label>
-            <textarea id="kb-input-msg" style="width:100%; height:150px; resize:vertical; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${msg.message}</textarea>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-                <label style="font-size:0.8rem; font-weight:600;">Proof Points</label>
-                <button type="button" class="btn-secondary" onclick="window.addKbListPoint()" style="font-size:0.7rem; padding:0.2rem 0.5rem;">+ Add Point</button>
-            </div>
-            <div id="kb-modal-points-container" style="display:flex; flex-direction:column; gap:0.5rem; max-height:200px; overflow-y:auto; padding-right:0.5rem;">
-                ${msg.proofPoints.map(pp => `
-                    <div style="display:flex; gap:0.5rem; align-items:center;">
-                        <span style="color:var(--text-secondary);">•</span>
-                        <input type="text" class="kb-point-input" value="${pp.replace(/"/g, '&quot;')}" style="flex:1; padding:0.4rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
-                        <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--energy-alert); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">delete</span></button>
-                    </div>
-                `).join('')}
-            </div>
-            ${id ? `<button onclick="window.deleteKbItem('key-message', '${id}')" style="margin-top:1rem; width:100%; padding:0.5rem; border:1px solid var(--energy-alert); background:rgba(239,68,68,0.1); color:var(--energy-alert); border-radius:4px; cursor:pointer;">Delete Key Message</button>` : ''}
-        `;
-        saveBtn.onclick = () => {
-            const points = Array.from(document.querySelectorAll('.kb-point-input')).map(i => i.value).filter(v => v.trim() !== '');
-            const newObj = { id: id || 'k' + Date.now(), title: document.getElementById('kb-input-title').value, message: document.getElementById('kb-input-msg').value, proofPoints: points };
-            if (id) { const idx = kb.keyMessages.findIndex(m => m.id === id); kb.keyMessages[idx] = newObj; } else { kb.keyMessages.push(newObj); }
-            window.updateData('knowledgeBank', kb); refreshKbUI(); modal.close();
-        };
-    } else if (type === 'add-faq' || type === 'edit-faq') {
-        title.textContent = id ? 'Edit FAQ' : 'Add FAQ';
-        const faq = id ? kb.faqs.find(f => f.id === id) : { question: '', answer: '' };
-        body.innerHTML = `
-            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Question</label>
-            <input type="text" id="kb-input-q" value="${faq.question.replace(/"/g, '&quot;')}" style="width:100%; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
-            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Answer</label>
-            <textarea id="kb-input-a" style="width:100%; height:150px; resize:none; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${faq.answer}</textarea>
-            ${id ? `<button onclick="window.deleteKbItem('faq', '${id}')" style="width:100%; padding:0.5rem; border:1px solid var(--energy-alert); background:rgba(239,68,68,0.1); color:var(--energy-alert); border-radius:4px; cursor:pointer;">Delete FAQ</button>` : ''}
-        `;
-        saveBtn.onclick = () => {
-            const newObj = { id: id || 'f' + Date.now(), question: document.getElementById('kb-input-q').value, answer: document.getElementById('kb-input-a').value };
-            if (id) { const idx = kb.faqs.findIndex(f => f.id === id); kb.faqs[idx] = newObj; } else { kb.faqs.push(newObj); }
-            window.updateData('knowledgeBank', kb); refreshKbUI(); modal.close();
-        };
-    } else if (type === 'add-audience' || type === 'edit-audience') {
-        title.textContent = id ? 'Edit Audience Message' : 'Add Audience Message';
-        const aud = id ? kb.audienceMessages.find(a => a.id === id) : { title: '', text: '', icon: 'groups' };
-        const stakeholders = window.getData('stakeholders') || [];
-        const stakeholderOptions = stakeholders.map(s => `<option value="${s.name.replace(/"/g, '&quot;')}" ${aud.title === s.name ? 'selected' : ''}>${s.name}</option>`).join('');
-        body.innerHTML = `
-            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Audience Type (Stakeholder)</label>
-            <select id="kb-input-aud" style="width:100%; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
-                <option value="">-- Select a Stakeholder --</option>
-                ${stakeholderOptions}
-            </select>
-            <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Tailored Message</label>
-            <textarea id="kb-input-txt" style="width:100%; height:180px; resize:vertical; padding:0.5rem; margin-bottom:1rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">${aud.text}</textarea>
-            ${id ? `<button onclick="window.deleteKbItem('audience', '${id}')" style="width:100%; padding:0.5rem; border:1px solid var(--energy-alert); background:rgba(239,68,68,0.1); color:var(--energy-alert); border-radius:4px; cursor:pointer;">Delete Audience</button>` : ''}
-        `;
-        saveBtn.onclick = () => {
-            const newObj = { id: id || 'a' + Date.now(), icon: 'groups', title: document.getElementById('kb-input-aud').value, text: document.getElementById('kb-input-txt').value };
-            if (id) { const idx = kb.audienceMessages.findIndex(a => a.id === id); kb.audienceMessages[idx] = newObj; } else { kb.audienceMessages.push(newObj); }
-            window.updateData('knowledgeBank', kb); refreshKbUI(); modal.close();
-        };
-    }
-    modal.showModal();
-};
-
-window.addKbListPoint = function () {
-    const container = document.getElementById('kb-modal-points-container');
-    const div = document.createElement('div');
-    div.style.cssText = 'display:flex; gap:0.5rem; align-items:center;';
-    div.innerHTML = `
-        <span style="color:var(--text-secondary);">•</span>
-        <input type="text" class="kb-point-input" value="" style="flex:1; padding:0.4rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:4px;">
-        <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--energy-alert); cursor:pointer;"><span class="material-symbols-outlined" style="font-size:1.2rem;">delete</span></button>
-    `;
-    container.appendChild(div);
-};
-
-window.deleteKbItem = function (type, id) {
-    const pwd = prompt('Enter administrator password to perform deletion (hint: "abracadabra"):');
-    if (pwd !== 'abracadabra') { alert('Invalid password. Deletion cancelled.'); return; }
-    const kb = window.getData('knowledgeBank');
-    if (type === 'key-message') kb.keyMessages = kb.keyMessages.filter(o => o.id !== id);
-    else if (type === 'faq') kb.faqs = kb.faqs.filter(o => o.id !== id);
-    else if (type === 'audience') kb.audienceMessages = kb.audienceMessages.filter(o => o.id !== id);
-    window.updateData('knowledgeBank', kb);
-    refreshKbUI();
-    document.getElementById('kb-modal').close();
-};
-
-// ---- SCROLL FORWARDING ----
-window.addEventListener('wheel', (e) => {
-    const vc = document.getElementById('view-container');
-    if (vc && !vc.contains(e.target)) {
-        const nav = document.getElementById('nav-links-container');
-        if (nav && nav.contains(e.target) && nav.scrollHeight > nav.clientHeight) return;
-        vc.scrollTop += e.deltaY;
-    }
-}, { passive: true });
