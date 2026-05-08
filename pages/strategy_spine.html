@@ -1,8 +1,13 @@
 <header style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;">
     <h2 style="margin:0;">Strategy Spine</h2>
-    <button id="spine-edit-toggle" class="btn-secondary" style="display:flex;align-items:center;gap:0.25rem;">
-        <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit
-    </button>
+    <div style="display:flex;gap:0.5rem;align-items:center;">
+        <button id="spine-cancel-btn" class="btn-secondary" style="display:none;align-items:center;gap:0.25rem;">
+            <span class="material-symbols-outlined" style="font-size:1rem;">close</span> Cancel
+        </button>
+        <button id="spine-edit-toggle" class="btn-secondary" style="display:flex;align-items:center;gap:0.25rem;">
+            <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit
+        </button>
+    </div>
 </header>
 <div id="strategy-cards-container">
     <div style="padding:3rem;text-align:center;color:var(--text-tertiary);">

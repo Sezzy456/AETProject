@@ -2320,7 +2320,7 @@ function renderSpineCards() {
                 // objectives_link card type: render objectives from tbl_strategy_objective
                 if (c.cc_card_type === 'objectives_link' && spine && spine.objectives) {
                     html += `<div class="card" style="position:relative;padding:1.5rem;" data-card-id="${c.cc_id}">${editCtrl}`;
-                    html += renderSpineObjectives(spine.objectives);
+                    html += renderSpineObjectives(spine.objectives, false);
                     html += '</div>';
                 } else {
                     html += `<div class="card" style="position:relative;padding:1.5rem;" data-card-id="${c.cc_id}">
@@ -2343,10 +2343,11 @@ function renderSpineCards() {
     container.innerHTML = html;
 }
 
-function renderSpineObjectives(objectives) {
-    let html = '<div class="card" style="margin-bottom:1.5rem;"><ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:0.5rem;">';
+function renderSpineObjectives(objectives, wrapInCard = true) {
+    let html = wrapInCard ? '<div class="card" style="margin-bottom:1.5rem;">' : '';
+    html += '<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:0.5rem;">';
     objectives.forEach((o, idx) => {
-        html += `<li class="spine-obj-li" data-obj-id="${o.id}" style="display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,0.03);padding:0.4rem 0.8rem;border-radius:4px;gap:1rem;">
+        html += `<li class="spine-obj-li" data-obj-id="${o.id}" style="display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,0.03);padding:0.5rem 0.8rem;border-radius:6px;gap:1rem;transition:background 0.15s,transform 0.15s;cursor:default;" onmouseenter="this.style.background='rgba(0,0,0,0.07)';this.style.transform='translateX(2px)'" onmouseleave="this.style.background='rgba(0,0,0,0.03)';this.style.transform='none'">
             <div style="display:flex;align-items:center;gap:0.5rem;flex:1;">
                 <span style="color:var(--energy-alert);">🎯</span>
                 <span class="spine-obj-text" data-obj-id="${o.id}">${o.text}</span>
@@ -2360,7 +2361,7 @@ function renderSpineObjectives(objectives) {
     });
     html += '</ul>';
     html += '<button class="btn-secondary spine-edit-ctrl" onclick="window.spineAddObj()" style="display:none;font-size:0.75rem;padding:0.2rem 0.5rem;margin-top:0.5rem;">+ Add Objective</button>';
-    html += '</div>';
+    if (wrapInCard) html += '</div>';
     return html;
 }
 
@@ -2370,6 +2371,23 @@ function setupSpineEditToggle() {
     const editToggle = old.cloneNode(true);
     old.parentNode.replaceChild(editToggle, old);
 
+    // Wire cancel button
+    const cancelBtn = document.getElementById('spine-cancel-btn');
+    if (cancelBtn) {
+        const freshCancel = cancelBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(freshCancel, cancelBtn);
+        freshCancel.addEventListener('click', async () => {
+            isSpineEditMode = false;
+            _spinePendingReorders = [];
+            editToggle.style.background = ''; editToggle.style.color = '';
+            editToggle.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
+            freshCancel.style.display = 'none';
+            // Re-fetch and re-render (discard local changes)
+            _spineCards = await window.fetchContentCards(1);
+            renderSpineCards(); setupSpineEditToggle();
+        });
+    }
+
     editToggle.addEventListener('click', async () => {
         isSpineEditMode = !isSpineEditMode;
         editToggle.style.background = isSpineEditMode ? 'var(--energy-algae)' : '';
@@ -2377,6 +2395,10 @@ function setupSpineEditToggle() {
         editToggle.innerHTML = isSpineEditMode
             ? '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done'
             : '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
+
+        // Show/hide cancel button
+        const cb = document.getElementById('spine-cancel-btn');
+        if (cb) cb.style.display = isSpineEditMode ? 'flex' : 'none';
 
         if (isSpineEditMode) {
             // Show edit controls
@@ -2418,8 +2440,15 @@ function setupSpineEditToggle() {
                 el.replaceWith(input);
             });
         } else {
-            // "Done" — persist everything
-            await persistSpineEdits();
+            // "Done" — show loading, persist everything
+            editToggle.disabled = true;
+            editToggle.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;animation:spin 1s linear infinite;">autorenew</span> Saving...';
+            try {
+                await persistSpineEdits();
+            } finally {
+                editToggle.disabled = false;
+                editToggle.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
+            }
         }
     });
 }
@@ -2705,7 +2734,7 @@ function renderKeyMessageCard(card, children, editWrap) {
 }
 
 function renderFaqCard(card, editWrap) {
-    return `<div class="card" style="position:relative;background:var(--bg-surface);outline:1px solid var(--border-subtle);border-radius:12px;overflow:hidden;">${editWrap||''}<div id="msg-faq-header-${card.cc_id}" style="padding:0.75rem 1.5rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:500;font-size:0.95rem;" onclick="window.toggleMsgFaq(${card.cc_id})"><span class="msg-editable-title" data-card-id="${card.cc_id}" style="padding-right:2rem;">${card.cc_title}</span><span id="msg-faq-icon-${card.cc_id}" class="material-symbols-outlined" style="font-size:1.5rem;transition:transform 0.2s;transform:rotate(0deg);">arrow_right</span></div><div id="msg-faq-content-${card.cc_id}" style="display:none;padding:0 1.5rem 1.5rem;border-top:1px solid var(--border-subtle);"><p class="msg-editable-content" data-card-id="${card.cc_id}" style="margin-top:1rem;font-size:0.9rem;color:var(--text-secondary);line-height:1.5;white-space:pre-wrap;">${card.cc_content || ''}</p></div></div>`;
+    return `<div class="card" style="position:relative;background:var(--bg-surface);outline:1px solid var(--border-subtle);border-radius:12px;overflow:hidden;cursor:pointer;" onclick="window.toggleMsgFaq(${card.cc_id})">${editWrap||''}<div id="msg-faq-header-${card.cc_id}" style="padding:0.75rem 1.5rem;display:flex;justify-content:space-between;align-items:center;font-weight:500;font-size:0.95rem;"><span class="msg-editable-title" data-card-id="${card.cc_id}" style="padding-right:2rem;">${card.cc_title}</span><span id="msg-faq-icon-${card.cc_id}" class="material-symbols-outlined" style="font-size:1.5rem;transition:transform 0.2s;transform:rotate(0deg);">arrow_right</span></div><div id="msg-faq-content-${card.cc_id}" style="display:none;padding:0 1.5rem 1.5rem;border-top:1px solid var(--border-subtle);"><p class="msg-editable-content" data-card-id="${card.cc_id}" style="margin-top:1rem;font-size:0.9rem;color:var(--text-secondary);line-height:1.5;white-space:pre-wrap;">${card.cc_content || ''}</p></div></div>`;
 }
 
 function renderAudienceCard(card, editWrap) {
@@ -2767,9 +2796,24 @@ window.toggleMsgFaq = function (id) {
 function setupMsgEditToggle() {
     const old = document.getElementById('msg-edit-toggle');
     if (!old) return;
-    // Clone to remove any previous event listeners
     const editToggle = old.cloneNode(true);
     old.parentNode.replaceChild(editToggle, old);
+
+    // Wire cancel button
+    const cancelBtn = document.getElementById('msg-cancel-btn');
+    if (cancelBtn) {
+        const freshCancel = cancelBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(freshCancel, cancelBtn);
+        freshCancel.addEventListener('click', async () => {
+            isMsgEditMode = false;
+            _msgPendingReorders = [];
+            editToggle.style.background = ''; editToggle.style.color = '';
+            editToggle.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
+            freshCancel.style.display = 'none';
+            _msgCards = await window.fetchContentCards(2);
+            if (_msgCards && _msgCards.length > 0) { renderMsgCards(_msgCards); setupMsgEditToggle(); }
+        });
+    }
 
     editToggle.addEventListener('click', async () => {
         isMsgEditMode = !isMsgEditMode;
@@ -2778,6 +2822,10 @@ function setupMsgEditToggle() {
         editToggle.innerHTML = isMsgEditMode
             ? '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done'
             : '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
+
+        // Show/hide cancel button
+        const cb = document.getElementById('msg-cancel-btn');
+        if (cb) cb.style.display = isMsgEditMode ? 'flex' : 'none';
 
         if (isMsgEditMode) {
             // Show edit controls + width selects
@@ -2855,18 +2903,25 @@ function setupMsgEditToggle() {
             });
 
             // Persist card updates
-            if (window.updateContentCard && updates.length > 0) {
-                for (const { ccId, fields } of updates) {
-                    await window.updateContentCard(ccId, fields);
+            editToggle.disabled = true;
+            editToggle.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;animation:spin 1s linear infinite;">autorenew</span> Saving...';
+            try {
+                if (window.updateContentCard && updates.length > 0) {
+                    for (const { ccId, fields } of updates) {
+                        await window.updateContentCard(ccId, fields);
+                    }
+                    console.log('[Messaging] Persisted', updates.length, 'card updates');
                 }
-                console.log('[Messaging] Persisted', updates.length, 'card updates');
-            }
 
-            // Persist any pending reorder changes
-            if (window.reorderContentCards && _msgPendingReorders.length > 0) {
-                await window.reorderContentCards(_msgPendingReorders);
-                console.log('[Messaging] Persisted', _msgPendingReorders.length, 'reorder updates');
-                _msgPendingReorders = [];
+                // Persist any pending reorder changes
+                if (window.reorderContentCards && _msgPendingReorders.length > 0) {
+                    await window.reorderContentCards(_msgPendingReorders);
+                    console.log('[Messaging] Persisted', _msgPendingReorders.length, 'reorder updates');
+                    _msgPendingReorders = [];
+                }
+            } finally {
+                editToggle.disabled = false;
+                editToggle.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
             }
 
             // Re-fetch and re-render
