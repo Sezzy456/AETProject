@@ -4,6 +4,38 @@
 //  Each view is a real HTML file in /pages/ loaded via fetch().
 // ============================================================
 
+// ---- DATE UTILITIES ----
+
+function formatDate(dateStr) {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr.length <= 10 ? dateStr + 'T00:00:00' : dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
+}
+
+function relativeDate(dateStr) {
+    if (!dateStr) return { text: '—', color: 'var(--text-tertiary)', isOverdue: false };
+    const d = new Date(dateStr.length <= 10 ? dateStr + 'T00:00:00' : dateStr);
+    if (isNaN(d.getTime())) return { text: dateStr, color: 'var(--text-tertiary)', isOverdue: false };
+    const now = new Date(); now.setHours(0,0,0,0);
+    const diff = Math.round((d - now) / (1000 * 60 * 60 * 24));
+    if (diff < 0) {
+        const absDiff = Math.abs(diff);
+        if (absDiff >= 365) return { text: `overdue by ${Math.floor(absDiff/365)} year${Math.floor(absDiff/365)>1?'s':''}`, color: '#ef4444', isOverdue: true };
+        if (absDiff >= 31) return { text: `overdue by ${Math.floor(absDiff/30)} month${Math.floor(absDiff/30)>1?'s':''}`, color: '#ef4444', isOverdue: true };
+        return { text: `overdue by ${absDiff} day${absDiff>1?'s':''}`, color: '#ef4444', isOverdue: true };
+    }
+    if (diff === 0) return { text: 'due today', color: '#ef4444', isOverdue: false };
+    if (diff <= 7) return { text: `due in ${diff} day${diff>1?'s':''}`, color: '#f97316', isOverdue: false };
+    if (diff <= 14) return { text: `due in ${diff} day${diff>1?'s':''}`, color: '#eab308', isOverdue: false };
+    if (diff <= 31) return { text: `due in ${diff} days`, color: 'var(--text-tertiary)', isOverdue: false };
+    if (diff < 365) return { text: `due in ${Math.floor(diff/30)} month${Math.floor(diff/30)>1?'s':''}`, color: 'var(--text-tertiary)', isOverdue: false };
+    return { text: `due in ${Math.floor(diff/365)} year${Math.floor(diff/365)>1?'s':''}`, color: 'var(--text-tertiary)', isOverdue: false };
+}
+
 // ---- INIT ----
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -128,6 +160,7 @@ const VIEW_FILES = {
     'action_detail': 'pages/action_detail.html',
     'strategy_spine': 'pages/strategy_spine.html',
     'knowledge_bank': 'pages/knowledge_bank.html',
+    'approvals': 'pages/approvals.html',
 };
 
 // Maps view names to their post-load render functions
@@ -142,6 +175,7 @@ const VIEW_RENDERERS = {
     'action_detail': renderActionDetail,
     'strategy_spine': renderStrategySpine,
     'knowledge_bank': renderMessaging,
+    'approvals': renderApprovals,
 };
 
 // Track current action being viewed/edited
@@ -287,17 +321,17 @@ function renderDashboard(pageIdOverride) {
                 filtered = [...incArr, ...doneArr];
                 const items = filtered.slice(0, 3);
                 const itemsHtml = items.length > 0 ? items.map(a => {
-                    const dueDate = a.timing?.dueDate ? new Date(a.timing.dueDate + 'T00:00:00') : null;
-                    const dueStr = dueDate ? dueDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'TBD';
-                    const isOver = dueDate && dueDate < now && !isDone(a);
+                    const dueStr = formatDate(a.timing?.dueDate);
+                    const rel = relativeDate(a.timing?.dueDate);
+                    const isOver = rel.isOverdue && !isDone(a);
                     const overdueStyle = isOver ? 'border-left:3px solid #ef4444;' : '';
-                    const dueLabelStyle = isOver ? 'color:#ef4444;font-weight:600;' : '';
                     const badgeStyle = isOver ? 'border-color:#ef4444;color:#ef4444;' : 'border-color:var(--energy-algae);color:var(--energy-algae);';
                     const hoverBorder = isOver ? '#ef4444' : 'var(--energy-algae)';
                     const mouseoutCode = isOver
                         ? "this.style.border='1px solid var(--border-subtle)';this.style.borderLeft='3px solid #ef4444'"
                         : "this.style.borderColor='var(--border-subtle)'";
-                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;${overdueStyle}" onclick="event.stopPropagation();window.viewAction('${a.id}')" onmouseover="this.style.borderColor='${hoverBorder}'" onmouseout="${mouseoutCode}"><div style="display:flex;justify-content:space-between;align-items:center;"><div><span class="status-badge" style="font-size:0.7rem;padding:0.1rem 0.5rem;${badgeStyle}">${a.status}</span><h4 style="margin:0.25rem 0 0;font-size:1rem;color:var(--text-primary);text-transform:none;">${a.activity}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;">Owner: ${a.owner || '\u2014'} | <span style="${dueLabelStyle}">Due: ${dueStr}${isOver ? ' \u2014 OVERDUE' : ''}</span></div></div><span class="material-symbols-outlined" style="font-size:1.2rem;color:var(--text-tertiary);">open_in_new</span></div></div>`;
+                    const relLabel = !isDone(a) && a.timing?.dueDate ? `<div style="text-align:center;font-size:0.72rem;font-weight:600;color:${rel.color};margin-bottom:0.4rem;">${rel.text}</div>` : '';
+                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;${overdueStyle}" onclick="event.stopPropagation();window.viewAction('${a.id}')" onmouseover="this.style.borderColor='${hoverBorder}'" onmouseout="${mouseoutCode}">${relLabel}<div style="display:flex;justify-content:space-between;align-items:center;"><div><span class="status-badge" style="font-size:0.7rem;padding:0.1rem 0.5rem;${badgeStyle}">${a.status}</span><h4 style="margin:0.25rem 0 0;font-size:1rem;color:var(--text-primary);text-transform:none;">${a.activity}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;">Owner: ${a.owner || '\u2014'} | <span style="color:${rel.color}">Due: ${dueStr}</span></div></div><span class="material-symbols-outlined" style="font-size:1.2rem;color:var(--text-tertiary);">open_in_new</span></div></div>`;
                 }).join('') : '<div style="padding:1rem;color:var(--text-tertiary);font-style:italic;">No actions found.</div>';
                 return `<div class="card" style="${colSpan}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title || 'Actions'}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="loadView('actions');history.pushState(null,'','#actions')">View All</button></div><div style="display:flex;flex-direction:column;gap:0.5rem;">${itemsHtml}</div></div>`;
             }
@@ -714,7 +748,7 @@ function renderInteractions() {
             statusBadge = `<div style="font-size: 0.8rem; font-weight: 600; color: #ef4444; margin-bottom: 0.5rem;">Upcoming: In 3 Days</div>`;
         } else {
             statusBadge = `<div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                <div style="width: 12px; height: 12px; border-radius: 50%; background: ${a.date.includes('27') ? '#22c55e' : '#f59e0b'};"></div>
+                <div style="width: 12px; height: 12px; border-radius: 50%; background: #84cc16;"></div>
                 <span style="font-size: 0.8rem; color: var(--text-tertiary);">"Good"</span>
             </div>`;
         }
@@ -740,7 +774,7 @@ function renderInteractions() {
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
                 <div>
                     ${statusBadge}
-                    <h3 style="margin: 0; font-size: 1.4rem; color: var(--text-primary); font-family: 'Space Grotesk', sans-serif; text-transform: none;">${a.title}</h3>
+                    <h3 style="margin: 0; font-size: 1.4rem; color: var(--text-primary); font-family: 'Space Grotesk', sans-serif; text-transform: none;">${a.title || (a.agenda || a.discussed || '').substring(0, 60) + ((a.agenda || a.discussed || '').length > 60 ? '…' : '') || 'Untitled'}</h3>
                 </div>
                 <div style="text-align: right;">
                     ${!isUpcoming ? `<div style="font-size: 0.8rem; color: var(--text-tertiary); font-family: 'JetBrains Mono', monospace; margin-bottom: 0.25rem;">${a.rawDate || ''}</div>` : ''}
@@ -995,6 +1029,32 @@ window.switchActionsTab = function (tab, btn) {
     }
 };
 
+// ---- KANBAN COLUMN TOGGLE ----
+let _kanbanHiddenCols = [];
+window.toggleKanbanCol = function (col, btn) {
+    const idx = _kanbanHiddenCols.indexOf(col);
+    if (idx >= 0) {
+        _kanbanHiddenCols.splice(idx, 1);
+        btn.classList.add('active');
+        btn.style.opacity = '1';
+    } else {
+        _kanbanHiddenCols.push(col);
+        btn.classList.remove('active');
+        btn.style.opacity = '0.4';
+    }
+    // Re-render kanban columns
+    const container = document.getElementById('act-kanban-container');
+    if (!container) return;
+    const cols = container.querySelectorAll('.act-kanban-col');
+    const allCols = ['Pending', 'Planned', 'In Progress', 'Completed'];
+    const visibleCount = allCols.filter(c => !_kanbanHiddenCols.includes(c)).length;
+    cols.forEach((colEl, i) => {
+        const colName = allCols[i];
+        colEl.style.display = _kanbanHiddenCols.includes(colName) ? 'none' : '';
+    });
+    container.style.gridTemplateColumns = `repeat(${visibleCount || 1}, 1fr)`;
+};
+
 // ---- LIST VIEW ----
 function _actRenderList(actions) {
     const container = document.getElementById('act-list-container');
@@ -1005,21 +1065,18 @@ function _actRenderList(actions) {
     }
     container.innerHTML = actions.map(a => {
         const sc = _actStatusColor(a.status);
-        const isOverdue = a.timing?.dueDate && a.timing.dueDate < new Date().toISOString().substring(0, 10) && a.status !== 'Completed';
+        const rel = relativeDate(a.timing?.dueDate);
+        const isOverdue = rel.isOverdue && a.status !== 'Completed';
         const objText = _actGetObjectiveText(a.commsObjectiveId);
-        const dueStr = a.timing?.dueDate ? new Date(a.timing.dueDate + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'DD/MM/YYYY';
+        const dueStr = formatDate(a.timing?.dueDate);
         const advStatus = a.advancedStatus ? `<span style="font-size:0.75rem; color:${isOverdue ? '#ef4444' : 'var(--energy-algae)'};">⚠ ${a.advancedStatus}</span>` : '';
         const tags = (a.tags || []).map(t => `<span style="font-size:0.68rem; padding:0.1rem 0.45rem; border-radius:100px; background:rgba(99,102,241,0.1); color:#6366f1; border:1px solid rgba(99,102,241,0.2);">${t}</span>`).join('');
-
-        // Progress dots (complexity)
-        const dots = Array.from({ length: 5 }).map((_, i) => `<span style="width:7px;height:7px;border-radius:50%;background:${i < parseInt(a.complexity || 0) ? sc.dot : 'var(--border-subtle)'};display:inline-block;"></span>`).join('');
 
         return `<div class="act-card${isOverdue ? ' overdue' : ''}" onclick="window.viewAction('${a.id}')" style="cursor:pointer;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
                 <div style="flex:1; min-width:0;">
                     <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem; flex-wrap:wrap;">
                         <span class="act-status-badge" style="background:${sc.bg};color:${sc.color};border-color:${sc.dot};">${a.status}</span>
-                        <span style="display:inline-flex; gap:3px; align-items:center;">${dots}</span>
                         ${tags}
                     </div>
                     <div style="font-weight:700; font-size:1rem; color:var(--text-primary); margin-bottom:0.3rem;">${a.activity}</div>
@@ -1034,12 +1091,12 @@ function _actRenderList(actions) {
                         <span class="material-symbols-outlined" style="font-size:0.9rem;">person</span> ${a.owner || '-'}
                     </div>
                     ${advStatus ? `<div style="margin-bottom:0.2rem;">${advStatus}</div>` : ''}
-                    <div style="font-size:0.8rem; color:${isOverdue ? '#ef4444' : 'var(--text-tertiary)'};">
-                        due: ${dueStr}
+                    <div style="font-size:0.8rem; color:${rel.color}; font-weight:${isOverdue ? '600' : '400'};">
+                        ${rel.text}
                     </div>
-                    <button onclick="event.stopPropagation(); window.viewAction('${a.id}')" class="btn-secondary" style="margin-top:0.5rem; font-size:0.75rem; padding:0.25rem 0.6rem; display:inline-flex; align-items:center; gap:0.25rem;">
-                        <span class="material-symbols-outlined" style="font-size:0.9rem;">open_in_new</span> View
-                    </button>
+                    <div style="font-size:0.75rem; color:var(--text-tertiary);">
+                        ${dueStr}
+                    </div>
                 </div>
             </div>
         </div>`;
@@ -1056,24 +1113,20 @@ function _actRenderKanban(actions) {
     container.innerHTML = columns.map(col => {
         const colActions = actions.filter(a => a.status === col);
         const cards = colActions.map(a => {
-            const isOverdue = a.timing?.dueDate && a.timing.dueDate < new Date().toISOString().substring(0, 10) && col !== 'Completed';
-            const dueStr = a.timing?.dueDate ? new Date(a.timing.dueDate + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'DD/MM/YYYY';
+            const rel = relativeDate(a.timing?.dueDate);
+            const isOverdue = rel.isOverdue && col !== 'Completed';
+            const dueStr = formatDate(a.timing?.dueDate);
             const objText = _actGetObjectiveText(a.commsObjectiveId);
             return `<div class="act-kanban-card${isOverdue ? ' overdue' : ''}" onclick="window.viewAction('${a.id}')"
-                style="${col === 'Completed' ? 'border-left:3px solid #34d399;' : ''}${isOverdue ? 'border-left:3px solid #ef4444;border-color:#ef4444;background:rgba(239,68,68,0.03);' : ''}">
-                <div style="font-size:0.72rem; color:${isOverdue ? '#ef4444' : 'var(--text-tertiary)'}; margin-bottom:0.3rem;">due: ${dueStr} ${isOverdue ? '<span style="color:#ef4444;">⊘</span>' : ''}</div>
-                ${col === 'Completed' ? `<div style="font-size:0.7rem;color:#059669;font-weight:600;margin-bottom:0.2rem;">completed: ${a.versionControl?.dateCompleted || dueStr}</div>` : ''}
+                style="cursor:pointer;${col === 'Completed' ? 'border-left:3px solid #34d399;' : ''}${isOverdue ? 'border-left:3px solid #ef4444;border-color:#ef4444;background:rgba(239,68,68,0.03);' : ''}">
+                <div style="font-size:0.72rem; color:${rel.color}; font-weight:${isOverdue?'600':'400'}; margin-bottom:0.3rem;">${rel.text}</div>
+                ${col === 'Completed' ? `<div style="font-size:0.7rem;color:#059669;font-weight:600;margin-bottom:0.2rem;">completed: ${formatDate(a.versionControl?.dateCompleted) || dueStr}</div>` : ''}
                 <div style="font-weight:700; font-size:0.88rem; color:var(--text-primary); margin-bottom:0.4rem; line-height:1.3;">${a.activity}</div>
                 <div style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:0.4rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${a.description || ''}</div>
-                <div style="font-size:0.75rem; color:var(--text-tertiary); display:flex; flex-direction:column; gap:0.2rem; margin-bottom:0.5rem;">
+                <div style="font-size:0.75rem; color:var(--text-tertiary); display:flex; flex-direction:column; gap:0.2rem;">
                     ${a.audience && a.audience.length > 0 ? `<span><span class="material-symbols-outlined" style="font-size:0.8rem;vertical-align:middle;">groups</span> ${a.audience.slice(0, 1).join(', ')}${a.audience.length > 1 ? ` + ${a.audience.length - 1} more` : ''}</span>` : ''}
                     ${a.commsObjectiveId ? `<span>🎯 ${objText.length > 30 ? objText.substring(0, 28) + '...' : objText}</span>` : ''}
                     <span><span class="material-symbols-outlined" style="font-size:0.8rem;vertical-align:middle;">person</span> ${a.owner || '-'}</span>
-                </div>
-                <div style="display:flex; justify-content:flex-end;">
-                    <button onclick="event.stopPropagation();window.viewAction('${a.id}')" class="btn-secondary" style="font-size:0.7rem; padding:0.2rem 0.5rem; display:inline-flex; align-items:center; gap:0.2rem;">
-                        <span class="material-symbols-outlined" style="font-size:0.8rem;">open_in_new</span> View
-                    </button>
                 </div>
             </div>`;
         }).join('') || `<div style="font-size:0.8rem;color:var(--text-tertiary);font-style:italic;text-align:center;padding:1rem 0;">No items</div>`;
@@ -1137,7 +1190,7 @@ function _actRenderGantt(actions) {
             <div style="flex:1; display:flex; position:relative; overflow:hidden;">
                 ${months.map((m, i) => `<div style="flex:1; padding:0.4rem 0.75rem; font-size:0.82rem; font-weight:600; color:var(--text-secondary); border-left:1px solid var(--border-subtle);">${m.label}</div>`).join('')}
                 <div style="position:absolute; top:0; left:${todayPct.toFixed(1)}%; width:2px; height:100%; background:#ef4444; z-index:5;"></div>
-                <div style="position:absolute; top:0; left:${todayPct.toFixed(1)}%; background:#ef4444; color:#fff; font-size:0.6rem; font-weight:700; padding:1px 4px; border-radius:2px; transform:translateX(-50%);">Now</div>
+                <div style="position:absolute; top:2px; left:${todayPct.toFixed(1)}%; background:#ef4444; color:#fff; font-size:0.6rem; font-weight:700; padding:1px 4px; border-radius:2px; transform:translateX(-50%); z-index:6;">Now</div>
             </div>
         </div>`;
 
@@ -1158,7 +1211,6 @@ function _actRenderGantt(actions) {
                 <div style="flex:1; position:relative; height:20px;">
                     ${Array.from({ length: months.length }).map((_, i) => `<div style="position:absolute; top:0; left:${(i / months.length * 100).toFixed(1)}%; width:${(100 / months.length).toFixed(1)}%; height:100%; border-left:1px solid var(--border-subtle); opacity:0.4;"></div>`).join('')}
                     <div style="position:absolute; left:${left.toFixed(1)}%; width:${width.toFixed(1)}%; height:100%; background:${clr}; border-radius:4px; opacity:0.85; cursor:pointer; display:flex; align-items:center; padding-left:4px; font-size:0.65rem; color:#fff; font-weight:600; white-space:nowrap; overflow:hidden;" onclick="window.openActionModal('${a.id}')" title="${a.status}"></div>
-                    <div style="position:absolute; top:0; left:${todayPct.toFixed(1)}%; width:1px; height:100%; background:#ef4444; opacity:0.6;"></div>
                 </div>
             </div>`;
         }).join('');
@@ -1182,9 +1234,10 @@ function _actRenderGantt(actions) {
 
     container.innerHTML = `
         <div style="overflow-x:auto; padding-bottom:1rem;">
-            <div style="min-width:700px;">
+            <div style="min-width:700px; position:relative;">
                 ${headerHtml}
                 ${bodyHtml || '<div style="padding:2rem;text-align:center;color:var(--text-tertiary);font-style:italic;">No actions to display.</div>'}
+                <div style="position:absolute; top:0; left:calc(${LABEL_W}px + ${todayPct.toFixed(1)}% * (1 - ${LABEL_W} / 700)); width:2px; height:100%; background:#ef4444; opacity:0.4; pointer-events:none; z-index:1;"></div>
             </div>
         </div>`;
 }
@@ -1656,24 +1709,28 @@ function renderActionDetail() {
     if (a.timing?.dueDateDisplay) {
         dueDisplay = a.timing.dueDateDisplay;
     } else if (a.timing?.dueDate) {
-        const d = new Date(a.timing.dueDate + 'T00:00:00');
-        if (gran === 'month') dueDisplay = d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-        else dueDisplay = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        dueDisplay = formatDate(a.timing.dueDate);
     }
     txt('adet-due-display', dueDisplay);
 
+    // Show relative date below
     const dueDetailEl = document.getElementById('adet-due-detail');
     if (dueDetailEl) {
+        const rel = relativeDate(a.timing?.dueDate);
         const dd = a.timing?.dueDetail;
-        dueDetailEl.textContent = dd || '';
-        dueDetailEl.style.display = dd ? '' : 'none';
+        if (a.timing?.dueDate) {
+            dueDetailEl.textContent = rel.text + (dd ? ' — ' + dd : '');
+            dueDetailEl.style.color = rel.color;
+        } else {
+            dueDetailEl.textContent = dd || '';
+        }
+        dueDetailEl.style.display = (a.timing?.dueDate || dd) ? '' : 'none';
     }
 
     // ── Advanced Timing ──
     const startDateEl = document.getElementById('adet-start-date');
     if (startDateEl && a.timing?.startDate) {
-        const sd = new Date(a.timing.startDate + 'T00:00:00');
-        startDateEl.textContent = sd.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        startDateEl.textContent = formatDate(a.timing.startDate);
     } else if (startDateEl) startDateEl.textContent = '—';
 
     txt('adet-predicted-length', a.timing?.predictedLength);
@@ -2251,6 +2308,30 @@ window.adetDelete = function () {
 
 
 
+
+// ---- APPROVALS PAGE ----
+
+function renderApprovals() {
+    // Page is static HTML — just set up tab switching
+    console.log('[Approvals] Page loaded');
+}
+
+window.switchApprovalTab = function (tab, btn) {
+    // Toggle tab content
+    const aiView = document.getElementById('appr-view-ai');
+    const userView = document.getElementById('appr-view-user');
+    if (aiView) aiView.style.display = tab === 'ai' ? 'block' : 'none';
+    if (userView) userView.style.display = tab === 'user' ? 'block' : 'none';
+
+    // Toggle tab styles
+    document.querySelectorAll('.appr-tab').forEach(t => {
+        const isActive = t.dataset.tab === tab;
+        t.style.borderBottomColor = isActive ? 'var(--energy-algae)' : 'transparent';
+        t.style.color = isActive ? 'var(--text-primary)' : 'var(--text-tertiary)';
+        t.style.fontWeight = isActive ? '600' : '500';
+        t.classList.toggle('active', isActive);
+    });
+};
 
 // ---- STRATEGY SPINE (inline card-driven editing) ----
 

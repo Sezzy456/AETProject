@@ -1,0 +1,37 @@
+<header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+    <h2 style="margin:0;">Approvals</h2>
+</header>
+
+<p style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:1.5rem;">AI proposals awaiting your review</p>
+
+<!-- View Tabs -->
+<div style="display:flex; border-bottom:2px solid var(--border-subtle); margin-bottom:2rem; gap:0;">
+    <button class="appr-tab active" data-tab="ai" onclick="window.switchApprovalTab('ai', this)"
+        style="background:none; border:none; border-bottom:2px solid var(--energy-algae); margin-bottom:-2px; padding:0.6rem 1.4rem; font-family:inherit; font-size:0.9rem; font-weight:600; color:var(--text-primary); cursor:pointer; transition:all 0.2s;">
+        <span class="material-symbols-outlined" style="font-size:1rem; vertical-align:middle; margin-right:0.3rem;">smart_toy</span>
+        AI Prompts
+    </button>
+    <button class="appr-tab" data-tab="user" onclick="window.switchApprovalTab('user', this)"
+        style="background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-2px; padding:0.6rem 1.4rem; font-family:inherit; font-size:0.9rem; font-weight:500; color:var(--text-tertiary); cursor:pointer; transition:all 0.2s;">
+        <span class="material-symbols-outlined" style="font-size:1rem; vertical-align:middle; margin-right:0.3rem;">person</span>
+        User Prompts
+    </button>
+</div>
+
+<!-- AI Prompts Tab Content -->
+<div id="appr-view-ai">
+    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:4rem 2rem; background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:14px;">
+        <span class="material-symbols-outlined" style="font-size:3rem; color:var(--text-tertiary); margin-bottom:1rem; opacity:0.5;">task_alt</span>
+        <p style="font-size:1.1rem; font-weight:600; color:var(--text-primary); margin:0 0 0.5rem 0;">You're all caught up</p>
+        <p style="font-size:0.9rem; color:var(--text-tertiary); margin:0;">No pending items to review at the moment.</p>
+    </div>
+</div>
+
+<!-- User Prompts Tab Content -->
+<div id="appr-view-user" style="display:none;">
+    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:4rem 2rem; background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:14px;">
+        <span class="material-symbols-outlined" style="font-size:3rem; color:var(--text-tertiary); margin-bottom:1rem; opacity:0.5;">task_alt</span>
+        <p style="font-size:1.1rem; font-weight:600; color:var(--text-primary); margin:0 0 0.5rem 0;">You're all caught up</p>
+        <p style="font-size:0.9rem; color:var(--text-tertiary); margin:0;">No pending user prompts to review at the moment.</p>
+    </div>
+</div>
