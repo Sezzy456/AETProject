@@ -465,3 +465,46 @@ window.bootSupabase = async function() {
         console.warn('[Supabase] No data loaded — falling back to localStorage');
     }
 };
+
+// ── PENDING APPROVALS ────────────────────────────────────────────────────────
+
+window.fetchPendingApprovals = async function() {
+    if (!window._sb) return [];
+    try {
+        const { data, error } = await window._sb
+            .from('memo_pending_change')
+            .select('*')
+            .eq('mpc_status', 'pending')
+            .order('created_at', { ascending: false });
+        if (error) {
+            console.error('[Supabase] Error fetching pending approvals:', error);
+            return [];
+        }
+        return data || [];
+    } catch(err) {
+        console.error('[Supabase] Exception fetching pending approvals:', err);
+        return [];
+    }
+};
+
+window.approvePendingChange = async function(mpcId, finalData, status = 'edited_then_approved') {
+    if (!window._sb) return false;
+    try {
+        const { error } = await window._sb
+            .from('memo_pending_change')
+            .update({
+                mpc_status: status,
+                mpc_final_data: finalData,
+                updated_at: new Date().toISOString()
+            })
+            .eq('mpc_id', mpcId);
+        if (error) {
+            console.error('[Supabase] Error approving change:', error);
+            return false;
+        }
+        return true;
+    } catch(err) {
+        console.error('[Supabase] Exception approving change:', err);
+        return false;
+    }
+};
