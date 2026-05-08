@@ -2256,6 +2256,7 @@ window.adetDelete = function () {
 
 let isSpineEditMode = false;
 let _spineCards = null;
+let _spinePendingReorders = [];
 
 async function renderStrategySpine() {
     isSpineEditMode = false;
@@ -2295,6 +2296,7 @@ function renderSpineCards() {
                         <option value="full"${sc.cc_width==='full'?' selected':''}>Full</option>
                         <option value="half"${sc.cc_width==='half'?' selected':''}>Half</option>
                         <option value="third"${sc.cc_width==='third'?' selected':''}>Third</option>
+                        <option value="quarter"${sc.cc_width==='quarter'?' selected':''}>Quarter</option>
                     </select>
                     <button onclick="window.spineMoveCard(${sc.cc_id},-1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;" title="Move up"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_upward</span></button>
                     <button onclick="window.spineMoveCard(${sc.cc_id},1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;" title="Move down"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
@@ -2303,15 +2305,10 @@ function renderSpineCards() {
             </div>`;
         }
 
-        // Check if this section title contains "Objectives" — render objectives from tbl_strategy_objective
-        const secTitle = (sc?.cc_title || '').toLowerCase();
-        if (secTitle.includes('objective') && spine && spine.objectives) {
-            html += renderSpineObjectives(spine.objectives);
-        }
-
         // Render content cards in this section
-        const gridCols = section.width === 'half' ? 'repeat(auto-fit,minmax(320px,1fr))' :
-                         section.width === 'third' ? 'repeat(auto-fit,minmax(250px,1fr))' : '1fr';
+        const gridCols = section.width === 'half' ? 'repeat(2,1fr)' :
+                         section.width === 'third' ? 'repeat(3,1fr)' :
+                         section.width === 'quarter' ? 'repeat(4,1fr)' : '1fr';
         if (section.cards.length > 0) {
             html += `<div style="display:grid;grid-template-columns:${gridCols};gap:1.5rem;margin-bottom:1.5rem;">`;
             section.cards.forEach(c => {
@@ -2320,11 +2317,18 @@ function renderSpineCards() {
                     <button onclick="event.stopPropagation();window.spineMoveCard(${c.cc_id},1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
                     <button onclick="event.stopPropagation();window.spineDeleteCard(${c.cc_id})" style="background:none;border:none;cursor:pointer;color:var(--energy-alert);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
                 </div>`;
-                html += `<div class="card" style="position:relative;padding:1.5rem;" data-card-id="${c.cc_id}">
-                    ${editCtrl}
-                    <h4 class="spine-card-title" data-card-id="${c.cc_id}" style="margin:0 0 0.75rem 0;">${c.cc_title||''}</h4>
-                    <div class="spine-card-content" data-card-id="${c.cc_id}" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap;">${c.cc_content||''}</div>
-                </div>`;
+                // objectives_link card type: render objectives from tbl_strategy_objective
+                if (c.cc_card_type === 'objectives_link' && spine && spine.objectives) {
+                    html += `<div class="card" style="position:relative;padding:1.5rem;" data-card-id="${c.cc_id}">${editCtrl}`;
+                    html += renderSpineObjectives(spine.objectives);
+                    html += '</div>';
+                } else {
+                    html += `<div class="card" style="position:relative;padding:1.5rem;" data-card-id="${c.cc_id}">
+                        ${editCtrl}
+                        <h4 class="spine-card-title" data-card-id="${c.cc_id}" style="margin:0 0 0.75rem 0;">${c.cc_title||''}</h4>
+                        <div class="spine-card-content" data-card-id="${c.cc_id}" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap;">${c.cc_content||''}</div>
+                    </div>`;
+                }
             });
             html += '</div>';
         }
@@ -2361,8 +2365,11 @@ function renderSpineObjectives(objectives) {
 }
 
 function setupSpineEditToggle() {
-    const editToggle = document.getElementById('spine-edit-toggle');
-    if (!editToggle) return;
+    const old = document.getElementById('spine-edit-toggle');
+    if (!old) return;
+    const editToggle = old.cloneNode(true);
+    old.parentNode.replaceChild(editToggle, old);
+
     editToggle.addEventListener('click', async () => {
         isSpineEditMode = !isSpineEditMode;
         editToggle.style.background = isSpineEditMode ? 'var(--energy-algae)' : '';
@@ -2472,6 +2479,13 @@ async function persistSpineEdits() {
     }
     if (spine) window.updateData('spine', spine);
 
+    // Persist any pending reorder changes
+    if (window.reorderContentCards && _spinePendingReorders.length > 0) {
+        await window.reorderContentCards(_spinePendingReorders);
+        console.log('[Strategy] Persisted', _spinePendingReorders.length, 'reorder updates');
+        _spinePendingReorders = [];
+    }
+
     // Refresh spine cache and re-render
     _spineCards = await window.fetchContentCards(1);
     // Also refresh spine data for objectives
@@ -2482,7 +2496,7 @@ async function persistSpineEdits() {
 
 // ---- STRATEGY CARD OPERATIONS ----
 
-window.spineMoveCard = async function (ccId, direction) {
+window.spineMoveCard = function (ccId, direction) {
     if (!_spineCards) return;
     const topCards = _spineCards.filter(c => !c.cc_parent_card_id && c.cc_active !== false).sort((a, b) => a.cc_order - b.cc_order);
     const idx = topCards.findIndex(c => c.cc_id === ccId);
@@ -2492,12 +2506,11 @@ window.spineMoveCard = async function (ccId, direction) {
     const tmpOrder = topCards[idx].cc_order;
     topCards[idx].cc_order = topCards[swapIdx].cc_order;
     topCards[swapIdx].cc_order = tmpOrder;
-    if (window.reorderContentCards) {
-        await window.reorderContentCards([
-            { ccId: topCards[idx].cc_id, newOrder: topCards[idx].cc_order },
-            { ccId: topCards[swapIdx].cc_id, newOrder: topCards[swapIdx].cc_order }
-        ]);
-    }
+    // Track pending reorders (will be persisted on Done)
+    _spinePendingReorders.push(
+        { ccId: topCards[idx].cc_id, newOrder: topCards[idx].cc_order },
+        { ccId: topCards[swapIdx].cc_id, newOrder: topCards[swapIdx].cc_order }
+    );
     renderSpineCards();
     setupSpineEditToggle();
     if (isSpineEditMode) { isSpineEditMode = false; document.getElementById('spine-edit-toggle')?.click(); }
@@ -2580,6 +2593,7 @@ window.spineAddObj = async function () {
 
 let isMsgEditMode = false;
 let _msgCards = null;
+let _msgPendingReorders = [];
 
 async function renderMessaging() {
     isMsgEditMode = false;
@@ -2623,7 +2637,14 @@ function renderMsgCards(cards) {
     sections.forEach(section => {
         const secId = section.sectionCard ? section.sectionCard.cc_id : null;
         if (section.title) {
+            const sc = section.sectionCard;
             const editControls = `<div class="msg-edit-ctrl" style="display:none;gap:0.5rem;align-items:center;">
+                <select class="msg-width-select" data-card-id="${secId}" style="display:none;font-size:0.75rem;padding:0.15rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);">
+                    <option value="full"${section.width==='full'?' selected':''}>Full</option>
+                    <option value="half"${section.width==='half'?' selected':''}>Half</option>
+                    <option value="third"${section.width==='third'?' selected':''}>Third</option>
+                    <option value="quarter"${section.width==='quarter'?' selected':''}>Quarter</option>
+                </select>
                 <button onclick="window.msgMoveCard(${secId},-1)" class="btn-secondary" style="padding:0.15rem 0.3rem;font-size:0.7rem;" title="Move up"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_upward</span></button>
                 <button onclick="window.msgMoveCard(${secId},1)" class="btn-secondary" style="padding:0.15rem 0.3rem;font-size:0.7rem;" title="Move down"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
                 <button onclick="window.msgDeleteCard(${secId})" class="btn-secondary" style="padding:0.15rem 0.3rem;font-size:0.7rem;color:var(--energy-alert);" title="Remove section"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
@@ -2635,9 +2656,9 @@ function renderMsgCards(cards) {
         }
 
         // Section width determines grid layout for child cards
-        const gridCols = section.width === 'half' ? 'repeat(auto-fit,minmax(320px,1fr))' : 
-                         section.width === 'third' ? 'repeat(auto-fit,minmax(250px,1fr))' : 
-                         section.width === 'full' ? '1fr' : 'repeat(auto-fit,minmax(320px,1fr))';
+        const gridCols = section.width === 'half' ? 'repeat(2,1fr)' :
+                         section.width === 'third' ? 'repeat(3,1fr)' :
+                         section.width === 'quarter' ? 'repeat(4,1fr)' : '1fr';
         
         const st = (section.title || '').toLowerCase();
         html += `<div style="display:grid;grid-template-columns:${gridCols};gap:1.5rem;margin-bottom:3rem;">`;
@@ -2680,7 +2701,7 @@ function renderKeyMessageCard(card, children, editWrap) {
             </div>
         </div>`;
     });
-    return `<div class="card" style="position:relative;background:var(--bg-surface);padding:1.5rem;display:flex;flex-direction:column;justify-content:flex-start;border:1px solid var(--border-subtle);border-radius:12px;">${editWrap||''}<h4 class="msg-editable-title" data-card-id="${card.cc_id}" style="margin:0 0 0.5rem 0;font-size:1.1rem;color:var(--text-primary);">${card.cc_title}</h4><p style="font-size:0.85rem;color:var(--text-tertiary);margin:0 0 0.5rem 0;">Key Message</p><p class="msg-editable-content" data-card-id="${card.cc_id}" style="font-size:0.95rem;color:var(--text-secondary);margin:0 0 1.5rem 0;white-space:pre-wrap;">${card.cc_content || ''}</p>${childHtml}</div>`;
+    return `<div class="card" style="position:relative;background:var(--bg-surface);padding:1.5rem;display:flex;flex-direction:column;justify-content:flex-start;border:1px solid var(--border-subtle);border-radius:12px;">${editWrap||''}<h4 class="msg-editable-title" data-card-id="${card.cc_id}" style="margin:0 0 0.75rem 0;font-size:1.1rem;color:var(--text-primary);">${card.cc_title}</h4><div class="msg-editable-content" data-card-id="${card.cc_id}" style="font-size:0.95rem;color:var(--text-secondary);margin:0 0 1.5rem 0;white-space:pre-wrap;">${card.cc_content || ''}</div>${childHtml}</div>`;
 }
 
 function renderFaqCard(card, editWrap) {
@@ -2744,8 +2765,12 @@ window.toggleMsgFaq = function (id) {
 };
 
 function setupMsgEditToggle() {
-    const editToggle = document.getElementById('msg-edit-toggle');
-    if (!editToggle) return;
+    const old = document.getElementById('msg-edit-toggle');
+    if (!old) return;
+    // Clone to remove any previous event listeners
+    const editToggle = old.cloneNode(true);
+    old.parentNode.replaceChild(editToggle, old);
+
     editToggle.addEventListener('click', async () => {
         isMsgEditMode = !isMsgEditMode;
         editToggle.style.background = isMsgEditMode ? 'var(--energy-algae)' : '';
@@ -2755,16 +2780,15 @@ function setupMsgEditToggle() {
             : '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
 
         if (isMsgEditMode) {
-            // Show edit controls
+            // Show edit controls + width selects
             document.querySelectorAll('.msg-edit-ctrl').forEach(el => { el.style.display = 'flex'; });
+            document.querySelectorAll('.msg-width-select').forEach(el => { el.style.display = 'inline-block'; });
 
             // Make section titles editable
             document.querySelectorAll('.msg-section-title').forEach(el => {
                 const input = document.createElement('input');
-                input.type = 'text';
-                input.value = el.textContent;
-                input.className = 'msg-edit-section-title';
-                input.dataset.cardId = el.dataset.cardId;
+                input.type = 'text'; input.value = el.textContent;
+                input.className = 'msg-edit-section-title'; input.dataset.cardId = el.dataset.cardId;
                 input.style.cssText = 'font-size:1.17rem;font-weight:600;color:var(--text-tertiary);background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:4px;padding:0.25rem 0.5rem;';
                 el.replaceWith(input);
             });
@@ -2772,10 +2796,8 @@ function setupMsgEditToggle() {
             // Make card titles editable
             document.querySelectorAll('.msg-editable-title').forEach(el => {
                 const input = document.createElement('input');
-                input.type = 'text';
-                input.value = el.textContent;
-                input.className = 'msg-edit-title-input';
-                input.dataset.cardId = el.dataset.cardId;
+                input.type = 'text'; input.value = el.textContent;
+                input.className = 'msg-edit-title-input'; input.dataset.cardId = el.dataset.cardId;
                 input.style.cssText = 'font-size:inherit;font-weight:inherit;color:inherit;background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:4px;padding:0.2rem 0.4rem;width:100%;';
                 el.replaceWith(input);
             });
@@ -2784,8 +2806,7 @@ function setupMsgEditToggle() {
             document.querySelectorAll('.msg-editable-content').forEach(el => {
                 const ta = document.createElement('textarea');
                 ta.value = el.textContent;
-                ta.className = 'msg-edit-textarea';
-                ta.dataset.cardId = el.dataset.cardId;
+                ta.className = 'msg-edit-textarea'; ta.dataset.cardId = el.dataset.cardId;
                 ta.style.cssText = 'width:100%;min-height:150px;resize:vertical;padding:0.5rem;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);border-radius:4px;font-family:Inter,sans-serif;font-size:0.9rem;line-height:1.5;';
                 el.replaceWith(ta);
             });
@@ -2796,13 +2817,21 @@ function setupMsgEditToggle() {
             document.querySelectorAll('[id^="msg-faq-content-"]').forEach(el => { el.style.display = 'block'; });
             document.querySelectorAll('[id^="msg-faq-icon-"]').forEach(el => { el.style.transform = 'rotate(90deg)'; });
         } else {
-            // "Done" clicked — persist all changes to Supabase
+            // "Done" — persist ALL changes to Supabase
             const updates = [];
 
-            // Collect section title changes
+            // Collect section title + width changes
             document.querySelectorAll('.msg-edit-section-title').forEach(input => {
                 const cardId = parseInt(input.dataset.cardId);
                 if (cardId) updates.push({ ccId: cardId, fields: { cc_title: input.value } });
+            });
+            document.querySelectorAll('.msg-width-select').forEach(sel => {
+                const cardId = parseInt(sel.dataset.cardId);
+                if (cardId) {
+                    const existing = updates.find(u => u.ccId === cardId);
+                    if (existing) existing.fields.cc_width = sel.value;
+                    else updates.push({ ccId: cardId, fields: { cc_width: sel.value } });
+                }
             });
 
             // Collect card title changes
@@ -2825,12 +2854,19 @@ function setupMsgEditToggle() {
                 }
             });
 
-            // Persist all updates
+            // Persist card updates
             if (window.updateContentCard && updates.length > 0) {
                 for (const { ccId, fields } of updates) {
                     await window.updateContentCard(ccId, fields);
                 }
                 console.log('[Messaging] Persisted', updates.length, 'card updates');
+            }
+
+            // Persist any pending reorder changes
+            if (window.reorderContentCards && _msgPendingReorders.length > 0) {
+                await window.reorderContentCards(_msgPendingReorders);
+                console.log('[Messaging] Persisted', _msgPendingReorders.length, 'reorder updates');
+                _msgPendingReorders = [];
             }
 
             // Re-fetch and re-render
@@ -2845,7 +2881,7 @@ function setupMsgEditToggle() {
 
 // ---- MESSAGING CARD OPERATIONS ----
 
-window.msgMoveCard = async function (ccId, direction) {
+window.msgMoveCard = function (ccId, direction) {
     if (!_msgCards) return;
     const topCards = _msgCards.filter(c => !c.cc_parent_card_id).sort((a, b) => a.cc_order - b.cc_order);
     const idx = topCards.findIndex(c => c.cc_id === ccId);
@@ -2853,23 +2889,20 @@ window.msgMoveCard = async function (ccId, direction) {
     const swapIdx = idx + direction;
     if (swapIdx < 0 || swapIdx >= topCards.length) return;
 
-    // Swap orders
+    // Swap orders in local cache only
     const tmpOrder = topCards[idx].cc_order;
     topCards[idx].cc_order = topCards[swapIdx].cc_order;
     topCards[swapIdx].cc_order = tmpOrder;
 
-    // Persist reorder
-    if (window.reorderContentCards) {
-        await window.reorderContentCards([
-            { ccId: topCards[idx].cc_id, newOrder: topCards[idx].cc_order },
-            { ccId: topCards[swapIdx].cc_id, newOrder: topCards[swapIdx].cc_order }
-        ]);
-    }
+    // Track pending reorders (will be persisted on Done)
+    _msgPendingReorders.push(
+        { ccId: topCards[idx].cc_id, newOrder: topCards[idx].cc_order },
+        { ccId: topCards[swapIdx].cc_id, newOrder: topCards[swapIdx].cc_order }
+    );
 
     // Re-render keeping edit mode
     renderMsgCards(_msgCards);
     setupMsgEditToggle();
-    // Re-enter edit mode
     if (isMsgEditMode) {
         isMsgEditMode = false;
         document.getElementById('msg-edit-toggle')?.click();
@@ -2893,6 +2926,22 @@ window.msgDeleteCard = async function (ccId) {
     if (isMsgEditMode) {
         isMsgEditMode = false;
         document.getElementById('msg-edit-toggle')?.click();
+    }
+};
+
+window.msgAddSection = async function () {
+    const maxOrder = (_msgCards || []).reduce((m, c) => Math.max(m, c.cc_order || 0), 0);
+    if (window.insertContentCard) {
+        const card = await window.insertContentCard({ cc_page_id: 2, cc_card_type: 'section', cc_title: 'New Section', cc_width: 'full', cc_order: maxOrder + 1 });
+        if (card) { _msgCards.push(card); renderMsgCards(_msgCards); setupMsgEditToggle(); if (isMsgEditMode) { isMsgEditMode = false; document.getElementById('msg-edit-toggle')?.click(); } }
+    }
+};
+
+window.msgAddCard = async function () {
+    const maxOrder = (_msgCards || []).reduce((m, c) => Math.max(m, c.cc_order || 0), 0);
+    if (window.insertContentCard) {
+        const card = await window.insertContentCard({ cc_page_id: 2, cc_card_type: 'card', cc_title: 'New Card', cc_content: '', cc_order: maxOrder + 1 });
+        if (card) { _msgCards.push(card); renderMsgCards(_msgCards); setupMsgEditToggle(); if (isMsgEditMode) { isMsgEditMode = false; document.getElementById('msg-edit-toggle')?.click(); } }
     }
 };
 
