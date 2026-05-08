@@ -469,9 +469,9 @@ window.bootSupabase = async function() {
 // ── PENDING APPROVALS ────────────────────────────────────────────────────────
 
 window.fetchPendingApprovals = async function() {
-    if (!window._sb) return [];
+    if (!_sb) return [];
     try {
-        const { data, error } = await window._sb
+        const { data, error } = await _sb
             .from('memo_pending_change')
             .select('*')
             .eq('mpc_status', 'pending')
@@ -488,9 +488,9 @@ window.fetchPendingApprovals = async function() {
 };
 
 window.approvePendingChange = async function(mpcId, finalData, status = 'edited_then_approved') {
-    if (!window._sb) return false;
+    if (!_sb) return false;
     try {
-        const { error } = await window._sb
+        const { error } = await _sb
             .from('memo_pending_change')
             .update({
                 mpc_status: status,

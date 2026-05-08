@@ -2312,8 +2312,11 @@ window.adetDelete = function () {
 // ---- APPROVALS PAGE ----
 
 function renderApprovals() {
-    // Page is static HTML — just set up tab switching
-    console.log('[Approvals] Page loaded');
+    if (typeof window._doRenderApprovals === 'function') {
+        window._doRenderApprovals();
+    } else {
+        console.log('[Approvals] Page loaded (but async renderer not found)');
+    }
 }
 
 window.switchApprovalTab = function (tab, btn) {
@@ -3093,7 +3096,7 @@ window.addEventListener('wheel', (e) => {
 
 // ── APPROVALS (memo_pending_change) ──────────────────────────────────────────
 
-window.renderApprovals = async function() {
+window.renderApprovals = window._doRenderApprovals = async function() {
     const container = document.getElementById('approvals-list-container');
     if (!container) return;
 
