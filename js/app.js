@@ -3252,12 +3252,79 @@ window.renderApprovals = window._doRenderApprovals = async function() {
             return;
         }
 
+        const renderProposedDataForm = (app) => {
+            let data = {};
+            try {
+                data = typeof app.mpc_proposed_data === 'string' ? JSON.parse(app.mpc_proposed_data || '{}') : (app.mpc_proposed_data || {});
+            } catch(e) {}
+            const table = app.mpc_target_table;
+            
+            const field = (key, label, type='text') => {
+                const val = data[key] || '';
+                const baseStyle = "width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: rgba(255,255,255,0.05); color: var(--text-primary); font-family: inherit;";
+                if (type === 'textarea') {
+                    return `<div style="margin-bottom: 0.75rem;"><label style="display:block; font-size:0.8rem; margin-bottom:0.25rem; color:var(--text-tertiary);">${label}</label><textarea data-key="${key}" rows="2" style="${baseStyle} resize: vertical;">${val}</textarea></div>`;
+                }
+                return `<div style="margin-bottom: 0.75rem;"><label style="display:block; font-size:0.8rem; margin-bottom:0.25rem; color:var(--text-tertiary);">${label}</label><input type="${type}" data-key="${key}" value="${val}" style="${baseStyle}"></div>`;
+            };
+
+            const section = (title, content) => `
+                <div style="margin-top: 1rem; border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; background: rgba(0,0,0,0.15);">
+                    <h4 style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-tertiary); margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">${title}</h4>
+                    ${content}
+                </div>
+            `;
+            
+            const row = (content) => `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">${content}</div>`;
+
+            if (table === 'tbl_action') {
+                return `<div id="app-form-${app.mpc_id}">
+                    ${section('Definition', field('description', 'Description', 'textarea'))}
+                    ${section('Impact', 
+                        row(field('status', 'Status') + field('priority', 'Priority')) +
+                        row(field('desired_outcome', 'Desired Outcome') + field('success_criteria', 'Success Criteria'))
+                    )}
+                    ${section('Logistics', row(field('start_date', 'Start Date', 'date') + field('due_date', 'Due Date', 'date')))}
+                    ${section('Version Control', row(field('recent_progress', 'Recent Progress', 'textarea') + field('current_blockers', 'Current Blockers', 'textarea')))}
+                    ${section('Other', field('note', 'Note', 'textarea'))}
+                </div>`;
+            } else if (table === 'tbl_stakeholder') {
+                return `<div id="app-form-${app.mpc_id}">
+                    ${section('Definition', row(field('name', 'Name') + field('role', 'Role')))}
+                    ${section('Posture', 
+                        row(field('posture_current', 'Current Posture') + field('posture_desired', 'Desired Posture')) +
+                        row(field('posture_next_step', 'Next Step') + field('posture_target_date', 'Target Date', 'date'))
+                    )}
+                </div>`;
+            } else if (table === 'tbl_contact') {
+                return `<div id="app-form-${app.mpc_id}">
+                    ${section('Profile', row(field('first_name', 'First Name') + field('last_name', 'Last Name')))}
+                    ${section('Contact Info', 
+                        row(field('email', 'Email', 'email') + field('phone', 'Phone', 'tel')) +
+                        field('organisation', 'Organisation')
+                    )}
+                    ${section('Other', field('notes', 'Notes', 'textarea'))}
+                </div>`;
+            } else if (table === 'tbl_risk') {
+                return `<div id="app-form-${app.mpc_id}">
+                    ${section('Risk Details', field('type', 'Type / Description', 'textarea') + row(field('severity', 'Severity (1-5)', 'number') + field('resolved_date', 'Resolved Date', 'date')))}
+                </div>`;
+            } else if (table === 'tbl_interaction') {
+                return `<div id="app-form-${app.mpc_id}">
+                    ${section('Interaction Details', row(field('purpose', 'Purpose') + field('date', 'Date', 'date')))}
+                    ${section('Outcome', field('outcome_notes', 'Outcome Notes', 'textarea') + row(field('outcome_score', 'Outcome Score (1-5)', 'number') + field('follow_up_date', 'Follow Up Date', 'date')))}
+                </div>`;
+            }
+
+            let genericFields = '';
+            for (const k in data) {
+                genericFields += field(k, k.replace(/_/g, ' '), typeof data[k] === 'string' && data[k].length > 40 ? 'textarea' : 'text');
+            }
+            return `<div id="app-form-${app.mpc_id}">${section('Properties', genericFields || '<p style="color:var(--text-tertiary); font-size:0.9rem;">No fields extracted.</p>')}</div>`;
+        };
+
         let html = '';
         approvals.forEach(app => {
-            const proposedStr = typeof app.mpc_proposed_data === 'string' 
-                ? app.mpc_proposed_data 
-                : JSON.stringify(app.mpc_proposed_data, null, 2);
-                
             html += `
             <div class="approval-card" id="approval-card-${app.mpc_id}">
                 <div style="display:flex; justify-content:space-between; margin-bottom:1rem; align-items:flex-start;">
@@ -3274,7 +3341,7 @@ window.renderApprovals = window._doRenderApprovals = async function() {
                 
                 <div class="approval-field">
                     <label>Proposed Data (AI Extraction)</label>
-                    <textarea id="app-proposed-${app.mpc_id}" rows="6" class="json-view" spellcheck="false">${proposedStr}</textarea>
+                    ${renderProposedDataForm(app)}
                 </div>
                 
                 <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.25rem;">
@@ -3314,15 +3381,27 @@ window.rejectApproval = async function(mpcId) {
 };
 
 window.saveAndApproveApproval = async function(mpcId) {
-    const textarea = document.getElementById(`app-proposed-${mpcId}`);
-    if (!textarea) return;
+    let finalData = {};
+    const formContainer = document.getElementById(`app-form-${mpcId}`);
     
-    let finalData;
-    try {
-        finalData = JSON.parse(textarea.value);
-    } catch (e) {
-        alert('Invalid JSON. Please fix formatting before approving.\n\nError: ' + e.message);
-        return;
+    if (formContainer) {
+        const inputs = formContainer.querySelectorAll('[data-key]');
+        inputs.forEach(input => {
+            const key = input.getAttribute('data-key');
+            let val = input.value;
+            if (input.type === 'number' && val) val = parseFloat(val);
+            finalData[key] = val;
+        });
+    } else {
+        const textarea = document.getElementById(`app-proposed-${mpcId}`);
+        if (!textarea) return;
+        
+        try {
+            finalData = JSON.parse(textarea.value);
+        } catch (e) {
+            alert('Invalid JSON. Please fix formatting before approving.\n\nError: ' + e.message);
+            return;
+        }
     }
     
     const card = document.getElementById(`approval-card-${mpcId}`);
