@@ -36,6 +36,51 @@ function relativeDate(dateStr) {
     return { text: `due in ${Math.floor(diff/365)} year${Math.floor(diff/365)>1?'s':''}`, color: 'var(--text-tertiary)', isOverdue: false };
 }
 
+function relativePastDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr.length <= 10 ? dateStr + 'T00:00:00' : dateStr);
+    if (isNaN(d.getTime())) return '';
+    const now = new Date(); now.setHours(0,0,0,0);
+    const diff = Math.round((now - d) / (1000 * 60 * 60 * 24));
+    if (diff < 0) return 'upcoming';
+    if (diff === 0) return 'today';
+    if (diff === 1) return 'yesterday';
+    if (diff < 7) return `${diff} days ago`;
+    if (diff < 14) return '1 week ago';
+    if (diff < 31) return `${Math.floor(diff / 7)} weeks ago`;
+    if (diff < 60) return '1 month ago';
+    if (diff < 365) return `${Math.floor(diff / 30)} months ago`;
+    return `${Math.floor(diff / 365)} year${Math.floor(diff / 365) > 1 ? 's' : ''} ago`;
+}
+
+// ---- VERSIONED SAVE UTILITY ----
+// Creates new version row (active=true), deactivates old row.
+// tableName: e.g. 'tbl_action'
+// idCol: e.g. 'ac_id'
+// activeCol: e.g. 'ac_active'
+// originalIdCol: e.g. 'ac_original_id'
+// modifiedCol: e.g. 'ac_modified'
+// oldId: the current row's PK (e.g. ac_id value)
+// newData: object of column values for the new row (excluding PK and active flag)
+window.versionedSave = async function(tableName, idCol, activeCol, originalIdCol, modifiedCol, oldId, newData) {
+    if (!window._sb) { console.warn('[versionedSave] No Supabase client'); return null; }
+    try {
+        // 1. Deactivate old row
+        await window._sb.from(tableName).update({ [activeCol]: false }).eq(idCol, oldId);
+        // 2. Insert new row with active=true and updated modified timestamp
+        const insertData = { ...newData, [activeCol]: true, [modifiedCol]: new Date().toISOString() };
+        delete insertData[idCol]; // Let DB auto-generate PK
+        const { data, error } = await window._sb.from(tableName).insert(insertData).select().single();
+        if (error) throw error;
+        return data;
+    } catch (e) {
+        console.error(`[versionedSave] Error saving to ${tableName}:`, e);
+        // Try to reactivate old row on failure
+        try { await window._sb.from(tableName).update({ [activeCol]: true }).eq(idCol, oldId); } catch (_) {}
+        throw e;
+    }
+};
+
 // ---- INIT ----
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -803,7 +848,9 @@ function renderInteractions() {
             </div>`;
         }
 
-        const dateString = a.date || a.rawDate;
+        const rawDateStr = a.rawDate || a.date || '';
+        const dateString = formatDate(rawDateStr);
+        const pastRelative = relativePastDate(rawDateStr);
 
         const agendaHtml = (a.topics || []).map(t => {
             let icon = 'chat';
@@ -827,8 +874,8 @@ function renderInteractions() {
                     <h3 style="margin: 0; font-size: 1.4rem; color: var(--text-primary); font-family: 'Space Grotesk', sans-serif; text-transform: none;">${a.title || (a.agenda || a.discussed || '').substring(0, 60) + ((a.agenda || a.discussed || '').length > 60 ? '…' : '') || 'Untitled'}</h3>
                 </div>
                 <div style="text-align: right;">
-                    ${!isUpcoming ? `<div style="font-size: 0.8rem; color: var(--text-tertiary); font-family: 'JetBrains Mono', monospace; margin-bottom: 0.25rem;">${a.rawDate || ''}</div>` : ''}
-                    <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary);">${dateString}</div>
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">${dateString}</div>
+                    ${pastRelative ? `<div style="font-size: 0.75rem; color: var(--text-tertiary); margin-top:0.15rem;">${pastRelative}</div>` : ''}
                 </div>
             </div>
             
@@ -862,7 +909,9 @@ function renderInteractionDetail() {
     if (!interaction) return;
 
     document.getElementById('detail-int-title').textContent = interaction.title;
-    document.getElementById('detail-int-date').textContent = interaction.rawDate + ' ' + interaction.date;
+    const intDateStr = interaction.rawDate || interaction.date || '';
+    const intRelPast = relativePastDate(intDateStr);
+    document.getElementById('detail-int-date').textContent = formatDate(intDateStr) + (intRelPast ? ' · ' + intRelPast : '');
 
     const statusEl = document.getElementById('detail-int-status');
     if (interaction.type === 'Upcoming') {
@@ -1298,6 +1347,7 @@ function _actRenderGantt(actions) {
                 </div>
                 <div style="flex:1; position:relative; height:20px;">
                     ${Array.from({ length: months.length }).map((_, i) => `<div style="position:absolute; top:0; left:${(i / months.length * 100).toFixed(1)}%; width:${(100 / months.length).toFixed(1)}%; height:100%; border-left:1px solid var(--border-subtle); opacity:0.4;"></div>`).join('')}
+                    <div style="position:absolute; top:0; left:${todayPct.toFixed(1)}%; width:2px; height:100%; background:#ef4444; opacity:0.3; pointer-events:none; z-index:1;"></div>
                     <div style="position:absolute; left:${left.toFixed(1)}%; width:${width.toFixed(1)}%; height:100%; background:${clr}; border-radius:4px; opacity:0.85; cursor:pointer; display:flex; align-items:center; padding-left:4px; font-size:0.65rem; color:#fff; font-weight:600; white-space:nowrap; overflow:hidden;" onclick="window.openActionModal('${a.id}')" title="${a.status}"></div>
                 </div>
             </div>`;
@@ -1325,7 +1375,6 @@ function _actRenderGantt(actions) {
             <div style="min-width:700px; position:relative;">
                 ${headerHtml}
                 ${bodyHtml || '<div style="padding:2rem;text-align:center;color:var(--text-tertiary);font-style:italic;">No actions to display.</div>'}
-                <div style="position:absolute; top:0; left:calc(${LABEL_W}px + ${todayPct.toFixed(1)}% * (1 - ${LABEL_W} / 700)); width:2px; height:100%; background:#ef4444; opacity:0.4; pointer-events:none; z-index:1;"></div>
             </div>
         </div>`;
 }
@@ -1821,6 +1870,27 @@ function renderActionDetail() {
         dueDetailEl.style.display = (a.timing?.dueDate || dd) ? '' : 'none';
     }
 
+    // ── Populate inline metadata row ──
+    const audInline = document.getElementById('adet-audience-inline');
+    if (audInline) {
+        audInline.textContent = a.audience && a.audience.length > 0 ? a.audience.join(', ') : '—';
+    }
+    const objInline = document.getElementById('adet-objective-inline');
+    if (objInline) {
+        const spine = window.getData('spine') || {};
+        const obj = (spine.objectives || []).find(o => o.id === a.commsObjectiveId);
+        objInline.textContent = obj ? obj.text : '—';
+        objInline.title = obj ? obj.text : '';
+    }
+    const dueInline = document.getElementById('adet-due-inline');
+    if (dueInline) dueInline.textContent = dueDisplay;
+    const dueRelInline = document.getElementById('adet-due-relative-inline');
+    if (dueRelInline && a.timing?.dueDate) {
+        const rel = relativeDate(a.timing.dueDate);
+        dueRelInline.textContent = rel.text;
+        dueRelInline.style.color = rel.color;
+    }
+
     // ── Advanced Timing ──
     const startDateEl = document.getElementById('adet-start-date');
     if (startDateEl && a.timing?.startDate) {
@@ -1865,8 +1935,7 @@ function renderActionDetail() {
     }
 
     // Show/hide todo section
-    const todoSection = document.getElementById('adet-todo-section');
-    if (todoSection) todoSection.style.display = todos.length > 0 ? '' : 'none';
+    // To-Do section always visible (even when empty)
 
     // Progress form handlers
     window.adetShowProgressForm = function () {
@@ -2026,6 +2095,23 @@ window.openActionDetailEdit = function () {
     const a = actions.find(x => x.id === id);
     if (!a) return;
     window._adetOriginal = JSON.parse(JSON.stringify(a));
+
+    // Update header button to Done + add Cancel
+    const editBtn = document.querySelector('[onclick="window.openActionDetailEdit()"]');
+    if (editBtn) {
+        editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done';
+        editBtn.setAttribute('onclick', 'window.adetSave()');
+        // Add Cancel button if not already present
+        if (!document.getElementById('adet-header-cancel-btn')) {
+            const cancelBtn = document.createElement('button');
+            cancelBtn.id = 'adet-header-cancel-btn';
+            cancelBtn.className = 'btn-secondary';
+            cancelBtn.style.cssText = 'display:inline-flex;align-items:center;gap:0.4rem;';
+            cancelBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">close</span> Cancel';
+            cancelBtn.onclick = function() { window.adetCancelEdit(); };
+            editBtn.parentNode.insertBefore(cancelBtn, editBtn);
+        }
+    }
 
     _adetPopulateObjectiveSelect();
     _adetPopulateStakeholderSelect();
@@ -2313,11 +2399,34 @@ window.adetToggleSection = function (id) {
 window.closeActionDetailEdit = function () {
     const overlay = document.getElementById('adet-modal-overlay');
     if (overlay) overlay.style.display = 'none';
+    // Restore header button to Edit mode
+    const editBtn = document.querySelector('[onclick="window.adetSave()"]') || document.querySelector('[onclick="window.openActionDetailEdit()"]');
+    if (editBtn) {
+        editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
+        editBtn.setAttribute('onclick', 'window.openActionDetailEdit()');
+    }
+    // Remove Cancel button
+    const cancelBtn = document.getElementById('adet-header-cancel-btn');
+    if (cancelBtn) cancelBtn.remove();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 window.adetRevert = function () {
     if (window._adetOriginal) window.openActionDetailEdit();
+};
+
+window.adetCancelEdit = function () {
+    // Revert the action data to the snapshot taken when Edit was clicked
+    if (window._adetOriginal) {
+        const actions = window.getData('actions') || [];
+        const idx = actions.findIndex(x => x.id === window.currentActionId);
+        if (idx !== -1) {
+            actions[idx] = window._adetOriginal;
+            window.updateData('actions', actions);
+        }
+    }
+    window.closeActionDetailEdit();
+    renderActionDetail();
 };
 
 window.adetSave = function () {
@@ -2533,7 +2642,18 @@ function renderSpineCards() {
         if (section.cards.length > 0) {
             html += `<div style="display:grid;grid-template-columns:${gridCols};gap:1.5rem;margin-bottom:1.5rem;">`;
             section.cards.forEach(c => {
+                const cardTypeOptions = [
+                    { value: 'card', icon: '📝', label: 'Card' },
+                    { value: 'objectives_link', icon: '🎯', label: 'Objectives' },
+                    { value: 'stakeholder_view', icon: '🏛', label: 'Stakeholder' },
+                    { value: 'action_summary', icon: '⚡', label: 'Action' },
+                    { value: 'interaction_summary', icon: '💬', label: 'Interaction' }
+                ];
+                const typeOpts = cardTypeOptions.map(t => `<option value="${t.value}"${c.cc_card_type === t.value ? ' selected' : ''}>${t.icon} ${t.label}</option>`).join('');
                 const editCtrl = `<div class="spine-edit-ctrl" style="display:none;position:absolute;right:0.5rem;top:0.5rem;gap:0.25rem;align-items:center;z-index:2;">
+                    <select class="spine-type-select" data-card-id="${c.cc_id}" style="font-size:0.72rem;padding:0.15rem 0.3rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);max-width:110px;" onchange="window.spineChangeCardType(${c.cc_id},this.value)">
+                        ${typeOpts}
+                    </select>
                     <button onclick="event.stopPropagation();window.spineMoveCard(${c.cc_id},-1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_upward</span></button>
                     <button onclick="event.stopPropagation();window.spineMoveCard(${c.cc_id},1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
                     <button onclick="event.stopPropagation();window.spineDeleteCard(${c.cc_id})" style="background:none;border:none;cursor:pointer;color:var(--energy-alert);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
@@ -2692,6 +2812,15 @@ async function persistSpineEdits() {
         }
     });
 
+    // Collect card type changes
+    document.querySelectorAll('.spine-type-select').forEach(sel => {
+        const id = parseInt(sel.dataset.cardId);
+        if (id) {
+            const existing = updates.find(u => u.ccId === id);
+            if (existing) existing.fields.cc_card_type = sel.value;
+            else updates.push({ ccId: id, fields: { cc_card_type: sel.value } });
+        }
+    });
     // Collect card title + content changes
     document.querySelectorAll('.spine-edit-card-title').forEach(input => {
         const id = parseInt(input.dataset.cardId);
@@ -2745,6 +2874,15 @@ async function persistSpineEdits() {
 }
 
 // ---- STRATEGY CARD OPERATIONS ----
+
+window.spineChangeCardType = function (ccId, newType) {
+    if (!_spineCards) return;
+    const card = _spineCards.find(c => c.cc_id === ccId);
+    if (card) {
+        card.cc_card_type = newType;
+        console.log('[Strategy] Card', ccId, 'type changed to', newType);
+    }
+};
 
 window.spineMoveCard = function (ccId, direction) {
     if (!_spineCards) return;

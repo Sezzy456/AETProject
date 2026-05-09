@@ -13,9 +13,14 @@
             <span id="detail-int-status" style="color: #ef4444; font-weight: 600;">Upcoming</span>
         </div>
     </div>
-    <button id="int-edit-toggle-btn" class="btn-primary" style="display:inline-flex;align-items:center;gap:0.4rem; margin-top: 2.5rem;" onclick="window.toggleInteractionEdit()">
-        <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit
-    </button>
+    <div style="display:flex; align-items:center; gap:0.5rem; margin-top:2.5rem;">
+        <button id="int-cancel-btn" class="btn-secondary" style="display:none; align-items:center; gap:0.4rem;" onclick="window.cancelInteractionEdit()">
+            <span class="material-symbols-outlined" style="font-size:1rem;">close</span> Cancel
+        </button>
+        <button id="int-edit-toggle-btn" class="btn-primary" style="display:inline-flex;align-items:center;gap:0.4rem;" onclick="window.toggleInteractionEdit()">
+            <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit
+        </button>
+    </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════
@@ -60,9 +65,24 @@
      EDIT MODE (inline — hidden by default)
 ═══════════════════════════════════════════════════════════ -->
 <div id="int-edit-mode" style="display: none;">
-    <div style="text-align: center; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 1rem;">
-        Upload: transcript, word doc
+    <!-- Upload & Recording Area -->
+    <div style="border:1px dashed var(--border-subtle); border-radius:10px; padding:1rem; margin-bottom:1.25rem; background:rgba(0,0,0,0.015);">
+        <div style="display:flex; gap:0.75rem; align-items:flex-start; margin-bottom:0.75rem;">
+            <textarea id="int-live-note-input" rows="2" placeholder="Quick notes / live text input..." style="flex:1; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; font-family:inherit; font-size:0.85rem; resize:vertical; background:#fff;"></textarea>
+            <button id="int-record-btn" onclick="window.toggleIntRecording()" style="width:42px; height:42px; border-radius:50%; border:2px solid #ef4444; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s;" title="Record audio note">
+                <span class="material-symbols-outlined" style="font-size:1.2rem; color:#ef4444;">mic</span>
+            </button>
+        </div>
+        <div id="int-recording-indicator" style="display:none; font-size:0.78rem; color:#ef4444; font-weight:600; margin-bottom:0.5rem; display:none; align-items:center; gap:0.4rem;">
+            <span style="width:8px; height:8px; border-radius:50%; background:#ef4444; animation:pulse 1s infinite;"></span> Recording...
+            <span id="int-recording-time" style="font-weight:400; color:var(--text-tertiary);">0:00</span>
+        </div>
+        <div style="text-align:center; font-size:0.8rem; color:var(--text-tertiary); padding:0.5rem 0;">
+            <span class="material-symbols-outlined" style="font-size:1rem; vertical-align:middle;">upload_file</span>
+            Drag & drop transcript, word doc, or files here
+        </div>
     </div>
+    <style>@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }</style>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem;">
         <div>
@@ -330,23 +350,28 @@ window.toggleInteractionEdit = function() {
     const viewMode = document.getElementById('int-view-mode');
     const editMode = document.getElementById('int-edit-mode');
     const editBtn = document.getElementById('int-edit-toggle-btn');
+    const cancelBtn = document.getElementById('int-cancel-btn');
     
     if (!viewMode || !editMode) return;
     
     const isEditing = editMode.style.display !== 'none';
     
     if (isEditing) {
-        // Switch to view mode
+        // Done clicked — save and switch to view mode
+        if (window.saveInteraction) window.saveInteraction();
         viewMode.style.display = 'block';
         editMode.style.display = 'none';
         editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
+        if (cancelBtn) cancelBtn.style.display = 'none';
     } else {
-        // Switch to edit mode — populate fields
+        // Edit clicked — snapshot and switch to edit mode
+        window._intOriginalSnapshot = null;
         const id = window.currentInteractionId;
         if (id) {
             const interactions = window.getData('interactions') || [];
             const interaction = interactions.find(i => i.id == id);
             if (interaction) {
+                window._intOriginalSnapshot = JSON.parse(JSON.stringify(interaction));
                 const purposeEl = document.getElementById('edit-int-purpose');
                 const dateEl = document.getElementById('edit-int-date');
                 const descEl = document.getElementById('edit-int-description');
@@ -357,8 +382,82 @@ window.toggleInteractionEdit = function() {
         }
         viewMode.style.display = 'none';
         editMode.style.display = 'block';
-        editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">visibility</span> View';
+        editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done';
+        if (cancelBtn) cancelBtn.style.display = 'inline-flex';
     }
+};
+
+window.cancelInteractionEdit = function() {
+    const viewMode = document.getElementById('int-view-mode');
+    const editMode = document.getElementById('int-edit-mode');
+    const editBtn = document.getElementById('int-edit-toggle-btn');
+    const cancelBtn = document.getElementById('int-cancel-btn');
+    
+    // Revert data if we have a snapshot
+    if (window._intOriginalSnapshot && window.currentInteractionId) {
+        const interactions = window.getData('interactions') || [];
+        const idx = interactions.findIndex(i => i.id == window.currentInteractionId);
+        if (idx !== -1) {
+            interactions[idx] = window._intOriginalSnapshot;
+            window.updateData('interactions', interactions);
+        }
+    }
+    
+    if (viewMode) viewMode.style.display = 'block';
+    if (editMode) editMode.style.display = 'none';
+    if (editBtn) editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    
+    
+    // Re-render to show reverted data
+    if (typeof renderInteractionDetail === 'function') renderInteractionDetail();
+};
+
+// ── Recording button (MediaRecorder UI, no backend) ──
+window._intMediaRecorder = null;
+window._intRecordingTimer = null;
+window._intRecordingSeconds = 0;
+
+window.toggleIntRecording = function() {
+    const btn = document.getElementById('int-record-btn');
+    const indicator = document.getElementById('int-recording-indicator');
+    const timeEl = document.getElementById('int-recording-time');
+    
+    if (window._intMediaRecorder && window._intMediaRecorder.state === 'recording') {
+        // Stop recording
+        window._intMediaRecorder.stop();
+        clearInterval(window._intRecordingTimer);
+        if (btn) { btn.style.background = '#fff'; btn.style.borderColor = '#ef4444'; }
+        if (indicator) indicator.style.display = 'none';
+        return;
+    }
+    
+    // Start recording
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        const recorder = new MediaRecorder(stream);
+        const chunks = [];
+        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'audio/webm' });
+            console.log('[Recording] Audio blob:', blob.size, 'bytes');
+            stream.getTracks().forEach(t => t.stop());
+            // Could attach to interaction data later
+        };
+        recorder.start();
+        window._intMediaRecorder = recorder;
+        window._intRecordingSeconds = 0;
+        if (btn) { btn.style.background = '#ef4444'; btn.querySelector('span').style.color = '#fff'; }
+        if (indicator) indicator.style.display = 'flex';
+        window._intRecordingTimer = setInterval(() => {
+            window._intRecordingSeconds++;
+            const m = Math.floor(window._intRecordingSeconds / 60);
+            const s = window._intRecordingSeconds % 60;
+            if (timeEl) timeEl.textContent = m + ':' + String(s).padStart(2, '0');
+        }, 1000);
+    }).catch(err => {
+        console.warn('[Recording] Microphone access denied:', err);
+        alert('Microphone access is required for recording.');
+    });
 };
 </script>
 
