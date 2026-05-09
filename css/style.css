@@ -827,3 +827,64 @@ body.bio-mode input:checked+.slider {
   to { transform: rotate(360deg); }
 }
 .spin { animation: spin 1s linear infinite; display: inline-block; }
+
+/* --- DRAG-AND-DROP CARD REORDERING --- */
+.spine-drag-grip {
+  display: none;
+  cursor: grab;
+  padding: 2px 4px;
+  color: var(--text-tertiary);
+  font-size: 1.1rem;
+  line-height: 1;
+  user-select: none;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+  letter-spacing: 2px;
+}
+.spine-drag-grip:hover {
+  color: var(--text-primary);
+  background: rgba(0,0,0,0.06);
+}
+.spine-drag-grip:active {
+  cursor: grabbing;
+}
+/* Show grip dots only in edit mode */
+.spine-edit-active .spine-drag-grip {
+  display: flex;
+  align-items: center;
+}
+
+/* Card being dragged */
+[data-card-id].spine-dragging {
+  opacity: 0.4;
+  transform: scale(0.97);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+/* Drop indicator — top/bottom line */
+[data-card-id].spine-drop-above {
+  box-shadow: 0 -3px 0 0 var(--energy-algae), 0 -3px 8px rgba(0,200,100,0.25);
+}
+[data-card-id].spine-drop-below {
+  box-shadow: 0 3px 0 0 var(--energy-algae), 0 3px 8px rgba(0,200,100,0.25);
+}
+/* Nest indicator — glow border */
+[data-card-id].spine-drop-nest {
+  box-shadow: inset 0 0 0 2px var(--energy-algae), 0 0 12px rgba(0,200,100,0.3);
+  transition: box-shadow 0.2s;
+}
+
+/* Smooth transitions for reordering */
+[data-card-id] {
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+/* Section row drag handle */
+.spine-section-row .spine-drag-grip {
+  margin-right: 0.5rem;
+}
+
+/* Left padding for cards when grips are visible */
+.spine-edit-active .card[data-card-id] {
+  padding-left: 2rem !important;
+}

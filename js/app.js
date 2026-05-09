@@ -2619,8 +2619,11 @@ function renderSpineCards() {
     sections.forEach(section => {
         const sc = section.sectionCard;
         if (sc) {
-            html += `<div class="spine-section-row" data-card-id="${sc.cc_id}" style="display:flex;justify-content:space-between;align-items:center;margin:2rem 0 1rem;">
-                <h3 class="spine-section-title" data-card-id="${sc.cc_id}" style="color:var(--text-tertiary);margin:0;">${sc.cc_title||''}</h3>
+            html += `<div class="spine-section-row" data-card-id="${sc.cc_id}" draggable="false" style="display:flex;justify-content:space-between;align-items:center;margin:2rem 0 1rem;">
+                <div style="display:flex;align-items:center;gap:0.25rem;flex:1;">
+                    <span class="spine-drag-grip" data-grip-id="${sc.cc_id}" title="Drag to reorder">⠿</span>
+                    <h3 class="spine-section-title" data-card-id="${sc.cc_id}" style="color:var(--text-tertiary);margin:0;">${sc.cc_title||''}</h3>
+                </div>
                 <div class="spine-edit-ctrl" style="display:none;gap:0.5rem;align-items:center;">
                     <select class="spine-width-select" data-card-id="${sc.cc_id}" style="display:none;font-size:0.75rem;padding:0.15rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);">
                         <option value="full"${sc.cc_width==='full'?' selected':''}>Full</option>
@@ -2660,11 +2663,12 @@ function renderSpineCards() {
                 </div>`;
                 // objectives_link card type: render objectives from tbl_strategy_objective
                 if (c.cc_card_type === 'objectives_link' && spine && spine.objectives) {
-                    html += `<div class="card" style="position:relative;padding:1.5rem;" data-card-id="${c.cc_id}">${editCtrl}`;
+                    html += `<div class="card" style="position:relative;padding:1.5rem;" data-card-id="${c.cc_id}" draggable="false"><span class="spine-drag-grip" data-grip-id="${c.cc_id}" title="Drag to reorder" style="position:absolute;left:0.4rem;top:50%;transform:translateY(-50%);">⠿</span>${editCtrl}`;
                     html += renderSpineObjectives(spine.objectives, false);
                     html += '</div>';
                 } else {
-                    html += `<div class="card" style="position:relative;padding:1.5rem;" data-card-id="${c.cc_id}">
+                    html += `<div class="card" style="position:relative;padding:1.5rem;" data-card-id="${c.cc_id}" draggable="false">
+                        <span class="spine-drag-grip" data-grip-id="${c.cc_id}" title="Drag to reorder" style="position:absolute;left:0.4rem;top:50%;transform:translateY(-50%);">⠿</span>
                         ${editCtrl}
                         <h4 class="spine-card-title" data-card-id="${c.cc_id}" style="margin:0 0 0.75rem 0;">${c.cc_title||''}</h4>
                         <div class="spine-card-content" data-card-id="${c.cc_id}" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap;">${c.cc_content||''}</div>
@@ -2720,6 +2724,8 @@ function setupSpineEditToggle() {
         freshCancel.addEventListener('click', async () => {
             isSpineEditMode = false;
             _spinePendingReorders = [];
+            const container = document.getElementById('strategy-cards-container');
+            if (container) container.classList.remove('spine-edit-active');
             editToggle.style.background = ''; editToggle.style.color = '';
             editToggle.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
             freshCancel.style.display = 'none';
@@ -2742,6 +2748,9 @@ function setupSpineEditToggle() {
         if (cb) cb.style.display = isSpineEditMode ? 'flex' : 'none';
 
         if (isSpineEditMode) {
+            // Add edit-active class for CSS-driven grip visibility
+            const container = document.getElementById('strategy-cards-container');
+            if (container) container.classList.add('spine-edit-active');
             // Show edit controls
             document.querySelectorAll('.spine-edit-ctrl').forEach(el => { el.style.display = 'flex'; });
             document.querySelectorAll('.spine-width-select').forEach(el => { el.style.display = 'inline-block'; });
@@ -2780,7 +2789,13 @@ function setupSpineEditToggle() {
                 input.style.cssText = 'flex:1;padding:0.3rem 0.5rem;background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:4px;font-size:0.95rem;color:var(--text-primary);';
                 el.replaceWith(input);
             });
+
+            // Initialize drag-and-drop on grip handles
+            window._initSpineDragDrop();
         } else {
+            // Remove edit-active class
+            const container = document.getElementById('strategy-cards-container');
+            if (container) container.classList.remove('spine-edit-active');
             // "Done" — show loading, persist everything
             editToggle.disabled = true;
             editToggle.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;animation:spin 1s linear infinite;">autorenew</span> Saving...';
@@ -2858,10 +2873,21 @@ async function persistSpineEdits() {
     }
     if (spine) window.updateData('spine', spine);
 
-    // Persist any pending reorder changes
-    if (window.reorderContentCards && _spinePendingReorders.length > 0) {
-        await window.reorderContentCards(_spinePendingReorders);
-        console.log('[Strategy] Persisted', _spinePendingReorders.length, 'reorder updates');
+    // Persist any pending reorder/nest changes from drag-and-drop
+    if (_spinePendingReorders.length > 0) {
+        const reorders = _spinePendingReorders.filter(r => r.newOrder !== undefined);
+        const nests = _spinePendingReorders.filter(r => r.fields);
+
+        if (window.reorderContentCards && reorders.length > 0) {
+            await window.reorderContentCards(reorders);
+            console.log('[Strategy] Persisted', reorders.length, 'reorder updates');
+        }
+        if (window.updateContentCard && nests.length > 0) {
+            for (const n of nests) {
+                await window.updateContentCard(n.ccId, n.fields);
+            }
+            console.log('[Strategy] Persisted', nests.length, 'nest updates');
+        }
         _spinePendingReorders = [];
     }
 
@@ -2970,7 +2996,173 @@ window.spineAddObj = async function () {
 
 
 
+// ---- DRAG-AND-DROP ENGINE FOR CONTENT CARDS ----
 
+window._initSpineDragDrop = function () {
+    const container = document.getElementById('strategy-cards-container');
+    if (!container) return;
+
+    let dragCardId = null;
+    let dragEl = null;
+    let ghostEl = null;
+    let startY = 0;
+
+    // Clear any previous indicators
+    function clearIndicators() {
+        container.querySelectorAll('.spine-drop-above,.spine-drop-below,.spine-drop-nest').forEach(el => {
+            el.classList.remove('spine-drop-above', 'spine-drop-below', 'spine-drop-nest');
+        });
+    }
+
+    // Find the draggable card element from an event target
+    function findCardEl(target) {
+        return target.closest('[data-card-id]');
+    }
+
+    // Get all top-level card elements in DOM order
+    function getAllCardEls() {
+        return Array.from(container.querySelectorAll('[data-card-id]'));
+    }
+
+    // Mouse down on grip — start drag
+    container.addEventListener('mousedown', function (e) {
+        const grip = e.target.closest('.spine-drag-grip');
+        if (!grip) return;
+        e.preventDefault();
+
+        dragCardId = parseInt(grip.dataset.gripId);
+        dragEl = findCardEl(grip);
+        if (!dragEl) { dragCardId = null; return; }
+
+        startY = e.clientY;
+        dragEl.classList.add('spine-dragging');
+
+        // Create ghost overlay
+        ghostEl = document.createElement('div');
+        ghostEl.style.cssText = 'position:fixed;pointer-events:none;z-index:9999;opacity:0.85;border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,0.18);background:var(--bg-surface);padding:0.75rem 1rem;font-size:0.85rem;color:var(--text-primary);max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+        const title = dragEl.querySelector('.spine-section-title,.spine-card-title,.spine-edit-sec-title,.spine-edit-card-title');
+        ghostEl.textContent = title ? (title.value || title.textContent || 'Card') : 'Card';
+        document.body.appendChild(ghostEl);
+        ghostEl.style.left = (e.clientX + 12) + 'px';
+        ghostEl.style.top = (e.clientY - 10) + 'px';
+
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+    });
+
+    function onDragMove(e) {
+        if (!dragEl) return;
+        // Move ghost
+        if (ghostEl) {
+            ghostEl.style.left = (e.clientX + 12) + 'px';
+            ghostEl.style.top = (e.clientY - 10) + 'px';
+        }
+
+        clearIndicators();
+
+        // Find card under cursor
+        const allEls = getAllCardEls();
+        let hoverEl = null;
+        for (const el of allEls) {
+            if (el === dragEl) continue;
+            const rect = el.getBoundingClientRect();
+            if (e.clientY >= rect.top && e.clientY <= rect.bottom && e.clientX >= rect.left && e.clientX <= rect.right) {
+                hoverEl = el;
+                break;
+            }
+        }
+
+        if (hoverEl) {
+            const rect = hoverEl.getBoundingClientRect();
+            const relY = (e.clientY - rect.top) / rect.height;
+            const isSection = hoverEl.classList.contains('spine-section-row');
+
+            if (relY < 0.3) {
+                hoverEl.classList.add('spine-drop-above');
+            } else if (relY > 0.7) {
+                hoverEl.classList.add('spine-drop-below');
+            } else if (!isSection) {
+                // Center zone = nest (only for non-section cards)
+                hoverEl.classList.add('spine-drop-nest');
+            } else {
+                hoverEl.classList.add('spine-drop-below');
+            }
+        }
+    }
+
+    function onDragEnd(e) {
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+
+        if (!dragEl || !dragCardId) {
+            cleanup();
+            return;
+        }
+
+        // Find what we dropped on
+        const allEls = getAllCardEls();
+        let dropEl = null;
+        for (const el of allEls) {
+            if (el === dragEl) continue;
+            if (el.classList.contains('spine-drop-above') || el.classList.contains('spine-drop-below') || el.classList.contains('spine-drop-nest')) {
+                dropEl = el;
+                break;
+            }
+        }
+
+        if (dropEl) {
+            const dropCardId = parseInt(dropEl.dataset.cardId);
+            const isNest = dropEl.classList.contains('spine-drop-nest');
+            const isAbove = dropEl.classList.contains('spine-drop-above');
+
+            if (isNest) {
+                // Nest: set cc_parent_card_id
+                const card = (_spineCards || []).find(c => c.cc_id === dragCardId);
+                if (card) {
+                    card.cc_parent_card_id = dropCardId;
+                    _spinePendingReorders.push({ ccId: dragCardId, fields: { cc_parent_card_id: dropCardId } });
+                    console.log('[DnD] Nested card', dragCardId, 'into', dropCardId);
+                }
+            } else {
+                // Reorder: insert dragCard before or after dropCard
+                const topCards = (_spineCards || []).filter(c => !c.cc_parent_card_id && c.cc_active !== false).sort((a, b) => a.cc_order - b.cc_order);
+                const dragIdx = topCards.findIndex(c => c.cc_id === dragCardId);
+                const dropIdx = topCards.findIndex(c => c.cc_id === dropCardId);
+
+                if (dragIdx !== -1 && dropIdx !== -1 && dragIdx !== dropIdx) {
+                    // Remove drag card from array
+                    const [moved] = topCards.splice(dragIdx, 1);
+                    // Insert at new position
+                    let insertAt = topCards.findIndex(c => c.cc_id === dropCardId);
+                    if (!isAbove) insertAt += 1;
+                    topCards.splice(insertAt, 0, moved);
+
+                    // Reassign cc_order values
+                    topCards.forEach((c, i) => {
+                        c.cc_order = i + 1;
+                        _spinePendingReorders.push({ ccId: c.cc_id, newOrder: c.cc_order });
+                    });
+                    console.log('[DnD] Reordered', topCards.length, 'cards');
+                }
+            }
+
+            // Re-render with new order
+            renderSpineCards();
+            setupSpineEditToggle();
+            if (isSpineEditMode) { isSpineEditMode = false; document.getElementById('spine-edit-toggle')?.click(); }
+        }
+
+        cleanup();
+    }
+
+    function cleanup() {
+        clearIndicators();
+        if (dragEl) dragEl.classList.remove('spine-dragging');
+        if (ghostEl) { ghostEl.remove(); ghostEl = null; }
+        dragEl = null;
+        dragCardId = null;
+    }
+};
 
 
 
