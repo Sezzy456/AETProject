@@ -475,7 +475,7 @@ window.fetchPendingApprovals = async function() {
             .from('memo_pending_change')
             .select('*')
             .eq('mpc_status', 'pending')
-            .order('created_at', { ascending: false });
+            .order('mpc_created', { ascending: false });
         if (error) {
             console.error('[Supabase] Error fetching pending approvals:', error);
             return [];
@@ -495,7 +495,7 @@ window.approvePendingChange = async function(mpcId, finalData, status = 'edited_
             .update({
                 mpc_status: status,
                 mpc_final_data: finalData,
-                updated_at: new Date().toISOString()
+                mpc_reviewed_at: new Date().toISOString()
             })
             .eq('mpc_id', mpcId);
         if (error) {

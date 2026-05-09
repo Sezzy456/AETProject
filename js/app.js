@@ -3266,10 +3266,10 @@ window.renderApprovals = window._doRenderApprovals = async function() {
                             Action: ${app.mpc_action}
                         </div>
                         <div style="font-size:0.8rem; color:var(--text-tertiary);">
-                            Source: ${app.mpc_source} | Created: ${new Date(app.created_at).toLocaleString()}
+                            Source: ${app.mpc_source} | Created: ${new Date(app.mpc_created).toLocaleString()}
                         </div>
                     </div>
-                    <span class="approval-badge">${app.mpc_table_name}</span>
+                    <span class="approval-badge">${app.mpc_target_table}</span>
                 </div>
                 
                 <div class="approval-field">
