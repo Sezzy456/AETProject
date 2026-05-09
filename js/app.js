@@ -3371,6 +3371,10 @@ window.addEventListener('wheel', (e) => {
 
 // ── APPROVALS (memo_pending_change) ──────────────────────────────────────────
 
+window._pendingApprovals = [];
+window._approvalEditMode = false;
+window.currentApprovalId = null;
+
 window.renderApprovals = window._doRenderApprovals = async function() {
     const container = document.getElementById('approvals-list-container');
     if (!container) return;
@@ -3382,54 +3386,201 @@ window.renderApprovals = window._doRenderApprovals = async function() {
 
     try {
         const approvals = await window.fetchPendingApprovals();
-        if (!approvals || approvals.length === 0) {
-            container.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:4rem 2rem; color:var(--text-tertiary); text-align:center;">
-                <span class="material-symbols-outlined" style="font-size:3rem; margin-bottom:1rem; opacity:0.5;">check_circle</span>
-                <p>No pending approvals. Inbox zero!</p>
-            </div>`;
-            return;
-        }
-
-        let html = '';
-        approvals.forEach(app => {
-            const proposedStr = typeof app.mpc_proposed_data === 'string' 
-                ? app.mpc_proposed_data 
-                : JSON.stringify(app.mpc_proposed_data, null, 2);
-                
-            html += `
-            <div class="approval-card" id="approval-card-${app.mpc_id}">
-                <div style="display:flex; justify-content:space-between; margin-bottom:1rem; align-items:flex-start;">
-                    <div>
-                        <div style="font-size:1.1rem; font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">
-                            Action: ${app.mpc_action}
-                        </div>
-                        <div style="font-size:0.8rem; color:var(--text-tertiary);">
-                            Source: ${app.mpc_source} | Created: ${new Date(app.created_at).toLocaleString()}
-                        </div>
-                    </div>
-                    <span class="approval-badge">${app.mpc_table_name}</span>
-                </div>
-                
-                <div class="approval-field">
-                    <label>Proposed Data (AI Extraction)</label>
-                    <textarea id="app-proposed-${app.mpc_id}" rows="6" class="json-view" spellcheck="false">${proposedStr}</textarea>
-                </div>
-                
-                <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.25rem;">
-                    <button class="btn-secondary" onclick="window.rejectApproval('${app.mpc_id}')" style="color:#ef4444; border-color:#ef4444;">
-                        Reject
-                    </button>
-                    <button class="btn-primary" onclick="window.saveAndApproveApproval('${app.mpc_id}')">
-                        Save & Approve
-                    </button>
-                </div>
-            </div>`;
-        });
-        container.innerHTML = html;
+        window._pendingApprovals = approvals;
+        window.renderApprovalsList();
     } catch (err) {
         console.error('Error rendering approvals:', err);
         container.innerHTML = `<div style="padding:2rem; color:#ef4444;">Error loading approvals. Check console.</div>`;
     }
+};
+
+window.renderApprovalsList = function() {
+    const container = document.getElementById('approvals-list-container');
+    if (!container) return;
+    
+    // Ensure detail container is hidden and list is shown
+    let detailContainer = document.getElementById('approvals-detail-container');
+    if (detailContainer) detailContainer.style.display = 'none';
+    container.style.display = 'flex';
+
+    if (!window._pendingApprovals || window._pendingApprovals.length === 0) {
+        container.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:4rem 2rem; color:var(--text-tertiary); text-align:center;">
+            <span class="material-symbols-outlined" style="font-size:3rem; margin-bottom:1rem; opacity:0.5;">check_circle</span>
+            <p>No pending approvals. Inbox zero!</p>
+        </div>`;
+        return;
+    }
+
+    let html = '';
+    window._pendingApprovals.forEach(app => {
+        html += `
+        <div class="approval-card" onclick="window.viewApproval('${app.mpc_id}')" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <div style="font-size:1.1rem; font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">
+                    ${app.mpc_action}
+                </div>
+                <div style="font-size:0.8rem; color:var(--text-tertiary);">
+                    Source: ${app.mpc_source} | Created: ${new Date(app.mpc_created).toLocaleString()}
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap: 1rem;">
+                <span class="approval-badge">${app.mpc_target_table}</span>
+                <span class="material-symbols-outlined" style="color:var(--text-tertiary);">chevron_right</span>
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+};
+
+window.viewApproval = function(mpcId) {
+    window.currentApprovalId = mpcId;
+    window._approvalEditMode = false;
+    window.renderApprovalDetail();
+};
+
+window.renderApprovalDetail = function() {
+    const app = window._pendingApprovals.find(a => a.mpc_id === window.currentApprovalId);
+    if (!app) return;
+    
+    let detailContainer = document.getElementById('approvals-detail-container');
+    if (!detailContainer) {
+        detailContainer = document.createElement('div');
+        detailContainer.id = 'approvals-detail-container';
+        detailContainer.style.display = 'flex';
+        detailContainer.style.flexDirection = 'column';
+        detailContainer.style.gap = '1rem';
+        const parent = document.getElementById('appr-view-ai');
+        if (parent) parent.appendChild(detailContainer);
+        else return;
+    }
+    
+    const listContainer = document.getElementById('approvals-list-container');
+    if (listContainer) listContainer.style.display = 'none';
+    detailContainer.style.display = 'flex';
+
+    const isEdit = window._approvalEditMode;
+
+    const renderProposedDataForm = (app, readOnly = false) => {
+        let data = {};
+        try {
+            data = typeof app.mpc_proposed_data === 'string' ? JSON.parse(app.mpc_proposed_data || '{}') : (app.mpc_proposed_data || {});
+        } catch(e) {}
+        const table = app.mpc_target_table;
+        
+        const field = (key, label, type='text') => {
+            const val = data[key] || '';
+            const baseStyle = "width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: rgba(255,255,255,0.05); color: var(--text-primary); font-family: inherit;";
+            
+            if (readOnly) {
+                return `<div style="margin-bottom: 0.75rem;">
+                    <label style="display:block; font-size:0.8rem; margin-bottom:0.25rem; color:var(--text-tertiary);">${label}</label>
+                    <div style="padding: 0.5rem 0; color: var(--text-primary); font-size: 0.95rem;">${val || '<span style="color:var(--text-tertiary);font-style:italic;">—</span>'}</div>
+                </div>`;
+            }
+
+            if (type === 'textarea') {
+                return `<div style="margin-bottom: 0.75rem;"><label style="display:block; font-size:0.8rem; margin-bottom:0.25rem; color:var(--text-tertiary);">${label}</label><textarea data-key="${key}" rows="2" style="${baseStyle} resize: vertical;">${val}</textarea></div>`;
+            }
+            return `<div style="margin-bottom: 0.75rem;"><label style="display:block; font-size:0.8rem; margin-bottom:0.25rem; color:var(--text-tertiary);">${label}</label><input type="${type}" data-key="${key}" value="${val}" style="${baseStyle}"></div>`;
+        };
+
+        const section = (title, content) => `
+            <div style="margin-top: 1rem; border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; background: rgba(0,0,0,0.15);">
+                <h4 style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-tertiary); margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">${title}</h4>
+                ${content}
+            </div>
+        `;
+        
+        const row = (content) => `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">${content}</div>`;
+
+        if (table === 'tbl_action') {
+            return `<div id="${readOnly ? '' : 'app-form-' + app.mpc_id}">
+                ${section('Definition', field('description', 'Description', 'textarea'))}
+                ${section('Impact', 
+                    row(field('status', 'Status') + field('priority', 'Priority')) +
+                    row(field('desired_outcome', 'Desired Outcome') + field('success_criteria', 'Success Criteria'))
+                )}
+                ${section('Logistics', row(field('start_date', 'Start Date', 'date') + field('due_date', 'Due Date', 'date')))}
+                ${section('Version Control', row(field('recent_progress', 'Recent Progress', 'textarea') + field('current_blockers', 'Current Blockers', 'textarea')))}
+                ${section('Other', field('note', 'Note', 'textarea'))}
+            </div>`;
+        } else if (table === 'tbl_stakeholder') {
+            return `<div id="${readOnly ? '' : 'app-form-' + app.mpc_id}">
+                ${section('Definition', row(field('name', 'Name') + field('role', 'Role')))}
+                ${section('Posture', 
+                    row(field('posture_current', 'Current Posture') + field('posture_desired', 'Desired Posture')) +
+                    row(field('posture_next_step', 'Next Step') + field('posture_target_date', 'Target Date', 'date'))
+                )}
+            </div>`;
+        } else if (table === 'tbl_contact') {
+            return `<div id="${readOnly ? '' : 'app-form-' + app.mpc_id}">
+                ${section('Profile', row(field('first_name', 'First Name') + field('last_name', 'Last Name')))}
+                ${section('Contact Info', 
+                    row(field('email', 'Email', 'email') + field('phone', 'Phone', 'tel')) +
+                    field('organisation', 'Organisation')
+                )}
+                ${section('Other', field('notes', 'Notes', 'textarea'))}
+            </div>`;
+        } else if (table === 'tbl_risk') {
+            return `<div id="${readOnly ? '' : 'app-form-' + app.mpc_id}">
+                ${section('Risk Details', field('type', 'Type / Description', 'textarea') + row(field('severity', 'Severity (1-5)', 'number') + field('resolved_date', 'Resolved Date', 'date')))}
+            </div>`;
+        } else if (table === 'tbl_interaction') {
+            return `<div id="${readOnly ? '' : 'app-form-' + app.mpc_id}">
+                ${section('Interaction Details', row(field('purpose', 'Purpose') + field('date', 'Date', 'date')))}
+                ${section('Outcome', field('outcome_notes', 'Outcome Notes', 'textarea') + row(field('outcome_score', 'Outcome Score (1-5)', 'number') + field('follow_up_date', 'Follow Up Date', 'date')))}
+            </div>`;
+        }
+
+        let genericFields = '';
+        for (const k in data) {
+            genericFields += field(k, k.replace(/_/g, ' '), typeof data[k] === 'string' && data[k].length > 40 ? 'textarea' : 'text');
+        }
+        return `<div id="${readOnly ? '' : 'app-form-' + app.mpc_id}">${section('Properties', genericFields || '<p style="color:var(--text-tertiary); font-size:0.9rem;">No fields extracted.</p>')}</div>`;
+    };
+
+    detailContainer.innerHTML = `
+        <div style="margin-bottom: 1rem;">
+            <button class="btn-secondary" onclick="window.renderApprovalsList()" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                ← Back to List
+            </button>
+        </div>
+        
+        <div class="approval-card" style="cursor:default;" id="approval-card-${app.mpc_id}">
+            <div style="display:flex; justify-content:space-between; margin-bottom:1rem; align-items:flex-start;">
+                <div>
+                    <div style="font-size:1.2rem; font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">
+                        ${app.mpc_action}
+                    </div>
+                    <div style="font-size:0.85rem; color:var(--text-tertiary);">
+                        Source: ${app.mpc_source} | Target: ${app.mpc_target_table}
+                    </div>
+                </div>
+                ${!isEdit ? 
+                    `<button class="btn-primary" onclick="window._approvalEditMode = true; window.renderApprovalDetail();" style="display:flex; align-items:center; gap:0.4rem; padding: 0.5rem 1rem;">
+                        <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit / Merge
+                    </button>` : 
+                    `<button class="btn-secondary" onclick="window._approvalEditMode = false; window.renderApprovalDetail();" style="display:flex; align-items:center; gap:0.4rem; padding: 0.5rem 1rem;">
+                        Cancel Edit
+                    </button>`
+                }
+            </div>
+            
+            <div class="approval-field">
+                <label style="margin-top: 1rem;">Proposed Data (AI Extraction)</label>
+                ${renderProposedDataForm(app, !isEdit)}
+            </div>
+            
+            <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--border-subtle);">
+                <button class="btn-secondary" onclick="window.rejectApproval('${app.mpc_id}')" style="color:#ef4444; border-color:#ef4444;">
+                    Reject
+                </button>
+                <button class="btn-primary" onclick="window.saveAndApproveApproval('${app.mpc_id}')">
+                    ${isEdit ? 'Save & Approve' : 'Approve (As Is)'}
+                </button>
+            </div>
+        </div>
+    `;
 };
 
 window.rejectApproval = async function(mpcId) {
@@ -3439,12 +3590,8 @@ window.rejectApproval = async function(mpcId) {
     
     const success = await window.approvePendingChange(mpcId, null, 'rejected');
     if (success) {
-        if (card) card.remove();
-        // check if empty
-        const container = document.getElementById('approvals-list-container');
-        if (container && container.children.length === 0) {
-            window.renderApprovals();
-        }
+        window._pendingApprovals = window._pendingApprovals.filter(a => a.mpc_id !== mpcId);
+        window.renderApprovalsList();
     } else {
         alert('Failed to reject. Check console for errors.');
         if (card) card.style.opacity = '1';
@@ -3452,28 +3599,30 @@ window.rejectApproval = async function(mpcId) {
 };
 
 window.saveAndApproveApproval = async function(mpcId) {
-    const textarea = document.getElementById(`app-proposed-${mpcId}`);
-    if (!textarea) return;
-    
-    let finalData;
-    try {
-        finalData = JSON.parse(textarea.value);
-    } catch (e) {
-        alert('Invalid JSON. Please fix formatting before approving.\n\nError: ' + e.message);
-        return;
+    let finalData = {};
+    const app = (window._pendingApprovals || []).find(a => a.mpc_id === mpcId);
+    if (!app) return;
+
+    const formContainer = document.getElementById(`app-form-${mpcId}`);
+    if (formContainer && window._approvalEditMode) {
+        const inputs = formContainer.querySelectorAll('[data-key]');
+        inputs.forEach(input => {
+            const key = input.getAttribute('data-key');
+            let val = input.value;
+            if (input.type === 'number' && val) val = parseFloat(val);
+            finalData[key] = val;
+        });
+    } else {
+        finalData = typeof app.mpc_proposed_data === 'string' ? JSON.parse(app.mpc_proposed_data || '{}') : (app.mpc_proposed_data || {});
     }
     
     const card = document.getElementById(`approval-card-${mpcId}`);
     if (card) card.style.opacity = '0.5';
     
-    const success = await window.approvePendingChange(mpcId, finalData, 'edited_then_approved');
+    const success = await window.approvePendingChange(mpcId, finalData, window._approvalEditMode ? 'edited_then_approved' : 'approved');
     if (success) {
-        if (card) card.remove();
-        // check if empty
-        const container = document.getElementById('approvals-list-container');
-        if (container && container.children.length === 0) {
-            window.renderApprovals();
-        }
+        window._pendingApprovals = window._pendingApprovals.filter(a => a.mpc_id !== mpcId);
+        window.renderApprovalsList();
     } else {
         alert('Failed to approve. Check console for errors.');
         if (card) card.style.opacity = '1';
