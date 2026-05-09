@@ -425,28 +425,24 @@ function renderStakeholders() {
         const ownersHtml = owners.map(o => `<span style="margin-left:0.5rem; display:inline-flex; align-items:center; gap:0.25rem;"><span class="material-symbols-outlined" style="font-size:1rem; color:var(--text-tertiary);">person</span>${o}</span>`).join('');
 
         let statusColor = 'var(--text-secondary)', statusBg = 'rgba(0,0,0,0.05)';
-        if (s.status === 'Needs Attention') { statusColor = 'var(--energy-alert)'; statusBg = 'rgba(239, 68, 68, 0.2)'; }
-        else if (s.status === 'Monitor') { statusColor = 'var(--energy-mid)'; statusBg = 'rgba(245, 158, 11, 0.2)'; }
-        else if (s.status === 'Active') { statusBg = 'rgba(0,0,0,0.1)'; }
+        if (s.status === 'Needs Attention') { statusColor = 'var(--energy-alert)'; statusBg = 'rgba(239, 68, 68, 0.15)'; }
+        else if (s.status === 'Monitor') { statusColor = 'var(--energy-mid)'; statusBg = 'rgba(245, 158, 11, 0.15)'; }
+        else if (s.status === 'Active') { statusColor = 'var(--energy-algae)'; statusBg = 'rgba(52, 211, 153, 0.12)'; }
+        else if (s.status === 'Operational') { statusBg = 'rgba(0,0,0,0.06)'; }
+
+        // Find last interaction for this stakeholder
+        const allInteractions = window.getData('interactions') || [];
+        const linkedInt = allInteractions.find(i => i.stakeholder === s.name || i.stakeholder === s.id);
+        const lastIntDate = linkedInt ? (linkedInt.rawDate || linkedInt.date || '') : '';
+        const lastIntContact = linkedInt && linkedInt.attendees ? linkedInt.attendees[0] || '' : '';
 
         card.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
-                <h3 style="margin:0; font-size:1.2rem; color:var(--text-primary);">${s.name}</h3>
-                <div style="font-size:0.85rem; color:var(--text-secondary);">${ownersHtml}</div>
-            </div>
-            <div style="display:flex; flex-direction:column; gap:0.5rem; font-size:0.9rem;">
-                <div style="display:flex; align-items:center; gap:1rem;">
-                    <span style="color:var(--text-tertiary); width:60px; text-align:right;">Status:</span>
-                    <span style="background:${statusBg}; color:${statusColor}; padding:0.1rem 0.5rem; border-radius:4px; font-weight:600; font-size:0.8rem;">${s.status}</span>
-                </div>
-                <div style="display:flex; align-items:center; gap:1rem;">
-                    <span style="color:var(--text-tertiary); width:60px; text-align:right;">Role:</span>
-                    <span style="color:#3b82f6;">${s.role}</span>
-                </div>
-                <div style="display:flex; gap:1rem;">
-                    <span style="color:var(--text-tertiary); width:60px; text-align:right;">Strategy:</span>
-                    <span style="font-style:italic; color:var(--text-secondary); flex:1;">"${s.narrativeHook || ''}"</span>
-                </div>
+            <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+                <h3 style="margin:0; font-size:1.05rem; color:var(--text-primary); flex-shrink:0;">${s.name}</h3>
+                <span style="background:${statusBg}; color:${statusColor}; padding:0.15rem 0.6rem; border-radius:4px; font-weight:600; font-size:0.78rem; white-space:nowrap;">${s.status}</span>
+                <span style="color:#3b82f6; font-size:0.85rem; white-space:nowrap;">${s.role || ''}</span>
+                ${s.owner ? `<span style="display:inline-flex; align-items:center; gap:0.2rem; font-size:0.82rem; color:var(--text-tertiary); white-space:nowrap;"><span class="material-symbols-outlined" style="font-size:0.9rem;">person</span>${s.owner}</span>` : ''}
+                ${lastIntContact ? `<span style="font-size:0.8rem; color:var(--text-tertiary); white-space:nowrap; margin-left:auto;">Last: ${lastIntContact}${lastIntDate ? ' · ' + lastIntDate : ''}</span>` : ''}
             </div>
         `;
         container.appendChild(card);
@@ -662,18 +658,72 @@ function renderStakeholderDetail() {
         if (friction) friction.innerHTML = (s.relationships.frictionPoints || []).map(t => `<li>${t}</li>`).join('') || '-';
     }
 
-    // Audience Message from KB
-    const kb = window.getData('knowledgeBank');
-    if (kb && kb.audienceMessages) {
-        const audMsg = kb.audienceMessages.find(a => a.title === s.name);
-        if (audMsg) {
-            setTxt('view-kb-audience-title', audMsg.title);
-            setTxt('view-kb-audience-text', audMsg.text);
+    // Audience Message from sta_audience_message (direct DB field)
+    const audContainer = document.getElementById('audience-msg-container');
+    if (audContainer) {
+        if (s.audienceMessage && s.audienceMessage.trim()) {
+            audContainer.innerHTML = `
+                <div class="sdet-card" id="aud-msg-card">
+                    <div style="display:flex; align-items:center; gap:0.5rem; color:#3b82f6; font-weight:600; margin-bottom:1rem;">
+                        <span class="material-symbols-outlined">groups</span> ${s.name}
+                    </div>
+                    <p id="aud-msg-text" style="font-size:0.9rem; line-height:1.5; color:var(--text-primary); margin:0;">${s.audienceMessage}</p>
+                    <div style="margin-top:1rem; display:flex; justify-content:flex-end;">
+                        <button class="btn-secondary" style="font-size:0.75rem; padding:0.25rem 0.6rem;" onclick="window._editAudienceMsg()">
+                            <span class="material-symbols-outlined" style="font-size:0.9rem; vertical-align:middle;">edit</span> Edit
+                        </button>
+                    </div>
+                </div>`;
         } else {
-            setTxt('view-kb-audience-title', 'Specific Audience Messages');
-            setTxt('view-kb-audience-text', '(No tailored message in Knowledge Bank mapping to this stakeholder.)');
+            audContainer.innerHTML = `
+                <button class="btn-secondary" onclick="window._editAudienceMsg()" style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.85rem; padding:0.5rem 1rem;">
+                    <span class="material-symbols-outlined" style="font-size:1rem;">add</span> Add audience specific message
+                </button>`;
         }
     }
+
+    // Inline audience message edit handler
+    window._editAudienceMsg = function () {
+        if (!audContainer) return;
+        const current = s.audienceMessage || '';
+        audContainer.innerHTML = `
+            <div class="sdet-card">
+                <div style="display:flex; align-items:center; gap:0.5rem; color:#3b82f6; font-weight:600; margin-bottom:0.75rem;">
+                    <span class="material-symbols-outlined">groups</span> ${s.name}
+                </div>
+                <textarea id="aud-msg-edit" style="width:100%; min-height:120px; padding:0.75rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-family:inherit; font-size:0.9rem; line-height:1.5; resize:vertical;">${current}</textarea>
+                <div style="margin-top:0.75rem; display:flex; justify-content:flex-end; gap:0.5rem;">
+                    <button class="btn-secondary" onclick="window._cancelAudienceMsg()" style="font-size:0.78rem;">Cancel</button>
+                    <button class="btn-primary" id="aud-msg-save-btn" onclick="window._saveAudienceMsg()" style="font-size:0.78rem;">Save</button>
+                </div>
+            </div>`;
+    };
+
+    window._cancelAudienceMsg = function () {
+        renderStakeholderDetail();
+    };
+
+    window._saveAudienceMsg = async function () {
+        const ta = document.getElementById('aud-msg-edit');
+        const btn = document.getElementById('aud-msg-save-btn');
+        if (!ta || !btn) return;
+        const newMsg = ta.value.trim();
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined spin" style="font-size:0.9rem;">autorenew</span> Saving...';
+        try {
+            if (window._sb) {
+                await window._sb.from('tbl_stakeholder')
+                    .update({ sta_audience_message: newMsg })
+                    .eq('sta_id', s._dbId);
+            }
+            s.audienceMessage = newMsg;
+            renderStakeholderDetail();
+        } catch (e) {
+            console.error('[Stakeholder] Save audience msg error:', e);
+            btn.disabled = false;
+            btn.textContent = 'Save';
+        }
+    };
 
     // Linked Actions
     const actContainer = document.getElementById('stakeholder-actions-container');
@@ -964,12 +1014,43 @@ window.filterActions = function () {
     const statusF = document.getElementById('act-filter-status')?.value || '';
     const ownerF = document.getElementById('act-filter-owner')?.value || '';
     const phaseF = document.getElementById('act-filter-phase')?.value || '';
+    const dueF = document.getElementById('act-filter-due')?.value || '';
 
     let actions = window.getData('actions') || [];
+
+    // Dynamic owner populate (once)
+    const ownerSel = document.getElementById('act-filter-owner');
+    if (ownerSel && ownerSel.options.length <= 1) {
+        const owners = [...new Set(actions.map(a => a.owner).filter(Boolean))].sort();
+        owners.forEach(o => {
+            const opt = document.createElement('option');
+            opt.value = o; opt.textContent = o;
+            ownerSel.appendChild(opt);
+        });
+    }
+
     if (search) actions = actions.filter(a => (a.activity || '').toLowerCase().includes(search) || (a.description || '').toLowerCase().includes(search));
     if (statusF) actions = actions.filter(a => a.status === statusF);
     if (ownerF) actions = actions.filter(a => (a.owner || '').includes(ownerF));
     if (phaseF) actions = actions.filter(a => a.phase === phaseF);
+
+    // Due date filter
+    if (dueF) {
+        const now = new Date(); now.setHours(0,0,0,0);
+        if (dueF === 'overdue') {
+            actions = actions.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate + 'T00:00:00') < now && a.status !== 'Completed');
+        } else if (dueF === 'none') {
+            actions = actions.filter(a => !a.timing?.dueDate);
+        } else {
+            const days = parseInt(dueF);
+            const cutoff = new Date(now.getTime() + days * 86400000);
+            actions = actions.filter(a => {
+                if (!a.timing?.dueDate) return false;
+                const d = new Date(a.timing.dueDate + 'T00:00:00');
+                return d >= now && d <= cutoff;
+            });
+        }
+    }
 
     // Sort
     if (_actSortMode === 'due') {
@@ -979,12 +1060,11 @@ window.filterActions = function () {
         actions.sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status));
     } else if (_actSortMode === 'owner') {
         actions.sort((a, b) => (a.owner || '').localeCompare(b.owner || ''));
-    }
-
-    const sortLabel = document.getElementById('act-sort-label');
-    if (sortLabel) {
-        const sortNames = { due: 'Due Date ↑', status: 'Status', owner: 'Owner A–Z' };
-        sortLabel.textContent = sortNames[_actSortMode] || '';
+    } else if (_actSortMode === 'priority') {
+        const order = ['ASAP', 'High', 'Medium', 'Low', ''];
+        actions.sort((a, b) => order.indexOf(a.priority || '') - order.indexOf(b.priority || ''));
+    } else if (_actSortMode === 'name') {
+        actions.sort((a, b) => (a.activity || '').localeCompare(b.activity || ''));
     }
 
     _actRenderList(actions);
@@ -992,20 +1072,28 @@ window.filterActions = function () {
     _actRenderGantt(actions);
 };
 
+window.setSortMode = function (mode) {
+    _actSortMode = mode;
+    window.filterActions();
+};
+
+// Legacy alias
 window.cycleActionsSort = function () {
     const modes = ['due', 'status', 'owner'];
     _actSortMode = modes[(modes.indexOf(_actSortMode) + 1) % modes.length];
+    const sel = document.getElementById('act-sort-select');
+    if (sel) sel.value = _actSortMode;
     window.filterActions();
 };
 
 window.toggleActionsFilter = function () {
     _actFilterOpen = !_actFilterOpen;
     const panel = document.getElementById('act-filter-panel');
-    if (panel) panel.style.display = _actFilterOpen ? 'flex' : 'none';
+    if (panel) panel.style.display = _actFilterOpen ? 'block' : 'none';
 };
 
 window.clearActionsFilters = function () {
-    ['act-filter-status', 'act-filter-owner', 'act-filter-phase'].forEach(id => {
+    ['act-filter-status', 'act-filter-owner', 'act-filter-phase', 'act-filter-due'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
     });
@@ -1601,14 +1689,20 @@ function renderActionDetail() {
     }
 
     const ownEl = document.getElementById('adet-owner-chips');
+    const ownerCircle = document.getElementById('adet-owner-circle');
+    const owners = a.owner ? a.owner.split('+').map(o => o.trim()).filter(Boolean) : [];
     if (ownEl) {
-        const owners = a.owner ? a.owner.split('+').map(o => o.trim()).filter(Boolean) : [];
         ownEl.innerHTML = owners.length > 0
             ? owners.map(o => {
                 const clr = _adetOwnerColors[o] || '#6b7280';
                 return `<span class="adet-owner-chip" style="background:${clr};">👤 ${o}</span>`;
             }).join('')
             : '<span class="adet-chip-empty">—</span>';
+    }
+    if (ownerCircle) {
+        const initials = owners.length > 0 ? owners[0].split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() : '?';
+        ownerCircle.textContent = initials;
+        ownerCircle.title = owners.join(', ') || 'No owner';
     }
 
     // ── Impact: Objective link ──
@@ -1769,6 +1863,49 @@ function renderActionDetail() {
               </div>`).join('')
             : '<span class="adet-chip-empty" style="padding:0.5rem 0;">No to-do items added.</span>';
     }
+
+    // Show/hide todo section
+    const todoSection = document.getElementById('adet-todo-section');
+    if (todoSection) todoSection.style.display = todos.length > 0 ? '' : 'none';
+
+    // Progress form handlers
+    window.adetShowProgressForm = function () {
+        const form = document.getElementById('adet-progress-form');
+        const btn = document.getElementById('adet-add-progress-btn');
+        if (form) form.style.display = '';
+        if (btn) btn.style.display = 'none';
+    };
+    window.adetHideProgressForm = function () {
+        const form = document.getElementById('adet-progress-form');
+        const btn = document.getElementById('adet-add-progress-btn');
+        if (form) form.style.display = 'none';
+        if (btn) btn.style.display = '';
+        const input = document.getElementById('adet-progress-input');
+        if (input) input.value = '';
+    };
+    window.adetSaveProgress = async function () {
+        const input = document.getElementById('adet-progress-input');
+        const saveBtn = document.getElementById('adet-progress-save-btn');
+        if (!input || !saveBtn) return;
+        const note = input.value.trim();
+        if (!note) return;
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="material-symbols-outlined spin" style="font-size:0.9rem;">autorenew</span> Saving...';
+        try {
+            a.versionControl = a.versionControl || {};
+            a.versionControl.recentProgress = note;
+            if (window._sb) {
+                // For prototype, store in version_control jsonb
+                await window._sb.from('tbl_action').update({ act_version_control: a.versionControl }).eq('act_id', a._dbId);
+            }
+            window.adetHideProgressForm();
+            renderActionDetail();
+        } catch (e) {
+            console.error('[ActionDetail] Save progress error:', e);
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save';
+        }
+    };
 
     // ── Version Control ──
     const vc = a.versionControl || {};

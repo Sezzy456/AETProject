@@ -22,42 +22,59 @@
     <button class="btn-secondary" id="act-filter-btn" onclick="window.toggleActionsFilter()" style="display:flex; align-items:center; gap:0.4rem; font-size:0.875rem; padding:0.4rem 0.9rem;">
         <span class="material-symbols-outlined" style="font-size:1rem;">filter_list</span> Filters
     </button>
-    <button class="btn-secondary" id="act-sort-btn" onclick="window.cycleActionsSort()" style="display:flex; align-items:center; gap:0.4rem; font-size:0.875rem; padding:0.4rem 0.9rem;">
-        <span class="material-symbols-outlined" style="font-size:1rem;">sort</span> Sorting
-    </button>
-    <span id="act-sort-label" style="font-size:0.8rem; color:var(--text-tertiary);"></span>
+    <div style="display:flex; align-items:center; gap:0.4rem;">
+        <span class="material-symbols-outlined" style="font-size:1rem; color:var(--text-tertiary);">sort</span>
+        <select id="act-sort-select" onchange="window.setSortMode(this.value)" style="padding:0.35rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-primary); border-radius:6px; font-size:0.8rem; font-family:inherit; cursor:pointer;">
+            <option value="due">Due Date ↑</option>
+            <option value="status">Status</option>
+            <option value="owner">Owner A–Z</option>
+            <option value="priority">Priority</option>
+            <option value="name">Name A–Z</option>
+        </select>
+    </div>
 </div>
 
 <!-- Filter Panel (hidden by default) -->
-<div id="act-filter-panel" style="display:none; background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; padding:1rem; margin-bottom:1.25rem; display:flex; gap:1.5rem; flex-wrap:wrap; align-items:flex-end;">
-    <div>
-        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--text-tertiary); margin-bottom:0.3rem;">STATUS</label>
-        <select id="act-filter-status" onchange="window.filterActions()" style="padding:0.35rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
-            <option value="">All</option>
-            <option>Pending</option>
-            <option>Planned</option>
-            <option>In Progress</option>
-            <option>Completed</option>
-        </select>
+<div id="act-filter-panel" style="display:none; background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; padding:1rem; margin-bottom:1.25rem;">
+    <div style="display:flex; gap:1.5rem; flex-wrap:wrap; align-items:flex-end;">
+        <div>
+            <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--text-tertiary); margin-bottom:0.3rem;">STATUS</label>
+            <select id="act-filter-status" onchange="window.filterActions()" style="padding:0.35rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                <option value="">All</option>
+                <option>Pending</option>
+                <option>Planned</option>
+                <option>In Progress</option>
+                <option>Completed</option>
+            </select>
+        </div>
+        <div>
+            <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--text-tertiary); margin-bottom:0.3rem;">OWNER</label>
+            <select id="act-filter-owner" onchange="window.filterActions()" style="padding:0.35rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                <option value="">All</option>
+                <!-- Populated dynamically -->
+            </select>
+        </div>
+        <div>
+            <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--text-tertiary); margin-bottom:0.3rem;">DUE DATE</label>
+            <select id="act-filter-due" onchange="window.filterActions()" style="padding:0.35rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                <option value="">All</option>
+                <option value="overdue">Overdue</option>
+                <option value="7">Due ≤ 7 days</option>
+                <option value="14">Due ≤ 14 days</option>
+                <option value="30">Due ≤ 30 days</option>
+                <option value="none">No due date</option>
+            </select>
+        </div>
+        <div>
+            <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--text-tertiary); margin-bottom:0.3rem;">PHASE</label>
+            <select id="act-filter-phase" onchange="window.filterActions()" style="padding:0.35rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                <option value="">All</option>
+                <option>Phase 1</option>
+                <option>Phase 2</option>
+            </select>
+        </div>
+        <button class="btn-secondary" onclick="window.clearActionsFilters()" style="font-size:0.8rem; padding:0.35rem 0.8rem;">Clear</button>
     </div>
-    <div>
-        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--text-tertiary); margin-bottom:0.3rem;">OWNER</label>
-        <select id="act-filter-owner" onchange="window.filterActions()" style="padding:0.35rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
-            <option value="">All</option>
-            <option>AET</option>
-            <option>Vant</option>
-            <option>AET + Vant</option>
-        </select>
-    </div>
-    <div>
-        <label style="display:block; font-size:0.75rem; font-weight:600; color:var(--text-tertiary); margin-bottom:0.3rem;">PHASE</label>
-        <select id="act-filter-phase" onchange="window.filterActions()" style="padding:0.35rem 0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
-            <option value="">All</option>
-            <option>Phase 1</option>
-            <option>Phase 2</option>
-        </select>
-    </div>
-    <button class="btn-secondary" onclick="window.clearActionsFilters()" style="font-size:0.8rem; padding:0.35rem 0.8rem;">Clear</button>
 </div>
 
 <!-- View Tabs -->

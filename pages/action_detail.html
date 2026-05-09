@@ -4,95 +4,36 @@
 ============================================================ -->
 
 <!-- ── HEADER ─────────────────────────────────────────────── -->
-<div style="margin-bottom:2rem; display:flex; align-items:flex-start; justify-content:space-between;">
-    <div>
-        <button class="btn-secondary" onclick="loadView('actions')" style="height:32px; padding:0 0.75rem; font-size:0.8rem; margin-bottom:1rem;">← Back to Actions</button>
-        <span id="adet-breadcrumb" style="display:none;">...</span>
-        <h1 id="adet-title" class="adet-page-title" style="font-size:2rem;"></h1>
-        <div style="font-size:0.9rem; color:var(--text-secondary); display:flex; align-items:center; gap:0.5rem; margin-top:0.25rem;">
-            <span id="adet-status-badge" class="adet-status-badge-lg"></span>
+<div style="margin-bottom:2rem;">
+    <button class="btn-secondary" onclick="loadView('actions')" style="height:32px; padding:0 0.75rem; font-size:0.8rem; margin-bottom:1rem;">← Back to Actions</button>
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem;">
+        <div style="flex:1;">
+            <h1 id="adet-title" style="font-size:2rem; margin:0 0 0.25rem 0; color:var(--text-primary);"></h1>
+            <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+                <span id="adet-status-badge" class="adet-status-badge-lg"></span>
+            </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div id="adet-owner-circle" title="" style="width:42px; height:42px; border-radius:50%; background:var(--energy-algae); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem; cursor:default;"></div>
+            <button onclick="window.openActionDetailEdit()" class="btn-primary" style="display:inline-flex;align-items:center;gap:0.4rem;">
+                <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit
+            </button>
         </div>
     </div>
-    <button onclick="window.openActionDetailEdit()" class="btn-primary" style="display:inline-flex;align-items:center;gap:0.4rem; margin-top:2.5rem;">
-        <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit Action
-    </button>
 </div>
 
-<!-- ── DESCRIPTION (page level — grey label on side) ──────── -->
-<div style="display:flex; gap:1rem; align-items:flex-start; margin-bottom:1.5rem;">
-    <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem; padding-top:0.3rem;">Description:</div>
-    <p id="adet-description" class="adet-description-text" style="flex:1;"></p>
-</div>
-
-<!-- ── DEFINITION ──────────────────────────────────────────── -->
-<h3 class="adet-card-label">Definition</h3>
-<div class="adet-card" style="padding-top:1.25rem;">
-    <div style="display:flex; gap:1rem; align-items:flex-start; margin-bottom:1.25rem;">
+<!-- ── TARGET (title outside card) ─────────────────────────── -->
+<h3 class="adet-card-label">Target</h3>
+<div class="adet-card" style="padding:1.25rem;">
+    <div style="display:flex; gap:1rem; align-items:flex-start; margin-bottom:1rem;">
         <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem; padding-top:0.3rem;">Audience:</div>
         <div id="adet-audience" class="adet-chips-row" style="flex:1;"></div>
     </div>
-    <div style="display:flex; gap:1rem; align-items:flex-start;">
-        <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem; padding-top:0.3rem;">Owner(s):</div>
-        <div id="adet-owner-chips" class="adet-chips-row" style="flex:1;"></div>
-    </div>
-</div>
-
-<!-- ── IMPACT ──────────────────────────────────────────────── -->
-<h3 class="adet-card-label">Impact</h3>
-<div class="adet-card" style="padding-top:1.25rem;">
-
-    <!-- Linked Objective -->
-    <div style="display:flex; gap:1rem; align-items:flex-start; margin-bottom:1.25rem;">
-        <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem; padding-top:0.75rem;">Linked Objective:</div>
+    <div style="display:flex; gap:1rem; align-items:flex-start; margin-bottom:1rem;">
+        <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem; padding-top:0.75rem;">Objective:</div>
         <div id="adet-objective-link" class="adet-obj-block" style="flex:1;"></div>
     </div>
-
-    <!-- Status / Priority / Complexity / Tags row -->
-    <div class="adet-impact-meta-row">
-        <div class="adet-impact-meta-cell">
-            <div class="adet-fl">Status</div>
-            <div id="adet-status-selector" class="adet-status-pills-ro"></div>
-        </div>
-        <div class="adet-impact-meta-cell">
-            <div class="adet-fl">Priority</div>
-            <div id="adet-priority-pill" class="adet-priority-pill"></div>
-        </div>
-        <div class="adet-impact-meta-cell">
-            <div class="adet-fl">Complexity</div>
-            <div id="adet-complexity-dots" class="adet-complexity-dots"></div>
-        </div>
-        <div class="adet-impact-meta-cell adet-impact-meta-tags">
-            <div class="adet-fl">Tags</div>
-            <div id="adet-tags" class="adet-chips-row"></div>
-        </div>
-    </div>
-
-    <!-- Advanced Status Note -->
-    <div id="adet-adv-status-row" class="adet-adv-status-row" style="display:none;"></div>
-
-    <!-- Desired Outcome -->
-    <div style="display:flex; gap:1rem; align-items:flex-start; border-top:1px solid var(--border-subtle); padding-top:1.25rem; margin-top:0.75rem; margin-bottom:1.25rem;">
-        <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem; padding-top:0.3rem;">Desired Outcome:</div>
-        <div style="flex:1;">
-            <div id="adet-outcome-type-pill" class="adet-outcome-type-pill" style="margin-bottom:0.5rem;"></div>
-            <p id="adet-desired-outcome" class="adet-outcome-text"></p>
-            <div id="adet-outcome-linked-item" class="adet-outcome-linked-item" style="display:none;"></div>
-        </div>
-    </div>
-
-    <!-- Success Criteria -->
-    <div style="display:flex; gap:1rem; align-items:flex-start;">
-        <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem; padding-top:0.3rem;">Success Criteria:</div>
-        <p id="adet-success-criteria" class="adet-text-value" style="flex:1;"></p>
-    </div>
-</div>
-
-<!-- ── LOGISTICS ───────────────────────────────────────────── -->
-<h3 class="adet-card-label">Logistics</h3>
-<div class="adet-card" style="padding-top:1.25rem;">
-
-    <!-- Due Date -->
-    <div style="display:flex; gap:1rem; align-items:flex-start; margin-bottom:1rem;">
+    <div style="display:flex; gap:1rem; align-items:flex-start; margin-bottom:0.75rem;">
         <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem; padding-top:0.3rem;">Due Date:</div>
         <div style="flex:1; display:flex; align-items:flex-start; justify-content:space-between; gap:1rem;">
             <div>
@@ -103,100 +44,169 @@
         </div>
     </div>
 
-    <!-- Advanced Timing accordion -->
-    <div class="adet-accordion">
-        <button class="adet-accordion-toggle" onclick="window.adetToggleSection('adet-adv-timing')">
+    <!-- Collapsible: Advanced Impact -->
+    <div class="adet-accordion" style="margin-top:0.5rem;">
+        <button class="adet-accordion-toggle" onclick="window.adetToggleSection('adet-adv-impact')">
             <span class="material-symbols-outlined" style="font-size:1rem;">chevron_right</span>
-            Advanced Timing
+            Advanced Impact
         </button>
-        <div id="adet-adv-timing" class="adet-accordion-body" style="display:none;">
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-top:0.75rem;">
-                <div>
-                    <div class="adet-fl">Start Date</div>
-                    <div id="adet-start-date" class="adet-text-value"></div>
+        <div id="adet-adv-impact" class="adet-accordion-body" style="display:none;">
+            <div class="adet-impact-meta-row" style="margin-top:1rem;">
+                <div class="adet-impact-meta-cell">
+                    <div class="adet-fl">Status</div>
+                    <div id="adet-status-selector" class="adet-status-pills-ro"></div>
                 </div>
-                <div>
-                    <div class="adet-fl">Preceding Actions</div>
-                    <div id="adet-predecessor-actions" class="adet-chips-row"></div>
+                <div class="adet-impact-meta-cell">
+                    <div class="adet-fl">Priority</div>
+                    <div id="adet-priority-pill" class="adet-priority-pill"></div>
                 </div>
-                <div>
-                    <div class="adet-fl">Predicted Length <span class="adet-fl-hint">(Gantt)</span></div>
-                    <div id="adet-predicted-length" class="adet-text-value"></div>
+                <div class="adet-impact-meta-cell">
+                    <div class="adet-fl">Complexity</div>
+                    <div id="adet-complexity-dots" class="adet-complexity-dots"></div>
+                </div>
+                <div class="adet-impact-meta-cell adet-impact-meta-tags">
+                    <div class="adet-fl">Tags</div>
+                    <div id="adet-tags" class="adet-chips-row"></div>
+                </div>
+            </div>
+            <div id="adet-adv-status-row" class="adet-adv-status-row" style="display:none;"></div>
+            <div style="display:flex; gap:1rem; align-items:flex-start; border-top:1px solid var(--border-subtle); padding-top:1.25rem; margin-top:0.75rem; margin-bottom:1rem;">
+                <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem; padding-top:0.3rem;">Desired Outcome:</div>
+                <div style="flex:1;">
+                    <div id="adet-outcome-type-pill" class="adet-outcome-type-pill" style="margin-bottom:0.5rem;"></div>
+                    <p id="adet-desired-outcome" class="adet-outcome-text"></p>
+                    <div id="adet-outcome-linked-item" class="adet-outcome-linked-item" style="display:none;"></div>
+                </div>
+            </div>
+            <div style="display:flex; gap:1rem; align-items:flex-start;">
+                <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem; padding-top:0.3rem;">Success Criteria:</div>
+                <p id="adet-success-criteria" class="adet-text-value" style="flex:1;"></p>
+            </div>
+            <div class="adet-accordion" style="margin-top:1rem;">
+                <button class="adet-accordion-toggle" onclick="window.adetToggleSection('adet-adv-timing')">
+                    <span class="material-symbols-outlined" style="font-size:1rem;">chevron_right</span>
+                    Advanced Timing
+                </button>
+                <div id="adet-adv-timing" class="adet-accordion-body" style="display:none;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-top:0.75rem;">
+                        <div>
+                            <div class="adet-fl">Start Date</div>
+                            <div id="adet-start-date" class="adet-text-value"></div>
+                        </div>
+                        <div>
+                            <div class="adet-fl">Preceding Actions</div>
+                            <div id="adet-predecessor-actions" class="adet-chips-row"></div>
+                        </div>
+                        <div>
+                            <div class="adet-fl">Predicted Length <span class="adet-fl-hint">(Gantt)</span></div>
+                            <div id="adet-predicted-length" class="adet-text-value"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex; gap:1rem; align-items:flex-start; border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:0.75rem;">
+                <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem; padding-top:0.3rem;">Resource:</div>
+                <p id="adet-resource" class="adet-text-value" style="flex:1;"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── DESCRIPTION + TO-DO (side by side) ──────────────────── -->
+<div style="display:flex; gap:1.5rem; align-items:flex-start; flex-wrap:wrap;">
+    <div style="flex:2; min-width:300px;">
+        <h3 class="adet-card-label">Description</h3>
+        <div class="adet-card" style="padding:1.25rem;">
+            <p id="adet-description" class="adet-description-text" style="margin:0;"></p>
+        </div>
+    </div>
+    <div id="adet-todo-section" style="flex:1; min-width:220px; display:none;">
+        <h3 class="adet-card-label">To-Do</h3>
+        <div class="adet-card" style="padding:1.25rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+                <div id="adet-todo-progress-text" class="adet-todo-progress-text"></div>
+            </div>
+            <div id="adet-todo-progress-bar" class="adet-todo-progress-bar-track">
+                <div id="adet-todo-progress-fill" class="adet-todo-progress-bar-fill" style="width:0%;"></div>
+            </div>
+            <div id="adet-todos" class="adet-todos-list"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ── ADD PROGRESS UPDATE ─────────────────────────────────── -->
+<div style="margin:1.5rem 0;">
+    <button id="adet-add-progress-btn" class="btn-primary" onclick="window.adetShowProgressForm()" style="display:inline-flex; align-items:center; gap:0.4rem;">
+        <span class="material-symbols-outlined" style="font-size:1rem;">add</span> Add Progress Update
+    </button>
+    <div id="adet-progress-form" style="display:none; margin-top:1rem;">
+        <div class="adet-card" style="padding:1.25rem;">
+            <label style="display:block; font-size:0.85rem; color:var(--text-tertiary); margin-bottom:0.5rem;">Progress note:</label>
+            <textarea id="adet-progress-input" rows="3" style="width:100%; padding:0.75rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-family:inherit; font-size:0.9rem; resize:vertical;"></textarea>
+            <div style="margin-top:0.75rem; display:flex; justify-content:flex-end; gap:0.5rem;">
+                <button class="btn-secondary" onclick="window.adetHideProgressForm()">Cancel</button>
+                <button class="btn-primary" id="adet-progress-save-btn" onclick="window.adetSaveProgress()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── RECENT PROGRESS ─────────────────────────────────────── -->
+<h3 class="adet-card-label">Recent Progress</h3>
+<div style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1.5rem;">
+    <div class="adet-card" style="padding:1.25rem;">
+        <div class="adet-fl">Most Recent Progress</div>
+        <p id="adet-vc-progress" class="adet-text-value"></p>
+    </div>
+    <div class="adet-card" style="padding:1.25rem;">
+        <div class="adet-fl">Current Blockers / Next Hurdle</div>
+        <p id="adet-vc-blockers" class="adet-text-value"></p>
+    </div>
+</div>
+
+<!-- ── VERSION CONTROL (collapsed by default) ──────────────── -->
+<div class="adet-accordion" style="margin-bottom:1.5rem;">
+    <button class="adet-accordion-toggle" onclick="window.adetToggleSection('adet-vc-body')" style="font-size:0.95rem; padding:0.75rem 1rem; background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; width:100%;">
+        <span class="material-symbols-outlined" style="font-size:1rem;">chevron_right</span>
+        Version Control & Privacy
+    </button>
+    <div id="adet-vc-body" class="adet-accordion-body" style="display:none;">
+        <div class="adet-card" style="padding:1.25rem; margin-top:0.5rem;">
+            <div class="adet-vc-topbar">
+                <div>Current Version <strong id="adet-vc-version"></strong></div>
+                <div>Created <strong id="adet-vc-created"></strong></div>
+                <div>Last edited <strong id="adet-vc-edited"></strong></div>
+                <div>By <span id="adet-vc-who" class="adet-vc-who-badge"></span></div>
+                <div id="adet-vc-completed-pill" style="display:none;" class="adet-vc-completed-pill"></div>
+            </div>
+            <div class="adet-accordion" style="margin-top:0.75rem;">
+                <button class="adet-accordion-toggle" onclick="window.adetToggleSection('adet-vc-prev')">
+                    <span class="material-symbols-outlined" style="font-size:1rem;">chevron_right</span>
+                    Previous Versions
+                </button>
+                <div id="adet-vc-prev" class="adet-accordion-body" style="display:none;">
+                    <div id="adet-vc-prev-versions" class="adet-vc-prev-versions"></div>
+                </div>
+            </div>
+            <div style="border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:1rem;">
+                <div style="display:flex; gap:1rem; align-items:flex-start;">
+                    <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem;">Privacy:</div>
+                    <div style="flex:1;">
+                        <div id="adet-privacy-display" class="adet-privacy-options-ro"></div>
+                        <div id="adet-privacy-custom-display" class="adet-privacy-custom-details" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div style="border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:1rem;">
+                <div style="display:flex; gap:1rem; align-items:flex-start;">
+                    <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem;">Other:</div>
+                    <p id="adet-other" class="adet-text-value" style="flex:1; font-style:italic;"></p>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Resource Requirement -->
-    <div style="display:flex; gap:1rem; align-items:flex-start; border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:0.5rem; margin-bottom:1rem;">
-        <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem; padding-top:0.3rem;">Resource:</div>
-        <p id="adet-resource" class="adet-text-value" style="flex:1;"></p>
-    </div>
-
-    <!-- To-Do List -->
-    <div style="border-top:1px solid var(--border-subtle); padding-top:1rem;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-            <div style="color:var(--text-tertiary); font-size:0.9rem;">To-Do</div>
-            <div id="adet-todo-progress-text" class="adet-todo-progress-text"></div>
-        </div>
-        <div id="adet-todo-progress-bar" class="adet-todo-progress-bar-track">
-            <div id="adet-todo-progress-fill" class="adet-todo-progress-bar-fill" style="width:0%;"></div>
-        </div>
-        <div id="adet-todos" class="adet-todos-list"></div>
-    </div>
 </div>
 
-<!-- ── VERSION CONTROL ────────────────────────────────────── -->
-<h3 class="adet-card-label">Version Control</h3>
-<div class="adet-card" style="padding-top:1.25rem;">
-
-    <!-- Version + dates quick bar -->
-    <div class="adet-vc-topbar">
-        <div>Current Version <strong id="adet-vc-version"></strong></div>
-        <div>Created <strong id="adet-vc-created"></strong></div>
-        <div>Last edited <strong id="adet-vc-edited"></strong></div>
-        <div>By <span id="adet-vc-who" class="adet-vc-who-badge"></span></div>
-        <div id="adet-vc-completed-pill" style="display:none;" class="adet-vc-completed-pill"></div>
-    </div>
-
-    <!-- Progress + Blockers -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1rem;">
-        <div class="adet-vc-box adet-vc-progress">
-            <div class="adet-fl">Most Recent Progress</div>
-            <p id="adet-vc-progress" class="adet-text-value"></p>
-        </div>
-        <div class="adet-vc-box adet-vc-blockers">
-            <div class="adet-fl">Current Blockers / Next Hurdle</div>
-            <p id="adet-vc-blockers" class="adet-text-value"></p>
-        </div>
-    </div>
-
-    <!-- Advanced VC accordion -->
-    <div class="adet-accordion">
-        <button class="adet-accordion-toggle" onclick="window.adetToggleSection('adet-vc-adv')">
-            <span class="material-symbols-outlined" style="font-size:1rem;">chevron_right</span>
-            Advanced Version Control
-        </button>
-        <div id="adet-vc-adv" class="adet-accordion-body" style="display:none;">
-            <div id="adet-vc-prev-versions" class="adet-vc-prev-versions"></div>
-        </div>
-    </div>
-</div>
-
-<!-- ── OTHER ──────────────────────────────────────────────── -->
-<div style="display:flex; gap:1rem; align-items:flex-start; padding:1.25rem 0;">
-    <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem; padding-top:0.3rem;">Other:</div>
-    <p id="adet-other" class="adet-text-value" style="flex:1; font-style:italic;"></p>
-</div>
-
-<!-- ── PRIVACY ─────────────────────────────────────────────── -->
-<div style="display:flex; gap:1rem; align-items:flex-start; padding:1.25rem 0; margin-bottom:1.5rem;">
-    <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem; padding-top:0.3rem;">Privacy:</div>
-    <div style="flex:1;">
-        <div id="adet-privacy-display" class="adet-privacy-options-ro"></div>
-        <div id="adet-privacy-custom-display" class="adet-privacy-custom-details" style="display:none;"></div>
-    </div>
-</div>
 
 <!-- ================================================================
      INLINE EDIT — triggered by window.openActionDetailEdit()
