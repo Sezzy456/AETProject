@@ -2449,8 +2449,11 @@ window.adetDelete = function () {
 // ---- APPROVALS PAGE ----
 
 function renderApprovals() {
-    // Page is static HTML — just set up tab switching
-    console.log('[Approvals] Page loaded');
+    if (typeof window._doRenderApprovals === 'function') {
+        window._doRenderApprovals();
+    } else {
+        console.log('[Approvals] Page loaded (but async renderer not found)');
+    }
 }
 
 window.switchApprovalTab = function (tab, btn) {
@@ -3227,4 +3230,115 @@ window.addEventListener('wheel', (e) => {
         vc.scrollTop += e.deltaY;
     }
 }, { passive: true });
+
+// ── APPROVALS (memo_pending_change) ──────────────────────────────────────────
+
+window.renderApprovals = window._doRenderApprovals = async function() {
+    const container = document.getElementById('approvals-list-container');
+    if (!container) return;
+
+    if (typeof window.fetchPendingApprovals !== 'function') {
+        container.innerHTML = `<div style="padding:2rem; color:#ef4444;">Error: fetchPendingApprovals not found in supabase.js</div>`;
+        return;
+    }
+
+    try {
+        const approvals = await window.fetchPendingApprovals();
+        if (!approvals || approvals.length === 0) {
+            container.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:4rem 2rem; color:var(--text-tertiary); text-align:center;">
+                <span class="material-symbols-outlined" style="font-size:3rem; margin-bottom:1rem; opacity:0.5;">check_circle</span>
+                <p>No pending approvals. Inbox zero!</p>
+            </div>`;
+            return;
+        }
+
+        let html = '';
+        approvals.forEach(app => {
+            const proposedStr = typeof app.mpc_proposed_data === 'string' 
+                ? app.mpc_proposed_data 
+                : JSON.stringify(app.mpc_proposed_data, null, 2);
+                
+            html += `
+            <div class="approval-card" id="approval-card-${app.mpc_id}">
+                <div style="display:flex; justify-content:space-between; margin-bottom:1rem; align-items:flex-start;">
+                    <div>
+                        <div style="font-size:1.1rem; font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">
+                            Action: ${app.mpc_action}
+                        </div>
+                        <div style="font-size:0.8rem; color:var(--text-tertiary);">
+                            Source: ${app.mpc_source} | Created: ${new Date(app.created_at).toLocaleString()}
+                        </div>
+                    </div>
+                    <span class="approval-badge">${app.mpc_table_name}</span>
+                </div>
+                
+                <div class="approval-field">
+                    <label>Proposed Data (AI Extraction)</label>
+                    <textarea id="app-proposed-${app.mpc_id}" rows="6" class="json-view" spellcheck="false">${proposedStr}</textarea>
+                </div>
+                
+                <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.25rem;">
+                    <button class="btn-secondary" onclick="window.rejectApproval('${app.mpc_id}')" style="color:#ef4444; border-color:#ef4444;">
+                        Reject
+                    </button>
+                    <button class="btn-primary" onclick="window.saveAndApproveApproval('${app.mpc_id}')">
+                        Save & Approve
+                    </button>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    } catch (err) {
+        console.error('Error rendering approvals:', err);
+        container.innerHTML = `<div style="padding:2rem; color:#ef4444;">Error loading approvals. Check console.</div>`;
+    }
+};
+
+window.rejectApproval = async function(mpcId) {
+    if (!confirm('Are you sure you want to reject this extraction?')) return;
+    const card = document.getElementById(`approval-card-${mpcId}`);
+    if (card) card.style.opacity = '0.5';
+    
+    const success = await window.approvePendingChange(mpcId, null, 'rejected');
+    if (success) {
+        if (card) card.remove();
+        // check if empty
+        const container = document.getElementById('approvals-list-container');
+        if (container && container.children.length === 0) {
+            window.renderApprovals();
+        }
+    } else {
+        alert('Failed to reject. Check console for errors.');
+        if (card) card.style.opacity = '1';
+    }
+};
+
+window.saveAndApproveApproval = async function(mpcId) {
+    const textarea = document.getElementById(`app-proposed-${mpcId}`);
+    if (!textarea) return;
+    
+    let finalData;
+    try {
+        finalData = JSON.parse(textarea.value);
+    } catch (e) {
+        alert('Invalid JSON. Please fix formatting before approving.\n\nError: ' + e.message);
+        return;
+    }
+    
+    const card = document.getElementById(`approval-card-${mpcId}`);
+    if (card) card.style.opacity = '0.5';
+    
+    const success = await window.approvePendingChange(mpcId, finalData, 'edited_then_approved');
+    if (success) {
+        if (card) card.remove();
+        // check if empty
+        const container = document.getElementById('approvals-list-container');
+        if (container && container.children.length === 0) {
+            window.renderApprovals();
+        }
+    } else {
+        alert('Failed to approve. Check console for errors.');
+        if (card) card.style.opacity = '1';
+    }
+};
 
