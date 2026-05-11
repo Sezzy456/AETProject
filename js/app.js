@@ -941,6 +941,112 @@ function renderStakeholderDetail() {
     }
 }
 
+window.toggleStakeholderEdit = function () {
+    const viewMode = document.getElementById('sdet-view-mode');
+    const editMode = document.getElementById('sdet-edit-mode');
+    const editBtn = document.getElementById('sdet-edit-toggle-btn');
+    const cancelBtn = document.getElementById('sdet-cancel-btn');
+
+    if (!viewMode || !editMode) return;
+
+    const isEditing = editMode.style.display !== 'none';
+
+    if (isEditing) {
+        if (window.saveStakeholder) window.saveStakeholder();
+    } else {
+        const id = window.currentStakeholderId;
+        if (id) {
+            const stakeholders = window.getData('stakeholders') || [];
+            const s = stakeholders.find(x => x.id === id);
+            if (s) {
+                const set = (elId, v) => { const el = document.getElementById(elId); if(el) el.value = v || ''; };
+                set('sdet-e-narrativeHook', s.narrativeHook);
+                set('sdet-e-values', (s.values || []).join(', '));
+                set('sdet-e-influence', s.powerGrid?.influence || '');
+                set('sdet-e-interest', s.powerGrid?.interest || '');
+                set('sdet-e-authority', s.decisionAuthority || '');
+                set('sdet-e-posture-current', s.postureJourney?.current || '');
+                set('sdet-e-posture-desired', s.postureJourney?.desired || '');
+                set('sdet-e-posture-next', s.postureJourney?.nextStep || '');
+                set('sdet-e-posture-target', s.postureJourney?.goalTarget || '');
+                set('sdet-e-barriers', s.strategicApproach?.barriers || '');
+                set('sdet-e-engagement-approach', s.strategicApproach?.engagementApproach || '');
+                set('sdet-e-tactics', s.strategicApproach?.tactics ? JSON.stringify(s.strategicApproach.tactics, null, 2) : '');
+                set('sdet-e-rel-internal', s.relationships?.internalLink || '');
+                set('sdet-e-rel-external', s.relationships?.externalTension || '');
+                set('sdet-e-contact-pref', s.contactConduct?.preferences || '');
+                set('sdet-e-contact-tone', s.contactConduct?.emailTone || '');
+                set('sdet-e-contact-pitch', s.contactConduct?.elevatorPitches || '');
+            }
+        }
+        viewMode.style.display = 'none';
+        editMode.style.display = 'block';
+        editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done';
+        if (cancelBtn) cancelBtn.style.display = 'inline-flex';
+    }
+};
+
+window.saveStakeholder = function () {
+    const id = window.currentStakeholderId;
+    if (!id) return;
+
+    const stakeholders = window.getData('stakeholders') || [];
+    const idx = stakeholders.findIndex(x => x.id === id);
+    if (idx === -1) return;
+
+    const s = stakeholders[idx];
+    const get = (elId) => { const el = document.getElementById(elId); return el ? el.value : ''; };
+
+    s.narrativeHook = get('sdet-e-narrativeHook');
+    s.values = get('sdet-e-values').split(',').map(v => v.trim()).filter(Boolean);
+    
+    if (!s.powerGrid) s.powerGrid = {};
+    s.powerGrid.influence = parseInt(get('sdet-e-influence'), 10) || 0;
+    s.powerGrid.interest = parseInt(get('sdet-e-interest'), 10) || 0;
+    s.decisionAuthority = get('sdet-e-authority');
+    
+    if (!s.postureJourney) s.postureJourney = {};
+    s.postureJourney.current = get('sdet-e-posture-current');
+    s.postureJourney.desired = get('sdet-e-posture-desired');
+    s.postureJourney.nextStep = get('sdet-e-posture-next');
+    s.postureJourney.goalTarget = get('sdet-e-posture-target');
+
+    if (!s.strategicApproach) s.strategicApproach = {};
+    s.strategicApproach.barriers = get('sdet-e-barriers');
+    s.strategicApproach.engagementApproach = get('sdet-e-engagement-approach');
+    try {
+        const tacticsVal = get('sdet-e-tactics');
+        if (tacticsVal.trim().startsWith('[')) {
+            s.strategicApproach.tactics = JSON.parse(tacticsVal);
+        } else {
+            s.strategicApproach.tactics = tacticsVal.split('\n').filter(Boolean).map(t => ({ type: 'Tactic', text: t.trim() }));
+        }
+    } catch (e) {
+        console.warn('Failed to parse tactics JSON', e);
+    }
+
+    if (!s.relationships) s.relationships = {};
+    s.relationships.internalLink = get('sdet-e-rel-internal');
+    s.relationships.externalTension = get('sdet-e-rel-external');
+
+    if (!s.contactConduct) s.contactConduct = {};
+    s.contactConduct.preferences = get('sdet-e-contact-pref');
+    s.contactConduct.emailTone = get('sdet-e-contact-tone');
+    s.contactConduct.elevatorPitches = get('sdet-e-contact-pitch');
+
+    window.updateData('stakeholders', stakeholders);
+    renderStakeholderDetail();
+
+    const viewMode = document.getElementById('sdet-view-mode');
+    const editMode = document.getElementById('sdet-edit-mode');
+    if (viewMode) viewMode.style.display = 'block';
+    if (editMode) editMode.style.display = 'none';
+    const editBtn = document.getElementById('sdet-edit-toggle-btn');
+    if (editBtn) editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
+    const cancelBtn = document.getElementById('sdet-cancel-btn');
+    if (cancelBtn) cancelBtn.style.display = 'none';
+};
+
 // Update status from stakeholder detail
 window.updateDetailStatus = function (newStatus) {
     const id = window.currentStakeholderId;
@@ -1239,8 +1345,7 @@ window.saveInteraction = function () {
     }
 
     window.updateData('interactions', interactions);
-    loadView('interactions');
-    history.pushState(null, '', '#interactions');
+    renderInteractionDetail();
 };
 
 function renderInteractionEdit() {
@@ -2741,11 +2846,10 @@ window.openActionDetailEdit = function () {
         if (editEl) editEl.innerHTML = (a.privacy.customEditors || []).map((p, i) => _adetMakeEditChip(p, 'ce-' + i)).join('');
     }
 
-    const overlay = document.getElementById('adet-modal-overlay');
-    if (overlay) {
-        overlay.style.display = 'block';
-        overlay.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    const viewMode = document.getElementById('adet-view-mode');
+    const editMode = document.getElementById('adet-edit-mode');
+    if (viewMode) viewMode.style.display = 'none';
+    if (editMode) editMode.style.display = 'block';
 };
 
 // ── Granularity helpers ──────────────────────────────────────────────
@@ -2910,8 +3014,10 @@ window.adetToggleSection = function (id) {
 // ── Save ─────────────────────────────────────────────────────────────
 
 window.closeActionDetailEdit = function () {
-    const overlay = document.getElementById('adet-modal-overlay');
-    if (overlay) overlay.style.display = 'none';
+    const viewMode = document.getElementById('adet-view-mode');
+    const editMode = document.getElementById('adet-edit-mode');
+    if (viewMode) viewMode.style.display = 'block';
+    if (editMode) editMode.style.display = 'none';
     // Restore header button to Edit mode
     const editBtn = document.querySelector('[onclick="window.adetSave()"]') || document.querySelector('[onclick="window.openActionDetailEdit()"]');
     if (editBtn) {

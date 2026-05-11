@@ -108,11 +108,17 @@
         <span id="view-breadcrumb-name" style="display:none;">...</span>
         <span id="view-current-status-text" style="display:none;">-</span>
     </div>
-    <button class="btn-primary" style="display:inline-flex;align-items:center;gap:0.4rem; margin-top:2.5rem;" onclick="document.getElementById('edit-modal').showModal()">
-        <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit
-    </button>
+    <div style="display:flex; align-items:center; gap:0.5rem; margin-top:2.5rem;">
+        <button id="sdet-cancel-btn" class="btn-secondary" style="display:none; align-items:center; gap:0.4rem;" onclick="window.toggleStakeholderEdit()">
+            <span class="material-symbols-outlined" style="font-size:1rem;">close</span> Cancel
+        </button>
+        <button id="sdet-edit-toggle-btn" class="btn-primary" style="display:inline-flex;align-items:center;gap:0.4rem;" onclick="window.toggleStakeholderEdit()">
+            <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit
+        </button>
+    </div>
 </div>
 
+<div id="sdet-view-mode">
 <!-- ── IDENTITY INFO (page level) ─────────────────────────── -->
 <div class="sdet-row">
     <div class="sdet-row-label">Narrative Hook:</div>
@@ -319,6 +325,96 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════════
+     EDIT MODE
+═══════════════════════════════════════════════════════════ -->
+<div id="sdet-edit-mode" style="display:none; margin-bottom: 2rem;">
+    <div class="sdet-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin-top:0; font-size:1.1rem; color:var(--text-secondary); margin-bottom:1rem;">Identity Info</h3>
+        <label style="display:block; font-size:0.85rem; color:var(--text-tertiary); margin-bottom:0.4rem;">Narrative Hook</label>
+        <textarea id="sdet-e-narrativeHook" rows="2" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; margin-bottom:1rem; font-family:inherit;"></textarea>
+
+        <label style="display:block; font-size:0.85rem; color:var(--text-tertiary); margin-bottom:0.4rem;">Values (comma separated)</label>
+        <input type="text" id="sdet-e-values" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; font-family:inherit;">
+    </div>
+
+    <div class="sdet-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin-top:0; font-size:1.1rem; color:var(--text-secondary); margin-bottom:1rem;">Power Dynamics</h3>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1rem;">
+            <div>
+                <label style="display:block; font-size:0.85rem; color:var(--text-tertiary); margin-bottom:0.4rem;">Influence (0-10)</label>
+                <input type="number" id="sdet-e-influence" min="0" max="10" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px;">
+            </div>
+            <div>
+                <label style="display:block; font-size:0.85rem; color:var(--text-tertiary); margin-bottom:0.4rem;">Interest (0-10)</label>
+                <input type="number" id="sdet-e-interest" min="0" max="10" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px;">
+            </div>
+        </div>
+        <label style="display:block; font-size:0.85rem; color:var(--text-tertiary); margin-bottom:0.4rem;">Decision-Making Authority</label>
+        <input type="text" id="sdet-e-authority" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px;">
+    </div>
+
+    <div class="sdet-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin-top:0; font-size:1.1rem; color:var(--text-secondary); margin-bottom:1rem;">Posture Journey</h3>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1rem;">
+            <div>
+                <label style="display:block; font-size:0.85rem; color:var(--text-tertiary); margin-bottom:0.4rem;">Current Posture</label>
+                <textarea id="sdet-e-posture-current" rows="2" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px;"></textarea>
+            </div>
+            <div>
+                <label style="display:block; font-size:0.85rem; color:var(--text-tertiary); margin-bottom:0.4rem;">Desired Posture</label>
+                <textarea id="sdet-e-posture-desired" rows="2" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px;"></textarea>
+            </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+            <div>
+                <label style="display:block; font-size:0.85rem; color:var(--text-tertiary); margin-bottom:0.4rem;">Next Step</label>
+                <input type="text" id="sdet-e-posture-next" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px;">
+            </div>
+            <div>
+                <label style="display:block; font-size:0.85rem; color:var(--text-tertiary); margin-bottom:0.4rem;">Goal/Target</label>
+                <input type="text" id="sdet-e-posture-target" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px;">
+            </div>
+        </div>
+    </div>
+
+    <div class="sdet-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin-top:0; font-size:1.1rem; color:var(--text-secondary); margin-bottom:1rem;">Strategic Approach</h3>
+        <label style="display:block; font-size:0.85rem; color:var(--text-tertiary); margin-bottom:0.4rem;">Barriers (Blockers)</label>
+        <textarea id="sdet-e-barriers" rows="2" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; margin-bottom:1rem;"></textarea>
+
+        <label style="display:block; font-size:0.85rem; color:var(--text-tertiary); margin-bottom:0.4rem;">Engagement Approach</label>
+        <textarea id="sdet-e-engagement-approach" rows="3" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; margin-bottom:1rem;"></textarea>
+
+        <label style="display:block; font-size:0.85rem; color:var(--text-tertiary); margin-bottom:0.4rem;">Tactics (JSON array format or bullet list)</label>
+        <textarea id="sdet-e-tactics" rows="3" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px;"></textarea>
+    </div>
+
+    <div class="sdet-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin-top:0; font-size:1.1rem; color:var(--text-secondary); margin-bottom:1rem;">Relationships & Contact Conduct</h3>
+        <label style="display:block; font-size:0.85rem; color:var(--text-tertiary); margin-bottom:0.4rem;">Internal Link</label>
+        <input type="text" id="sdet-e-rel-internal" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; margin-bottom:1rem;">
+
+        <label style="display:block; font-size:0.85rem; color:var(--text-tertiary); margin-bottom:0.4rem;">External Tension</label>
+        <input type="text" id="sdet-e-rel-external" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; margin-bottom:1rem;">
+
+        <div style="border-top:1px solid var(--border-subtle); margin:1.5rem 0;"></div>
+
+        <label style="display:block; font-size:0.85rem; color:var(--text-tertiary); margin-bottom:0.4rem;">Communication Preferences</label>
+        <input type="text" id="sdet-e-contact-pref" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; margin-bottom:1rem;">
+
+        <label style="display:block; font-size:0.85rem; color:var(--text-tertiary); margin-bottom:0.4rem;">Email Tone</label>
+        <input type="text" id="sdet-e-contact-tone" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; margin-bottom:1rem;">
+
+        <label style="display:block; font-size:0.85rem; color:var(--text-tertiary); margin-bottom:0.4rem;">Elevator Pitches</label>
+        <input type="text" id="sdet-e-contact-pitch" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; margin-bottom:1rem;">
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:1rem;">
+        <button class="btn-primary" style="height:44px; padding:0 2rem; background:#374151;" onclick="window.saveStakeholder()">Save Changes</button>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
      ACTIONS VIEW
 ═══════════════════════════════════════════════════════════ -->
 <h3 class="sdet-section-title">Actions View</h3>
@@ -342,13 +438,4 @@
      <button class="btn-primary" style="background:#a3a3a3; border:none; color:white;">+ Add</button>
 </div>
 
-<dialog id="edit-modal" onmousedown="if(event.target===this)this.close()" style="border:1px solid var(--border-subtle); border-radius:8px; padding:1.5rem; width:500px; max-width:90vw; background:var(--bg-surface); color:var(--text-primary); box-shadow:0 10px 30px rgba(0,0,0,0.3); margin:auto;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-         <h3>Edit basic profile (Mock)</h3>
-         <button onclick="document.getElementById('edit-modal').close()" style="background:none; border:none; cursor:pointer;"><span class="material-symbols-outlined">close</span></button>
-    </div>
-    <p style="font-size:0.9rem; color:var(--text-secondary);">Editing full schema via modal is omitted for layout focus.</p>
-    <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
-        <button class="btn-primary" onclick="document.getElementById('edit-modal').close()">Close</button>
-    </div>
-</dialog>
+

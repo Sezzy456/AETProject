@@ -21,6 +21,10 @@
     </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════════
+     VIEW MODE
+═══════════════════════════════════════════════════════════ -->
+<div id="adet-view-mode">
 <!-- ── SUBTLE METADATA ROW ─────────────────────────────────── -->
 <div style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap; padding:0.4rem 0 0.75rem 0; font-size:0.85rem; color:var(--text-tertiary);">
     <div style="display:flex; align-items:center; gap:0.4rem;">
@@ -195,17 +199,17 @@
         <h3 class="adet-card-label" style="margin-bottom:0.75rem;">Other Notes</h3>
         <p id="adet-other" class="adet-text-value" style="font-style:italic;"></p>
     </div>
+    </div>
 </div>
 
-
 <!-- ================================================================
-     INLINE EDIT — triggered by window.openActionDetailEdit()
+     EDIT MODE — triggered by window.openActionDetailEdit()
 ================================================================ -->
-<div id="adet-modal-overlay" style="display:none; margin-top:2rem; border-top:2px solid var(--energy-algae); padding-top:1.5rem;">
+<div id="adet-edit-mode" style="display:none;">
 
     <div class="adet-modal-shell" style="max-width:100%;">
         <!-- Inline edit header -->
-        <div class="adet-modal-hdr">
+        <div class="adet-modal-hdr" style="display:none;">
             <div style="font-size:0.8rem;color:var(--text-tertiary);">
                 <span onclick="loadView('actions')" style="cursor:pointer;color:var(--energy-algae);">Actions</span>
                 <span style="margin:0 0.35rem;">›</span> Edit
@@ -213,7 +217,7 @@
             <h3 class="adet-modal-title" id="adet-modal-title-display"></h3>
         </div>
 
-        <div class="adet-modal-body">
+        <div class="adet-modal-body" style="padding-top:0;">
 
             <!-- ─ DEFINITION ─ -->
             <div class="adet-modal-section">
