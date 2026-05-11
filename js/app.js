@@ -1090,15 +1090,23 @@ function _renderInteractionsList(interactions) {
 
     interactions.forEach(a => {
         const isUpcoming = a.type === 'Upcoming';
-        let statusBadge = '';
         const rawDateStr = a.rawDate || a.date || '';
         const pastRelative = relativePastDate(rawDateStr);
-
-        if (isUpcoming) {
-            statusBadge = `<span style="background:rgba(239,68,68,0.1); color:#ef4444; border:1px solid rgba(239,68,68,0.3); padding:0.15rem 0.6rem; border-radius:100px; font-weight:600; font-size:0.75rem;">${pastRelative || 'Upcoming'}</span>`;
-        } else {
-            statusBadge = `<span style="background:rgba(16,185,129,0.1); color:#10b981; border:1px solid rgba(16,185,129,0.3); padding:0.15rem 0.6rem; border-radius:100px; font-weight:600; font-size:0.75rem;">${pastRelative || 'Completed'}</span>`;
+        let color = 'var(--text-tertiary)';
+        let fw = '400';
+        if (rawDateStr) {
+            const d = new Date(rawDateStr.length <= 10 ? rawDateStr + 'T00:00:00' : rawDateStr);
+            const now = new Date(); now.setHours(0,0,0,0);
+            const diff = Math.round((now - d) / (1000 * 60 * 60 * 24));
+            if (diff < 0) {
+                color = '#ef4444'; // upcoming
+                fw = '600';
+            } else if (diff <= 14) {
+                color = '#10b981'; // recent
+                fw = '600';
+            }
         }
+        let statusBadge = `<span style="color:${color}; font-weight:${fw}; font-size:0.8rem;">${pastRelative || (isUpcoming ? 'Upcoming' : 'Completed')}</span>`;
 
         const agendaHtml = (a.topics || []).map(t => `<span style="font-size:0.68rem; padding:0.1rem 0.45rem; border-radius:100px; background:rgba(99,102,241,0.1); color:#6366f1; border:1px solid rgba(99,102,241,0.2);">${t}</span>`).join('');
 
