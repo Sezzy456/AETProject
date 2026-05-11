@@ -4,13 +4,25 @@
 </header>
 
 <!-- Search and Filters Bar -->
-<div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
+<div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem; flex-wrap:wrap;">
     <div style="position:relative; flex:1; max-width:300px;">
-        <input type="text" placeholder="Search" style="width:100%; padding:0.5rem 0.5rem 0.5rem 2.5rem; border-radius:100px; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-primary);">
+        <input type="text" id="stakeholder-search" placeholder="Search stakeholders..." oninput="window.filterStakeholders()" style="width:100%; padding:0.5rem 0.5rem 0.5rem 2.5rem; border-radius:100px; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-primary);">
         <span class="material-symbols-outlined" style="position:absolute; left:0.8rem; top:50%; transform:translateY(-50%); font-size:1.2rem; color:var(--text-tertiary);">search</span>
     </div>
-    <button class="btn-secondary" style="border-radius:100px; padding:0.5rem 1rem; border:none; background:var(--bg-surface); box-shadow:0 2px 4px rgba(0,0,0,0.05);"><span class="material-symbols-outlined" style="font-size:1.2rem; vertical-align:middle; margin-right:0.25rem;">filter_list</span> Filters</button>
-    <button style="border:none; background:none; color:var(--text-primary); display:flex; align-items:center; cursor:pointer;"><span class="material-symbols-outlined" style="margin-right:0.25rem;">sort</span> Sorting</button>
+    <select id="stakeholder-filter-status" onchange="window.filterStakeholders()" style="background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:20px;padding:0.4rem 0.75rem;font-size:0.82rem;color:var(--text-secondary);cursor:pointer;outline:none;">
+        <option value="">All Statuses</option>
+        <option value="Critical/At Risk">Critical / At Risk</option>
+        <option value="Strained">Strained</option>
+        <option value="Friction Points">Friction Points</option>
+        <option value="Operational">Operational</option>
+        <option value="Stable">Stable</option>
+        <option value="Dormant">Dormant</option>
+    </select>
+    <select id="stakeholder-sort" onchange="window.filterStakeholders()" style="background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:20px;padding:0.4rem 0.75rem;font-size:0.82rem;color:var(--text-secondary);cursor:pointer;outline:none;">
+        <option value="name">Sort: Name A–Z</option>
+        <option value="status">Sort: Status</option>
+        <option value="role">Sort: Role</option>
+    </select>
 </div>
 
 <!-- Quick Filters -->

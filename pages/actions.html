@@ -32,6 +32,10 @@
             <option value="name">Name A–Z</option>
         </select>
     </div>
+    <label style="display:flex; align-items:center; gap:0.35rem; font-size:0.82rem; color:var(--text-secondary); cursor:pointer; margin-left:auto;">
+        <input type="checkbox" id="act-show-completed" onchange="window.filterActions()" style="accent-color:var(--energy-algae); cursor:pointer;">
+        Show completed
+    </label>
 </div>
 
 <!-- Filter Panel (hidden by default) -->
@@ -434,4 +438,7 @@
 .act-kanban-col-header { font-weight:700; font-size:0.85rem; margin-bottom:0.75rem; display:flex; align-items:center; gap:0.4rem; }
 .act-kanban-card { background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:8px; padding:0.6rem; margin-bottom:0.5rem; font-size:0.78rem; cursor:pointer; transition:box-shadow 0.15s; word-break:break-word; overflow:hidden; }
 .act-kanban-card:hover { box-shadow:0 3px 10px rgba(0,0,0,0.1); }
+.act-kanban-col.kanban-drag-over { border-color:var(--energy-algae); background:rgba(16,185,129,0.04); box-shadow:inset 0 0 0 2px rgba(16,185,129,0.2); }
+.act-kanban-card[draggable="true"] { cursor:grab; }
+.act-kanban-card[draggable="true"]:active { cursor:grabbing; }
 </style>

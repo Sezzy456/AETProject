@@ -439,7 +439,24 @@ window._switchDashTab = async function (pageId) {
 };
 
 function renderStakeholders() {
-    const stakeholders = window.getData('stakeholders');
+    window.filterStakeholders();
+}
+
+window.filterStakeholders = function () {
+    let stakeholders = window.getData('stakeholders') || [];
+    const search = (document.getElementById('stakeholder-search')?.value || '').toLowerCase();
+    const statusF = document.getElementById('stakeholder-filter-status')?.value || '';
+    const sortMode = document.getElementById('stakeholder-sort')?.value || 'name';
+
+    if (search) stakeholders = stakeholders.filter(s => (s.name || '').toLowerCase().includes(search) || (s.role || '').toLowerCase().includes(search));
+    if (statusF) stakeholders = stakeholders.filter(s => s.status === statusF);
+
+    if (sortMode === 'name') stakeholders.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    else if (sortMode === 'status') {
+        const order = ['Critical/At Risk', 'Strained', 'Friction Points', 'Operational', 'Stable', 'Dormant'];
+        stakeholders.sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status));
+    } else if (sortMode === 'role') stakeholders.sort((a, b) => (a.role || '').localeCompare(b.role || ''));
+
     const container = document.getElementById('stakeholder-list');
     if (!container) return;
     container.innerHTML = '';
@@ -482,13 +499,15 @@ function renderStakeholders() {
         const lastIntContact = linkedInt && linkedInt.attendees ? linkedInt.attendees[0] || '' : '';
 
         card.innerHTML = `
-            <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
-                <h3 style="margin:0; font-size:1.05rem; color:var(--text-primary); flex-shrink:0;">${s.name}</h3>
-                <span style="background:${statusBg}; color:${statusColor}; padding:0.15rem 0.6rem; border-radius:4px; font-weight:600; font-size:0.78rem; white-space:nowrap;">${s.status}</span>
-                <span style="color:#3b82f6; font-size:0.85rem; white-space:nowrap;">${s.role || ''}</span>
-                ${s.owner ? `<span style="display:inline-flex; align-items:center; gap:0.2rem; font-size:0.82rem; color:var(--text-tertiary); white-space:nowrap;"><span class="material-symbols-outlined" style="font-size:0.9rem;">person</span>${s.owner}</span>` : ''}
-                ${lastIntContact ? `<span style="font-size:0.8rem; color:var(--text-tertiary); white-space:nowrap; margin-left:auto;">Last: ${lastIntContact}${lastIntDate ? ' · ' + lastIntDate : ''}</span>` : ''}
+            <h3 style="margin:0 0 0.5rem 0; font-size:1.05rem; color:var(--text-primary);">${s.name}</h3>
+            <div style="margin-bottom:0.35rem;">
+                <span style="font-size:0.78rem; color:var(--text-tertiary);">Status:</span>
+                <span style="background:${statusBg}; color:${statusColor}; padding:0.15rem 0.6rem; border-radius:4px; font-weight:600; font-size:0.78rem; margin-left:0.3rem;">${s.status}</span>
             </div>
+            <div style="margin-bottom:0.35rem; font-size:0.85rem; color:var(--text-secondary);">
+                <span style="color:var(--text-tertiary);">Role:</span> <span style="color:#3b82f6;">${s.role || '—'}</span>
+            </div>
+            ${lastIntContact || lastIntDate ? `<div style="font-size:0.8rem; color:var(--text-tertiary);">Last contacted: ${lastIntContact ? `<span style="color:var(--text-secondary);">${lastIntContact}</span>` : ''}${lastIntContact && lastIntDate ? ' · ' : ''}${lastIntDate ? `<span style="color:var(--text-secondary);">${lastIntDate}</span>` : ''}</div>` : '<div style="font-size:0.8rem; color:var(--text-tertiary); font-style:italic;">No interactions recorded</div>'}
         `;
         container.appendChild(card);
     });
@@ -830,8 +849,80 @@ window.viewInteractionEdit = function (id = null) {
     history.pushState(null, '', '#interaction_detail');
 };
 
+// ---- UPLOAD MODAL: RECORDING ----
+let _uploadMediaRecorder = null;
+let _uploadRecChunks = [];
+let _uploadRecTimer = null;
+let _uploadRecStart = 0;
+
+window.toggleUploadRecording = async function () {
+    const btn = document.getElementById('upload-record-btn');
+    const indicator = document.getElementById('upload-record-indicator');
+    const timerEl = document.getElementById('upload-record-timer');
+
+    if (_uploadMediaRecorder && _uploadMediaRecorder.state === 'recording') {
+        // Stop recording
+        _uploadMediaRecorder.stop();
+        clearInterval(_uploadRecTimer);
+        btn.dataset.recording = '';
+        btn.style.background = 'transparent';
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:2rem;color:#ef4444;">mic</span>';
+        if (indicator) indicator.style.display = 'none';
+        return;
+    }
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        _uploadRecChunks = [];
+        _uploadMediaRecorder = new MediaRecorder(stream);
+        _uploadMediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) _uploadRecChunks.push(e.data); };
+        _uploadMediaRecorder.onstop = () => {
+            stream.getTracks().forEach(t => t.stop());
+            const blob = new Blob(_uploadRecChunks, { type: 'audio/webm' });
+            console.log('[Upload] Recording complete:', blob.size, 'bytes');
+            // Could attach to upload here in future
+        };
+        _uploadMediaRecorder.start();
+        _uploadRecStart = Date.now();
+        btn.dataset.recording = 'true';
+        btn.style.background = 'rgba(239,68,68,0.12)';
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:2rem;color:#ef4444;">stop</span>';
+        if (indicator) indicator.style.display = 'flex';
+
+        // Timer
+        _uploadRecTimer = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - _uploadRecStart) / 1000);
+            const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+            const ss = String(elapsed % 60).padStart(2, '0');
+            if (timerEl) timerEl.textContent = mm + ':' + ss;
+        }, 500);
+    } catch (err) {
+        console.warn('[Upload] Microphone access denied:', err);
+        alert('Microphone access is required for recording. Please allow microphone access and try again.');
+    }
+};
+
 function renderInteractions() {
-    const interactions = window.getData('interactions') || [];
+    window.filterInteractions();
+}
+
+window.filterInteractions = function () {
+    let interactions = window.getData('interactions') || [];
+    const search = (document.getElementById('interactions-search')?.value || '').toLowerCase();
+    const sortMode = document.getElementById('interactions-sort')?.value || 'date';
+    const typeFilter = document.getElementById('interactions-filter-type')?.value || '';
+
+    if (search) interactions = interactions.filter(i => (i.title || '').toLowerCase().includes(search) || (i.agenda || i.discussed || '').toLowerCase().includes(search) || (i.attendees || []).some(a => a.toLowerCase().includes(search)));
+    if (typeFilter) interactions = interactions.filter(i => i.type === typeFilter);
+
+    if (sortMode === 'title') interactions.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    else if (sortMode === 'type') interactions.sort((a, b) => (a.type || '').localeCompare(b.type || ''));
+    // date is default order
+
+    _renderInteractionsList(interactions);
+};
+
+function _renderInteractionsList(interactions) {
     const container = document.getElementById('interactions-list');
     if (!container) return;
     container.innerHTML = '';
@@ -1100,6 +1191,11 @@ window.filterActions = function () {
             });
         }
     }
+    // Hide completed unless "Show completed" is checked
+    const showCompleted = document.getElementById('act-show-completed')?.checked;
+    if (!showCompleted) {
+        actions = actions.filter(a => !/^complete[d]?$/i.test(a.status || ''));
+    }
 
     // Sort
     if (_actSortMode === 'due') {
@@ -1116,6 +1212,7 @@ window.filterActions = function () {
         actions.sort((a, b) => (a.activity || '').localeCompare(b.activity || ''));
     }
 
+    window._lastFilteredActions = actions;
     _actRenderList(actions);
     _actRenderKanban(actions);
     _actRenderGantt(actions);
@@ -1254,8 +1351,11 @@ function _actRenderKanban(actions) {
             const isOverdue = rel.isOverdue && col !== 'Completed';
             const dueStr = formatDate(a.timing?.dueDate);
             const objText = _actGetObjectiveText(a.commsObjectiveId);
-            return `<div class="act-kanban-card${isOverdue ? ' overdue' : ''}" onclick="window.viewAction('${a.id}')"
-                style="cursor:pointer;${col === 'Completed' ? 'border-left:3px solid #34d399;' : ''}${isOverdue ? 'border-left:3px solid #ef4444;border-color:#ef4444;background:rgba(239,68,68,0.03);' : ''}">
+            return `<div class="act-kanban-card${isOverdue ? ' overdue' : ''}" draggable="true" data-action-id="${a.id}"
+                ondragstart="event.dataTransfer.setData('text/plain','${a.id}');event.dataTransfer.effectAllowed='move';this.style.opacity='0.4'"
+                ondragend="this.style.opacity='1'"
+                onclick="window.viewAction('${a.id}')"
+                style="cursor:grab;${col === 'Completed' ? 'border-left:3px solid #34d399;' : ''}${isOverdue ? 'border-left:3px solid #ef4444;border-color:#ef4444;background:rgba(239,68,68,0.03);' : ''}">
                 <div style="font-size:0.72rem; color:${rel.color}; font-weight:${isOverdue?'600':'400'}; margin-bottom:0.3rem;">${rel.text}</div>
                 ${col === 'Completed' ? `<div style="font-size:0.7rem;color:#059669;font-weight:600;margin-bottom:0.2rem;">completed: ${formatDate(a.versionControl?.dateCompleted) || dueStr}</div>` : ''}
                 <div style="font-weight:700; font-size:0.88rem; color:var(--text-primary); margin-bottom:0.4rem; line-height:1.3;">${a.activity}</div>
@@ -1268,7 +1368,10 @@ function _actRenderKanban(actions) {
             </div>`;
         }).join('') || `<div style="font-size:0.8rem;color:var(--text-tertiary);font-style:italic;text-align:center;padding:1rem 0;">No items</div>`;
 
-        return `<div class="act-kanban-col">
+        return `<div class="act-kanban-col" data-status="${col}"
+            ondragover="event.preventDefault();this.classList.add('kanban-drag-over')"
+            ondragleave="this.classList.remove('kanban-drag-over')"
+            ondrop="event.preventDefault();this.classList.remove('kanban-drag-over');window._kanbanDrop(event.dataTransfer.getData('text/plain'),'${col}')">
             <div class="act-kanban-col-header">
                 <span style="width:10px;height:10px;background:${colColors[col]};border-radius:2px;display:inline-block;flex-shrink:0;"></span>
                 <span>${col}</span>
@@ -1279,6 +1382,19 @@ function _actRenderKanban(actions) {
         </div>`;
     }).join('');
 }
+
+// Kanban drop handler — update action status
+window._kanbanDrop = function (actionId, newStatus) {
+    const actions = window.getData('actions') || [];
+    const action = actions.find(a => a.id === actionId);
+    if (!action || action.status === newStatus) return;
+    console.log('[Kanban] Moving', action.activity, 'from', action.status, 'to', newStatus);
+    action.status = newStatus;
+    window.updateData('actions', actions);
+    // Re-render kanban
+    const filtered = window._lastFilteredActions || actions;
+    _actRenderKanban(filtered);
+};
 
 // ---- GANTT VIEW ----
 function _actRenderGantt(actions) {
@@ -1373,6 +1489,8 @@ function _actRenderGantt(actions) {
     container.innerHTML = `
         <div style="overflow-x:auto; padding-bottom:1rem;">
             <div style="min-width:700px; position:relative;">
+                <!-- Continuous "Now" red line spanning full height -->
+                <div style="position:absolute; top:0; bottom:0; left:calc(${LABEL_W}px + (100% - ${LABEL_W}px) * ${todayPct / 100}); width:2px; background:#ef4444; opacity:0.25; pointer-events:none; z-index:1;"></div>
                 ${headerHtml}
                 ${bodyHtml || '<div style="padding:2rem;text-align:center;color:var(--text-tertiary);font-style:italic;">No actions to display.</div>'}
             </div>
@@ -1753,6 +1871,15 @@ function renderActionDetail() {
         ownerCircle.textContent = initials;
         ownerCircle.title = owners.join(', ') || 'No owner';
     }
+    // Populate owner name badge
+    const ownerBadge = document.getElementById('adet-owner-badge');
+    const ownerNameEl = document.getElementById('adet-owner-name');
+    if (ownerBadge && ownerNameEl) {
+        const primaryOwner = owners[0] || 'Unassigned';
+        const ownerColor = _adetOwnerColors[primaryOwner] || 'var(--energy-algae)';
+        ownerBadge.style.background = ownerColor;
+        ownerNameEl.textContent = primaryOwner;
+    }
 
     // ── Impact: Objective link ──
     const spine = window.getData('spine');
@@ -1925,14 +2052,54 @@ function renderActionDetail() {
     const todosEl = document.getElementById('adet-todos');
     if (todosEl) {
         todosEl.innerHTML = todos.length > 0
-            ? todos.map(t => `<div class="adet-todo-item${t.completed ? ' done' : ''}">
-                <span class="material-symbols-outlined adet-todo-check" style="color:${t.completed ? 'var(--energy-algae)' : 'var(--text-tertiary)'};">
+            ? todos.map((t, i) => `<div class="adet-todo-item${t.completed ? ' done' : ''}" style="display:flex;align-items:center;gap:0.4rem;">
+                <span class="material-symbols-outlined adet-todo-check" style="color:${t.completed ? 'var(--energy-algae)' : 'var(--text-tertiary)'};cursor:pointer;"
+                    onclick="window._toggleTodo(${i})">
                     ${t.completed ? 'check_box' : 'check_box_outline_blank'}
                 </span>
                 <span style="text-decoration:${t.completed ? 'line-through' : 'none'};flex:1;">${t.detail || ''}</span>
+                <span id="adet-todo-save-${i}" class="material-symbols-outlined" style="font-size:0.85rem;color:var(--energy-algae);cursor:pointer;display:none;opacity:0.8;" onclick="window._saveTodo(${i})" title="Save">save</span>
               </div>`).join('')
             : '<span class="adet-chip-empty" style="padding:0.5rem 0;">No to-do items added.</span>';
     }
+
+    // Todo toggle handler
+    window._toggleTodo = function (index) {
+        const actions = window.getData('actions') || [];
+        const action = actions.find(x => x.id === window.currentActionId);
+        if (!action || !action.todos || !action.todos[index]) return;
+        action.todos[index].completed = !action.todos[index].completed;
+        // Show save icon
+        const saveIcon = document.getElementById('adet-todo-save-' + index);
+        if (saveIcon) saveIcon.style.display = 'inline';
+        // Update visual
+        const todoItems = document.querySelectorAll('#adet-todos .adet-todo-item');
+        if (todoItems[index]) {
+            const check = todoItems[index].querySelector('.adet-todo-check');
+            const text = todoItems[index].querySelector('span:nth-child(2)');
+            if (check) {
+                check.textContent = action.todos[index].completed ? 'check_box' : 'check_box_outline_blank';
+                check.style.color = action.todos[index].completed ? 'var(--energy-algae)' : 'var(--text-tertiary)';
+            }
+            if (text) text.style.textDecoration = action.todos[index].completed ? 'line-through' : 'none';
+            todoItems[index].classList.toggle('done', action.todos[index].completed);
+        }
+        // Update progress bar
+        const done = action.todos.filter(t => t.completed).length;
+        const total = action.todos.length;
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+        const fill = document.getElementById('adet-todo-progress-fill');
+        const progText = document.getElementById('adet-todo-progress-text');
+        if (fill) fill.style.width = pct + '%';
+        if (progText) progText.textContent = `${done}/${total} completed`;
+    };
+    window._saveTodo = function (index) {
+        const actions = window.getData('actions') || [];
+        window.updateData('actions', actions);
+        const saveIcon = document.getElementById('adet-todo-save-' + index);
+        if (saveIcon) { saveIcon.textContent = 'check'; setTimeout(() => { saveIcon.style.display = 'none'; saveIcon.textContent = 'save'; }, 1200); }
+        console.log('[Todo] Saved todo', index);
+    };
 
     // Show/hide todo section
     // To-Do section always visible (even when empty)
@@ -2552,7 +2719,20 @@ window.adetDelete = function () {
     loadView('actions');
 };
 
-
+// Archive: soft-delete via _active=false
+window.adetArchive = function () {
+    const id = window.currentActionId;
+    if (!id) return;
+    if (!confirm('Archive this action? It will be hidden from active views.')) return;
+    let actions = window.getData('actions') || [];
+    const action = actions.find(x => x.id === id);
+    if (action) {
+        action._active = false;
+        window.updateData('actions', actions);
+    }
+    window.closeActionDetailEdit();
+    loadView('actions');
+};
 
 
 // ---- APPROVALS PAGE ----
@@ -2580,6 +2760,51 @@ window.switchApprovalTab = function (tab, btn) {
         t.style.fontWeight = isActive ? '600' : '500';
         t.classList.toggle('active', isActive);
     });
+
+    // Render pending actions in User Prompts tab
+    if (tab === 'user') {
+        window._renderPendingActions();
+    }
+};
+
+window._renderPendingActions = function () {
+    const userView = document.getElementById('appr-view-user');
+    if (!userView) return;
+    const actions = (window.getData('actions') || []).filter(a => a.status === 'Pending');
+
+    if (actions.length === 0) {
+        userView.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:4rem 2rem; background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:14px;">
+            <span class="material-symbols-outlined" style="font-size:3rem; color:var(--text-tertiary); margin-bottom:1rem; opacity:0.5;">task_alt</span>
+            <p style="font-size:1.1rem; font-weight:600; color:var(--text-primary); margin:0 0 0.5rem 0;">You're all caught up</p>
+            <p style="font-size:0.9rem; color:var(--text-tertiary); margin:0;">No pending actions to review.</p>
+        </div>`;
+        return;
+    }
+
+    userView.innerHTML = `<div style="margin-bottom:1rem;font-size:0.85rem;color:var(--text-tertiary);">${actions.length} pending action${actions.length > 1 ? 's' : ''} awaiting approval</div>` +
+        actions.map(a => {
+            const dueStr = a.timing?.dueDate ? formatDate(a.timing.dueDate) : '—';
+            return `<div class="approval-card" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;" data-action-id="${a.id}">
+                <div style="flex:1;">
+                    <div style="font-weight:600; font-size:0.95rem; color:var(--text-primary); margin-bottom:0.25rem;">${a.activity}</div>
+                    <div style="font-size:0.8rem; color:var(--text-tertiary);">Due: ${dueStr} · Owner: ${a.owner || '—'}</div>
+                    ${a.description ? `<div style="font-size:0.82rem; color:var(--text-secondary); margin-top:0.25rem; max-width:500px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.description}</div>` : ''}
+                </div>
+                <button onclick="window._approvePendingAction('${a.id}')" style="display:flex; align-items:center; gap:0.4rem; padding:0.5rem 1rem; background:var(--energy-algae); color:#fff; border:none; border-radius:8px; font-size:0.85rem; font-weight:600; cursor:pointer; transition:all 0.15s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='none'">
+                    <span class="material-symbols-outlined" style="font-size:1.1rem;">check</span> Approve
+                </button>
+            </div>`;
+        }).join('');
+};
+
+window._approvePendingAction = function (actionId) {
+    const actions = window.getData('actions') || [];
+    const action = actions.find(a => a.id === actionId);
+    if (!action) return;
+    action.status = 'Planned';
+    window.updateData('actions', actions);
+    console.log('[Approvals] Approved action', action.activity, '→ Planned');
+    window._renderPendingActions();
 };
 
 // ---- STRATEGY SPINE (inline card-driven editing) ----
@@ -2594,6 +2819,139 @@ async function renderStrategySpine() {
     renderSpineCards();
     setupSpineEditToggle();
 }
+
+// ---- UNIFIED CARD TYPE RENDERER ----
+// Shared renderer for all entity-linked card types (used by spine, messaging, dashboard)
+window._renderCardTypeContent = function (card, spine) {
+    const type = card.cc_card_type || 'card';
+    let filter = {};
+    try { if (card.cc_content && card.cc_content.startsWith('{')) filter = JSON.parse(card.cc_content); } catch(e) {}
+
+    switch (type) {
+        case 'objectives_link': {
+            if (spine && spine.objectives) return renderSpineObjectives(spine.objectives, false);
+            return '<p style="color:var(--text-tertiary);font-style:italic;">No objectives loaded.</p>';
+        }
+
+        case 'stakeholder_view':
+        case 'stakeholder_single': {
+            const stakeholders = window.getData('stakeholders') || [];
+            let filtered = [...stakeholders];
+            if (filter.status) filtered = filtered.filter(s => s.status === filter.status);
+            if (filter.id) filtered = filtered.filter(s => s.id === filter.id);
+            const limit = type === 'stakeholder_single' ? 1 : (filter.limit || 3);
+            const items = filtered.slice(0, limit);
+            if (items.length === 0) return '<p style="color:var(--text-tertiary);font-style:italic;margin:0;">No stakeholders match filter.</p>';
+            return `<h4 style="margin:0 0 0.75rem 0;color:var(--text-tertiary);">${card.cc_title || 'Stakeholders'}</h4>` +
+                items.map(s => {
+                    const col = s.status === 'Needs Attention' ? '#ef4444' : s.status === 'Active' ? 'var(--energy-algae)' : s.status === 'Monitor' ? 'var(--energy-mid)' : 'var(--text-secondary)';
+                    return `<div style="padding:0.6rem;border:1px solid var(--border-subtle);border-radius:6px;margin-bottom:0.4rem;cursor:pointer;" onclick="window.currentStakeholderId='${s.id}';loadView('stakeholder_detail');history.pushState(null,'','#stakeholder_detail')" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+                        <div style="font-weight:600;font-size:0.88rem;margin-bottom:0.2rem;">${s.name}</div>
+                        <div style="font-size:0.78rem;color:var(--text-tertiary);">
+                            <span style="color:${col};font-weight:600;">${s.status}</span> · ${s.role || '—'}
+                        </div>
+                    </div>`;
+                }).join('');
+        }
+
+        case 'stakeholder_summary': {
+            const stakeholders = window.getData('stakeholders') || [];
+            const total = stakeholders.length;
+            const healthy = stakeholders.filter(s => ['Active','Stable','Operational'].includes(s.status)).length;
+            const neutral = stakeholders.filter(s => ['Monitor','Dormant'].includes(s.status)).length;
+            const atRisk = stakeholders.filter(s => ['Needs Attention','Critical/At Risk','Strained','Friction Points'].includes(s.status)).length;
+            return `<h4 style="margin:0 0 0.75rem 0;color:var(--text-tertiary);">${card.cc_title || 'Stakeholders'}</h4>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div><div style="font-size:2.5rem;font-weight:700;">${total}</div><div style="font-size:0.75rem;color:var(--text-tertiary);">Total</div></div>
+                    <div style="font-size:0.8rem;line-height:1.6;"><div><span style="color:var(--energy-algae);">●</span> ${healthy} Healthy</div><div><span style="color:var(--energy-solar);">●</span> ${neutral} Neutral</div><div><span style="color:var(--energy-alert);">●</span> ${atRisk} At Risk</div></div>
+                </div>`;
+        }
+
+        case 'action_view':
+        case 'action_single': {
+            const actions = window.getData('actions') || [];
+            let filtered = [...actions];
+            const isDone = a => /^complete[d]?$/i.test(a.status || '');
+            if (filter.status) filtered = filtered.filter(a => a.status === filter.status);
+            if (filter.filter === 'overdue') { const now = new Date(); filtered = filtered.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate+'T00:00:00') < now && !isDone(a)); }
+            if (filter.filter === 'upcoming') { const now = new Date(); filtered = filtered.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate+'T00:00:00') >= now && !isDone(a)); }
+            if (filter.id) filtered = filtered.filter(a => a.id === filter.id);
+            const limit = type === 'action_single' ? 1 : (filter.limit || 3);
+            filtered.sort((a, b) => (a.timing?.dueDate || '9999').localeCompare(b.timing?.dueDate || '9999'));
+            const items = filtered.slice(0, limit);
+            if (items.length === 0) return '<p style="color:var(--text-tertiary);font-style:italic;margin:0;">No actions match filter.</p>';
+            return `<h4 style="margin:0 0 0.75rem 0;color:var(--text-tertiary);">${card.cc_title || 'Actions'}</h4>` +
+                items.map(a => {
+                    const rel = typeof relativeDate === 'function' ? relativeDate(a.timing?.dueDate) : { text: '', color: 'inherit' };
+                    return `<div style="padding:0.6rem;border:1px solid var(--border-subtle);border-radius:6px;margin-bottom:0.4rem;cursor:pointer;" onclick="window.viewAction('${a.id}')" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem;">
+                            <span class="status-badge" style="font-size:0.7rem;padding:0.1rem 0.5rem;">${a.status}</span>
+                            <span style="font-size:0.72rem;color:${rel.color};">${rel.text}</span>
+                        </div>
+                        <div style="font-weight:600;font-size:0.88rem;">${a.activity}</div>
+                        <div style="font-size:0.75rem;color:var(--text-tertiary);margin-top:0.15rem;">Owner: ${a.owner || '—'}</div>
+                    </div>`;
+                }).join('');
+        }
+
+        case 'action_summary': {
+            const actions = window.getData('actions') || [];
+            const total = actions.length;
+            const active = actions.filter(a => ['In Progress','Planned'].includes(a.status)).length;
+            const overdue = actions.filter(a => { if (/^complete[d]?$/i.test(a.status)) return false; if (!a.timing?.dueDate) return false; return new Date(a.timing.dueDate+'T00:00:00') < new Date(); }).length;
+            return `<h4 style="margin:0 0 0.75rem 0;color:var(--text-tertiary);">${card.cc_title || 'Actions'}</h4>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div><div style="font-size:2.5rem;font-weight:700;">${total}</div><div style="font-size:0.75rem;color:var(--text-tertiary);">Total</div></div>
+                    <div style="text-align:right;"><div style="font-size:2rem;font-weight:700;">${active}</div><div style="font-size:0.75rem;color:var(--text-tertiary);">Active</div></div>
+                    ${overdue > 0 ? `<div style="text-align:right;"><div style="font-size:2rem;font-weight:700;color:#ef4444;">${overdue}</div><div style="font-size:0.75rem;color:#ef4444;">Overdue</div></div>` : ''}
+                </div>`;
+        }
+
+        case 'interaction_view':
+        case 'interaction_single': {
+            const interactions = window.getData('interactions') || [];
+            let filtered = [...interactions];
+            if (filter.type) filtered = filtered.filter(i => i.type === filter.type);
+            if (filter.id) filtered = filtered.filter(i => i.id === filter.id);
+            const limit = type === 'interaction_single' ? 1 : (filter.limit || 3);
+            const items = filtered.slice(0, limit);
+            if (items.length === 0) return '<p style="color:var(--text-tertiary);font-style:italic;margin:0;">No updates match filter.</p>';
+            return `<h4 style="margin:0 0 0.75rem 0;color:var(--text-tertiary);">${card.cc_title || 'Updates'}</h4>` +
+                items.map(i => {
+                    return `<div style="padding:0.6rem;border:1px solid var(--border-subtle);border-radius:6px;margin-bottom:0.4rem;cursor:pointer;" onclick="window.currentInteractionId='${i.id}';loadView('interaction_detail');history.pushState(null,'','#interaction_detail')" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+                        <div style="font-size:0.72rem;color:${i.type==='Upcoming'?'var(--energy-alert)':'var(--text-tertiary)'};font-weight:600;margin-bottom:0.2rem;">${i.rawDate || ''} — ${i.type || ''}</div>
+                        <div style="font-weight:600;font-size:0.88rem;">${i.title}</div>
+                    </div>`;
+                }).join('');
+        }
+
+        case 'interaction_summary': {
+            const interactions = window.getData('interactions') || [];
+            const total = interactions.length;
+            const upcoming = interactions.filter(i => i.type === 'Upcoming').length;
+            return `<h4 style="margin:0 0 0.75rem 0;color:var(--text-tertiary);">${card.cc_title || 'Updates'}</h4>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div><div style="font-size:2.5rem;font-weight:700;">${upcoming}</div><div style="font-size:0.75rem;color:var(--text-tertiary);">Upcoming</div></div>
+                    <div style="text-align:right;"><div style="font-size:2.5rem;font-weight:700;">${total}</div><div style="font-size:0.75rem;color:var(--text-tertiary);">Total</div></div>
+                </div>`;
+        }
+
+        case 'audience_message': {
+            const stakeholders = window.getData('stakeholders') || [];
+            const linkedId = filter.stakeholderId || card.cc_linked_entity_id;
+            const s = linkedId ? stakeholders.find(x => x.id === linkedId) : null;
+            if (!s) return `<h4 style="margin:0 0 0.75rem 0;color:var(--text-tertiary);">Audience Message</h4><p style="color:var(--text-tertiary);font-style:italic;">No stakeholder linked.</p>`;
+            return `<h4 style="margin:0 0 0.5rem 0;color:var(--text-tertiary);">Audience Message — ${s.name}</h4>
+                <div style="font-size:0.85rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap;">${s.audienceMessage || card.cc_content || 'No message set.'}</div>`;
+        }
+
+        default: {
+            // Generic card
+            return `<h4 class="spine-card-title" data-card-id="${card.cc_id}" style="margin:0 0 0.75rem 0;">${card.cc_title||''}</h4>
+                <div class="spine-card-content" data-card-id="${card.cc_id}" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap;">${card.cc_content||''}</div>`;
+        }
+    }
+};
 
 function renderSpineCards() {
     const container = document.getElementById('strategy-cards-container');
@@ -2649,31 +3007,27 @@ function renderSpineCards() {
                     { value: 'card', icon: '📝', label: 'Card' },
                     { value: 'objectives_link', icon: '🎯', label: 'Objectives' },
                     { value: 'stakeholder_view', icon: '🏛', label: 'Stakeholder' },
-                    { value: 'action_summary', icon: '⚡', label: 'Action' },
-                    { value: 'interaction_summary', icon: '💬', label: 'Interaction' }
+                    { value: 'stakeholder_summary', icon: '📊', label: 'Stakeholder Summary' },
+                    { value: 'action_view', icon: '⚡', label: 'Action' },
+                    { value: 'action_summary', icon: '📊', label: 'Action Summary' },
+                    { value: 'interaction_view', icon: '💬', label: 'Update' },
+                    { value: 'interaction_summary', icon: '📊', label: 'Update Summary' },
+                    { value: 'audience_message', icon: '📢', label: 'Audience Message' }
                 ];
                 const typeOpts = cardTypeOptions.map(t => `<option value="${t.value}"${c.cc_card_type === t.value ? ' selected' : ''}>${t.icon} ${t.label}</option>`).join('');
                 const editCtrl = `<div class="spine-edit-ctrl" style="display:none;position:absolute;right:0.5rem;top:0.5rem;gap:0.25rem;align-items:center;z-index:2;">
-                    <select class="spine-type-select" data-card-id="${c.cc_id}" style="font-size:0.72rem;padding:0.15rem 0.3rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);max-width:110px;" onchange="window.spineChangeCardType(${c.cc_id},this.value)">
+                    <select class="spine-type-select" data-card-id="${c.cc_id}" style="font-size:0.72rem;padding:0.15rem 0.3rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);max-width:140px;" onchange="window.spineChangeCardType(${c.cc_id},this.value)">
                         ${typeOpts}
                     </select>
                     <button onclick="event.stopPropagation();window.spineMoveCard(${c.cc_id},-1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_upward</span></button>
                     <button onclick="event.stopPropagation();window.spineMoveCard(${c.cc_id},1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
                     <button onclick="event.stopPropagation();window.spineDeleteCard(${c.cc_id})" style="background:none;border:none;cursor:pointer;color:var(--energy-alert);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
                 </div>`;
-                // objectives_link card type: render objectives from tbl_strategy_objective
-                if (c.cc_card_type === 'objectives_link' && spine && spine.objectives) {
-                    html += `<div class="card" style="position:relative;padding:1.5rem;" data-card-id="${c.cc_id}" draggable="false"><span class="spine-drag-grip" data-grip-id="${c.cc_id}" title="Drag to reorder" style="position:absolute;left:0.4rem;top:50%;transform:translateY(-50%);">⠿</span>${editCtrl}`;
-                    html += renderSpineObjectives(spine.objectives, false);
-                    html += '</div>';
-                } else {
-                    html += `<div class="card" style="position:relative;padding:1.5rem;" data-card-id="${c.cc_id}" draggable="false">
-                        <span class="spine-drag-grip" data-grip-id="${c.cc_id}" title="Drag to reorder" style="position:absolute;left:0.4rem;top:50%;transform:translateY(-50%);">⠿</span>
-                        ${editCtrl}
-                        <h4 class="spine-card-title" data-card-id="${c.cc_id}" style="margin:0 0 0.75rem 0;">${c.cc_title||''}</h4>
-                        <div class="spine-card-content" data-card-id="${c.cc_id}" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap;">${c.cc_content||''}</div>
-                    </div>`;
-                }
+                const grip = `<span class="spine-drag-grip" data-grip-id="${c.cc_id}" title="Drag to reorder" style="position:absolute;left:0.4rem;top:50%;transform:translateY(-50%);">⠿</span>`;
+
+                // Render card by type
+                const cardContent = window._renderCardTypeContent(c, spine);
+                html += `<div class="card" style="position:relative;padding:1.5rem;" data-card-id="${c.cc_id}" draggable="false">${grip}${editCtrl}${cardContent}</div>`;
             });
             html += '</div>';
         }
@@ -3009,8 +3363,8 @@ window._initSpineDragDrop = function () {
 
     // Clear any previous indicators
     function clearIndicators() {
-        container.querySelectorAll('.spine-drop-above,.spine-drop-below,.spine-drop-nest').forEach(el => {
-            el.classList.remove('spine-drop-above', 'spine-drop-below', 'spine-drop-nest');
+        container.querySelectorAll('.spine-drop-above,.spine-drop-below,.spine-drop-left,.spine-drop-right,.spine-drop-nest').forEach(el => {
+            el.classList.remove('spine-drop-above', 'spine-drop-below', 'spine-drop-left', 'spine-drop-right', 'spine-drop-nest');
         });
     }
 
@@ -3022,6 +3376,17 @@ window._initSpineDragDrop = function () {
     // Get all top-level card elements in DOM order
     function getAllCardEls() {
         return Array.from(container.querySelectorAll('[data-card-id]'));
+    }
+
+    // Check if an element is inside a multi-column grid
+    function isInHorizontalGrid(el) {
+        const parent = el.parentElement;
+        if (!parent) return false;
+        const style = window.getComputedStyle(parent);
+        if (style.display !== 'grid') return false;
+        const cols = style.gridTemplateColumns || '';
+        // Multi-column if there are multiple column values (e.g. "1fr 1fr" or "repeat(2, 1fr)")
+        return cols.split(/\s+/).filter(v => v && v !== '').length > 1;
     }
 
     // Mouse down on grip — start drag
@@ -3074,18 +3439,33 @@ window._initSpineDragDrop = function () {
 
         if (hoverEl) {
             const rect = hoverEl.getBoundingClientRect();
-            const relY = (e.clientY - rect.top) / rect.height;
             const isSection = hoverEl.classList.contains('spine-section-row');
+            const horizontal = isInHorizontalGrid(hoverEl);
 
-            if (relY < 0.3) {
-                hoverEl.classList.add('spine-drop-above');
-            } else if (relY > 0.7) {
-                hoverEl.classList.add('spine-drop-below');
-            } else if (!isSection) {
-                // Center zone = nest (only for non-section cards)
-                hoverEl.classList.add('spine-drop-nest');
+            if (horizontal) {
+                // Horizontal grid: use left/right/center zones
+                const relX = (e.clientX - rect.left) / rect.width;
+                if (relX < 0.3) {
+                    hoverEl.classList.add('spine-drop-left');
+                } else if (relX > 0.7) {
+                    hoverEl.classList.add('spine-drop-right');
+                } else if (!isSection) {
+                    hoverEl.classList.add('spine-drop-nest');
+                } else {
+                    hoverEl.classList.add('spine-drop-right');
+                }
             } else {
-                hoverEl.classList.add('spine-drop-below');
+                // Vertical layout: use top/bottom/center zones
+                const relY = (e.clientY - rect.top) / rect.height;
+                if (relY < 0.3) {
+                    hoverEl.classList.add('spine-drop-above');
+                } else if (relY > 0.7) {
+                    hoverEl.classList.add('spine-drop-below');
+                } else if (!isSection) {
+                    hoverEl.classList.add('spine-drop-nest');
+                } else {
+                    hoverEl.classList.add('spine-drop-below');
+                }
             }
         }
     }
@@ -3104,7 +3484,9 @@ window._initSpineDragDrop = function () {
         let dropEl = null;
         for (const el of allEls) {
             if (el === dragEl) continue;
-            if (el.classList.contains('spine-drop-above') || el.classList.contains('spine-drop-below') || el.classList.contains('spine-drop-nest')) {
+            if (el.classList.contains('spine-drop-above') || el.classList.contains('spine-drop-below') ||
+                el.classList.contains('spine-drop-left') || el.classList.contains('spine-drop-right') ||
+                el.classList.contains('spine-drop-nest')) {
                 dropEl = el;
                 break;
             }
@@ -3113,7 +3495,7 @@ window._initSpineDragDrop = function () {
         if (dropEl) {
             const dropCardId = parseInt(dropEl.dataset.cardId);
             const isNest = dropEl.classList.contains('spine-drop-nest');
-            const isAbove = dropEl.classList.contains('spine-drop-above');
+            const isAbove = dropEl.classList.contains('spine-drop-above') || dropEl.classList.contains('spine-drop-left');
 
             if (isNest) {
                 // Nest: set cc_parent_card_id

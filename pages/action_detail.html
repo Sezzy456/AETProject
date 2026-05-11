@@ -12,7 +12,8 @@
             <span id="adet-status-badge" class="adet-status-badge-lg"></span>
         </div>
         <div style="display:flex; align-items:center; gap:0.75rem;">
-            <div id="adet-owner-circle" title="" style="width:42px; height:42px; border-radius:50%; background:var(--energy-algae); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem; cursor:default;"></div>
+            <div id="adet-owner-circle" title="" style="display:none; width:42px; height:42px; border-radius:50%; background:var(--energy-algae); color:#fff; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem; cursor:default;"></div>
+            <div id="adet-owner-badge" style="padding:0.3rem 0.75rem; border-radius:6px; background:var(--energy-algae); color:#fff; font-weight:600; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.3rem;"><span class="material-symbols-outlined" style="font-size:0.9rem;">person</span><span id="adet-owner-name"></span></div>
             <button onclick="window.openActionDetailEdit()" class="btn-primary" style="display:inline-flex;align-items:center;gap:0.4rem;">
                 <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit
             </button>
@@ -35,9 +36,7 @@
         <span id="adet-due-inline" style="font-size:0.8rem;"></span>
         <span id="adet-due-relative-inline" style="font-size:0.75rem;"></span>
     </div>
-    <button class="btn-secondary" onclick="window.adetToggleSection('adet-advanced-panel')" style="height:28px; padding:0 0.6rem; font-size:0.78rem; display:inline-flex; align-items:center; gap:0.3rem;">
-        <span class="material-symbols-outlined" style="font-size:0.9rem;">tune</span> Advanced
-    </button>
+    <!-- Advanced button moved to bottom of page -->
 </div>
 
 <!-- ── ADVANCED PANEL (hidden) ─────────────────────────────── -->
@@ -121,10 +120,10 @@
 <!-- ── RECENT PROGRESS (3/4) + BLOCKERS (1/4) ──────────────── -->
 <div style="display:grid; grid-template-columns:3fr 1fr; gap:1.5rem; align-items:start; margin-bottom:1.5rem;">
     <div>
-        <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.4rem; font-weight:500;">Recent Progress</div>
-        <div style="margin-bottom:0.75rem;">
-            <button id="adet-add-progress-btn" class="btn-secondary" onclick="window.adetShowProgressForm()" style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.82rem; height:32px;">
-                <span class="material-symbols-outlined" style="font-size:0.95rem;">add</span> Add Progress Update
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.4rem;">
+            <div style="font-size:0.8rem; color:var(--text-tertiary); font-weight:500;">Recent Progress</div>
+            <button id="adet-add-progress-btn" class="btn-secondary" onclick="window.adetShowProgressForm()" style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.78rem; height:28px; padding:0 0.6rem;">
+                <span class="material-symbols-outlined" style="font-size:0.85rem;">add</span> Add Progress
             </button>
         </div>
         <div id="adet-progress-form" style="display:none; margin-bottom:0.75rem;">
@@ -151,48 +150,48 @@
     </div>
 </div>
 
-
-
-<!-- ── VERSION CONTROL (collapsed by default) ──────────────── -->
-<div class="adet-accordion" style="margin-bottom:1.5rem;">
-    <button class="adet-accordion-toggle" onclick="window.adetToggleSection('adet-vc-body')" style="font-size:0.95rem; padding:0.75rem 1rem; background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; width:100%;">
-        <span class="material-symbols-outlined" style="font-size:1rem;">chevron_right</span>
-        Version Control & Privacy
+<!-- ── ADVANCED TOGGLE (at bottom) ─────────────────────────── -->
+<div style="margin-top:1.5rem; margin-bottom:1.5rem;">
+    <button class="btn-secondary" onclick="window.adetToggleSection('adet-bottom-advanced')" style="height:36px; padding:0 1rem; font-size:0.85rem; display:inline-flex; align-items:center; gap:0.4rem; border-radius:8px;">
+        <span class="material-symbols-outlined" style="font-size:1rem;">tune</span> Advanced Settings
     </button>
-    <div id="adet-vc-body" class="adet-accordion-body" style="display:none;">
-        <div class="adet-card" style="padding:1.25rem; margin-top:0.5rem;">
-            <div class="adet-vc-topbar">
-                <div>Current Version <strong id="adet-vc-version"></strong></div>
-                <div>Created <strong id="adet-vc-created"></strong></div>
-                <div>Last edited <strong id="adet-vc-edited"></strong></div>
-                <div>By <span id="adet-vc-who" class="adet-vc-who-badge"></span></div>
-                <div id="adet-vc-completed-pill" style="display:none;" class="adet-vc-completed-pill"></div>
-            </div>
-            <div class="adet-accordion" style="margin-top:0.75rem;">
-                <button class="adet-accordion-toggle" onclick="window.adetToggleSection('adet-vc-prev')">
-                    <span class="material-symbols-outlined" style="font-size:1rem;">chevron_right</span>
-                    Previous Versions
-                </button>
-                <div id="adet-vc-prev" class="adet-accordion-body" style="display:none;">
-                    <div id="adet-vc-prev-versions" class="adet-vc-prev-versions"></div>
-                </div>
-            </div>
-            <div style="border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:1rem;">
-                <div style="display:flex; gap:1rem; align-items:flex-start;">
-                    <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem;">Privacy:</div>
-                    <div style="flex:1;">
-                        <div id="adet-privacy-display" class="adet-privacy-options-ro"></div>
-                        <div id="adet-privacy-custom-display" class="adet-privacy-custom-details" style="display:none;"></div>
-                    </div>
-                </div>
-            </div>
-            <div style="border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:1rem;">
-                <div style="display:flex; gap:1rem; align-items:flex-start;">
-                    <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem;">Other:</div>
-                    <p id="adet-other" class="adet-text-value" style="flex:1; font-style:italic;"></p>
-                </div>
+</div>
+<div id="adet-bottom-advanced" style="display:none; margin-bottom:1.5rem;">
+    <!-- Version Control -->
+    <div class="adet-card" style="padding:1.25rem; margin-bottom:1rem;">
+        <h3 class="adet-card-label" style="margin-bottom:0.75rem;">Version Control</h3>
+        <div class="adet-vc-topbar">
+            <div>Current Version <strong id="adet-vc-version"></strong></div>
+            <div>Created <strong id="adet-vc-created"></strong></div>
+            <div>Last edited <strong id="adet-vc-edited"></strong></div>
+            <div>By <span id="adet-vc-who" class="adet-vc-who-badge"></span></div>
+            <div id="adet-vc-completed-pill" style="display:none;" class="adet-vc-completed-pill"></div>
+        </div>
+        <div class="adet-accordion" style="margin-top:0.75rem;">
+            <button class="adet-accordion-toggle" onclick="window.adetToggleSection('adet-vc-prev')">
+                <span class="material-symbols-outlined" style="font-size:1rem;">chevron_right</span>
+                Previous Versions
+            </button>
+            <div id="adet-vc-prev" class="adet-accordion-body" style="display:none;">
+                <div id="adet-vc-prev-versions" class="adet-vc-prev-versions"></div>
             </div>
         </div>
+    </div>
+    <!-- Privacy -->
+    <div class="adet-card" style="padding:1.25rem; margin-bottom:1rem;">
+        <h3 class="adet-card-label" style="margin-bottom:0.75rem;">Privacy</h3>
+        <div style="display:flex; gap:1rem; align-items:flex-start;">
+            <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem;">Level:</div>
+            <div style="flex:1;">
+                <div id="adet-privacy-display" class="adet-privacy-options-ro"></div>
+                <div id="adet-privacy-custom-display" class="adet-privacy-custom-details" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+    <!-- Other -->
+    <div class="adet-card" style="padding:1.25rem;">
+        <h3 class="adet-card-label" style="margin-bottom:0.75rem;">Other Notes</h3>
+        <p id="adet-other" class="adet-text-value" style="font-style:italic;"></p>
     </div>
 </div>
 
@@ -534,8 +533,8 @@
                     <button class="btn-secondary" onclick="window.adetRevert()">Revert changes</button>
                 </div>
                 <div style="display:flex;gap:0.5rem;">
-                    <button class="btn-primary" style="background:#ef4444;border-color:#ef4444;" onclick="window.adetDelete()">
-                        <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">delete</span> Delete
+                    <button class="btn-primary" style="background:#ef4444;border-color:#ef4444;" onclick="window.adetArchive()">
+                        <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">archive</span> Archive
                     </button>
                     <button class="btn-primary" onclick="window.adetSave()">
                         <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">save</span> Save

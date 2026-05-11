@@ -14,7 +14,29 @@
         <button style="position:absolute;top:1rem;right:1rem;background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-size:1.5rem;" onclick="document.getElementById('upload-modal').style.display='none'">✕</button>
 
         <h3 style="margin-bottom:0.25rem;">Upload Content</h3>
-        <p style="color:var(--text-tertiary);font-size:0.85rem;margin-bottom:1.5rem;">Drag and drop files or select a content type below.</p>
+        <p style="color:var(--text-tertiary);font-size:0.85rem;margin-bottom:1.5rem;">Add notes, record audio, or upload files.</p>
+
+        <!-- Manual Notes -->
+        <div style="margin-bottom:1.5rem;">
+            <label style="font-size:0.85rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:0.5rem;">Manual Notes</label>
+            <textarea id="upload-manual-notes" placeholder="Type your notes, observations, or meeting minutes here..." style="width:100%;min-height:100px;padding:0.75rem;border:1px solid var(--border-subtle);border-radius:8px;font-size:0.85rem;resize:vertical;outline:none;font-family:inherit;background:var(--bg-app);color:var(--text-primary);box-sizing:border-box;"></textarea>
+        </div>
+
+        <!-- Record Audio -->
+        <div style="display:flex;align-items:center;gap:1.25rem;margin-bottom:1.5rem;padding:1rem;background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:12px;">
+            <button id="upload-record-btn" onclick="window.toggleUploadRecording()" style="width:64px;height:64px;border-radius:50%;border:3px solid #ef4444;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(239,68,68,0.08)'" onmouseout="if(!this.dataset.recording)this.style.background='transparent'">
+                <span class="material-symbols-outlined" style="font-size:2rem;color:#ef4444;">mic</span>
+            </button>
+            <div>
+                <div style="font-size:0.95rem;font-weight:600;color:var(--text-primary);">Record Audio</div>
+                <div style="font-size:0.8rem;color:var(--text-tertiary);">Click to start recording live audio</div>
+                <div id="upload-record-indicator" style="display:none;margin-top:0.4rem;display:none;align-items:center;gap:0.5rem;">
+                    <span id="upload-record-dot" style="width:10px;height:10px;border-radius:50%;background:#ef4444;animation:pulse-rec 1s ease-in-out infinite;"></span>
+                    <span id="upload-record-timer" style="font-size:0.85rem;font-weight:600;color:#ef4444;font-family:'JetBrains Mono',monospace;">00:00</span>
+                    <span style="font-size:0.75rem;color:var(--text-tertiary);">Recording...</span>
+                </div>
+            </div>
+        </div>
 
         <!-- Drag & Drop Zone -->
         <div id="upload-dropzone" style="border:2px dashed var(--border-subtle); border-radius:12px; padding:3rem 2rem; text-align:center; cursor:pointer; transition:all 0.2s; margin-bottom:1.5rem; background:var(--bg-app);" onmouseover="this.style.borderColor='var(--energy-algae)';this.style.background='rgba(16,185,129,0.03)'" onmouseout="this.style.borderColor='var(--border-subtle)';this.style.background='var(--bg-app)'">
@@ -63,15 +85,23 @@
 </div>
 
 <!-- Filter Bar -->
-<div class="spine-section" style="padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center;">
-    <input type="text" id="interactions-search" placeholder="Search" style="width: 250px; background: rgba(0,0,0,0.02); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 0.5rem 1rem; outline: none;">
+<div class="spine-section" style="padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap:wrap;">
+    <input type="text" id="interactions-search" placeholder="Search interactions..." oninput="window.filterInteractions()" style="width: 250px; background: rgba(0,0,0,0.02); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 0.5rem 1rem; outline: none;">
     
-    <button class="btn-secondary" style="height: 36px; border-radius: 20px;">
-        <span class="material-symbols-outlined" style="font-size: 1rem;">filter_list</span> Filters
-    </button>
-    <button class="btn-secondary" style="height: 36px; border-radius: 20px; border: none;">
-        <span class="material-symbols-outlined" style="font-size: 1rem;">sort</span> Sorting
-    </button>
+    <select id="interactions-sort" onchange="window.filterInteractions()" style="background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:20px;padding:0.4rem 0.75rem;font-size:0.82rem;color:var(--text-secondary);cursor:pointer;outline:none;">
+        <option value="date">Sort: Date</option>
+        <option value="title">Sort: Title A–Z</option>
+        <option value="type">Sort: Type</option>
+    </select>
+
+    <select id="interactions-filter-type" onchange="window.filterInteractions()" style="background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:20px;padding:0.4rem 0.75rem;font-size:0.82rem;color:var(--text-secondary);cursor:pointer;outline:none;">
+        <option value="">All Types</option>
+        <option value="Meeting">Meeting</option>
+        <option value="Email">Email</option>
+        <option value="Call">Call</option>
+        <option value="Grant">Grant</option>
+        <option value="Upcoming">Upcoming</option>
+    </select>
 </div>
 
 <div style="margin-bottom: 1.5rem;">
@@ -137,6 +167,10 @@
 }
 .interaction-pill.agenda-item {
     background: rgba(0,0,0,0.02);
+}
+@keyframes pulse-rec {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
 }
 </style>
 
