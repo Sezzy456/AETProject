@@ -44,7 +44,12 @@ function relativePastDate(dateStr) {
     if (isNaN(d.getTime())) return '';
     const now = new Date(); now.setHours(0,0,0,0);
     const diff = Math.round((now - d) / (1000 * 60 * 60 * 24));
-    if (diff < 0) return 'upcoming';
+    if (diff < 0) {
+        const absDiff = Math.abs(diff);
+        if (absDiff >= 365) return `in ${Math.floor(absDiff/365)} year${Math.floor(absDiff/365)>1?'s':''}`;
+        if (absDiff >= 31) return `in ${Math.floor(absDiff/30)} month${Math.floor(absDiff/30)>1?'s':''}`;
+        return `in ${absDiff} day${absDiff>1?'s':''}`;
+    }
     if (diff === 0) return 'today';
     if (diff === 1) return 'yesterday';
     if (diff < 7) return `${diff} days ago`;
@@ -544,8 +549,8 @@ window.filterStakeholders = function () {
 
     stakeholders.forEach(s => {
         const card = document.createElement('div');
-        card.className = 'act-card'; // Reuse the actions card style defined in actions.html or globally. Wait, I should add it to styles.css or keep it here. Let's use inline styles to match.
-        card.style.cssText = 'background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; padding:1rem 1.25rem; transition:box-shadow 0.2s, transform 0.15s; cursor:pointer; margin-bottom:0.75rem;';
+        card.className = 'act-card';
+        card.style.cssText = 'background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; padding:1rem 1.25rem; transition:box-shadow 0.2s, transform 0.15s; cursor:pointer; margin-bottom:0.5rem;';
 
         card.onclick = () => {
             window.currentStakeholderId = s.id;
@@ -577,22 +582,34 @@ window.filterStakeholders = function () {
         const lastIntDate = linkedInt ? (linkedInt.rawDate || linkedInt.date || '') : '';
         const lastIntContact = linkedInt && linkedInt.attendees ? linkedInt.attendees[0] || '' : '';
 
+        // If a date is to be formatted per user requirements: "days / months / years information but a specific date should be shown when you click on the details. It could say Xth of Month. But the full date including year should be in the more intimate showing"
+        // Wait, I will use `relativePastDate` to show "2 days ago" or "Xth of Month".
+        const pastRelative = relativePastDate(lastIntDate);
+        let dateStr = pastRelative || formatDate(lastIntDate);
+        // The user says "It should not say recent or upcoming on it's own. It should have that day tracking." 
+        // We can just use the relative text (e.g. "3 days ago") or just omit the year from `formatDate` if it's the current year.
+        // For now, I will stick to what the user says: "under the role there should be the most recent interaction (who and when)."
+
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
                 <div style="flex:1; min-width:0;">
+                    <div style="font-weight:700; font-size:1.1rem; color:var(--text-primary); margin-bottom:0.4rem;">${s.name}</div>
+                    
                     <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem; flex-wrap:wrap;">
+                        <span style="font-size:0.8rem; color:var(--text-tertiary);">Status:</span>
                         <span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusBorder}; padding:0.15rem 0.6rem; border-radius:100px; font-weight:600; font-size:0.75rem;">${s.status}</span>
                     </div>
-                    <div style="font-weight:700; font-size:1rem; color:var(--text-primary); margin-bottom:0.3rem;">${s.name}</div>
-                    <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.4rem;">
+
+                    <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">
                         <span style="color:var(--text-tertiary);">Role:</span> <span style="color:#3b82f6;">${s.role || '—'}</span>
+                    </div>
+
+                    <div style="font-size:0.8rem; color:var(--text-tertiary);">
+                        ${lastIntContact || lastIntDate ? `Most recent interaction: ${lastIntContact ? `<span style="color:var(--text-secondary); font-weight:500;">${lastIntContact}</span>` : ''}${lastIntContact && lastIntDate ? ' · ' : ''}${lastIntDate ? `<span style="color:var(--text-secondary); font-weight:500;">${dateStr}</span>` : ''}` : '<span style="font-style:italic;">No interactions recorded</span>'}
                     </div>
                 </div>
                 <div style="text-align:right; flex-shrink:0; min-width:110px;">
-                    ${ownersHtml ? `<div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.4rem; display:flex; align-items:center; gap:0.25rem; justify-content:flex-end;">${ownersHtml}</div>` : ''}
-                    <div style="font-size:0.75rem; color:var(--text-tertiary);">
-                        ${lastIntContact || lastIntDate ? `Last contacted:<br/>${lastIntContact ? `<span style="color:var(--text-secondary);">${lastIntContact}</span>` : ''}${lastIntContact && lastIntDate ? ' · ' : ''}${lastIntDate ? `<span style="color:var(--text-secondary);">${lastIntDate}</span>` : ''}` : '<span style="font-style:italic;">No interactions recorded</span>'}
-                    </div>
+                    ${ownersHtml ? `<div style="font-size:0.8rem; color:var(--text-tertiary); display:flex; align-items:center; gap:0.25rem; justify-content:flex-end;">${ownersHtml}</div>` : ''}
                 </div>
             </div>
         `;
@@ -601,6 +618,9 @@ window.filterStakeholders = function () {
 }
 
 window.clearStakeholdersFilters = function () {
+    const search = document.getElementById('stakeholder-search');
+    if (search) search.value = '';
+    
     ['stakeholder-filter-status', 'stakeholder-filter-role'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -611,6 +631,7 @@ window.clearStakeholdersFilters = function () {
             }
         }
     });
+    window.filterStakeholders();
 };
 
 function renderStakeholderDetail() {
@@ -1046,6 +1067,9 @@ window.filterInteractions = function () {
 };
 
 window.clearInteractionsFilters = function () {
+    const search = document.getElementById('interactions-search');
+    if (search) search.value = '';
+
     ['interactions-filter-type', 'interactions-filter-stakeholder'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -1056,6 +1080,7 @@ window.clearInteractionsFilters = function () {
             }
         }
     });
+    window.filterInteractions();
 };
 
 function _renderInteractionsList(interactions) {
@@ -1066,15 +1091,14 @@ function _renderInteractionsList(interactions) {
     interactions.forEach(a => {
         const isUpcoming = a.type === 'Upcoming';
         let statusBadge = '';
-        if (isUpcoming) {
-            statusBadge = `<span style="background:rgba(239,68,68,0.1); color:#ef4444; border:1px solid rgba(239,68,68,0.3); padding:0.15rem 0.6rem; border-radius:100px; font-weight:600; font-size:0.75rem;">Upcoming</span>`;
-        } else {
-            statusBadge = `<span style="background:rgba(16,185,129,0.1); color:#10b981; border:1px solid rgba(16,185,129,0.3); padding:0.15rem 0.6rem; border-radius:100px; font-weight:600; font-size:0.75rem;">${a.type || 'Completed'}</span>`;
-        }
-
         const rawDateStr = a.rawDate || a.date || '';
-        const dateString = formatDate(rawDateStr);
         const pastRelative = relativePastDate(rawDateStr);
+
+        if (isUpcoming) {
+            statusBadge = `<span style="background:rgba(239,68,68,0.1); color:#ef4444; border:1px solid rgba(239,68,68,0.3); padding:0.15rem 0.6rem; border-radius:100px; font-weight:600; font-size:0.75rem;">${pastRelative || 'Upcoming'}</span>`;
+        } else {
+            statusBadge = `<span style="background:rgba(16,185,129,0.1); color:#10b981; border:1px solid rgba(16,185,129,0.3); padding:0.15rem 0.6rem; border-radius:100px; font-weight:600; font-size:0.75rem;">${pastRelative || 'Completed'}</span>`;
+        }
 
         const agendaHtml = (a.topics || []).map(t => `<span style="font-size:0.68rem; padding:0.1rem 0.45rem; border-radius:100px; background:rgba(99,102,241,0.1); color:#6366f1; border:1px solid rgba(99,102,241,0.2);">${t}</span>`).join('');
 
@@ -1114,10 +1138,6 @@ function _renderInteractionsList(interactions) {
                 </div>
                 <div style="text-align:right; flex-shrink:0; min-width:110px;">
                     ${attendeesHtml ? `<div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.4rem; display:flex; align-items:center; gap:0.25rem; justify-content:flex-end; flex-wrap:wrap; max-width:200px;">${attendeesHtml}</div>` : ''}
-                    <div style="font-size:0.8rem; color:${isUpcoming ? '#ef4444' : 'var(--text-tertiary)'}; font-weight:${isUpcoming ? '600' : '400'};">
-                        ${pastRelative || dateString}
-                    </div>
-                    ${pastRelative ? `<div style="font-size:0.75rem; color:var(--text-tertiary);">${dateString}</div>` : ''}
                 </div>
             </div>
         `;
@@ -1635,9 +1655,6 @@ function _actRenderList(actions) {
                     ${advStatus ? `<div style="margin-bottom:0.2rem;">${advStatus}</div>` : ''}
                     <div style="font-size:0.8rem; color:${rel.color}; font-weight:${isOverdue ? '600' : '400'};">
                         ${rel.text}
-                    </div>
-                    <div style="font-size:0.75rem; color:var(--text-tertiary);">
-                        ${dueStr}
                     </div>
                 </div>
             </div>
@@ -3180,7 +3197,7 @@ function _renderSingleContentCardHtml(c, allCards, dataKey, containerId, context
         <button onclick="event.stopPropagation();window.ceMoveCard(${c.cc_id},1,'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
         <button onclick="event.stopPropagation();window.ceDeleteCard(${c.cc_id},'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--energy-alert);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
     </div>`;
-    const grip = `<span class="ce-drag-grip" data-grip-id="${c.cc_id}" title="Drag to reorder" style="position:absolute;left:0.4rem;top:50%;transform:translateY(-50%);">⠿</span>`;
+    const grip = `<span class="ce-drag-grip" data-grip-id="${c.cc_id}" title="Drag to reorder" style="display:${isAppEditMode ? 'flex' : 'none'};position:absolute;left:0.4rem;top:50%;transform:translateY(-50%);">⠿</span>`;
 
     // Render this card's primary content
     const cardContent = window._renderCardTypeContent(c, contextData);
@@ -3338,8 +3355,15 @@ window._renderCardTypeContent = function (card, spine) {
 
         default: {
             // Generic card
-            return `<h4 class="ce-card-title" data-card-id="${card.cc_id}" style="margin:0 0 0.75rem 0;">${card.cc_title||''}</h4>
-                <div class="ce-card-content" data-card-id="${card.cc_id}" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap;">${card.cc_content||''}</div>`;
+            if (card.cc_is_collapsible) {
+                return `<details class="ce-card-collapsible" data-card-id="${card.cc_id}">
+                    <summary class="ce-card-title" data-card-id="${card.cc_id}" style="margin:0; font-weight:600; cursor:pointer; color:var(--text-primary);">${card.cc_title||''}</summary>
+                    <div class="ce-card-content" data-card-id="${card.cc_id}" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap; margin-top:0.75rem;">${card.cc_content||''}</div>
+                </details>`;
+            } else {
+                return `<h4 class="ce-card-title" data-card-id="${card.cc_id}" style="margin:0 0 0.75rem 0;">${card.cc_title||''}</h4>
+                    <div class="ce-card-content" data-card-id="${card.cc_id}" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap;">${card.cc_content||''}</div>`;
+            }
         }
     }
 };
@@ -3371,7 +3395,7 @@ function renderContentCards(dataKey, containerId) {
         if (sc) {
             html += `<div class="ce-section-row" data-card-id="${sc.cc_id}" draggable="false" style="display:flex;justify-content:space-between;align-items:center;margin:2rem 0 1rem;">
                 <div style="display:flex;align-items:center;gap:0.25rem;flex:1;">
-                    <span class="ce-drag-grip" data-grip-id="${sc.cc_id}" title="Drag to reorder">⠿</span>
+                    <span class="ce-drag-grip" data-grip-id="${sc.cc_id}" title="Drag to reorder" style="display:${isAppEditMode ? 'inline-block' : 'none'};">⠿</span>
                     <h3 class="ce-section-title" data-card-id="${sc.cc_id}" style="color:var(--text-tertiary);margin:0;">${sc.cc_title||''}</h3>
                 </div>
                 <div class="ce-edit-ctrl" style="display:none;gap:0.5rem;align-items:center;">
