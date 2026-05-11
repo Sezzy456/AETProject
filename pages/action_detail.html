@@ -39,59 +39,6 @@
     <!-- Advanced button moved to bottom of page -->
 </div>
 
-<!-- ── ADVANCED PANEL (hidden) ─────────────────────────────── -->
-<div id="adet-advanced-panel" style="display:none; margin-bottom:1rem;">
-    <div class="adet-card" style="padding:1.25rem;">
-        <h3 class="adet-card-label" style="margin-bottom:0.75rem;">Impact Settings</h3>
-        <div class="adet-impact-meta-row">
-            <div class="adet-impact-meta-cell"><div class="adet-fl">Status</div><div id="adet-status-selector" class="adet-status-pills-ro"></div></div>
-            <div class="adet-impact-meta-cell"><div class="adet-fl">Priority</div><div id="adet-priority-pill" class="adet-priority-pill"></div></div>
-            <div class="adet-impact-meta-cell"><div class="adet-fl">Complexity</div><div id="adet-complexity-dots" class="adet-complexity-dots"></div></div>
-            <div class="adet-impact-meta-cell adet-impact-meta-tags"><div class="adet-fl">Tags</div><div id="adet-tags" class="adet-chips-row"></div></div>
-        </div>
-        <div id="adet-adv-status-row" class="adet-adv-status-row" style="display:none;"></div>
-        <div style="display:flex; gap:1rem; align-items:flex-start; border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:0.75rem; margin-bottom:1rem;">
-            <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem;">Desired Outcome:</div>
-            <div style="flex:1;"><div id="adet-outcome-type-pill" class="adet-outcome-type-pill" style="margin-bottom:0.5rem;"></div><p id="adet-desired-outcome" class="adet-outcome-text"></p><div id="adet-outcome-linked-item" class="adet-outcome-linked-item" style="display:none;"></div></div>
-        </div>
-        <div style="display:flex; gap:1rem; align-items:flex-start;">
-            <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem;">Success Criteria:</div>
-            <p id="adet-success-criteria" class="adet-text-value" style="flex:1;"></p>
-        </div>
-        <div style="display:flex; gap:1rem; align-items:flex-start; border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:0.75rem;">
-            <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem;">Resource:</div>
-            <p id="adet-resource" class="adet-text-value" style="flex:1;"></p>
-        </div>
-        <div style="border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:1rem;">
-            <h3 class="adet-card-label" style="margin-bottom:0.75rem;">Advanced Timing</h3>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;">
-                <div><div class="adet-fl">Start Date</div><div id="adet-start-date" class="adet-text-value"></div></div>
-                <div><div class="adet-fl">Preceding Actions</div><div id="adet-predecessor-actions" class="adet-chips-row"></div></div>
-                <div><div class="adet-fl">Predicted Length</div><div id="adet-predicted-length" class="adet-text-value"></div></div>
-            </div>
-        </div>
-        <div style="border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:1rem;">
-            <h3 class="adet-card-label" style="margin-bottom:0.75rem;">Target Details</h3>
-            <div style="display:flex; gap:1rem; align-items:flex-start; margin-bottom:1rem;">
-                <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem;">Audience:</div>
-                <div id="adet-audience" class="adet-chips-row" style="flex:1;"></div>
-            </div>
-            <div style="display:flex; gap:1rem; align-items:flex-start; margin-bottom:1rem;">
-                <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem;">Objective:</div>
-                <div id="adet-objective-link" class="adet-obj-block" style="flex:1;"></div>
-            </div>
-            <div style="display:flex; gap:1rem; align-items:flex-start;">
-                <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem;">Due Date:</div>
-                <div style="flex:1; display:flex; align-items:center; gap:1rem;">
-                    <div id="adet-due-display" class="adet-due-big"></div>
-                    <div id="adet-due-detail" class="adet-due-detail"></div>
-                    <div id="adet-granularity-pill" class="adet-granularity-pill"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- ── DESCRIPTION (3/4) + TO-DO (1/4) ─────────────────────── -->
 <div style="display:grid; grid-template-columns:3fr 1fr; gap:1.5rem; align-items:start;">
     <div>
@@ -157,6 +104,61 @@
     </button>
 </div>
 <div id="adet-bottom-advanced" style="display:none; margin-bottom:1.5rem;">
+    <!-- Impact Settings -->
+    <div class="adet-card" style="padding:1.25rem; margin-bottom:1rem;">
+        <h3 class="adet-card-label" style="margin-bottom:0.75rem;">Impact Settings</h3>
+        <div class="adet-impact-meta-row">
+            <div class="adet-impact-meta-cell"><div class="adet-fl">Status</div><div id="adet-status-selector" class="adet-status-pills-ro"></div></div>
+            <div class="adet-impact-meta-cell"><div class="adet-fl">Priority</div><div id="adet-priority-pill" class="adet-priority-pill"></div></div>
+            <div class="adet-impact-meta-cell"><div class="adet-fl">Complexity</div><div id="adet-complexity-dots" class="adet-complexity-dots"></div></div>
+            <div class="adet-impact-meta-cell adet-impact-meta-tags"><div class="adet-fl">Tags</div><div id="adet-tags" class="adet-chips-row"></div></div>
+        </div>
+        <div id="adet-adv-status-row" class="adet-adv-status-row" style="display:none;"></div>
+        <div style="display:flex; gap:1rem; align-items:flex-start; border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:0.75rem; margin-bottom:1rem;">
+            <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem;">Desired Outcome:</div>
+            <div style="flex:1;"><div id="adet-outcome-type-pill" class="adet-outcome-type-pill" style="margin-bottom:0.5rem;"></div><p id="adet-desired-outcome" class="adet-outcome-text"></p><div id="adet-outcome-linked-item" class="adet-outcome-linked-item" style="display:none;"></div></div>
+        </div>
+        <div style="display:flex; gap:1rem; align-items:flex-start;">
+            <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem;">Success Criteria:</div>
+            <p id="adet-success-criteria" class="adet-text-value" style="flex:1;"></p>
+        </div>
+        <div style="display:flex; gap:1rem; align-items:flex-start; border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:0.75rem;">
+            <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem;">Resource:</div>
+            <p id="adet-resource" class="adet-text-value" style="flex:1;"></p>
+        </div>
+    </div>
+    
+    <!-- Advanced Timing -->
+    <div class="adet-card" style="padding:1.25rem; margin-bottom:1rem;">
+        <h3 class="adet-card-label" style="margin-bottom:0.75rem;">Advanced Timing</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;">
+            <div><div class="adet-fl">Start Date</div><div id="adet-start-date" class="adet-text-value"></div></div>
+            <div><div class="adet-fl">Preceding Actions</div><div id="adet-predecessor-actions" class="adet-chips-row"></div></div>
+            <div><div class="adet-fl">Predicted Length</div><div id="adet-predicted-length" class="adet-text-value"></div></div>
+        </div>
+    </div>
+    
+    <!-- Target Details -->
+    <div class="adet-card" style="padding:1.25rem; margin-bottom:1rem;">
+        <h3 class="adet-card-label" style="margin-bottom:0.75rem;">Target Details</h3>
+        <div style="display:flex; gap:1rem; align-items:flex-start; margin-bottom:1rem;">
+            <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem;">Audience:</div>
+            <div id="adet-audience" class="adet-chips-row" style="flex:1;"></div>
+        </div>
+        <div style="display:flex; gap:1rem; align-items:flex-start; margin-bottom:1rem;">
+            <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem;">Objective:</div>
+            <div id="adet-objective-link" class="adet-obj-block" style="flex:1;"></div>
+        </div>
+        <div style="display:flex; gap:1rem; align-items:flex-start;">
+            <div style="width:120px; min-width:120px; color:var(--text-tertiary); font-size:0.9rem;">Due Date:</div>
+            <div style="flex:1; display:flex; align-items:center; gap:1rem;">
+                <div id="adet-due-display" class="adet-due-big"></div>
+                <div id="adet-due-detail" class="adet-due-detail"></div>
+                <div id="adet-granularity-pill" class="adet-granularity-pill"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Version Control -->
     <div class="adet-card" style="padding:1.25rem; margin-bottom:1rem;">
         <h3 class="adet-card-label" style="margin-bottom:0.75rem;">Version Control</h3>

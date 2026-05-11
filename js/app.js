@@ -16,18 +16,20 @@ function formatDate(dateStr) {
     return `${dd}-${mm}-${yyyy}`;
 }
 
-function relativeDate(dateStr) {
+function relativeDate(dateStr, isCompleted = false) {
     if (!dateStr) return { text: '—', color: 'var(--text-tertiary)', isOverdue: false };
     const d = new Date(dateStr.length <= 10 ? dateStr + 'T00:00:00' : dateStr);
     if (isNaN(d.getTime())) return { text: dateStr, color: 'var(--text-tertiary)', isOverdue: false };
     const now = new Date(); now.setHours(0,0,0,0);
     const diff = Math.round((d - now) / (1000 * 60 * 60 * 24));
     if (diff < 0) {
+        if (isCompleted) return { text: '', color: 'inherit', isOverdue: false };
         const absDiff = Math.abs(diff);
         if (absDiff >= 365) return { text: `overdue by ${Math.floor(absDiff/365)} year${Math.floor(absDiff/365)>1?'s':''}`, color: '#ef4444', isOverdue: true };
         if (absDiff >= 31) return { text: `overdue by ${Math.floor(absDiff/30)} month${Math.floor(absDiff/30)>1?'s':''}`, color: '#ef4444', isOverdue: true };
         return { text: `overdue by ${absDiff} day${absDiff>1?'s':''}`, color: '#ef4444', isOverdue: true };
     }
+    if (isCompleted) return { text: '', color: 'inherit', isOverdue: false };
     if (diff === 0) return { text: 'due today', color: '#ef4444', isOverdue: false };
     if (diff <= 7) return { text: `due in ${diff} day${diff>1?'s':''}`, color: '#f97316', isOverdue: false };
     if (diff <= 14) return { text: `due in ${diff} day${diff>1?'s':''}`, color: '#eab308', isOverdue: false };
@@ -352,7 +354,9 @@ function renderDashboard(pageIdOverride) {
                 return `<div class="card" style="${colSpan}"><h3 style="color:var(--text-tertiary);margin-bottom:0.5rem;">${card.cc_title || ''}</h3><p style="font-size:1rem;color:var(--text-secondary);margin:0;">${card.cc_content || ''}</p></div>`;
             }
 
-            case 'actions_link': {
+            case 'action_view':
+            case 'action_single': {
+                const isSingle = card.cc_card_type === 'action_single';
                 const filter = card.cc_filter || '';
                 let filtered = [...actions];
                 const now = new Date();
@@ -364,10 +368,11 @@ function renderDashboard(pageIdOverride) {
                 const incArr = filtered.filter(a => !isDone(a)).sort((a, b) => (a.timing?.dueDate || '9999-12-31').localeCompare(b.timing?.dueDate || '9999-12-31'));
                 const doneArr = filtered.filter(a => isDone(a));
                 filtered = [...incArr, ...doneArr];
-                const items = filtered.slice(0, 3);
+                const items = filtered.slice(0, isSingle ? 1 : 3);
                 const itemsHtml = items.length > 0 ? items.map(a => {
                     const dueStr = formatDate(a.timing?.dueDate);
-                    const rel = relativeDate(a.timing?.dueDate);
+                    const isCompleted = a.status === 'Completed';
+                    const rel = relativeDate(a.timing?.dueDate, isCompleted);
                     const isOver = rel.isOverdue && !isDone(a);
                     const overdueStyle = isOver ? 'border-left:3px solid #ef4444;' : '';
                     const badgeStyle = isOver ? 'border-color:#ef4444;color:#ef4444;' : 'border-color:var(--energy-algae);color:var(--energy-algae);';
@@ -376,37 +381,91 @@ function renderDashboard(pageIdOverride) {
                         ? "this.style.border='1px solid var(--border-subtle)';this.style.borderLeft='3px solid #ef4444'"
                         : "this.style.borderColor='var(--border-subtle)'";
                     const relLabel = !isDone(a) && a.timing?.dueDate ? `<div style="text-align:center;font-size:0.72rem;font-weight:600;color:${rel.color};margin-bottom:0.4rem;">${rel.text}</div>` : '';
-                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;${overdueStyle}" onclick="event.stopPropagation();window.viewAction('${a.id}')" onmouseover="this.style.borderColor='${hoverBorder}'" onmouseout="${mouseoutCode}">${relLabel}<div style="display:flex;justify-content:space-between;align-items:center;"><div><span class="status-badge" style="font-size:0.7rem;padding:0.1rem 0.5rem;${badgeStyle}">${a.status}</span><h4 style="margin:0.25rem 0 0;font-size:1rem;color:var(--text-primary);text-transform:none;">${a.activity}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;">Owner: ${a.owner || '\u2014'} | <span style="color:${rel.color}">Due: ${dueStr}</span></div></div><span class="material-symbols-outlined" style="font-size:1.2rem;color:var(--text-tertiary);">open_in_new</span></div></div>`;
+                    const ownerBadge = a.owner ? `<span style="display:inline-block;padding:0.2rem 0.6rem;background:var(--energy-algae);color:#fff;border-radius:100px;font-size:0.7rem;font-weight:600;line-height:1;margin-left:0.25rem;">${a.owner}</span>` : '—';
+                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;${overdueStyle}" onclick="event.stopPropagation();window.viewAction('${a.id}')" onmouseover="if(!document.querySelector('.spine-dragging')) this.style.borderColor='${hoverBorder}'" onmouseout="${mouseoutCode}">${relLabel}<div style="display:flex;justify-content:space-between;align-items:center;"><div><span class="status-badge" style="font-size:0.7rem;padding:0.1rem 0.5rem;${badgeStyle}">${a.status}</span><h4 style="margin:0.25rem 0 0;font-size:1rem;color:var(--text-primary);text-transform:none;">${a.activity}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.35rem;display:flex;align-items:center;">Owner: ${ownerBadge} <span style="margin:0 0.5rem;color:var(--border-subtle);">|</span> <span style="color:${rel.color}">Due: ${dueStr}</span></div></div><span class="material-symbols-outlined" style="font-size:1.2rem;color:var(--text-tertiary);">open_in_new</span></div></div>`;
                 }).join('') : '<div style="padding:1rem;color:var(--text-tertiary);font-style:italic;">No actions found.</div>';
-                return `<div class="card" style="${colSpan}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title || 'Actions'}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="loadView('actions');history.pushState(null,'','#actions')">View All</button></div><div style="display:flex;flex-direction:column;gap:0.5rem;">${itemsHtml}</div></div>`;
+                return `<div class="card" style="${colSpan}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title || (isSingle ? 'Action' : 'Actions')}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="loadView('actions');history.pushState(null,'','#actions')">View All</button></div><div style="display:flex;flex-direction:column;gap:0.5rem;">${itemsHtml}</div></div>`;
             }
 
-
-
-
-
-            case 'interactions_link': {
+            case 'interaction_view':
+            case 'interaction_single': {
+                const isSingle = card.cc_card_type === 'interaction_single';
                 const filter = card.cc_filter || '';
                 let filtered = interactions;
                 if (filter === 'upcoming') filtered = interactions.filter(i => i.type === 'Upcoming');
                 else if (filter === 'recent') filtered = interactions.filter(i => i.type === 'Recent');
-                const items = filtered.slice(0, 3);
+                const items = filtered.slice(0, isSingle ? 1 : 3);
                 const itemsHtml = items.length > 0 ? items.map(i => {
-                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;" onclick="window.currentInteractionId='${i.id}';loadView('interaction_detail');history.pushState(null,'','#interaction_detail')" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;"><span style="font-size:0.75rem;color:${i.type === 'Upcoming' ? 'var(--energy-alert)' : 'var(--text-tertiary)'};font-weight:600;text-transform:uppercase;">${i.rawDate} — ${i.type}</span><span class="material-symbols-outlined" style="font-size:1rem;color:var(--text-tertiary);">open_in_new</span></div><h4 style="margin:0;font-size:1rem;color:var(--text-primary);text-transform:none;">${i.title}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;">${i.agenda || i.discussed || ''}</div></div>`;
+                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;" onclick="window.currentInteractionId='${i.id}';loadView('interaction_detail');history.pushState(null,'','#interaction_detail')" onmouseover="if(!document.querySelector('.spine-dragging')) this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;"><span style="font-size:0.75rem;color:${i.type === 'Upcoming' ? 'var(--energy-alert)' : 'var(--text-tertiary)'};font-weight:600;text-transform:uppercase;">${i.rawDate} — ${i.type}</span><span class="material-symbols-outlined" style="font-size:1rem;color:var(--text-tertiary);">open_in_new</span></div><h4 style="margin:0;font-size:1rem;color:var(--text-primary);text-transform:none;">${i.title}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;">${i.agenda || i.discussed || ''}</div></div>`;
                 }).join('') : '<div style="padding:1rem;color:var(--text-tertiary);font-style:italic;">No interactions found.</div>';
-                return `<div class="card" style="${colSpan}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title || 'Interactions'}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="loadView('interactions');history.pushState(null,'','#interactions')">View All</button></div><div style="display:flex;flex-direction:column;gap:0.5rem;">${itemsHtml}</div></div>`;
+                return `<div class="card" style="${colSpan}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title || (isSingle ? 'Update' : 'Update Log')}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="loadView('interactions');history.pushState(null,'','#interactions')">View All</button></div><div style="display:flex;flex-direction:column;gap:0.5rem;">${itemsHtml}</div></div>`;
             }
 
-            case 'page_link': {
-                const link = pageLinks.find(l => l.cpc_content_card_id === card.cc_id);
+            case 'stakeholder_view':
+            case 'stakeholder_single': {
+                const isSingle = card.cc_card_type === 'stakeholder_single';
+                const items = stakeholders.slice(0, isSingle ? 1 : 3);
+                const itemsHtml = items.length > 0 ? items.map(s => {
+                    const col = s.status === 'Needs Attention' ? '#ef4444' : s.status === 'Active' ? 'var(--energy-algae)' : s.status === 'Monitor' ? 'var(--energy-mid)' : 'var(--text-secondary)';
+                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;" onclick="window.currentStakeholderId='${s.id}';loadView('stakeholder_detail');history.pushState(null,'','#stakeholder_detail')" onmouseover="if(!document.querySelector('.spine-dragging')) this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <div>
+                                <h4 style="margin:0;font-size:1rem;color:var(--text-primary);">${s.name}</h4>
+                                <div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.2rem;"><span style="color:${col};font-weight:600;">${s.status}</span> · ${s.role || '—'}</div>
+                            </div>
+                            <span class="material-symbols-outlined" style="font-size:1.2rem;color:var(--text-tertiary);">open_in_new</span>
+                        </div>
+                    </div>`;
+                }).join('') : '<div style="padding:1rem;color:var(--text-tertiary);font-style:italic;">No stakeholders found.</div>';
+                return `<div class="card" style="${colSpan}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title || (isSingle ? 'Stakeholder' : 'Stakeholders')}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="loadView('stakeholders');history.pushState(null,'','#stakeholders')">View All</button></div><div style="display:flex;flex-direction:column;gap:0.5rem;">${itemsHtml}</div></div>`;
+            }
+
+            case 'action_summary': {
+                const total = actions.length;
+                const active = actions.filter(a => !/^complete[d]?$/i.test(a.status)).length;
+                const now = new Date();
+                const overdue = actions.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate + 'T00:00:00') < now && !/^complete[d]?$/i.test(a.status)).length;
+                const title = card.cc_title || 'Actions Summary';
+                const statsHtml = `<div style="display:flex;gap:1.5rem;align-items:baseline;">
+                    <div style="font-size:2rem;font-weight:700;color:var(--text-primary);">${total}<span style="font-size:0.85rem;font-weight:400;color:var(--text-tertiary);margin-left:0.3rem;">Total</span></div>
+                    <div style="font-size:1.5rem;font-weight:600;color:var(--energy-algae);">${active}<span style="font-size:0.85rem;font-weight:400;color:var(--text-tertiary);margin-left:0.3rem;">Active</span></div>
+                    ${overdue > 0 ? `<div style="font-size:1.2rem;font-weight:600;color:#ef4444;">${overdue}<span style="font-size:0.85rem;font-weight:400;color:var(--text-tertiary);margin-left:0.3rem;">Overdue</span></div>` : ''}
+                </div>`;
+                return `<div class="card" style="${colSpan}cursor:pointer;transition:all 0.2s;" onclick="loadView('actions');history.pushState(null,'','#actions')" onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)';this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='none';this.style.transform='none'"><h3 style="color:var(--text-tertiary);margin-bottom:0.5rem;">${title}</h3>${statsHtml}</div>`;
+            }
+
+            case 'interaction_summary': {
+                const total = interactions.length;
+                const upcoming = interactions.filter(i => i.type === 'Upcoming').length;
+                const title = card.cc_title || 'Update Log Summary';
+                const statsHtml = `<div style="display:flex;gap:1.5rem;align-items:baseline;">
+                    <div style="font-size:2rem;font-weight:700;color:var(--text-primary);">${total}<span style="font-size:0.85rem;font-weight:400;color:var(--text-tertiary);margin-left:0.3rem;">Total</span></div>
+                    ${upcoming > 0 ? `<div style="font-size:1.5rem;font-weight:600;color:var(--energy-alert);">${upcoming}<span style="font-size:0.85rem;font-weight:400;color:var(--text-tertiary);margin-left:0.3rem;">Upcoming</span></div>` : ''}
+                </div>`;
+                return `<div class="card" style="${colSpan}cursor:pointer;transition:all 0.2s;" onclick="loadView('interactions');history.pushState(null,'','#interactions')" onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)';this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='none';this.style.transform='none'"><h3 style="color:var(--text-tertiary);margin-bottom:0.5rem;">${title}</h3>${statsHtml}</div>`;
+            }
+
+            case 'stakeholder_summary': {
+                const total = stakeholders.length;
+                const healthy = stakeholders.filter(s => ['Active', 'Operational', 'Stable'].includes(s.status)).length;
+                const neutral = stakeholders.filter(s => ['Monitor', 'Dormant'].includes(s.status)).length;
+                const risk = stakeholders.filter(s => ['Needs Attention', 'Critical/At Risk', 'Strained', 'Friction Points'].includes(s.status)).length;
+                const title = card.cc_title || 'Stakeholders Summary';
+                const statsHtml = `<div style="display:flex;gap:1.25rem;align-items:baseline;">
+                    <div style="font-size:2rem;font-weight:700;color:var(--text-primary);">${total}<span style="font-size:0.85rem;font-weight:400;color:var(--text-tertiary);margin-left:0.3rem;">Total</span></div>
+                    <div style="font-size:1.2rem;font-weight:600;color:var(--energy-algae);">${healthy}<span style="font-size:0.85rem;font-weight:400;color:var(--text-tertiary);margin-left:0.3rem;">Healthy</span></div>
+                    <div style="font-size:1.2rem;font-weight:600;color:var(--energy-mid);">${neutral}<span style="font-size:0.85rem;font-weight:400;color:var(--text-tertiary);margin-left:0.3rem;">Neutral</span></div>
+                    ${risk > 0 ? `<div style="font-size:1.2rem;font-weight:600;color:#ef4444;">${risk}<span style="font-size:0.85rem;font-weight:400;color:var(--text-tertiary);margin-left:0.3rem;">At Risk</span></div>` : ''}
+                </div>`;
+                return `<div class="card" style="${colSpan}cursor:pointer;transition:all 0.2s;" onclick="loadView('stakeholders');history.pushState(null,'','#stakeholders')" onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)';this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='none';this.style.transform='none'"><h3 style="color:var(--text-tertiary);margin-bottom:0.5rem;">${title}</h3>${statsHtml}</div>`;
+            }
+
+            case 'objectives_link': {
                 let previewHtml = '', targetView = 'strategy_spine';
-                if (link && spine) {
-                    const filter = card.cc_filter || link.cpc_filter || '';
-                    if (filter === 'objectives' && spine.objectives) {
-                        previewHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;"><div class="card" style="background:var(--bg-app);border:1px solid var(--border-subtle);"><h4 style="margin-bottom:1rem;font-size:0.9rem;">Objectives</h4><div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.85rem;">${spine.objectives.slice(0, 3).map(o => `<div style="padding:0.5rem 0.75rem;background:rgba(0,0,0,0.02);border:1px solid var(--border-subtle);border-radius:4px;color:var(--text-secondary);">${o.text}</div>`).join('')}</div></div><div class="card" style="background:var(--bg-app);border:1px solid var(--border-subtle);"><h4 style="margin-bottom:1rem;font-size:0.9rem;">Strategic Pillars</h4><div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.85rem;">${(spine.pillars || []).slice(0, 4).map(p => `<div style="padding:0.5rem 0.75rem;background:rgba(0,0,0,0.02);border:1px solid var(--border-subtle);border-radius:4px;color:var(--text-secondary);">${p.title}</div>`).join('')}</div></div></div>`;
-                    }
+                if (spine && spine.objectives) {
+                    previewHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;"><div class="card" style="background:var(--bg-app);border:1px solid var(--border-subtle);"><h4 style="margin-bottom:1rem;font-size:0.9rem;">Objectives</h4><div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.85rem;">${spine.objectives.slice(0, 3).map(o => `<div style="padding:0.5rem 0.75rem;background:rgba(0,0,0,0.02);border:1px solid var(--border-subtle);border-radius:4px;color:var(--text-secondary);">${o.text}</div>`).join('')}</div></div><div class="card" style="background:var(--bg-app);border:1px solid var(--border-subtle);"><h4 style="margin-bottom:1rem;font-size:0.9rem;">Strategic Pillars</h4><div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.85rem;">${(spine.pillars || []).slice(0, 4).map(p => `<div style="padding:0.5rem 0.75rem;background:rgba(0,0,0,0.02);border:1px solid var(--border-subtle);border-radius:4px;color:var(--text-secondary);">${p.title}</div>`).join('')}</div></div></div>`;
                 }
-                return `<div class="card" style="${colSpan}cursor:pointer;" onclick="loadView('${targetView}');history.pushState(null,'','#${targetView}')"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title || 'Linked Page'}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="event.stopPropagation();loadView('${targetView}');history.pushState(null,'','#${targetView}')">View</button></div>${previewHtml}</div>`;
+                return `<div class="card" style="${colSpan}cursor:pointer;" onclick="loadView('${targetView}');history.pushState(null,'','#${targetView}')"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title || 'Linked Objectives'}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="event.stopPropagation();loadView('${targetView}');history.pushState(null,'','#${targetView}')">View</button></div>${previewHtml}</div>`;
             }
 
             default: return '';
@@ -439,23 +498,27 @@ window._switchDashTab = async function (pageId) {
 };
 
 function renderStakeholders() {
+    window.setupMultiSelectFilters();
     window.filterStakeholders();
 }
 
 window.filterStakeholders = function () {
     let stakeholders = window.getData('stakeholders') || [];
     const search = (document.getElementById('stakeholder-search')?.value || '').toLowerCase();
-    const statusF = document.getElementById('stakeholder-filter-status')?.value || '';
+    const statusF = window.getMultiSelectValues('stakeholder-filter-status');
     const sortMode = document.getElementById('stakeholder-sort')?.value || 'name';
+    const sortDir = document.getElementById('stakeholder-sort-dir')?.dataset.dir || 'asc';
 
     if (search) stakeholders = stakeholders.filter(s => (s.name || '').toLowerCase().includes(search) || (s.role || '').toLowerCase().includes(search));
-    if (statusF) stakeholders = stakeholders.filter(s => s.status === statusF);
+    if (statusF.length > 0) stakeholders = stakeholders.filter(s => statusF.includes(s.status));
 
     if (sortMode === 'name') stakeholders.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     else if (sortMode === 'status') {
         const order = ['Critical/At Risk', 'Strained', 'Friction Points', 'Operational', 'Stable', 'Dormant'];
         stakeholders.sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status));
     } else if (sortMode === 'role') stakeholders.sort((a, b) => (a.role || '').localeCompare(b.role || ''));
+
+    if (sortDir === 'desc') stakeholders.reverse();
 
     const container = document.getElementById('stakeholder-list');
     if (!container) return;
@@ -865,8 +928,8 @@ window.toggleUploadRecording = async function () {
         _uploadMediaRecorder.stop();
         clearInterval(_uploadRecTimer);
         btn.dataset.recording = '';
-        btn.style.background = 'transparent';
-        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:2rem;color:#ef4444;">mic</span>';
+        btn.style.boxShadow = 'inset 0 0 0 4px #fff, inset 0 0 0 20px #ef4444';
+        btn.querySelector('span').style.display = 'none';
         if (indicator) indicator.style.display = 'none';
         return;
     }
@@ -885,8 +948,9 @@ window.toggleUploadRecording = async function () {
         _uploadMediaRecorder.start();
         _uploadRecStart = Date.now();
         btn.dataset.recording = 'true';
-        btn.style.background = 'rgba(239,68,68,0.12)';
-        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:2rem;color:#ef4444;">stop</span>';
+        btn.style.boxShadow = 'inset 0 0 0 4px #fff, inset 0 0 0 10px #ef4444';
+        btn.querySelector('span').style.display = 'block';
+        btn.querySelector('span').textContent = 'stop';
         if (indicator) indicator.style.display = 'flex';
 
         // Timer
@@ -903,6 +967,7 @@ window.toggleUploadRecording = async function () {
 };
 
 function renderInteractions() {
+    window.setupMultiSelectFilters();
     window.filterInteractions();
 }
 
@@ -910,14 +975,17 @@ window.filterInteractions = function () {
     let interactions = window.getData('interactions') || [];
     const search = (document.getElementById('interactions-search')?.value || '').toLowerCase();
     const sortMode = document.getElementById('interactions-sort')?.value || 'date';
-    const typeFilter = document.getElementById('interactions-filter-type')?.value || '';
+    const sortDir = document.getElementById('interactions-sort-dir')?.dataset.dir || 'desc';
+    const typeF = window.getMultiSelectValues('interactions-filter-type');
 
     if (search) interactions = interactions.filter(i => (i.title || '').toLowerCase().includes(search) || (i.agenda || i.discussed || '').toLowerCase().includes(search) || (i.attendees || []).some(a => a.toLowerCase().includes(search)));
-    if (typeFilter) interactions = interactions.filter(i => i.type === typeFilter);
+    if (typeF.length > 0) interactions = interactions.filter(i => typeF.includes(i.type));
 
     if (sortMode === 'title') interactions.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
     else if (sortMode === 'type') interactions.sort((a, b) => (a.type || '').localeCompare(b.type || ''));
-    // date is default order
+    else if (sortMode === 'date') interactions.sort((a, b) => new Date(a.rawDate || a.date || 0) - new Date(b.rawDate || b.date || 0));
+
+    if (sortDir === 'desc') interactions.reverse();
 
     _renderInteractionsList(interactions);
 };
@@ -1108,6 +1176,7 @@ let _actFilterOpen = false;
 function renderActions() {
     _actCurrentTab = 'list';
     _actCurrentId = null;
+    window.setupMultiSelectFilters();
     // Fix: collapse filter panel on load
     const fp = document.getElementById('act-filter-panel');
     if (fp) fp.style.display = 'none';
@@ -1148,49 +1217,136 @@ function _actPopulateObjectiveDropdown() {
     }
 }
 
+// ---- UNIFIED FILTER ENGINE ----
+window.setupMultiSelectFilters = function() {
+    document.querySelectorAll('.custom-filter-pill').forEach(pill => {
+        if (pill.dataset.setupDone === 'true') return;
+        pill.dataset.setupDone = 'true';
+
+        const trigger = pill.querySelector('.filter-trigger');
+        const dropdown = pill.querySelector('.filter-dropdown');
+        if (!trigger || !dropdown) return;
+        
+        const checkboxes = dropdown.querySelectorAll('input[type="checkbox"]');
+        const labelBase = trigger.dataset.labelBase || 'Filter';
+        const defaultLabel = trigger.dataset.defaultLabel || 'All';
+
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const wasOpen = dropdown.style.display === 'block';
+            document.querySelectorAll('.filter-dropdown').forEach(d => d.style.display = 'none');
+            dropdown.style.display = wasOpen ? 'none' : 'block';
+        });
+
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', () => {
+                if (cb.value === "" && cb.checked) {
+                    checkboxes.forEach(c => { if (c !== cb) c.checked = false; });
+                } else if (cb.value !== "" && cb.checked) {
+                    const allCb = Array.from(checkboxes).find(c => c.value === "");
+                    if (allCb) allCb.checked = false;
+                }
+
+                const checkedCbs = Array.from(checkboxes).filter(c => c.checked);
+                const finalChecked = checkedCbs.map(c => c.value);
+                
+                if (finalChecked.length === 0 || (finalChecked.length === 1 && finalChecked[0] === "")) {
+                    trigger.innerHTML = `${labelBase}: ${defaultLabel} <span class="material-symbols-outlined" style="font-size:1.1rem;">expand_more</span>`;
+                    trigger.style.background = 'var(--bg-surface)';
+                    trigger.style.color = 'var(--text-secondary)';
+                } else if (finalChecked.length === 1) {
+                    const labelText = checkedCbs[0].parentNode.textContent.trim();
+                    trigger.innerHTML = `${labelBase}: <span style="font-weight:600;color:var(--text-primary);">${labelText}</span> <span class="material-symbols-outlined" style="font-size:1.1rem;">expand_more</span>`;
+                    trigger.style.background = 'var(--energy-algae)';
+                    trigger.style.color = '#000';
+                } else {
+                    trigger.innerHTML = `${labelBase}: <span style="font-weight:600;color:var(--text-primary);">${finalChecked.length} selected</span> <span class="material-symbols-outlined" style="font-size:1.1rem;">expand_more</span>`;
+                    trigger.style.background = 'var(--energy-algae)';
+                    trigger.style.color = '#000';
+                }
+                
+                const onChangeFn = pill.dataset.onChange;
+                if (onChangeFn && window[onChangeFn]) window[onChangeFn]();
+            });
+        });
+        
+        dropdown.addEventListener('click', (e) => e.stopPropagation());
+    });
+
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.filter-dropdown').forEach(d => d.style.display = 'none');
+    });
+};
+
+window.getMultiSelectValues = function(pillId) {
+    const pill = document.getElementById(pillId);
+    if (!pill) return [];
+    return Array.from(pill.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(cb => cb.value)
+                .filter(v => v !== "");
+};
+
+window.toggleSortDirection = function(btnId, onChangeFn) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    const isAsc = btn.dataset.dir === 'asc';
+    btn.dataset.dir = isAsc ? 'desc' : 'asc';
+    btn.innerHTML = isAsc ? 'arrow_downward' : 'arrow_upward';
+    if (onChangeFn && window[onChangeFn]) window[onChangeFn]();
+};
+
 // Filter + re-render
 window.filterActions = function () {
     const search = (document.getElementById('act-search')?.value || '').toLowerCase();
-    const statusF = document.getElementById('act-filter-status')?.value || '';
-    const ownerF = document.getElementById('act-filter-owner')?.value || '';
-    const phaseF = document.getElementById('act-filter-phase')?.value || '';
-    const dueF = document.getElementById('act-filter-due')?.value || '';
+    const statusF = window.getMultiSelectValues('act-filter-status');
+    const ownerF = window.getMultiSelectValues('act-filter-owner');
+    const phaseF = window.getMultiSelectValues('act-filter-phase');
+    const dueF = window.getMultiSelectValues('act-filter-due');
+    const sortMode = document.getElementById('act-sort-select')?.value || 'due';
+    const sortDir = document.getElementById('act-sort-dir')?.dataset.dir || 'asc';
 
     let actions = window.getData('actions') || [];
 
     // Dynamic owner populate (once)
-    const ownerSel = document.getElementById('act-filter-owner');
-    if (ownerSel && ownerSel.options.length <= 1) {
-        const owners = [...new Set(actions.map(a => a.owner).filter(Boolean))].sort();
-        owners.forEach(o => {
-            const opt = document.createElement('option');
-            opt.value = o; opt.textContent = o;
-            ownerSel.appendChild(opt);
-        });
+    const ownerPill = document.getElementById('act-filter-owner');
+    if (ownerPill) {
+        const dropdown = ownerPill.querySelector('.filter-dropdown');
+        if (dropdown && dropdown.children.length <= 1) { // 1 is the "All" label
+            const owners = [...new Set(actions.map(a => a.owner).filter(Boolean))].sort();
+            owners.forEach(o => {
+                const label = document.createElement('label');
+                label.style.cssText = 'display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);';
+                label.innerHTML = `<input type="checkbox" value="${o}"> ${o}`;
+                dropdown.appendChild(label);
+            });
+            if (ownerPill.dataset.setupDone === 'true') {
+                ownerPill.dataset.setupDone = 'false';
+                window.setupMultiSelectFilters();
+            }
+        }
     }
 
     if (search) actions = actions.filter(a => (a.activity || '').toLowerCase().includes(search) || (a.description || '').toLowerCase().includes(search));
-    if (statusF) actions = actions.filter(a => a.status === statusF);
-    if (ownerF) actions = actions.filter(a => (a.owner || '').includes(ownerF));
-    if (phaseF) actions = actions.filter(a => a.phase === phaseF);
+    if (statusF.length > 0) actions = actions.filter(a => statusF.includes(a.status));
+    if (ownerF.length > 0) actions = actions.filter(a => ownerF.includes(a.owner));
+    if (phaseF.length > 0) actions = actions.filter(a => phaseF.includes(a.phase));
 
     // Due date filter
-    if (dueF) {
+    if (dueF.length > 0) {
         const now = new Date(); now.setHours(0,0,0,0);
-        if (dueF === 'overdue') {
-            actions = actions.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate + 'T00:00:00') < now && a.status !== 'Completed');
-        } else if (dueF === 'none') {
-            actions = actions.filter(a => !a.timing?.dueDate);
-        } else {
-            const days = parseInt(dueF);
-            const cutoff = new Date(now.getTime() + days * 86400000);
-            actions = actions.filter(a => {
-                if (!a.timing?.dueDate) return false;
-                const d = new Date(a.timing.dueDate + 'T00:00:00');
-                return d >= now && d <= cutoff;
-            });
-        }
+        actions = actions.filter(a => {
+            if (!a.timing?.dueDate) {
+                return dueF.includes('none');
+            }
+            const d = new Date(a.timing.dueDate + 'T00:00:00');
+            if (dueF.includes('overdue') && d < now && a.status !== 'Completed') return true;
+            if (dueF.includes('7') && d >= now && d <= new Date(now.getTime() + 7 * 86400000)) return true;
+            if (dueF.includes('14') && d >= now && d <= new Date(now.getTime() + 14 * 86400000)) return true;
+            if (dueF.includes('30') && d >= now && d <= new Date(now.getTime() + 30 * 86400000)) return true;
+            return false;
+        });
     }
+
     // Hide completed unless "Show completed" is checked
     const showCompleted = document.getElementById('act-show-completed')?.checked;
     if (!showCompleted) {
@@ -1198,19 +1354,20 @@ window.filterActions = function () {
     }
 
     // Sort
-    if (_actSortMode === 'due') {
-        actions.sort((a, b) => (a.timing?.dueDate || '9999') < (b.timing?.dueDate || '9999') ? -1 : 1);
-    } else if (_actSortMode === 'status') {
-        const order = ['In Progress', 'Planned', 'Pending', 'Completed'];
+    if (sortMode === 'due') {
+        actions.sort((a, b) => {
+            if (!a.timing?.dueDate) return 1;
+            if (!b.timing?.dueDate) return -1;
+            return new Date(a.timing.dueDate) - new Date(b.timing.dueDate);
+        });
+    } else if (sortMode === 'status') {
+        const order = ['Pending', 'Planned', 'In Progress', 'Completed'];
         actions.sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status));
-    } else if (_actSortMode === 'owner') {
-        actions.sort((a, b) => (a.owner || '').localeCompare(b.owner || ''));
-    } else if (_actSortMode === 'priority') {
-        const order = ['ASAP', 'High', 'Medium', 'Low', ''];
-        actions.sort((a, b) => order.indexOf(a.priority || '') - order.indexOf(b.priority || ''));
-    } else if (_actSortMode === 'name') {
+    } else if (sortMode === 'name') {
         actions.sort((a, b) => (a.activity || '').localeCompare(b.activity || ''));
     }
+
+    if (sortDir === 'desc') actions.reverse();
 
     window._lastFilteredActions = actions;
     _actRenderList(actions);
@@ -1241,7 +1398,14 @@ window.toggleActionsFilter = function () {
 window.clearActionsFilters = function () {
     ['act-filter-status', 'act-filter-owner', 'act-filter-phase', 'act-filter-due'].forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.value = '';
+        if (el) {
+            const allCb = el.querySelector('input[type="checkbox"][value=""]');
+            if (allCb) {
+                allCb.checked = true;
+                // Dispatch change event to trigger UI update
+                allCb.dispatchEvent(new Event('change'));
+            }
+        }
     });
     window.filterActions();
 };
@@ -1299,7 +1463,8 @@ function _actRenderList(actions) {
     }
     container.innerHTML = actions.map(a => {
         const sc = _actStatusColor(a.status);
-        const rel = relativeDate(a.timing?.dueDate);
+        const isCompleted = a.status === 'Completed';
+        const rel = relativeDate(a.timing?.dueDate, isCompleted);
         const isOverdue = rel.isOverdue && a.status !== 'Completed';
         const objText = _actGetObjectiveText(a.commsObjectiveId);
         const dueStr = formatDate(a.timing?.dueDate);
@@ -1347,7 +1512,8 @@ function _actRenderKanban(actions) {
     container.innerHTML = columns.map(col => {
         const colActions = actions.filter(a => a.status === col);
         const cards = colActions.map(a => {
-            const rel = relativeDate(a.timing?.dueDate);
+            const isCompleted = a.status === 'Completed';
+            const rel = relativeDate(a.timing?.dueDate, isCompleted);
             const isOverdue = rel.isOverdue && col !== 'Completed';
             const dueStr = formatDate(a.timing?.dueDate);
             const objText = _actGetObjectiveText(a.commsObjectiveId);
@@ -1384,13 +1550,23 @@ function _actRenderKanban(actions) {
 }
 
 // Kanban drop handler — update action status
-window._kanbanDrop = function (actionId, newStatus) {
+window._kanbanDrop = async function (actionId, newStatus) {
     const actions = window.getData('actions') || [];
     const action = actions.find(a => a.id === actionId);
     if (!action || action.status === newStatus) return;
     console.log('[Kanban] Moving', action.activity, 'from', action.status, 'to', newStatus);
     action.status = newStatus;
     window.updateData('actions', actions);
+    
+    if (window._sb) {
+        try {
+            await window._sb.from('tbl_action').update({ act_status: newStatus }).eq('act_id', actionId);
+            console.log('[Kanban] Saved new status to DB');
+        } catch (e) {
+            console.error('[Kanban] Failed to save status to DB:', e);
+        }
+    }
+    
     // Re-render kanban
     const filtered = window._lastFilteredActions || actions;
     _actRenderKanban(filtered);
@@ -1986,7 +2162,8 @@ function renderActionDetail() {
     // Show relative date below
     const dueDetailEl = document.getElementById('adet-due-detail');
     if (dueDetailEl) {
-        const rel = relativeDate(a.timing?.dueDate);
+        const isCompleted = a.status === 'Completed';
+        const rel = relativeDate(a.timing?.dueDate, isCompleted);
         const dd = a.timing?.dueDetail;
         if (a.timing?.dueDate) {
             dueDetailEl.textContent = rel.text + (dd ? ' — ' + dd : '');
@@ -2013,7 +2190,8 @@ function renderActionDetail() {
     if (dueInline) dueInline.textContent = dueDisplay;
     const dueRelInline = document.getElementById('adet-due-relative-inline');
     if (dueRelInline && a.timing?.dueDate) {
-        const rel = relativeDate(a.timing.dueDate);
+        const isCompleted = a.status === 'Completed';
+        const rel = relativeDate(a.timing.dueDate, isCompleted);
         dueRelInline.textContent = rel.text;
         dueRelInline.style.color = rel.color;
     }
@@ -2797,27 +2975,37 @@ window._renderPendingActions = function () {
         }).join('');
 };
 
-window._approvePendingAction = function (actionId) {
+window._approvePendingAction = async function (actionId) {
     const actions = window.getData('actions') || [];
     const action = actions.find(a => a.id === actionId);
     if (!action) return;
     action.status = 'Planned';
     window.updateData('actions', actions);
+    
+    if (window._sb) {
+        try {
+            await window._sb.from('tbl_action').update({ act_status: 'Planned' }).eq('act_id', actionId);
+            console.log('[Approvals] Saved approval to DB');
+        } catch (e) {
+            console.error('[Approvals] Failed to save approval to DB:', e);
+        }
+    }
+    
     console.log('[Approvals] Approved action', action.activity, '→ Planned');
     window._renderPendingActions();
 };
 
 // ---- STRATEGY SPINE (inline card-driven editing) ----
 
-let isSpineEditMode = false;
+let isAppEditMode = false;
 let _spineCards = null;
 let _spinePendingReorders = [];
 
 async function renderStrategySpine() {
-    isSpineEditMode = false;
+    isAppEditMode = false;
     _spineCards = await window.fetchContentCards(1);
-    renderSpineCards();
-    setupSpineEditToggle();
+    renderContentCards('spine', 'strategy-cards-container');
+    setupContentEditToggle('spine', 'strategy-cards-container', 'spine-edit-toggle');
 }
 
 // ---- UNIFIED CARD TYPE RENDERER ----
@@ -2845,7 +3033,7 @@ window._renderCardTypeContent = function (card, spine) {
             return `<h4 style="margin:0 0 0.75rem 0;color:var(--text-tertiary);">${card.cc_title || 'Stakeholders'}</h4>` +
                 items.map(s => {
                     const col = s.status === 'Needs Attention' ? '#ef4444' : s.status === 'Active' ? 'var(--energy-algae)' : s.status === 'Monitor' ? 'var(--energy-mid)' : 'var(--text-secondary)';
-                    return `<div style="padding:0.6rem;border:1px solid var(--border-subtle);border-radius:6px;margin-bottom:0.4rem;cursor:pointer;" onclick="window.currentStakeholderId='${s.id}';loadView('stakeholder_detail');history.pushState(null,'','#stakeholder_detail')" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+                    return `<div style="padding:0.6rem;border:1px solid var(--border-subtle);border-radius:6px;margin-bottom:0.4rem;cursor:pointer;" onclick="window.currentStakeholderId='${s.id}';loadView('stakeholder_detail');history.pushState(null,'','#stakeholder_detail')" onmouseover="if(!document.querySelector('.spine-dragging')) this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
                         <div style="font-weight:600;font-size:0.88rem;margin-bottom:0.2rem;">${s.name}</div>
                         <div style="font-size:0.78rem;color:var(--text-tertiary);">
                             <span style="color:${col};font-weight:600;">${s.status}</span> · ${s.role || '—'}
@@ -2882,8 +3070,9 @@ window._renderCardTypeContent = function (card, spine) {
             if (items.length === 0) return '<p style="color:var(--text-tertiary);font-style:italic;margin:0;">No actions match filter.</p>';
             return `<h4 style="margin:0 0 0.75rem 0;color:var(--text-tertiary);">${card.cc_title || 'Actions'}</h4>` +
                 items.map(a => {
-                    const rel = typeof relativeDate === 'function' ? relativeDate(a.timing?.dueDate) : { text: '', color: 'inherit' };
-                    return `<div style="padding:0.6rem;border:1px solid var(--border-subtle);border-radius:6px;margin-bottom:0.4rem;cursor:pointer;" onclick="window.viewAction('${a.id}')" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+                    const isCompleted = a.status === 'Completed';
+                    const rel = typeof relativeDate === 'function' ? relativeDate(a.timing?.dueDate, isCompleted) : { text: '', color: 'inherit' };
+                    return `<div style="padding:0.6rem;border:1px solid var(--border-subtle);border-radius:6px;margin-bottom:0.4rem;cursor:pointer;" onclick="window.viewAction('${a.id}')" onmouseover="if(!document.querySelector('.spine-dragging')) this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem;">
                             <span class="status-badge" style="font-size:0.7rem;padding:0.1rem 0.5rem;">${a.status}</span>
                             <span style="font-size:0.72rem;color:${rel.color};">${rel.text}</span>
@@ -2918,7 +3107,7 @@ window._renderCardTypeContent = function (card, spine) {
             if (items.length === 0) return '<p style="color:var(--text-tertiary);font-style:italic;margin:0;">No updates match filter.</p>';
             return `<h4 style="margin:0 0 0.75rem 0;color:var(--text-tertiary);">${card.cc_title || 'Updates'}</h4>` +
                 items.map(i => {
-                    return `<div style="padding:0.6rem;border:1px solid var(--border-subtle);border-radius:6px;margin-bottom:0.4rem;cursor:pointer;" onclick="window.currentInteractionId='${i.id}';loadView('interaction_detail');history.pushState(null,'','#interaction_detail')" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+                    return `<div style="padding:0.6rem;border:1px solid var(--border-subtle);border-radius:6px;margin-bottom:0.4rem;cursor:pointer;" onclick="window.currentInteractionId='${i.id}';loadView('interaction_detail');history.pushState(null,'','#interaction_detail')" onmouseover="if(!document.querySelector('.spine-dragging')) this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
                         <div style="font-size:0.72rem;color:${i.type==='Upcoming'?'var(--energy-alert)':'var(--text-tertiary)'};font-weight:600;margin-bottom:0.2rem;">${i.rawDate || ''} — ${i.type || ''}</div>
                         <div style="font-weight:600;font-size:0.88rem;">${i.title}</div>
                     </div>`;
@@ -2953,11 +3142,12 @@ window._renderCardTypeContent = function (card, spine) {
     }
 };
 
-function renderSpineCards() {
-    const container = document.getElementById('strategy-cards-container');
+function renderContentCards(dataKey, containerId) {
+    const container = document.getElementById(containerId);
     if (!container) return;
-    const spine = window.getData('spine');
-    const cards = (_spineCards || []).filter(c => c.cc_active !== false).sort((a, b) => a.cc_order - b.cc_order);
+    const contextData = window.getData(dataKey) || {}; // For objectives or other metadata
+    const cardsArray = dataKey === 'messaging' ? _msgCards : _spineCards;
+    const cards = (cardsArray || []).filter(c => c.cc_active !== false).sort((a, b) => a.cc_order - b.cc_order);
     const topCards = cards.filter(c => !c.cc_parent_card_id);
 
     // Group into sections with width inheritance
@@ -2989,9 +3179,9 @@ function renderSpineCards() {
                         <option value="third"${sc.cc_width==='third'?' selected':''}>Third</option>
                         <option value="quarter"${sc.cc_width==='quarter'?' selected':''}>Quarter</option>
                     </select>
-                    <button onclick="window.spineMoveCard(${sc.cc_id},-1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;" title="Move up"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_upward</span></button>
-                    <button onclick="window.spineMoveCard(${sc.cc_id},1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;" title="Move down"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
-                    <button onclick="window.spineDeleteCard(${sc.cc_id})" style="background:none;border:none;cursor:pointer;color:var(--energy-alert);padding:2px;" title="Remove"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
+                    <button onclick="window.spineMoveCard(${sc.cc_id},-1,'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;" title="Move up"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_upward</span></button>
+                    <button onclick="window.spineMoveCard(${sc.cc_id},1,'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;" title="Move down"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
+                    <button onclick="window.spineDeleteCard(${sc.cc_id},'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--energy-alert);padding:2px;" title="Remove"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
                 </div>
             </div>`;
         }
@@ -3003,30 +3193,52 @@ function renderSpineCards() {
         if (section.cards.length > 0) {
             html += `<div style="display:grid;grid-template-columns:${gridCols};gap:1.5rem;margin-bottom:1.5rem;">`;
             section.cards.forEach(c => {
-                const cardTypeOptions = [
-                    { value: 'card', icon: '📝', label: 'Card' },
+                // Cascaded dropdown logic
+                const t = c.cc_card_type || 'card';
+                let entity = t;
+                let format = '';
+                if (t.startsWith('action_')) { entity = 'action'; format = t.split('_')[1]; }
+                else if (t.startsWith('interaction_')) { entity = 'interaction'; format = t.split('_')[1]; }
+                else if (t.startsWith('stakeholder_')) { entity = 'stakeholder'; format = t.split('_')[1]; }
+
+                const entityOptions = [
+                    { value: 'card', icon: '📝', label: 'Text Card' },
                     { value: 'objectives_link', icon: '🎯', label: 'Objectives' },
-                    { value: 'stakeholder_view', icon: '🏛', label: 'Stakeholder' },
-                    { value: 'stakeholder_summary', icon: '📊', label: 'Stakeholder Summary' },
-                    { value: 'action_view', icon: '⚡', label: 'Action' },
-                    { value: 'action_summary', icon: '📊', label: 'Action Summary' },
-                    { value: 'interaction_view', icon: '💬', label: 'Update' },
-                    { value: 'interaction_summary', icon: '📊', label: 'Update Summary' },
-                    { value: 'audience_message', icon: '📢', label: 'Audience Message' }
+                    { value: 'audience_message', icon: '📢', label: 'Audience Message' },
+                    { value: 'action', icon: '⚡', label: 'Action' },
+                    { value: 'interaction', icon: '💬', label: 'Update Log' },
+                    { value: 'stakeholder', icon: '🏛', label: 'Stakeholder' }
                 ];
-                const typeOpts = cardTypeOptions.map(t => `<option value="${t.value}"${c.cc_card_type === t.value ? ' selected' : ''}>${t.icon} ${t.label}</option>`).join('');
+                const entityOptsHtml = entityOptions.map(o => `<option value="${o.value}"${entity === o.value ? ' selected' : ''}>${o.icon} ${o.label}</option>`).join('');
+
+                let formatSelectHtml = '';
+                if (['action', 'interaction', 'stakeholder'].includes(entity)) {
+                    const formatOptions = [
+                        { value: 'view', label: 'List (Top 3)' },
+                        { value: 'summary', label: 'Summary Stats' },
+                        { value: 'single', label: 'Single Item' }
+                    ];
+                    // If no format is set, default to 'view'
+                    if (!format) format = 'view';
+                    const formatOptsHtml = formatOptions.map(o => `<option value="${o.value}"${format === o.value ? ' selected' : ''}>${o.label}</option>`).join('');
+                    formatSelectHtml = `<select class="spine-format-select" data-card-id="${c.cc_id}" style="font-size:0.72rem;padding:0.15rem 0.3rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);max-width:110px;" onchange="window.spineChangeCardFormat(${c.cc_id}, this.value, '${entity}', '${dataKey}')">
+                        ${formatOptsHtml}
+                    </select>`;
+                }
+
                 const editCtrl = `<div class="spine-edit-ctrl" style="display:none;position:absolute;right:0.5rem;top:0.5rem;gap:0.25rem;align-items:center;z-index:2;">
-                    <select class="spine-type-select" data-card-id="${c.cc_id}" style="font-size:0.72rem;padding:0.15rem 0.3rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);max-width:140px;" onchange="window.spineChangeCardType(${c.cc_id},this.value)">
-                        ${typeOpts}
+                    <select class="spine-entity-select" data-card-id="${c.cc_id}" style="font-size:0.72rem;padding:0.15rem 0.3rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);max-width:140px;" onchange="window.spineChangeCardEntity(${c.cc_id}, this.value, '${dataKey}')">
+                        ${entityOptsHtml}
                     </select>
-                    <button onclick="event.stopPropagation();window.spineMoveCard(${c.cc_id},-1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_upward</span></button>
-                    <button onclick="event.stopPropagation();window.spineMoveCard(${c.cc_id},1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
-                    <button onclick="event.stopPropagation();window.spineDeleteCard(${c.cc_id})" style="background:none;border:none;cursor:pointer;color:var(--energy-alert);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
+                    ${formatSelectHtml}
+                    <button onclick="event.stopPropagation();window.spineMoveCard(${c.cc_id},-1,'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_upward</span></button>
+                    <button onclick="event.stopPropagation();window.spineMoveCard(${c.cc_id},1,'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
+                    <button onclick="event.stopPropagation();window.spineDeleteCard(${c.cc_id},'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--energy-alert);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
                 </div>`;
                 const grip = `<span class="spine-drag-grip" data-grip-id="${c.cc_id}" title="Drag to reorder" style="position:absolute;left:0.4rem;top:50%;transform:translateY(-50%);">⠿</span>`;
 
                 // Render card by type
-                const cardContent = window._renderCardTypeContent(c, spine);
+                const cardContent = window._renderCardTypeContent(c, contextData);
                 html += `<div class="card" style="position:relative;padding:1.5rem;" data-card-id="${c.cc_id}" draggable="false">${grip}${editCtrl}${cardContent}</div>`;
             });
             html += '</div>';
@@ -3035,8 +3247,8 @@ function renderSpineCards() {
 
     // Add card/section buttons (visible in edit mode)
     html += `<div class="spine-edit-ctrl" style="display:none;gap:0.5rem;margin-top:1rem;">
-        <button class="btn-secondary" onclick="window.spineAddSection()" style="font-size:0.8rem;padding:0.3rem 0.8rem;">+ Add Section</button>
-        <button class="btn-secondary" onclick="window.spineAddCard()" style="font-size:0.8rem;padding:0.3rem 0.8rem;">+ Add Card</button>
+        <button class="btn-secondary" onclick="window.spineAddSection('${dataKey}','${containerId}')" style="font-size:0.8rem;padding:0.3rem 0.8rem;">+ Add Section</button>
+        <button class="btn-secondary" onclick="window.spineAddCard('${dataKey}','${containerId}')" style="font-size:0.8rem;padding:0.3rem 0.8rem;">+ Add Card</button>
     </div>`;
 
     container.innerHTML = html;
@@ -3064,46 +3276,57 @@ function renderSpineObjectives(objectives, wrapInCard = true) {
     return html;
 }
 
-function setupSpineEditToggle() {
-    const old = document.getElementById('spine-edit-toggle');
+function setupContentEditToggle(dataKey, containerId, btnId) {
+    const old = document.getElementById(btnId);
     if (!old) return;
+    
+    // Ensure button is reset to default visually if we're not in edit mode
+    if (!isAppEditMode) {
+        old.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
+        old.disabled = false;
+        old.style.background = '';
+        old.style.color = '';
+    }
+    
     const editToggle = old.cloneNode(true);
     old.parentNode.replaceChild(editToggle, old);
 
     // Wire cancel button
-    const cancelBtn = document.getElementById('spine-cancel-btn');
+    const cancelBtn = document.getElementById(btnId.replace('edit-toggle', 'cancel-btn'));
     if (cancelBtn) {
         const freshCancel = cancelBtn.cloneNode(true);
         cancelBtn.parentNode.replaceChild(freshCancel, cancelBtn);
         freshCancel.addEventListener('click', async () => {
-            isSpineEditMode = false;
+            isAppEditMode = false;
             _spinePendingReorders = [];
-            const container = document.getElementById('strategy-cards-container');
+            const container = document.getElementById(containerId);
             if (container) container.classList.remove('spine-edit-active');
             editToggle.style.background = ''; editToggle.style.color = '';
             editToggle.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
             freshCancel.style.display = 'none';
             // Re-fetch and re-render (discard local changes)
-            _spineCards = await window.fetchContentCards(1);
-            renderSpineCards(); setupSpineEditToggle();
+            if (dataKey === 'messaging') _msgCards = await window.fetchContentCards(2);
+            else _spineCards = await window.fetchContentCards(1);
+            renderContentCards(dataKey, containerId); 
+            setupContentEditToggle(dataKey, containerId, btnId);
         });
     }
 
     editToggle.addEventListener('click', async () => {
-        isSpineEditMode = !isSpineEditMode;
-        editToggle.style.background = isSpineEditMode ? 'var(--energy-algae)' : '';
-        editToggle.style.color = isSpineEditMode ? '#000' : '';
-        editToggle.innerHTML = isSpineEditMode
+        isAppEditMode = !isAppEditMode;
+        editToggle.style.background = isAppEditMode ? 'var(--energy-algae)' : '';
+        editToggle.style.color = isAppEditMode ? '#000' : '';
+        editToggle.innerHTML = isAppEditMode
             ? '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done'
             : '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
 
         // Show/hide cancel button
-        const cb = document.getElementById('spine-cancel-btn');
-        if (cb) cb.style.display = isSpineEditMode ? 'flex' : 'none';
+        const cb = document.getElementById(btnId.replace('edit-toggle', 'cancel-btn'));
+        if (cb) cb.style.display = isAppEditMode ? 'flex' : 'none';
 
-        if (isSpineEditMode) {
+        if (isAppEditMode) {
             // Add edit-active class for CSS-driven grip visibility
-            const container = document.getElementById('strategy-cards-container');
+            const container = document.getElementById(containerId);
             if (container) container.classList.add('spine-edit-active');
             // Show edit controls
             document.querySelectorAll('.spine-edit-ctrl').forEach(el => { el.style.display = 'flex'; });
@@ -3145,16 +3368,16 @@ function setupSpineEditToggle() {
             });
 
             // Initialize drag-and-drop on grip handles
-            window._initSpineDragDrop();
+            window._initSpineDragDrop(dataKey, containerId);
         } else {
             // Remove edit-active class
-            const container = document.getElementById('strategy-cards-container');
+            const container = document.getElementById(containerId);
             if (container) container.classList.remove('spine-edit-active');
             // "Done" — show loading, persist everything
             editToggle.disabled = true;
             editToggle.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;animation:spin 1s linear infinite;">autorenew</span> Saving...';
             try {
-                await persistSpineEdits();
+                await persistContentEdits(dataKey, containerId, btnId);
             } finally {
                 editToggle.disabled = false;
                 editToggle.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
@@ -3163,7 +3386,7 @@ function setupSpineEditToggle() {
     });
 }
 
-async function persistSpineEdits() {
+async function persistContentEdits(dataKey, containerId, btnId) {
     const spine = window.getData('spine');
     const updates = [];
 
@@ -3181,15 +3404,23 @@ async function persistSpineEdits() {
         }
     });
 
-    // Collect card type changes
-    document.querySelectorAll('.spine-type-select').forEach(sel => {
+    // Collect cascaded card type changes
+    document.querySelectorAll('.spine-entity-select').forEach(sel => {
         const id = parseInt(sel.dataset.cardId);
         if (id) {
+            let entity = sel.value;
+            let finalType = entity;
+            if (['action', 'interaction', 'stakeholder'].includes(entity)) {
+                const formatSel = sel.parentElement.querySelector('.spine-format-select');
+                const format = formatSel ? formatSel.value : 'view';
+                finalType = `${entity}_${format}`;
+            }
             const existing = updates.find(u => u.ccId === id);
-            if (existing) existing.fields.cc_card_type = sel.value;
-            else updates.push({ ccId: id, fields: { cc_card_type: sel.value } });
+            if (existing) existing.fields.cc_card_type = finalType;
+            else updates.push({ ccId: id, fields: { cc_card_type: finalType } });
         }
     });
+
     // Collect card title + content changes
     document.querySelectorAll('.spine-edit-card-title').forEach(input => {
         const id = parseInt(input.dataset.cardId);
@@ -3246,27 +3477,66 @@ async function persistSpineEdits() {
     }
 
     // Refresh spine cache and re-render
-    _spineCards = await window.fetchContentCards(1);
+    if (dataKey === 'messaging') _msgCards = await window.fetchContentCards(2);
+    else _spineCards = await window.fetchContentCards(1);
+    
     // Also refresh spine data for objectives
-    const freshSpine = await window.getData('spine');
-    renderSpineCards();
-    setupSpineEditToggle();
+    if (dataKey === 'spine') await window.getData('spine');
+    renderContentCards(dataKey, containerId);
 }
 
 // ---- STRATEGY CARD OPERATIONS ----
 
-window.spineChangeCardType = function (ccId, newType) {
-    if (!_spineCards) return;
-    const card = _spineCards.find(c => c.cc_id === ccId);
+window.spineChangeCardEntity = function (ccId, entity, dataKey) {
+    const cardsArray = dataKey === 'messaging' ? _msgCards : _spineCards;
+    if (!cardsArray) return;
+    const card = cardsArray.find(c => c.cc_id === ccId);
     if (card) {
-        card.cc_card_type = newType;
-        console.log('[Strategy] Card', ccId, 'type changed to', newType);
+        let finalType = entity;
+        const needsFormat = ['action', 'interaction', 'stakeholder'].includes(entity);
+        if (needsFormat) finalType = `${entity}_view`;
+        card.cc_card_type = finalType;
+        
+        // Update DOM for format dropdown
+        const sel = document.querySelector(`.spine-entity-select[data-card-id="${ccId}"]`);
+        if (sel) {
+            let formatSel = sel.parentElement.querySelector('.spine-format-select');
+            if (needsFormat) {
+                if (!formatSel) {
+                    formatSel = document.createElement('select');
+                    formatSel.className = 'spine-format-select';
+                    formatSel.dataset.cardId = ccId;
+                    formatSel.style.cssText = "font-size:0.72rem;padding:0.15rem 0.3rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);max-width:110px;";
+                    formatSel.onchange = function() { window.spineChangeCardFormat(ccId, this.value, entity, dataKey); };
+                    
+                    const formatOptions = [
+                        { value: 'view', label: 'List (Top 3)' },
+                        { value: 'summary', label: 'Summary Stats' },
+                        { value: 'single', label: 'Single Item' }
+                    ];
+                    formatSel.innerHTML = formatOptions.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
+                    sel.after(formatSel);
+                }
+            } else {
+                if (formatSel) formatSel.remove();
+            }
+        }
     }
 };
 
-window.spineMoveCard = function (ccId, direction) {
-    if (!_spineCards) return;
-    const topCards = _spineCards.filter(c => !c.cc_parent_card_id && c.cc_active !== false).sort((a, b) => a.cc_order - b.cc_order);
+window.spineChangeCardFormat = function (ccId, format, entity, dataKey) {
+    const cardsArray = dataKey === 'messaging' ? _msgCards : _spineCards;
+    if (!cardsArray) return;
+    const card = cardsArray.find(c => c.cc_id === ccId);
+    if (card) {
+        card.cc_card_type = `${entity}_${format}`;
+    }
+};
+
+window.spineMoveCard = function (ccId, direction, dataKey, containerId) {
+    const cardsArray = dataKey === 'messaging' ? _msgCards : _spineCards;
+    if (!cardsArray) return;
+    const topCards = cardsArray.filter(c => !c.cc_parent_card_id && c.cc_active !== false).sort((a, b) => a.cc_order - b.cc_order);
     const idx = topCards.findIndex(c => c.cc_id === ccId);
     if (idx === -1) return;
     const swapIdx = idx + direction;
@@ -3279,35 +3549,54 @@ window.spineMoveCard = function (ccId, direction) {
         { ccId: topCards[idx].cc_id, newOrder: topCards[idx].cc_order },
         { ccId: topCards[swapIdx].cc_id, newOrder: topCards[swapIdx].cc_order }
     );
-    renderSpineCards();
-    setupSpineEditToggle();
-    if (isSpineEditMode) { isSpineEditMode = false; document.getElementById('spine-edit-toggle')?.click(); }
+    renderContentCards(dataKey, containerId);
+    setupContentEditToggle(dataKey, containerId, containerId.replace('cards-container', 'edit-toggle'));
+    if (isAppEditMode) { isAppEditMode = false; document.getElementById(containerId.replace('cards-container', 'edit-toggle'))?.click(); }
 };
 
-window.spineDeleteCard = async function (ccId) {
+window.spineDeleteCard = async function (ccId, dataKey, containerId) {
     if (!confirm('Remove this card?')) return;
     if (window.softDeleteContentCard) await window.softDeleteContentCard(ccId);
-    _spineCards = (_spineCards || []).filter(c => c.cc_id !== ccId);
+    
+    if (dataKey === 'messaging') _msgCards = (_msgCards || []).filter(c => c.cc_id !== ccId);
+    else _spineCards = (_spineCards || []).filter(c => c.cc_id !== ccId);
+
     // Also update spine cache for pillars
     const spine = window.getData('spine');
-    if (spine) { spine.pillars = spine.pillars.filter(p => p.id !== 'p' + ccId); window.updateData('spine', spine); }
-    renderSpineCards(); setupSpineEditToggle();
-    if (isSpineEditMode) { isSpineEditMode = false; document.getElementById('spine-edit-toggle')?.click(); }
+    if (spine && dataKey === 'spine') { spine.pillars = spine.pillars.filter(p => p.id !== 'p' + ccId); window.updateData('spine', spine); }
+    
+    renderContentCards(dataKey, containerId); 
+    setupContentEditToggle(dataKey, containerId, containerId.replace('cards-container', 'edit-toggle'));
+    if (isAppEditMode) { isAppEditMode = false; document.getElementById(containerId.replace('cards-container', 'edit-toggle'))?.click(); }
 };
 
-window.spineAddSection = async function () {
-    const maxOrder = (_spineCards || []).reduce((m, c) => Math.max(m, c.cc_order || 0), 0);
+window.spineAddSection = async function (dataKey, containerId) {
+    const cardsArray = dataKey === 'messaging' ? _msgCards : _spineCards;
+    const maxOrder = (cardsArray || []).reduce((m, c) => Math.max(m, c.cc_order || 0), 0);
     if (window.insertContentCard) {
-        const card = await window.insertContentCard({ cc_page_id: 1, cc_card_type: 'section', cc_title: 'New Section', cc_width: 'full', cc_order: maxOrder + 1 });
-        if (card) { _spineCards.push(card); renderSpineCards(); setupSpineEditToggle(); if (isSpineEditMode) { isSpineEditMode = false; document.getElementById('spine-edit-toggle')?.click(); } }
+        const pageId = dataKey === 'messaging' ? 2 : 1;
+        const card = await window.insertContentCard({ cc_page_id: pageId, cc_card_type: 'section', cc_title: 'New Section', cc_width: 'full', cc_order: maxOrder + 1 });
+        if (card) { 
+            if (dataKey === 'messaging') _msgCards.push(card); else _spineCards.push(card); 
+            renderContentCards(dataKey, containerId); 
+            setupContentEditToggle(dataKey, containerId, containerId.replace('cards-container', 'edit-toggle')); 
+            if (isAppEditMode) { isAppEditMode = false; document.getElementById(containerId.replace('cards-container', 'edit-toggle'))?.click(); } 
+        }
     }
 };
 
-window.spineAddCard = async function () {
-    const maxOrder = (_spineCards || []).reduce((m, c) => Math.max(m, c.cc_order || 0), 0);
+window.spineAddCard = async function (dataKey, containerId) {
+    const cardsArray = dataKey === 'messaging' ? _msgCards : _spineCards;
+    const maxOrder = (cardsArray || []).reduce((m, c) => Math.max(m, c.cc_order || 0), 0);
     if (window.insertContentCard) {
-        const card = await window.insertContentCard({ cc_page_id: 1, cc_card_type: 'card', cc_title: 'New Card', cc_content: '', cc_width: 'full', cc_order: maxOrder + 1 });
-        if (card) { _spineCards.push(card); renderSpineCards(); setupSpineEditToggle(); if (isSpineEditMode) { isSpineEditMode = false; document.getElementById('spine-edit-toggle')?.click(); } }
+        const pageId = dataKey === 'messaging' ? 2 : 1;
+        const card = await window.insertContentCard({ cc_page_id: pageId, cc_card_type: 'card', cc_title: 'New Card', cc_content: '', cc_width: 'full', cc_order: maxOrder + 1 });
+        if (card) { 
+            if (dataKey === 'messaging') _msgCards.push(card); else _spineCards.push(card); 
+            renderContentCards(dataKey, containerId); 
+            setupContentEditToggle(dataKey, containerId, containerId.replace('cards-container', 'edit-toggle')); 
+            if (isAppEditMode) { isAppEditMode = false; document.getElementById(containerId.replace('cards-container', 'edit-toggle'))?.click(); } 
+        }
     }
 };
 
@@ -3319,8 +3608,9 @@ window.spineMoveObj = function (id, dir) {
     if (dir === -1 && idx > 0) { [spine.objectives[idx], spine.objectives[idx-1]] = [spine.objectives[idx-1], spine.objectives[idx]]; }
     else if (dir === 1 && idx < spine.objectives.length - 1) { [spine.objectives[idx], spine.objectives[idx+1]] = [spine.objectives[idx+1], spine.objectives[idx]]; }
     window.updateData('spine', spine);
-    renderSpineCards(); setupSpineEditToggle();
-    if (isSpineEditMode) { isSpineEditMode = false; document.getElementById('spine-edit-toggle')?.click(); }
+    renderContentCards('spine', 'strategy-cards-container'); 
+    setupContentEditToggle('spine', 'strategy-cards-container', 'spine-edit-toggle');
+    if (isAppEditMode) { isAppEditMode = false; document.getElementById('spine-edit-toggle')?.click(); }
 };
 
 window.spineDeleteObj = async function (id) {
@@ -3331,8 +3621,9 @@ window.spineDeleteObj = async function (id) {
     const soId = parseInt(id.replace('obj', ''));
     if (soId && window.softDeleteStrategyObjective) await window.softDeleteStrategyObjective(soId);
     window.updateData('spine', spine);
-    renderSpineCards(); setupSpineEditToggle();
-    if (isSpineEditMode) { isSpineEditMode = false; document.getElementById('spine-edit-toggle')?.click(); }
+    renderContentCards('spine', 'strategy-cards-container'); 
+    setupContentEditToggle('spine', 'strategy-cards-container', 'spine-edit-toggle');
+    if (isAppEditMode) { isAppEditMode = false; document.getElementById('spine-edit-toggle')?.click(); }
 };
 
 window.spineAddObj = async function () {
@@ -3344,16 +3635,17 @@ window.spineAddObj = async function () {
         if (row) { spine.objectives.push({ id: 'obj' + row.so_id, text: 'New Objective' }); }
     } else { spine.objectives.push({ id: 'obj' + Date.now(), text: 'New Objective' }); }
     window.updateData('spine', spine);
-    renderSpineCards(); setupSpineEditToggle();
-    if (isSpineEditMode) { isSpineEditMode = false; document.getElementById('spine-edit-toggle')?.click(); }
+    renderContentCards('spine', 'strategy-cards-container'); 
+    setupContentEditToggle('spine', 'strategy-cards-container', 'spine-edit-toggle');
+    if (isAppEditMode) { isAppEditMode = false; document.getElementById('spine-edit-toggle')?.click(); }
 };
 
 
 
 // ---- DRAG-AND-DROP ENGINE FOR CONTENT CARDS ----
 
-window._initSpineDragDrop = function () {
-    const container = document.getElementById('strategy-cards-container');
+window._initSpineDragDrop = function (dataKey, containerId) {
+    const container = document.getElementById(containerId);
     if (!container) return;
 
     let dragCardId = null;
@@ -3402,11 +3694,10 @@ window._initSpineDragDrop = function () {
         startY = e.clientY;
         dragEl.classList.add('spine-dragging');
 
-        // Create ghost overlay
-        ghostEl = document.createElement('div');
-        ghostEl.style.cssText = 'position:fixed;pointer-events:none;z-index:9999;opacity:0.85;border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,0.18);background:var(--bg-surface);padding:0.75rem 1rem;font-size:0.85rem;color:var(--text-primary);max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
-        const title = dragEl.querySelector('.spine-section-title,.spine-card-title,.spine-edit-sec-title,.spine-edit-card-title');
-        ghostEl.textContent = title ? (title.value || title.textContent || 'Card') : 'Card';
+        // Create ghost overlay (looks exactly like the dragged card)
+        ghostEl = dragEl.cloneNode(true);
+        const rect = dragEl.getBoundingClientRect();
+        ghostEl.style.cssText = `position:fixed;pointer-events:none;z-index:9999;opacity:0.65;width:${rect.width}px;height:${rect.height}px;box-shadow:0 12px 40px rgba(0,0,0,0.2);transform:scale(1.02);transition:none;margin:0;`;
         document.body.appendChild(ghostEl);
         ghostEl.style.left = (e.clientX + 12) + 'px';
         ghostEl.style.top = (e.clientY - 10) + 'px';
@@ -3425,15 +3716,36 @@ window._initSpineDragDrop = function () {
 
         clearIndicators();
 
-        // Find card under cursor
+        // Find card under cursor or closest card edge (for gap hovering)
         const allEls = getAllCardEls();
         let hoverEl = null;
+        let isInside = false;
+        
         for (const el of allEls) {
             if (el === dragEl) continue;
             const rect = el.getBoundingClientRect();
             if (e.clientY >= rect.top && e.clientY <= rect.bottom && e.clientX >= rect.left && e.clientX <= rect.right) {
                 hoverEl = el;
+                isInside = true;
                 break;
+            }
+        }
+
+        if (!hoverEl) {
+            // Gap hovering: find the closest element within a radius
+            let minDist = Infinity;
+            for (const el of allEls) {
+                if (el === dragEl) continue;
+                const rect = el.getBoundingClientRect();
+                // Find closest point on the rect to the mouse
+                const clampedX = Math.max(rect.left, Math.min(e.clientX, rect.right));
+                const clampedY = Math.max(rect.top, Math.min(e.clientY, rect.bottom));
+                const dist = Math.sqrt(Math.pow(e.clientX - clampedX, 2) + Math.pow(e.clientY - clampedY, 2));
+                
+                if (dist < minDist && dist < 60) { // 60px snap radius for gaps
+                    minDist = dist;
+                    hoverEl = el;
+                }
             }
         }
 
@@ -3445,11 +3757,11 @@ window._initSpineDragDrop = function () {
             if (horizontal) {
                 // Horizontal grid: use left/right/center zones
                 const relX = (e.clientX - rect.left) / rect.width;
-                if (relX < 0.3) {
+                if (relX < 0.3 || (!isInside && e.clientX < rect.left + rect.width/2)) {
                     hoverEl.classList.add('spine-drop-left');
-                } else if (relX > 0.7) {
+                } else if (relX > 0.7 || (!isInside && e.clientX >= rect.left + rect.width/2)) {
                     hoverEl.classList.add('spine-drop-right');
-                } else if (!isSection) {
+                } else if (!isSection && isInside) {
                     hoverEl.classList.add('spine-drop-nest');
                 } else {
                     hoverEl.classList.add('spine-drop-right');
@@ -3457,11 +3769,11 @@ window._initSpineDragDrop = function () {
             } else {
                 // Vertical layout: use top/bottom/center zones
                 const relY = (e.clientY - rect.top) / rect.height;
-                if (relY < 0.3) {
+                if (relY < 0.3 || (!isInside && e.clientY < rect.top + rect.height/2)) {
                     hoverEl.classList.add('spine-drop-above');
-                } else if (relY > 0.7) {
+                } else if (relY > 0.7 || (!isInside && e.clientY >= rect.top + rect.height/2)) {
                     hoverEl.classList.add('spine-drop-below');
-                } else if (!isSection) {
+                } else if (!isSection && isInside) {
                     hoverEl.classList.add('spine-drop-nest');
                 } else {
                     hoverEl.classList.add('spine-drop-below');
@@ -3499,7 +3811,8 @@ window._initSpineDragDrop = function () {
 
             if (isNest) {
                 // Nest: set cc_parent_card_id
-                const card = (_spineCards || []).find(c => c.cc_id === dragCardId);
+                const cardsArray = dataKey === 'messaging' ? _msgCards : _spineCards;
+                const card = (cardsArray || []).find(c => c.cc_id === dragCardId);
                 if (card) {
                     card.cc_parent_card_id = dropCardId;
                     _spinePendingReorders.push({ ccId: dragCardId, fields: { cc_parent_card_id: dropCardId } });
@@ -3507,7 +3820,8 @@ window._initSpineDragDrop = function () {
                 }
             } else {
                 // Reorder: insert dragCard before or after dropCard
-                const topCards = (_spineCards || []).filter(c => !c.cc_parent_card_id && c.cc_active !== false).sort((a, b) => a.cc_order - b.cc_order);
+                const cardsArray = dataKey === 'messaging' ? _msgCards : _spineCards;
+                const topCards = (cardsArray || []).filter(c => !c.cc_parent_card_id && c.cc_active !== false).sort((a, b) => a.cc_order - b.cc_order);
                 const dragIdx = topCards.findIndex(c => c.cc_id === dragCardId);
                 const dropIdx = topCards.findIndex(c => c.cc_id === dropCardId);
 
@@ -3529,9 +3843,9 @@ window._initSpineDragDrop = function () {
             }
 
             // Re-render with new order
-            renderSpineCards();
-            setupSpineEditToggle();
-            if (isSpineEditMode) { isSpineEditMode = false; document.getElementById('spine-edit-toggle')?.click(); }
+            renderContentCards(dataKey, containerId);
+            setupContentEditToggle(dataKey, containerId, containerId.replace('cards-container', 'edit-toggle'));
+            if (isAppEditMode) { isAppEditMode = false; document.getElementById(containerId.replace('cards-container', 'edit-toggle'))?.click(); }
         }
 
         cleanup();
@@ -3553,12 +3867,11 @@ window._initSpineDragDrop = function () {
 
 // ---- MESSAGING & Q&As (Card-driven, replaces Knowledge Bank) ----
 
-let isMsgEditMode = false;
 let _msgCards = null;
 let _msgPendingReorders = [];
 
 async function renderMessaging() {
-    isMsgEditMode = false;
+    isAppEditMode = false;
     if (!_msgCards && window.fetchContentCards) {
         _msgCards = await window.fetchContentCards(2);
     }
@@ -3566,115 +3879,8 @@ async function renderMessaging() {
         renderMessagingFromMock();
         return;
     }
-    renderMsgCards(_msgCards);
-    setupMsgEditToggle();
-}
-
-function renderMsgCards(cards) {
-    const container = document.getElementById('messaging-cards-container');
-    if (!container) return;
-    const topCards = cards.filter(c => !c.cc_parent_card_id).sort((a, b) => a.cc_order - b.cc_order);
-    const childMap = {};
-    cards.filter(c => c.cc_parent_card_id).forEach(c => {
-        if (!childMap[c.cc_parent_card_id]) childMap[c.cc_parent_card_id] = [];
-        childMap[c.cc_parent_card_id].push(c);
-    });
-
-    // Build sections with width inheritance
-    const sections = [];
-    let cur = null;
-    topCards.forEach(card => {
-        if (card.cc_card_type === 'section') {
-            cur = { sectionCard: card, title: card.cc_title, width: card.cc_width || 'full', cards: [] };
-            sections.push(cur);
-        } else if (cur) {
-            cur.cards.push(card);
-        } else {
-            if (!sections.length) sections.push({ sectionCard: null, title: null, width: 'full', cards: [] });
-            sections[0].cards.push(card);
-        }
-    });
-
-    let html = '';
-    sections.forEach(section => {
-        const secId = section.sectionCard ? section.sectionCard.cc_id : null;
-        if (section.title) {
-            const sc = section.sectionCard;
-            const editControls = `<div class="msg-edit-ctrl" style="display:none;gap:0.5rem;align-items:center;">
-                <select class="msg-width-select" data-card-id="${secId}" style="display:none;font-size:0.75rem;padding:0.15rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);">
-                    <option value="full"${section.width==='full'?' selected':''}>Full</option>
-                    <option value="half"${section.width==='half'?' selected':''}>Half</option>
-                    <option value="third"${section.width==='third'?' selected':''}>Third</option>
-                    <option value="quarter"${section.width==='quarter'?' selected':''}>Quarter</option>
-                </select>
-                <button onclick="window.msgMoveCard(${secId},-1)" class="btn-secondary" style="padding:0.15rem 0.3rem;font-size:0.7rem;" title="Move up"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_upward</span></button>
-                <button onclick="window.msgMoveCard(${secId},1)" class="btn-secondary" style="padding:0.15rem 0.3rem;font-size:0.7rem;" title="Move down"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
-                <button onclick="window.msgDeleteCard(${secId})" class="btn-secondary" style="padding:0.15rem 0.3rem;font-size:0.7rem;color:var(--energy-alert);" title="Remove section"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
-            </div>`;
-            html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;margin-top:2rem;" data-section-id="${secId}">
-                <h3 class="msg-section-title" data-card-id="${secId}" style="color:var(--text-tertiary);margin:0;">${section.title}</h3>
-                ${editControls}
-            </div>`;
-        }
-
-        // Section width determines grid layout for child cards
-        const gridCols = section.width === 'half' ? 'repeat(2,1fr)' :
-                         section.width === 'third' ? 'repeat(3,1fr)' :
-                         section.width === 'quarter' ? 'repeat(4,1fr)' : '1fr';
-        
-        const st = (section.title || '').toLowerCase();
-        html += `<div style="display:grid;grid-template-columns:${gridCols};gap:1.5rem;margin-bottom:3rem;">`;
-        section.cards.forEach(c => {
-            const editWrap = `<div class="msg-edit-ctrl" style="display:none;position:absolute;right:0.5rem;top:0.5rem;gap:0.25rem;align-items:center;z-index:2;">
-                <button onclick="event.stopPropagation();window.msgMoveCard(${c.cc_id},-1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;" title="Move up"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_upward</span></button>
-                <button onclick="event.stopPropagation();window.msgMoveCard(${c.cc_id},1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;" title="Move down"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
-                <button onclick="event.stopPropagation();window.msgDeleteCard(${c.cc_id})" style="background:none;border:none;cursor:pointer;color:var(--energy-alert);padding:2px;" title="Remove"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
-            </div>`;
-            if (st.includes('faq')) {
-                html += renderFaqCard(c, editWrap);
-            } else if (st.includes('audience')) {
-                html += renderAudienceCard(c, editWrap);
-            } else {
-                html += renderKeyMessageCard(c, childMap[c.cc_id] || [], editWrap);
-            }
-        });
-        html += '</div>';
-    });
-
-    // Add card/section buttons (visible in edit mode)
-    html += `<div class="msg-edit-ctrl" style="display:none;gap:0.5rem;margin-top:1rem;">
-        <button class="btn-secondary" onclick="window.msgAddSection()" style="font-size:0.8rem;padding:0.3rem 0.8rem;">+ Add Section</button>
-        <button class="btn-secondary" onclick="window.msgAddCard()" style="font-size:0.8rem;padding:0.3rem 0.8rem;">+ Add Card</button>
-    </div>`;
-
-    container.innerHTML = html;
-}
-
-function renderKeyMessageCard(card, children, editWrap) {
-    let childHtml = '';
-    children.sort((a, b) => a.cc_order - b.cc_order).forEach(child => {
-        childHtml += `<div id="msg-accordion-${child.cc_id}" style="border:1px solid var(--border-subtle);border-radius:8px;padding:0.75rem;cursor:pointer;transition:all 0.2s;margin-top:0.5rem;" onclick="window.toggleMsgAccordion(${child.cc_id})">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span class="msg-editable-title" data-card-id="${child.cc_id}" style="font-size:0.9rem;font-weight:500;">${child.cc_title}</span>
-                <span id="msg-icon-${child.cc_id}" class="material-symbols-outlined" style="font-size:1.2rem;transition:transform 0.2s;transform:rotate(0deg);">arrow_right</span>
-            </div>
-            <div id="msg-content-${child.cc_id}" style="display:none;margin-top:1rem;">
-                <div class="msg-editable-content" data-card-id="${child.cc_id}" style="font-size:0.85rem;color:var(--text-secondary);line-height:1.5;white-space:pre-wrap;">${child.cc_content || ''}</div>
-            </div>
-        </div>`;
-    });
-    return `<div class="card" style="position:relative;background:var(--bg-surface);padding:1.5rem;display:flex;flex-direction:column;justify-content:flex-start;border:1px solid var(--border-subtle);border-radius:12px;">${editWrap||''}<h4 class="msg-editable-title" data-card-id="${card.cc_id}" style="margin:0 0 0.75rem 0;font-size:1.1rem;color:var(--text-primary);">${card.cc_title}</h4><div class="msg-editable-content" data-card-id="${card.cc_id}" style="font-size:0.95rem;color:var(--text-secondary);margin:0 0 1.5rem 0;white-space:pre-wrap;">${card.cc_content || ''}</div>${childHtml}</div>`;
-}
-
-function renderFaqCard(card, editWrap) {
-    return `<div class="card" style="position:relative;background:var(--bg-surface);outline:1px solid var(--border-subtle);border-radius:12px;overflow:hidden;cursor:pointer;" onclick="window.toggleMsgFaq(${card.cc_id})">${editWrap||''}<div id="msg-faq-header-${card.cc_id}" style="padding:0.75rem 1.5rem;display:flex;justify-content:space-between;align-items:center;font-weight:500;font-size:0.95rem;"><span class="msg-editable-title" data-card-id="${card.cc_id}" style="padding-right:2rem;">${card.cc_title}</span><span id="msg-faq-icon-${card.cc_id}" class="material-symbols-outlined" style="font-size:1.5rem;transition:transform 0.2s;transform:rotate(0deg);">arrow_right</span></div><div id="msg-faq-content-${card.cc_id}" style="display:none;padding:0 1.5rem 1.5rem;border-top:1px solid var(--border-subtle);"><p class="msg-editable-content" data-card-id="${card.cc_id}" style="margin-top:1rem;font-size:0.9rem;color:var(--text-secondary);line-height:1.5;white-space:pre-wrap;">${card.cc_content || ''}</p></div></div>`;
-}
-
-function renderAudienceCard(card, editWrap) {
-    const sId = card.cc_stakeholder_original_id;
-    const click = sId ? `onclick="window.currentStakeholderId='${sId}';loadView('stakeholder_detail');history.pushState(null,'','#stakeholder_detail')"` : '';
-    const cur = sId ? 'cursor:pointer;' : '';
-    return `<div class="card" style="position:relative;border:1px solid var(--border-subtle);border-radius:12px;padding:1.5rem;background:var(--bg-surface);${cur}" ${click}>${editWrap||''}<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;color:var(--text-primary);font-weight:600;"><span class="material-symbols-outlined" style="color:var(--energy-algae);">groups</span> <span class="msg-editable-title" data-card-id="${card.cc_id}">${card.cc_title}</span>${sId ? '<span class="material-symbols-outlined" style="font-size:1rem;color:var(--text-tertiary);margin-left:auto;">open_in_new</span>' : ''}</div><p class="msg-editable-content" data-card-id="${card.cc_id}" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.5;">${card.cc_content || ''}</p></div>`;
+    renderContentCards('messaging', 'messaging-cards-container');
+    setupContentEditToggle('messaging', 'messaging-cards-container', 'msg-edit-toggle');
 }
 
 function renderMessagingFromMock() {
@@ -3692,246 +3898,23 @@ function renderMessagingFromMock() {
     (kb.faqs || []).forEach(f => {
         fakeCards.push({ cc_id: 900 + order, cc_card_type: 'card', cc_title: f.question, cc_content: f.answer, cc_order: order++, cc_is_collapsible: true });
     });
+    const stakeholders = window.getData('stakeholders') || [];
     fakeCards.push({ cc_id: 900 + order, cc_card_type: 'section', cc_title: 'Key Audience Specific Messages', cc_order: order++ });
     (kb.audienceMessages || []).forEach(a => {
-        fakeCards.push({ cc_id: 900 + order, cc_card_type: 'card', cc_title: a.title, cc_content: a.text, cc_order: order++ });
-    });
-    renderMsgCards(fakeCards);
-    setupMsgEditToggle();
-}
-
-window.toggleMsgAccordion = function (id) {
-    if (isMsgEditMode) return;
-    const content = document.getElementById('msg-content-' + id);
-    const icon = document.getElementById('msg-icon-' + id);
-    const el = document.getElementById('msg-accordion-' + id);
-    if (!content) return;
-    if (content.style.display === 'none') {
-        content.style.display = 'block'; icon.style.transform = 'rotate(90deg)'; el.style.background = 'var(--bg-app)';
-    } else {
-        content.style.display = 'none'; icon.style.transform = 'rotate(0deg)'; el.style.background = 'transparent';
-    }
-};
-
-window.toggleMsgFaq = function (id) {
-    if (isMsgEditMode) return;
-    const content = document.getElementById('msg-faq-content-' + id);
-    const icon = document.getElementById('msg-faq-icon-' + id);
-    const header = document.getElementById('msg-faq-header-' + id);
-    if (!content) return;
-    if (content.style.display === 'none') {
-        content.style.display = 'block'; icon.style.transform = 'rotate(90deg)'; if (header) header.style.fontWeight = '600';
-    } else {
-        content.style.display = 'none'; icon.style.transform = 'rotate(0deg)'; if (header) header.style.fontWeight = '500';
-    }
-};
-
-function setupMsgEditToggle() {
-    const old = document.getElementById('msg-edit-toggle');
-    if (!old) return;
-    const editToggle = old.cloneNode(true);
-    old.parentNode.replaceChild(editToggle, old);
-
-    // Wire cancel button
-    const cancelBtn = document.getElementById('msg-cancel-btn');
-    if (cancelBtn) {
-        const freshCancel = cancelBtn.cloneNode(true);
-        cancelBtn.parentNode.replaceChild(freshCancel, cancelBtn);
-        freshCancel.addEventListener('click', async () => {
-            isMsgEditMode = false;
-            _msgPendingReorders = [];
-            editToggle.style.background = ''; editToggle.style.color = '';
-            editToggle.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
-            freshCancel.style.display = 'none';
-            _msgCards = await window.fetchContentCards(2);
-            if (_msgCards && _msgCards.length > 0) { renderMsgCards(_msgCards); setupMsgEditToggle(); }
+        const sh = stakeholders.find(s => s.name === a.title);
+        fakeCards.push({ 
+            cc_id: 900 + order, 
+            cc_card_type: 'audience_message', 
+            cc_title: a.title, 
+            cc_content: a.text, 
+            cc_linked_entity_id: sh ? sh.id : null,
+            cc_order: order++ 
         });
-    }
-
-    editToggle.addEventListener('click', async () => {
-        isMsgEditMode = !isMsgEditMode;
-        editToggle.style.background = isMsgEditMode ? 'var(--energy-algae)' : '';
-        editToggle.style.color = isMsgEditMode ? '#000' : '';
-        editToggle.innerHTML = isMsgEditMode
-            ? '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done'
-            : '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
-
-        // Show/hide cancel button
-        const cb = document.getElementById('msg-cancel-btn');
-        if (cb) cb.style.display = isMsgEditMode ? 'flex' : 'none';
-
-        if (isMsgEditMode) {
-            // Show edit controls + width selects
-            document.querySelectorAll('.msg-edit-ctrl').forEach(el => { el.style.display = 'flex'; });
-            document.querySelectorAll('.msg-width-select').forEach(el => { el.style.display = 'inline-block'; });
-
-            // Make section titles editable
-            document.querySelectorAll('.msg-section-title').forEach(el => {
-                const input = document.createElement('input');
-                input.type = 'text'; input.value = el.textContent;
-                input.className = 'msg-edit-section-title'; input.dataset.cardId = el.dataset.cardId;
-                input.style.cssText = 'font-size:1.17rem;font-weight:600;color:var(--text-tertiary);background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:4px;padding:0.25rem 0.5rem;';
-                el.replaceWith(input);
-            });
-
-            // Make card titles editable
-            document.querySelectorAll('.msg-editable-title').forEach(el => {
-                const input = document.createElement('input');
-                input.type = 'text'; input.value = el.textContent;
-                input.className = 'msg-edit-title-input'; input.dataset.cardId = el.dataset.cardId;
-                input.style.cssText = 'font-size:inherit;font-weight:inherit;color:inherit;background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:4px;padding:0.2rem 0.4rem;width:100%;';
-                el.replaceWith(input);
-            });
-
-            // Make content editable
-            document.querySelectorAll('.msg-editable-content').forEach(el => {
-                const ta = document.createElement('textarea');
-                ta.value = el.textContent;
-                ta.className = 'msg-edit-textarea'; ta.dataset.cardId = el.dataset.cardId;
-                ta.style.cssText = 'width:100%;min-height:150px;resize:vertical;padding:0.5rem;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);border-radius:4px;font-family:Inter,sans-serif;font-size:0.9rem;line-height:1.5;';
-                el.replaceWith(ta);
-            });
-
-            // Expand all accordions
-            document.querySelectorAll('[id^="msg-content-"]').forEach(el => { el.style.display = 'block'; });
-            document.querySelectorAll('[id^="msg-icon-"]').forEach(el => { el.style.transform = 'rotate(90deg)'; });
-            document.querySelectorAll('[id^="msg-faq-content-"]').forEach(el => { el.style.display = 'block'; });
-            document.querySelectorAll('[id^="msg-faq-icon-"]').forEach(el => { el.style.transform = 'rotate(90deg)'; });
-        } else {
-            // "Done" — persist ALL changes to Supabase
-            const updates = [];
-
-            // Collect section title + width changes
-            document.querySelectorAll('.msg-edit-section-title').forEach(input => {
-                const cardId = parseInt(input.dataset.cardId);
-                if (cardId) updates.push({ ccId: cardId, fields: { cc_title: input.value } });
-            });
-            document.querySelectorAll('.msg-width-select').forEach(sel => {
-                const cardId = parseInt(sel.dataset.cardId);
-                if (cardId) {
-                    const existing = updates.find(u => u.ccId === cardId);
-                    if (existing) existing.fields.cc_width = sel.value;
-                    else updates.push({ ccId: cardId, fields: { cc_width: sel.value } });
-                }
-            });
-
-            // Collect card title changes
-            document.querySelectorAll('.msg-edit-title-input').forEach(input => {
-                const cardId = parseInt(input.dataset.cardId);
-                if (cardId) {
-                    const existing = updates.find(u => u.ccId === cardId);
-                    if (existing) existing.fields.cc_title = input.value;
-                    else updates.push({ ccId: cardId, fields: { cc_title: input.value } });
-                }
-            });
-
-            // Collect content changes
-            document.querySelectorAll('.msg-edit-textarea').forEach(ta => {
-                const cardId = parseInt(ta.dataset.cardId);
-                if (cardId) {
-                    const existing = updates.find(u => u.ccId === cardId);
-                    if (existing) existing.fields.cc_content = ta.value;
-                    else updates.push({ ccId: cardId, fields: { cc_content: ta.value } });
-                }
-            });
-
-            // Persist card updates
-            editToggle.disabled = true;
-            editToggle.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;animation:spin 1s linear infinite;">autorenew</span> Saving...';
-            try {
-                if (window.updateContentCard && updates.length > 0) {
-                    for (const { ccId, fields } of updates) {
-                        await window.updateContentCard(ccId, fields);
-                    }
-                    console.log('[Messaging] Persisted', updates.length, 'card updates');
-                }
-
-                // Persist any pending reorder changes
-                if (window.reorderContentCards && _msgPendingReorders.length > 0) {
-                    await window.reorderContentCards(_msgPendingReorders);
-                    console.log('[Messaging] Persisted', _msgPendingReorders.length, 'reorder updates');
-                    _msgPendingReorders = [];
-                }
-            } finally {
-                editToggle.disabled = false;
-                editToggle.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
-            }
-
-            // Re-fetch and re-render
-            _msgCards = await window.fetchContentCards(2);
-            if (_msgCards && _msgCards.length > 0) {
-                renderMsgCards(_msgCards);
-                setupMsgEditToggle();
-            }
-        }
     });
+    _msgCards = fakeCards;
+    renderContentCards('messaging', 'messaging-cards-container');
+    setupContentEditToggle('messaging', 'messaging-cards-container', 'msg-edit-toggle');
 }
-
-// ---- MESSAGING CARD OPERATIONS ----
-
-window.msgMoveCard = function (ccId, direction) {
-    if (!_msgCards) return;
-    const topCards = _msgCards.filter(c => !c.cc_parent_card_id).sort((a, b) => a.cc_order - b.cc_order);
-    const idx = topCards.findIndex(c => c.cc_id === ccId);
-    if (idx === -1) return;
-    const swapIdx = idx + direction;
-    if (swapIdx < 0 || swapIdx >= topCards.length) return;
-
-    // Swap orders in local cache only
-    const tmpOrder = topCards[idx].cc_order;
-    topCards[idx].cc_order = topCards[swapIdx].cc_order;
-    topCards[swapIdx].cc_order = tmpOrder;
-
-    // Track pending reorders (will be persisted on Done)
-    _msgPendingReorders.push(
-        { ccId: topCards[idx].cc_id, newOrder: topCards[idx].cc_order },
-        { ccId: topCards[swapIdx].cc_id, newOrder: topCards[swapIdx].cc_order }
-    );
-
-    // Re-render keeping edit mode
-    renderMsgCards(_msgCards);
-    setupMsgEditToggle();
-    if (isMsgEditMode) {
-        isMsgEditMode = false;
-        document.getElementById('msg-edit-toggle')?.click();
-    }
-};
-
-window.msgDeleteCard = async function (ccId) {
-    if (!confirm('Remove this card?')) return;
-    if (window.softDeleteContentCard) {
-        await window.softDeleteContentCard(ccId);
-    }
-    // Also soft-delete children
-    const children = (_msgCards || []).filter(c => c.cc_parent_card_id === ccId);
-    for (const child of children) {
-        if (window.softDeleteContentCard) await window.softDeleteContentCard(child.cc_id);
-    }
-    // Remove from local cache
-    _msgCards = (_msgCards || []).filter(c => c.cc_id !== ccId && c.cc_parent_card_id !== ccId);
-    renderMsgCards(_msgCards);
-    setupMsgEditToggle();
-    if (isMsgEditMode) {
-        isMsgEditMode = false;
-        document.getElementById('msg-edit-toggle')?.click();
-    }
-};
-
-window.msgAddSection = async function () {
-    const maxOrder = (_msgCards || []).reduce((m, c) => Math.max(m, c.cc_order || 0), 0);
-    if (window.insertContentCard) {
-        const card = await window.insertContentCard({ cc_page_id: 2, cc_card_type: 'section', cc_title: 'New Section', cc_width: 'full', cc_order: maxOrder + 1 });
-        if (card) { _msgCards.push(card); renderMsgCards(_msgCards); setupMsgEditToggle(); if (isMsgEditMode) { isMsgEditMode = false; document.getElementById('msg-edit-toggle')?.click(); } }
-    }
-};
-
-window.msgAddCard = async function () {
-    const maxOrder = (_msgCards || []).reduce((m, c) => Math.max(m, c.cc_order || 0), 0);
-    if (window.insertContentCard) {
-        const card = await window.insertContentCard({ cc_page_id: 2, cc_card_type: 'card', cc_title: 'New Card', cc_content: '', cc_order: maxOrder + 1 });
-        if (card) { _msgCards.push(card); renderMsgCards(_msgCards); setupMsgEditToggle(); if (isMsgEditMode) { isMsgEditMode = false; document.getElementById('msg-edit-toggle')?.click(); } }
-    }
-};
 
 // ---- SCROLL FORWARDING ----
 window.addEventListener('wheel', (e) => {

@@ -4,25 +4,40 @@
 </header>
 
 <!-- Search and Filters Bar -->
-<div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem; flex-wrap:wrap;">
-    <div style="position:relative; flex:1; max-width:300px;">
-        <input type="text" id="stakeholder-search" placeholder="Search stakeholders..." oninput="window.filterStakeholders()" style="width:100%; padding:0.5rem 0.5rem 0.5rem 2.5rem; border-radius:100px; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-primary);">
-        <span class="material-symbols-outlined" style="position:absolute; left:0.8rem; top:50%; transform:translateY(-50%); font-size:1.2rem; color:var(--text-tertiary);">search</span>
+<div class="spine-section" style="padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap:wrap;">
+    <div style="position:relative;">
+        <span class="material-symbols-outlined" style="position:absolute; left:0.6rem; top:50%; transform:translateY(-50%); font-size:1rem; color:var(--text-tertiary); pointer-events:none;">search</span>
+        <input type="text" id="stakeholder-search" placeholder="Search stakeholders..." oninput="window.filterStakeholders()"
+            style="width: 200px; padding:0.45rem 0.75rem 0.45rem 2rem; border:1px solid var(--border-subtle); background:rgba(0,0,0,0.02); color:var(--text-primary); border-radius:20px; font-size:0.82rem; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--energy-algae)'" onblur="this.style.borderColor='var(--border-subtle)'">
     </div>
-    <select id="stakeholder-filter-status" onchange="window.filterStakeholders()" style="background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:20px;padding:0.4rem 0.75rem;font-size:0.82rem;color:var(--text-secondary);cursor:pointer;outline:none;">
-        <option value="">All Statuses</option>
-        <option value="Critical/At Risk">Critical / At Risk</option>
-        <option value="Strained">Strained</option>
-        <option value="Friction Points">Friction Points</option>
-        <option value="Operational">Operational</option>
-        <option value="Stable">Stable</option>
-        <option value="Dormant">Dormant</option>
-    </select>
-    <select id="stakeholder-sort" onchange="window.filterStakeholders()" style="background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:20px;padding:0.4rem 0.75rem;font-size:0.82rem;color:var(--text-secondary);cursor:pointer;outline:none;">
-        <option value="name">Sort: Name A–Z</option>
-        <option value="status">Sort: Status</option>
-        <option value="role">Sort: Role</option>
-    </select>
+
+    <div class="custom-filter-pill" id="stakeholder-filter-status" data-on-change="filterStakeholders" style="position:relative; display:inline-block;">
+        <button class="filter-trigger" data-label-base="Status" data-default-label="All" style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:20px; padding:0.4rem 0.75rem; font-size:0.82rem; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:0.25rem; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="if(this.style.background!=='var(--energy-algae)') this.style.borderColor='var(--border-subtle)'">
+            Status: All <span class="material-symbols-outlined" style="font-size:1.1rem;">expand_more</span>
+        </button>
+        <div class="filter-dropdown" style="display:none; position:absolute; top:100%; left:0; margin-top:0.25rem; background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:8px; padding:0.5rem; min-width:180px; z-index:100; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="" checked> All</label>
+            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Critical/At Risk"> Critical / At Risk</label>
+            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Strained"> Strained</label>
+            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Friction Points"> Friction Points</label>
+            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Operational"> Operational</label>
+            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Stable"> Stable</label>
+            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Dormant"> Dormant</label>
+        </div>
+    </div>
+
+    <div style="margin-left:auto; display:flex; align-items:center;">
+        <div class="custom-sort-pill" style="display:flex; align-items:center; border:1px solid var(--border-subtle); border-radius:20px; background:var(--bg-surface); padding:0.15rem; transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+            <select id="stakeholder-sort" onchange="window.filterStakeholders()" style="background:transparent; border:none; padding:0.25rem 0.5rem; font-size:0.82rem; color:var(--text-secondary); cursor:pointer; outline:none; border-right:1px solid var(--border-subtle);">
+                <option value="name">Sort: Name (A-Z)</option>
+                <option value="status">Sort: Status</option>
+                <option value="role">Sort: Role</option>
+            </select>
+            <button id="stakeholder-sort-dir" data-dir="asc" onclick="window.toggleSortDirection('stakeholder-sort-dir', 'filterStakeholders')" style="background:transparent; border:none; color:var(--text-secondary); padding:0 0.4rem; cursor:pointer; font-size:1.2rem; display:flex; align-items:center; outline:none;" class="material-symbols-outlined">
+                arrow_upward
+            </button>
+        </div>
+    </div>
 </div>
 
 <!-- Quick Filters -->
