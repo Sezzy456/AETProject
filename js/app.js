@@ -382,7 +382,7 @@ function renderDashboard(pageIdOverride) {
                         : "this.style.borderColor='var(--border-subtle)'";
                     const relLabel = !isDone(a) && a.timing?.dueDate ? `<div style="text-align:center;font-size:0.72rem;font-weight:600;color:${rel.color};margin-bottom:0.4rem;">${rel.text}</div>` : '';
                     const ownerBadge = a.owner ? `<span style="display:inline-block;padding:0.2rem 0.6rem;background:var(--energy-algae);color:#fff;border-radius:100px;font-size:0.7rem;font-weight:600;line-height:1;margin-left:0.25rem;">${a.owner}</span>` : '—';
-                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;${overdueStyle}" onclick="event.stopPropagation();window.viewAction('${a.id}')" onmouseover="if(!document.querySelector('.spine-dragging')) this.style.borderColor='${hoverBorder}'" onmouseout="${mouseoutCode}">${relLabel}<div style="display:flex;justify-content:space-between;align-items:center;"><div><span class="status-badge" style="font-size:0.7rem;padding:0.1rem 0.5rem;${badgeStyle}">${a.status}</span><h4 style="margin:0.25rem 0 0;font-size:1rem;color:var(--text-primary);text-transform:none;">${a.activity}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.35rem;display:flex;align-items:center;">Owner: ${ownerBadge} <span style="margin:0 0.5rem;color:var(--border-subtle);">|</span> <span style="color:${rel.color}">Due: ${dueStr}</span></div></div><span class="material-symbols-outlined" style="font-size:1.2rem;color:var(--text-tertiary);">open_in_new</span></div></div>`;
+                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;${overdueStyle}" onclick="event.stopPropagation();window.viewAction('${a.id}')" onmouseover="if(!document.querySelector('.ce-dragging')) this.style.borderColor='${hoverBorder}'" onmouseout="${mouseoutCode}">${relLabel}<div style="display:flex;justify-content:space-between;align-items:center;"><div><span class="status-badge" style="font-size:0.7rem;padding:0.1rem 0.5rem;${badgeStyle}">${a.status}</span><h4 style="margin:0.25rem 0 0;font-size:1rem;color:var(--text-primary);text-transform:none;">${a.activity}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.35rem;display:flex;align-items:center;">Owner: ${ownerBadge} <span style="margin:0 0.5rem;color:var(--border-subtle);">|</span> <span style="color:${rel.color}">Due: ${dueStr}</span></div></div><span class="material-symbols-outlined" style="font-size:1.2rem;color:var(--text-tertiary);">open_in_new</span></div></div>`;
                 }).join('') : '<div style="padding:1rem;color:var(--text-tertiary);font-style:italic;">No actions found.</div>';
                 return `<div class="card" style="${colSpan}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title || (isSingle ? 'Action' : 'Actions')}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="loadView('actions');history.pushState(null,'','#actions')">View All</button></div><div style="display:flex;flex-direction:column;gap:0.5rem;">${itemsHtml}</div></div>`;
             }
@@ -396,7 +396,7 @@ function renderDashboard(pageIdOverride) {
                 else if (filter === 'recent') filtered = interactions.filter(i => i.type === 'Recent');
                 const items = filtered.slice(0, isSingle ? 1 : 3);
                 const itemsHtml = items.length > 0 ? items.map(i => {
-                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;" onclick="window.currentInteractionId='${i.id}';loadView('interaction_detail');history.pushState(null,'','#interaction_detail')" onmouseover="if(!document.querySelector('.spine-dragging')) this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;"><span style="font-size:0.75rem;color:${i.type === 'Upcoming' ? 'var(--energy-alert)' : 'var(--text-tertiary)'};font-weight:600;text-transform:uppercase;">${i.rawDate} — ${i.type}</span><span class="material-symbols-outlined" style="font-size:1rem;color:var(--text-tertiary);">open_in_new</span></div><h4 style="margin:0;font-size:1rem;color:var(--text-primary);text-transform:none;">${i.title}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;">${i.agenda || i.discussed || ''}</div></div>`;
+                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;" onclick="window.currentInteractionId='${i.id}';loadView('interaction_detail');history.pushState(null,'','#interaction_detail')" onmouseover="if(!document.querySelector('.ce-dragging')) this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;"><span style="font-size:0.75rem;color:${i.type === 'Upcoming' ? 'var(--energy-alert)' : 'var(--text-tertiary)'};font-weight:600;text-transform:uppercase;">${i.rawDate} — ${i.type}</span><span class="material-symbols-outlined" style="font-size:1rem;color:var(--text-tertiary);">open_in_new</span></div><h4 style="margin:0;font-size:1rem;color:var(--text-primary);text-transform:none;">${i.title}</h4><div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;">${i.agenda || i.discussed || ''}</div></div>`;
                 }).join('') : '<div style="padding:1rem;color:var(--text-tertiary);font-style:italic;">No interactions found.</div>';
                 return `<div class="card" style="${colSpan}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3 style="color:var(--text-tertiary);margin:0;">${card.cc_title || (isSingle ? 'Update' : 'Update Log')}</h3><button class="btn-secondary" style="font-size:0.75rem;height:28px;padding:0 0.5rem;" onclick="loadView('interactions');history.pushState(null,'','#interactions')">View All</button></div><div style="display:flex;flex-direction:column;gap:0.5rem;">${itemsHtml}</div></div>`;
             }
@@ -407,7 +407,7 @@ function renderDashboard(pageIdOverride) {
                 const items = stakeholders.slice(0, isSingle ? 1 : 3);
                 const itemsHtml = items.length > 0 ? items.map(s => {
                     const col = s.status === 'Needs Attention' ? '#ef4444' : s.status === 'Active' ? 'var(--energy-algae)' : s.status === 'Monitor' ? 'var(--energy-mid)' : 'var(--text-secondary)';
-                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;" onclick="window.currentStakeholderId='${s.id}';loadView('stakeholder_detail');history.pushState(null,'','#stakeholder_detail')" onmouseover="if(!document.querySelector('.spine-dragging')) this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+                    return `<div class="card" style="padding:1rem;border:1px solid var(--border-subtle);cursor:pointer;transition:all 0.15s;" onclick="window.currentStakeholderId='${s.id}';loadView('stakeholder_detail');history.pushState(null,'','#stakeholder_detail')" onmouseover="if(!document.querySelector('.ce-dragging')) this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
                         <div style="display:flex;justify-content:space-between;align-items:center;">
                             <div>
                                 <h4 style="margin:0;font-size:1rem;color:var(--text-primary);">${s.name}</h4>
@@ -506,11 +506,29 @@ window.filterStakeholders = function () {
     let stakeholders = window.getData('stakeholders') || [];
     const search = (document.getElementById('stakeholder-search')?.value || '').toLowerCase();
     const statusF = window.getMultiSelectValues('stakeholder-filter-status');
+    const roleF = window.getMultiSelectValues('stakeholder-filter-role');
     const sortMode = document.getElementById('stakeholder-sort')?.value || 'name';
     const sortDir = document.getElementById('stakeholder-sort-dir')?.dataset.dir || 'asc';
 
+    // Dynamic role populate (once)
+    const rolePill = document.getElementById('stakeholder-filter-role');
+    if (rolePill && rolePill.querySelectorAll('input[type="checkbox"]').length <= 1) {
+        const roles = [...new Set(stakeholders.map(s => s.role).filter(Boolean))].sort();
+        roles.forEach(r => {
+            const label = document.createElement('label');
+            label.style.cssText = 'display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);';
+            label.innerHTML = `<input type="checkbox" value="${r}"> ${r}`;
+            rolePill.appendChild(label);
+        });
+        if (rolePill.dataset.setupDone === 'true') {
+            rolePill.dataset.setupDone = 'false';
+            window.setupMultiSelectFilters();
+        }
+    }
+
     if (search) stakeholders = stakeholders.filter(s => (s.name || '').toLowerCase().includes(search) || (s.role || '').toLowerCase().includes(search));
     if (statusF.length > 0) stakeholders = stakeholders.filter(s => statusF.includes(s.status));
+    if (roleF.length > 0) stakeholders = stakeholders.filter(s => roleF.includes(s.role));
 
     if (sortMode === 'name') stakeholders.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     else if (sortMode === 'status') {
@@ -526,8 +544,8 @@ window.filterStakeholders = function () {
 
     stakeholders.forEach(s => {
         const card = document.createElement('div');
-        card.className = 'card';
-        card.style.cssText = 'position:relative; cursor:pointer; border:1px solid var(--border-subtle); border-radius:12px; padding:1.5rem; background:var(--bg-surface); transition:all 0.2s;';
+        card.className = 'act-card'; // Reuse the actions card style defined in actions.html or globally. Wait, I should add it to styles.css or keep it here. Let's use inline styles to match.
+        card.style.cssText = 'background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; padding:1rem 1.25rem; transition:box-shadow 0.2s, transform 0.15s; cursor:pointer; margin-bottom:0.75rem;';
 
         card.onclick = () => {
             window.currentStakeholderId = s.id;
@@ -536,24 +554,22 @@ window.filterStakeholders = function () {
         };
 
         card.onmouseover = () => {
-            card.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
-            card.style.transform = 'translateY(-2px)';
-            card.style.border = '1px solid var(--border-highlight)';
+            card.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
+            card.style.transform = 'translateY(-1px)';
         };
         card.onmouseout = () => {
             card.style.boxShadow = 'none';
             card.style.transform = 'none';
-            card.style.border = '1px solid var(--border-subtle)';
         };
 
         const owners = s.owner ? s.owner.split('+').map(o => o.trim()) : [];
-        const ownersHtml = owners.map(o => `<span style="margin-left:0.5rem; display:inline-flex; align-items:center; gap:0.25rem;"><span class="material-symbols-outlined" style="font-size:1rem; color:var(--text-tertiary);">person</span>${o}</span>`).join('');
+        const ownersHtml = owners.map(o => `<span style="display:inline-flex; align-items:center; gap:0.25rem;"><span class="material-symbols-outlined" style="font-size:0.9rem;">person</span>${o}</span>`).join(' ');
 
-        let statusColor = 'var(--text-secondary)', statusBg = 'rgba(0,0,0,0.05)';
-        if (s.status === 'Needs Attention') { statusColor = 'var(--energy-alert)'; statusBg = 'rgba(239, 68, 68, 0.15)'; }
-        else if (s.status === 'Monitor') { statusColor = 'var(--energy-mid)'; statusBg = 'rgba(245, 158, 11, 0.15)'; }
-        else if (s.status === 'Active') { statusColor = 'var(--energy-algae)'; statusBg = 'rgba(52, 211, 153, 0.12)'; }
-        else if (s.status === 'Operational') { statusBg = 'rgba(0,0,0,0.06)'; }
+        let statusColor = 'var(--text-secondary)', statusBg = 'rgba(0,0,0,0.05)', statusBorder = 'transparent';
+        if (s.status === 'Needs Attention' || s.status === 'Critical/At Risk') { statusColor = '#ef4444'; statusBg = 'rgba(239,68,68,0.1)'; statusBorder = 'rgba(239,68,68,0.3)'; }
+        else if (s.status === 'Monitor' || s.status === 'Strained' || s.status === 'Friction Points') { statusColor = '#f97316'; statusBg = 'rgba(249,115,22,0.1)'; statusBorder = 'rgba(249,115,22,0.3)'; }
+        else if (s.status === 'Active' || s.status === 'Stable' || s.status === 'Operational') { statusColor = '#10b981'; statusBg = 'rgba(16,185,129,0.1)'; statusBorder = 'rgba(16,185,129,0.3)'; }
+        else if (s.status === 'Dormant') { statusColor = '#6b7280'; statusBg = 'rgba(107,114,128,0.1)'; statusBorder = 'rgba(107,114,128,0.3)'; }
 
         // Find last interaction for this stakeholder
         const allInteractions = window.getData('interactions') || [];
@@ -562,19 +578,40 @@ window.filterStakeholders = function () {
         const lastIntContact = linkedInt && linkedInt.attendees ? linkedInt.attendees[0] || '' : '';
 
         card.innerHTML = `
-            <h3 style="margin:0 0 0.5rem 0; font-size:1.05rem; color:var(--text-primary);">${s.name}</h3>
-            <div style="margin-bottom:0.35rem;">
-                <span style="font-size:0.78rem; color:var(--text-tertiary);">Status:</span>
-                <span style="background:${statusBg}; color:${statusColor}; padding:0.15rem 0.6rem; border-radius:4px; font-weight:600; font-size:0.78rem; margin-left:0.3rem;">${s.status}</span>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
+                <div style="flex:1; min-width:0;">
+                    <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem; flex-wrap:wrap;">
+                        <span style="background:${statusBg}; color:${statusColor}; border:1px solid ${statusBorder}; padding:0.15rem 0.6rem; border-radius:100px; font-weight:600; font-size:0.75rem;">${s.status}</span>
+                    </div>
+                    <div style="font-weight:700; font-size:1rem; color:var(--text-primary); margin-bottom:0.3rem;">${s.name}</div>
+                    <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.4rem;">
+                        <span style="color:var(--text-tertiary);">Role:</span> <span style="color:#3b82f6;">${s.role || '—'}</span>
+                    </div>
+                </div>
+                <div style="text-align:right; flex-shrink:0; min-width:110px;">
+                    ${ownersHtml ? `<div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.4rem; display:flex; align-items:center; gap:0.25rem; justify-content:flex-end;">${ownersHtml}</div>` : ''}
+                    <div style="font-size:0.75rem; color:var(--text-tertiary);">
+                        ${lastIntContact || lastIntDate ? `Last contacted:<br/>${lastIntContact ? `<span style="color:var(--text-secondary);">${lastIntContact}</span>` : ''}${lastIntContact && lastIntDate ? ' · ' : ''}${lastIntDate ? `<span style="color:var(--text-secondary);">${lastIntDate}</span>` : ''}` : '<span style="font-style:italic;">No interactions recorded</span>'}
+                    </div>
+                </div>
             </div>
-            <div style="margin-bottom:0.35rem; font-size:0.85rem; color:var(--text-secondary);">
-                <span style="color:var(--text-tertiary);">Role:</span> <span style="color:#3b82f6;">${s.role || '—'}</span>
-            </div>
-            ${lastIntContact || lastIntDate ? `<div style="font-size:0.8rem; color:var(--text-tertiary);">Last contacted: ${lastIntContact ? `<span style="color:var(--text-secondary);">${lastIntContact}</span>` : ''}${lastIntContact && lastIntDate ? ' · ' : ''}${lastIntDate ? `<span style="color:var(--text-secondary);">${lastIntDate}</span>` : ''}</div>` : '<div style="font-size:0.8rem; color:var(--text-tertiary); font-style:italic;">No interactions recorded</div>'}
         `;
         container.appendChild(card);
     });
 }
+
+window.clearStakeholdersFilters = function () {
+    ['stakeholder-filter-status', 'stakeholder-filter-role'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            const allCb = el.querySelector('input[type="checkbox"][value=""]');
+            if (allCb) {
+                allCb.checked = true;
+                allCb.dispatchEvent(new Event('change'));
+            }
+        }
+    });
+};
 
 function renderStakeholderDetail() {
     const params = new URLSearchParams(window.location.search);
@@ -977,9 +1014,27 @@ window.filterInteractions = function () {
     const sortMode = document.getElementById('interactions-sort')?.value || 'date';
     const sortDir = document.getElementById('interactions-sort-dir')?.dataset.dir || 'desc';
     const typeF = window.getMultiSelectValues('interactions-filter-type');
+    const stakeholderF = window.getMultiSelectValues('interactions-filter-stakeholder');
+
+    // Dynamic stakeholder populate (once)
+    const stakeholderPill = document.getElementById('interactions-filter-stakeholder');
+    if (stakeholderPill && stakeholderPill.querySelectorAll('input[type="checkbox"]').length <= 1) {
+        const stakeholders = [...new Set(interactions.map(i => i.stakeholder).filter(Boolean))].sort();
+        stakeholders.forEach(s => {
+            const label = document.createElement('label');
+            label.style.cssText = 'display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);';
+            label.innerHTML = `<input type="checkbox" value="${s}"> ${s}`;
+            stakeholderPill.appendChild(label);
+        });
+        if (stakeholderPill.dataset.setupDone === 'true') {
+            stakeholderPill.dataset.setupDone = 'false';
+            window.setupMultiSelectFilters();
+        }
+    }
 
     if (search) interactions = interactions.filter(i => (i.title || '').toLowerCase().includes(search) || (i.agenda || i.discussed || '').toLowerCase().includes(search) || (i.attendees || []).some(a => a.toLowerCase().includes(search)));
     if (typeF.length > 0) interactions = interactions.filter(i => typeF.includes(i.type));
+    if (stakeholderF.length > 0) interactions = interactions.filter(i => stakeholderF.includes(i.stakeholder));
 
     if (sortMode === 'title') interactions.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
     else if (sortMode === 'type') interactions.sort((a, b) => (a.type || '').localeCompare(b.type || ''));
@@ -988,6 +1043,19 @@ window.filterInteractions = function () {
     if (sortDir === 'desc') interactions.reverse();
 
     _renderInteractionsList(interactions);
+};
+
+window.clearInteractionsFilters = function () {
+    ['interactions-filter-type', 'interactions-filter-stakeholder'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            const allCb = el.querySelector('input[type="checkbox"][value=""]');
+            if (allCb) {
+                allCb.checked = true;
+                allCb.dispatchEvent(new Event('change'));
+            }
+        }
+    });
 };
 
 function _renderInteractionsList(interactions) {
@@ -999,61 +1067,59 @@ function _renderInteractionsList(interactions) {
         const isUpcoming = a.type === 'Upcoming';
         let statusBadge = '';
         if (isUpcoming) {
-            statusBadge = `<div style="font-size: 0.8rem; font-weight: 600; color: #ef4444; margin-bottom: 0.5rem;">Upcoming: In 3 Days</div>`;
+            statusBadge = `<span style="background:rgba(239,68,68,0.1); color:#ef4444; border:1px solid rgba(239,68,68,0.3); padding:0.15rem 0.6rem; border-radius:100px; font-weight:600; font-size:0.75rem;">Upcoming</span>`;
         } else {
-            statusBadge = `<div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                <div style="width: 12px; height: 12px; border-radius: 50%; background: #84cc16;"></div>
-                <span style="font-size: 0.8rem; color: var(--text-tertiary);">"Good"</span>
-            </div>`;
+            statusBadge = `<span style="background:rgba(16,185,129,0.1); color:#10b981; border:1px solid rgba(16,185,129,0.3); padding:0.15rem 0.6rem; border-radius:100px; font-weight:600; font-size:0.75rem;">${a.type || 'Completed'}</span>`;
         }
 
         const rawDateStr = a.rawDate || a.date || '';
         const dateString = formatDate(rawDateStr);
         const pastRelative = relativePastDate(rawDateStr);
 
-        const agendaHtml = (a.topics || []).map(t => {
-            let icon = 'chat';
-            if (t.toLowerCase().includes('grant')) icon = 'add_circle';
-            if (t.toLowerCase().includes('council')) icon = 'edit';
-            return `<span class="interaction-pill agenda-item"><span class="material-symbols-outlined" style="font-size: 0.9rem;">${icon}</span> ${t}</span>`;
-        }).join(' ');
+        const agendaHtml = (a.topics || []).map(t => `<span style="font-size:0.68rem; padding:0.1rem 0.45rem; border-radius:100px; background:rgba(99,102,241,0.1); color:#6366f1; border:1px solid rgba(99,102,241,0.2);">${t}</span>`).join('');
 
-        const attendeesHtml = (a.attendees || []).map(att => {
-            return `<span class="interaction-pill"><span class="material-symbols-outlined" style="font-size: 0.9rem;">person</span> ${att}</span>`;
-        }).join(' ');
+        const attendeesHtml = (a.attendees || []).map(att => `<span style="display:inline-flex; align-items:center; gap:0.25rem;"><span class="material-symbols-outlined" style="font-size:0.9rem;">person</span>${att}</span>`).join(' ');
 
         const card = document.createElement('div');
-        card.className = `interaction-card-wrapper ${isUpcoming ? 'upcoming' : ''}`;
+        card.className = 'act-card' + (isUpcoming ? ' overdue' : '');
+        card.style.cssText = 'background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:10px; padding:1rem 1.25rem; transition:box-shadow 0.2s, transform 0.15s; cursor:pointer; margin-bottom:0.75rem;';
+        if (isUpcoming) card.style.borderLeft = '3px solid #ef4444';
+
         card.onclick = () => window.viewInteraction(a.id);
+        
+        card.onmouseover = () => {
+            card.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
+            card.style.transform = 'translateY(-1px)';
+        };
+        card.onmouseout = () => {
+            card.style.boxShadow = 'none';
+            card.style.transform = 'none';
+        };
+
+        const titleText = a.title || (a.agenda || a.discussed || '').substring(0, 60) + ((a.agenda || a.discussed || '').length > 60 ? '…' : '') || 'Untitled';
+        const summaryText = a.agenda || a.discussed || '';
 
         card.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                <div>
-                    ${statusBadge}
-                    <h3 style="margin: 0; font-size: 1.4rem; color: var(--text-primary); font-family: 'Space Grotesk', sans-serif; text-transform: none;">${a.title || (a.agenda || a.discussed || '').substring(0, 60) + ((a.agenda || a.discussed || '').length > 60 ? '…' : '') || 'Untitled'}</h3>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
+                <div style="flex:1; min-width:0;">
+                    <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem; flex-wrap:wrap;">
+                        ${statusBadge}
+                        ${agendaHtml}
+                    </div>
+                    <div style="font-weight:700; font-size:1rem; color:var(--text-primary); margin-bottom:0.3rem;">${titleText}</div>
+                    <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.4rem;">${summaryText.length > 150 ? summaryText.substring(0, 147) + '...' : summaryText}</div>
+                    <div style="font-size:0.8rem; color:var(--text-tertiary);">
+                        ${a.stakeholder ? `<span style="font-weight:600; color:var(--text-secondary);">Stakeholder:</span> ${a.stakeholder}` : ''}
+                    </div>
                 </div>
-                <div style="text-align: right;">
-                    <div style="font-size: 0.9rem; color: var(--text-secondary);">${dateString}</div>
-                    ${pastRelative ? `<div style="font-size: 0.75rem; color: var(--text-tertiary); margin-top:0.15rem;">${pastRelative}</div>` : ''}
+                <div style="text-align:right; flex-shrink:0; min-width:110px;">
+                    ${attendeesHtml ? `<div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.4rem; display:flex; align-items:center; gap:0.25rem; justify-content:flex-end; flex-wrap:wrap; max-width:200px;">${attendeesHtml}</div>` : ''}
+                    <div style="font-size:0.8rem; color:${isUpcoming ? '#ef4444' : 'var(--text-tertiary)'}; font-weight:${isUpcoming ? '600' : '400'};">
+                        ${pastRelative || dateString}
+                    </div>
+                    ${pastRelative ? `<div style="font-size:0.75rem; color:var(--text-tertiary);">${dateString}</div>` : ''}
                 </div>
             </div>
-            
-            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 0.5rem; font-size: 0.9rem; margin-bottom: 0.5rem;">
-                <div style="color: var(--text-secondary);">Summary:</div>
-                <div style="color: var(--text-primary);">${a.agenda || a.discussed || ''}</div>
-            </div>
-            
-            ${agendaHtml ? `
-            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 0.5rem; font-size: 0.9rem; margin-bottom: 0.5rem; align-items: center;">
-                <div style="color: var(--text-secondary);">Agenda:</div>
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">${agendaHtml}</div>
-            </div>` : ''}
-            
-            ${attendeesHtml ? `
-            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 0.5rem; font-size: 0.9rem; align-items: center;">
-                <div style="color: var(--text-secondary);">Attendees:</div>
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">${attendeesHtml}</div>
-            </div>` : ''}
         `;
         container.appendChild(card);
     });
@@ -1219,6 +1285,7 @@ function _actPopulateObjectiveDropdown() {
 
 // ---- UNIFIED FILTER ENGINE ----
 window.setupMultiSelectFilters = function() {
+    // 1. Traditional single-dropdown pills
     document.querySelectorAll('.custom-filter-pill').forEach(pill => {
         if (pill.dataset.setupDone === 'true') return;
         pill.dataset.setupDone = 'true';
@@ -1234,54 +1301,126 @@ window.setupMultiSelectFilters = function() {
         trigger.addEventListener('click', (e) => {
             e.stopPropagation();
             const wasOpen = dropdown.style.display === 'block';
-            document.querySelectorAll('.filter-dropdown').forEach(d => d.style.display = 'none');
+            document.querySelectorAll('.filter-dropdown, .mega-menu-dropdown').forEach(d => {
+                d.style.display = 'none';
+                // Remove active class from mega menu triggers
+                document.querySelectorAll('[id$="-mega-trigger"]').forEach(t => t.classList.remove('active'));
+            });
             dropdown.style.display = wasOpen ? 'none' : 'block';
         });
 
-        checkboxes.forEach(cb => {
-            cb.addEventListener('change', () => {
-                if (cb.value === "" && cb.checked) {
-                    checkboxes.forEach(c => { if (c !== cb) c.checked = false; });
-                } else if (cb.value !== "" && cb.checked) {
-                    const allCb = Array.from(checkboxes).find(c => c.value === "");
-                    if (allCb) allCb.checked = false;
-                }
-
-                const checkedCbs = Array.from(checkboxes).filter(c => c.checked);
-                const finalChecked = checkedCbs.map(c => c.value);
-                
-                if (finalChecked.length === 0 || (finalChecked.length === 1 && finalChecked[0] === "")) {
-                    trigger.innerHTML = `${labelBase}: ${defaultLabel} <span class="material-symbols-outlined" style="font-size:1.1rem;">expand_more</span>`;
-                    trigger.style.background = 'var(--bg-surface)';
-                    trigger.style.color = 'var(--text-secondary)';
-                } else if (finalChecked.length === 1) {
-                    const labelText = checkedCbs[0].parentNode.textContent.trim();
-                    trigger.innerHTML = `${labelBase}: <span style="font-weight:600;color:var(--text-primary);">${labelText}</span> <span class="material-symbols-outlined" style="font-size:1.1rem;">expand_more</span>`;
-                    trigger.style.background = 'var(--energy-algae)';
-                    trigger.style.color = '#000';
-                } else {
-                    trigger.innerHTML = `${labelBase}: <span style="font-weight:600;color:var(--text-primary);">${finalChecked.length} selected</span> <span class="material-symbols-outlined" style="font-size:1.1rem;">expand_more</span>`;
-                    trigger.style.background = 'var(--energy-algae)';
-                    trigger.style.color = '#000';
-                }
-                
-                const onChangeFn = pill.dataset.onChange;
-                if (onChangeFn && window[onChangeFn]) window[onChangeFn]();
-            });
+        setupCheckboxGroupLogic(checkboxes, () => {
+            const checkedCbs = Array.from(checkboxes).filter(c => c.checked);
+            const finalChecked = checkedCbs.map(c => c.value);
+            
+            if (finalChecked.length === 0 || (finalChecked.length === 1 && finalChecked[0] === "")) {
+                trigger.innerHTML = `${labelBase}: ${defaultLabel} <span class="material-symbols-outlined" style="font-size:1.1rem;">expand_more</span>`;
+                trigger.style.background = 'var(--bg-surface)';
+                trigger.style.color = 'var(--text-secondary)';
+            } else if (finalChecked.length === 1) {
+                const labelText = checkedCbs[0].parentNode.textContent.trim();
+                trigger.innerHTML = `${labelBase}: <span style="font-weight:600;color:var(--text-primary);">${labelText}</span> <span class="material-symbols-outlined" style="font-size:1.1rem;">expand_more</span>`;
+                trigger.style.background = 'var(--energy-algae)';
+                trigger.style.color = '#000';
+            } else {
+                trigger.innerHTML = `${labelBase}: <span style="font-weight:600;color:var(--text-primary);">${finalChecked.length} selected</span> <span class="material-symbols-outlined" style="font-size:1.1rem;">expand_more</span>`;
+                trigger.style.background = 'var(--energy-algae)';
+                trigger.style.color = '#000';
+            }
+            
+            const onChangeFn = pill.dataset.onChange;
+            if (onChangeFn && window[onChangeFn]) window[onChangeFn]();
         });
         
         dropdown.addEventListener('click', (e) => e.stopPropagation());
     });
 
+    // 2. Mega Menu Groups
+    document.querySelectorAll('.mega-menu-group').forEach(group => {
+        if (group.dataset.setupDone === 'true') return;
+        group.dataset.setupDone = 'true';
+        
+        const checkboxes = group.querySelectorAll('input[type="checkbox"]');
+        setupCheckboxGroupLogic(checkboxes, () => {
+            updateMegaMenuTrigger(group);
+            const onChangeFn = group.dataset.onChange;
+            if (onChangeFn && window[onChangeFn]) window[onChangeFn]();
+        });
+    });
+
+    document.querySelectorAll('.mega-menu-dropdown').forEach(dropdown => {
+        dropdown.addEventListener('click', (e) => e.stopPropagation());
+    });
+
     document.addEventListener('click', () => {
-        document.querySelectorAll('.filter-dropdown').forEach(d => d.style.display = 'none');
+        document.querySelectorAll('.filter-dropdown, .mega-menu-dropdown').forEach(d => d.style.display = 'none');
+        document.querySelectorAll('[id$="-mega-trigger"]').forEach(t => t.classList.remove('active'));
     });
 };
 
-window.getMultiSelectValues = function(pillId) {
-    const pill = document.getElementById(pillId);
-    if (!pill) return [];
-    return Array.from(pill.querySelectorAll('input[type="checkbox"]:checked'))
+function setupCheckboxGroupLogic(checkboxes, onUpdate) {
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', () => {
+            if (cb.value === "" && cb.checked) {
+                checkboxes.forEach(c => { if (c !== cb) c.checked = false; });
+            } else if (cb.value !== "" && cb.checked) {
+                const allCb = Array.from(checkboxes).find(c => c.value === "");
+                if (allCb) allCb.checked = false;
+            }
+            onUpdate();
+        });
+    });
+}
+
+function updateMegaMenuTrigger(groupElement) {
+    // Find the closest mega-menu
+    const megaMenu = groupElement.closest('.mega-menu-dropdown');
+    if (!megaMenu) return;
+    
+    // Find trigger
+    const triggerId = megaMenu.id.replace('-menu', '-trigger');
+    const trigger = document.getElementById(triggerId);
+    if (!trigger) return;
+    
+    // Count total active filters (excluding 'All')
+    const activeFilters = megaMenu.querySelectorAll('input[type="checkbox"]:checked:not([value=""])').length;
+    const countBadge = trigger.querySelector('span[id$="-filter-count"]');
+    
+    if (activeFilters > 0) {
+        if (countBadge) {
+            countBadge.style.display = 'inline-block';
+            countBadge.textContent = activeFilters;
+        }
+        trigger.style.background = 'var(--energy-algae)';
+        trigger.style.color = '#000';
+    } else {
+        if (countBadge) countBadge.style.display = 'none';
+        trigger.style.background = 'var(--bg-surface)';
+        trigger.style.color = 'var(--text-secondary)';
+    }
+}
+
+window.toggleMegaMenu = function(menuId) {
+    const menu = document.getElementById(menuId);
+    const trigger = document.getElementById(menuId.replace('-menu', '-trigger'));
+    if (!menu || !trigger) return;
+
+    event.stopPropagation();
+    const wasOpen = menu.style.display === 'block';
+    
+    document.querySelectorAll('.filter-dropdown, .mega-menu-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('[id$="-mega-trigger"]').forEach(t => t.classList.remove('active'));
+    
+    if (!wasOpen) {
+        menu.style.display = 'block';
+        trigger.classList.add('active');
+    }
+};
+
+window.getMultiSelectValues = function(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return [];
+    return Array.from(container.querySelectorAll('input[type="checkbox"]:checked'))
                 .map(cb => cb.value)
                 .filter(v => v !== "");
 };
@@ -1435,10 +1574,14 @@ window.toggleKanbanCol = function (col, btn) {
         _kanbanHiddenCols.splice(idx, 1);
         btn.classList.add('active');
         btn.style.opacity = '1';
+        const cb = btn.querySelector('.kanban-cb');
+        if (cb) cb.textContent = 'check_box';
     } else {
         _kanbanHiddenCols.push(col);
         btn.classList.remove('active');
         btn.style.opacity = '0.4';
+        const cb = btn.querySelector('.kanban-cb');
+        if (cb) cb.textContent = 'check_box_outline_blank';
     }
     // Re-render kanban columns
     const container = document.getElementById('act-kanban-container');
@@ -2995,17 +3138,76 @@ window._approvePendingAction = async function (actionId) {
     window._renderPendingActions();
 };
 
+function _renderSingleContentCardHtml(c, allCards, dataKey, containerId, contextData) {
+    // Cascaded dropdown logic
+    const t = c.cc_card_type || 'card';
+    let entity = t;
+    let format = '';
+    if (t.startsWith('action_')) { entity = 'action'; format = t.split('_')[1]; }
+    else if (t.startsWith('interaction_')) { entity = 'interaction'; format = t.split('_')[1]; }
+    else if (t.startsWith('stakeholder_')) { entity = 'stakeholder'; format = t.split('_')[1]; }
+
+    const entityOptions = [
+        { value: 'card', icon: '📝', label: 'Text Card' },
+        { value: 'objectives_link', icon: '🎯', label: 'Objectives' },
+        { value: 'audience_message', icon: '📢', label: 'Audience Message' },
+        { value: 'action', icon: '⚡', label: 'Action' },
+        { value: 'interaction', icon: '💬', label: 'Update Log' },
+        { value: 'stakeholder', icon: '🏛', label: 'Stakeholder' }
+    ];
+    const entityOptsHtml = entityOptions.map(o => `<option value="${o.value}"${entity === o.value ? ' selected' : ''}>${o.icon} ${o.label}</option>`).join('');
+
+    let formatSelectHtml = '';
+    if (['action', 'interaction', 'stakeholder'].includes(entity)) {
+        const formatOptions = [
+            { value: 'view', label: 'List (Top 3)' },
+            { value: 'summary', label: 'Summary Stats' },
+            { value: 'single', label: 'Single Item' }
+        ];
+        if (!format) format = 'view';
+        const formatOptsHtml = formatOptions.map(o => `<option value="${o.value}"${format === o.value ? ' selected' : ''}>${o.label}</option>`).join('');
+        formatSelectHtml = `<select class="ce-format-select" data-card-id="${c.cc_id}" style="font-size:0.72rem;padding:0.15rem 0.3rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);max-width:110px;" onchange="window.ceChangeCardFormat(${c.cc_id}, this.value, '${entity}', '${dataKey}')">
+            ${formatOptsHtml}
+        </select>`;
+    }
+
+    const editCtrl = `<div class="ce-edit-ctrl" style="display:none;position:absolute;right:0.5rem;top:0.5rem;gap:0.25rem;align-items:center;z-index:2;">
+        <select class="ce-entity-select" data-card-id="${c.cc_id}" style="font-size:0.72rem;padding:0.15rem 0.3rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);max-width:140px;" onchange="window.ceChangeCardEntity(${c.cc_id}, this.value, '${dataKey}')">
+            ${entityOptsHtml}
+        </select>
+        ${formatSelectHtml}
+        <button onclick="event.stopPropagation();window.ceMoveCard(${c.cc_id},-1,'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_upward</span></button>
+        <button onclick="event.stopPropagation();window.ceMoveCard(${c.cc_id},1,'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
+        <button onclick="event.stopPropagation();window.ceDeleteCard(${c.cc_id},'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--energy-alert);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
+    </div>`;
+    const grip = `<span class="ce-drag-grip" data-grip-id="${c.cc_id}" title="Drag to reorder" style="position:absolute;left:0.4rem;top:50%;transform:translateY(-50%);">⠿</span>`;
+
+    // Render this card's primary content
+    const cardContent = window._renderCardTypeContent(c, contextData);
+    
+    // Render nested children recursively
+    const children = allCards.filter(child => child.cc_parent_card_id === c.cc_id);
+    let childrenHtml = '';
+    if (children.length > 0) {
+        childrenHtml = `<div class="ce-child-cards" style="margin-top:1.5rem;padding-left:1.5rem;border-left:2px solid var(--border-subtle);display:flex;flex-direction:column;gap:1rem;">
+            ${children.map(child => _renderSingleContentCardHtml(child, allCards, dataKey, containerId, contextData)).join('')}
+        </div>`;
+    }
+
+    return `<div class="card" style="position:relative;padding:1.5rem;" data-card-id="${c.cc_id}" draggable="false">${grip}${editCtrl}${cardContent}${childrenHtml}</div>`;
+}
+
 // ---- STRATEGY SPINE (inline card-driven editing) ----
 
 let isAppEditMode = false;
 let _spineCards = null;
-let _spinePendingReorders = [];
+let _cePendingReorders = [];
 
 async function renderStrategySpine() {
     isAppEditMode = false;
     _spineCards = await window.fetchContentCards(1);
     renderContentCards('spine', 'strategy-cards-container');
-    setupContentEditToggle('spine', 'strategy-cards-container', 'spine-edit-toggle');
+    setupContentEditToggle('spine', 'strategy-cards-container', 'ce-edit-toggle');
 }
 
 // ---- UNIFIED CARD TYPE RENDERER ----
@@ -3033,7 +3235,7 @@ window._renderCardTypeContent = function (card, spine) {
             return `<h4 style="margin:0 0 0.75rem 0;color:var(--text-tertiary);">${card.cc_title || 'Stakeholders'}</h4>` +
                 items.map(s => {
                     const col = s.status === 'Needs Attention' ? '#ef4444' : s.status === 'Active' ? 'var(--energy-algae)' : s.status === 'Monitor' ? 'var(--energy-mid)' : 'var(--text-secondary)';
-                    return `<div style="padding:0.6rem;border:1px solid var(--border-subtle);border-radius:6px;margin-bottom:0.4rem;cursor:pointer;" onclick="window.currentStakeholderId='${s.id}';loadView('stakeholder_detail');history.pushState(null,'','#stakeholder_detail')" onmouseover="if(!document.querySelector('.spine-dragging')) this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+                    return `<div style="padding:0.6rem;border:1px solid var(--border-subtle);border-radius:6px;margin-bottom:0.4rem;cursor:pointer;" onclick="window.currentStakeholderId='${s.id}';loadView('stakeholder_detail');history.pushState(null,'','#stakeholder_detail')" onmouseover="if(!document.querySelector('.ce-dragging')) this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
                         <div style="font-weight:600;font-size:0.88rem;margin-bottom:0.2rem;">${s.name}</div>
                         <div style="font-size:0.78rem;color:var(--text-tertiary);">
                             <span style="color:${col};font-weight:600;">${s.status}</span> · ${s.role || '—'}
@@ -3072,7 +3274,7 @@ window._renderCardTypeContent = function (card, spine) {
                 items.map(a => {
                     const isCompleted = a.status === 'Completed';
                     const rel = typeof relativeDate === 'function' ? relativeDate(a.timing?.dueDate, isCompleted) : { text: '', color: 'inherit' };
-                    return `<div style="padding:0.6rem;border:1px solid var(--border-subtle);border-radius:6px;margin-bottom:0.4rem;cursor:pointer;" onclick="window.viewAction('${a.id}')" onmouseover="if(!document.querySelector('.spine-dragging')) this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+                    return `<div style="padding:0.6rem;border:1px solid var(--border-subtle);border-radius:6px;margin-bottom:0.4rem;cursor:pointer;" onclick="window.viewAction('${a.id}')" onmouseover="if(!document.querySelector('.ce-dragging')) this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.2rem;">
                             <span class="status-badge" style="font-size:0.7rem;padding:0.1rem 0.5rem;">${a.status}</span>
                             <span style="font-size:0.72rem;color:${rel.color};">${rel.text}</span>
@@ -3107,7 +3309,7 @@ window._renderCardTypeContent = function (card, spine) {
             if (items.length === 0) return '<p style="color:var(--text-tertiary);font-style:italic;margin:0;">No updates match filter.</p>';
             return `<h4 style="margin:0 0 0.75rem 0;color:var(--text-tertiary);">${card.cc_title || 'Updates'}</h4>` +
                 items.map(i => {
-                    return `<div style="padding:0.6rem;border:1px solid var(--border-subtle);border-radius:6px;margin-bottom:0.4rem;cursor:pointer;" onclick="window.currentInteractionId='${i.id}';loadView('interaction_detail');history.pushState(null,'','#interaction_detail')" onmouseover="if(!document.querySelector('.spine-dragging')) this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
+                    return `<div style="padding:0.6rem;border:1px solid var(--border-subtle);border-radius:6px;margin-bottom:0.4rem;cursor:pointer;" onclick="window.currentInteractionId='${i.id}';loadView('interaction_detail');history.pushState(null,'','#interaction_detail')" onmouseover="if(!document.querySelector('.ce-dragging')) this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
                         <div style="font-size:0.72rem;color:${i.type==='Upcoming'?'var(--energy-alert)':'var(--text-tertiary)'};font-weight:600;margin-bottom:0.2rem;">${i.rawDate || ''} — ${i.type || ''}</div>
                         <div style="font-weight:600;font-size:0.88rem;">${i.title}</div>
                     </div>`;
@@ -3136,8 +3338,8 @@ window._renderCardTypeContent = function (card, spine) {
 
         default: {
             // Generic card
-            return `<h4 class="spine-card-title" data-card-id="${card.cc_id}" style="margin:0 0 0.75rem 0;">${card.cc_title||''}</h4>
-                <div class="spine-card-content" data-card-id="${card.cc_id}" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap;">${card.cc_content||''}</div>`;
+            return `<h4 class="ce-card-title" data-card-id="${card.cc_id}" style="margin:0 0 0.75rem 0;">${card.cc_title||''}</h4>
+                <div class="ce-card-content" data-card-id="${card.cc_id}" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap;">${card.cc_content||''}</div>`;
         }
     }
 };
@@ -3167,21 +3369,21 @@ function renderContentCards(dataKey, containerId) {
     sections.forEach(section => {
         const sc = section.sectionCard;
         if (sc) {
-            html += `<div class="spine-section-row" data-card-id="${sc.cc_id}" draggable="false" style="display:flex;justify-content:space-between;align-items:center;margin:2rem 0 1rem;">
+            html += `<div class="ce-section-row" data-card-id="${sc.cc_id}" draggable="false" style="display:flex;justify-content:space-between;align-items:center;margin:2rem 0 1rem;">
                 <div style="display:flex;align-items:center;gap:0.25rem;flex:1;">
-                    <span class="spine-drag-grip" data-grip-id="${sc.cc_id}" title="Drag to reorder">⠿</span>
-                    <h3 class="spine-section-title" data-card-id="${sc.cc_id}" style="color:var(--text-tertiary);margin:0;">${sc.cc_title||''}</h3>
+                    <span class="ce-drag-grip" data-grip-id="${sc.cc_id}" title="Drag to reorder">⠿</span>
+                    <h3 class="ce-section-title" data-card-id="${sc.cc_id}" style="color:var(--text-tertiary);margin:0;">${sc.cc_title||''}</h3>
                 </div>
-                <div class="spine-edit-ctrl" style="display:none;gap:0.5rem;align-items:center;">
-                    <select class="spine-width-select" data-card-id="${sc.cc_id}" style="display:none;font-size:0.75rem;padding:0.15rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);">
+                <div class="ce-edit-ctrl" style="display:none;gap:0.5rem;align-items:center;">
+                    <select class="ce-width-select" data-card-id="${sc.cc_id}" style="display:none;font-size:0.75rem;padding:0.15rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);">
                         <option value="full"${sc.cc_width==='full'?' selected':''}>Full</option>
                         <option value="half"${sc.cc_width==='half'?' selected':''}>Half</option>
                         <option value="third"${sc.cc_width==='third'?' selected':''}>Third</option>
                         <option value="quarter"${sc.cc_width==='quarter'?' selected':''}>Quarter</option>
                     </select>
-                    <button onclick="window.spineMoveCard(${sc.cc_id},-1,'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;" title="Move up"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_upward</span></button>
-                    <button onclick="window.spineMoveCard(${sc.cc_id},1,'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;" title="Move down"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
-                    <button onclick="window.spineDeleteCard(${sc.cc_id},'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--energy-alert);padding:2px;" title="Remove"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
+                    <button onclick="window.ceMoveCard(${sc.cc_id},-1,'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;" title="Move up"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_upward</span></button>
+                    <button onclick="window.ceMoveCard(${sc.cc_id},1,'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;" title="Move down"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
+                    <button onclick="window.ceDeleteCard(${sc.cc_id},'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--energy-alert);padding:2px;" title="Remove"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
                 </div>
             </div>`;
         }
@@ -3193,62 +3395,16 @@ function renderContentCards(dataKey, containerId) {
         if (section.cards.length > 0) {
             html += `<div style="display:grid;grid-template-columns:${gridCols};gap:1.5rem;margin-bottom:1.5rem;">`;
             section.cards.forEach(c => {
-                // Cascaded dropdown logic
-                const t = c.cc_card_type || 'card';
-                let entity = t;
-                let format = '';
-                if (t.startsWith('action_')) { entity = 'action'; format = t.split('_')[1]; }
-                else if (t.startsWith('interaction_')) { entity = 'interaction'; format = t.split('_')[1]; }
-                else if (t.startsWith('stakeholder_')) { entity = 'stakeholder'; format = t.split('_')[1]; }
-
-                const entityOptions = [
-                    { value: 'card', icon: '📝', label: 'Text Card' },
-                    { value: 'objectives_link', icon: '🎯', label: 'Objectives' },
-                    { value: 'audience_message', icon: '📢', label: 'Audience Message' },
-                    { value: 'action', icon: '⚡', label: 'Action' },
-                    { value: 'interaction', icon: '💬', label: 'Update Log' },
-                    { value: 'stakeholder', icon: '🏛', label: 'Stakeholder' }
-                ];
-                const entityOptsHtml = entityOptions.map(o => `<option value="${o.value}"${entity === o.value ? ' selected' : ''}>${o.icon} ${o.label}</option>`).join('');
-
-                let formatSelectHtml = '';
-                if (['action', 'interaction', 'stakeholder'].includes(entity)) {
-                    const formatOptions = [
-                        { value: 'view', label: 'List (Top 3)' },
-                        { value: 'summary', label: 'Summary Stats' },
-                        { value: 'single', label: 'Single Item' }
-                    ];
-                    // If no format is set, default to 'view'
-                    if (!format) format = 'view';
-                    const formatOptsHtml = formatOptions.map(o => `<option value="${o.value}"${format === o.value ? ' selected' : ''}>${o.label}</option>`).join('');
-                    formatSelectHtml = `<select class="spine-format-select" data-card-id="${c.cc_id}" style="font-size:0.72rem;padding:0.15rem 0.3rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);max-width:110px;" onchange="window.spineChangeCardFormat(${c.cc_id}, this.value, '${entity}', '${dataKey}')">
-                        ${formatOptsHtml}
-                    </select>`;
-                }
-
-                const editCtrl = `<div class="spine-edit-ctrl" style="display:none;position:absolute;right:0.5rem;top:0.5rem;gap:0.25rem;align-items:center;z-index:2;">
-                    <select class="spine-entity-select" data-card-id="${c.cc_id}" style="font-size:0.72rem;padding:0.15rem 0.3rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);max-width:140px;" onchange="window.spineChangeCardEntity(${c.cc_id}, this.value, '${dataKey}')">
-                        ${entityOptsHtml}
-                    </select>
-                    ${formatSelectHtml}
-                    <button onclick="event.stopPropagation();window.spineMoveCard(${c.cc_id},-1,'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_upward</span></button>
-                    <button onclick="event.stopPropagation();window.spineMoveCard(${c.cc_id},1,'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
-                    <button onclick="event.stopPropagation();window.spineDeleteCard(${c.cc_id},'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--energy-alert);padding:2px;"><span class="material-symbols-outlined" style="font-size:1rem;">delete</span></button>
-                </div>`;
-                const grip = `<span class="spine-drag-grip" data-grip-id="${c.cc_id}" title="Drag to reorder" style="position:absolute;left:0.4rem;top:50%;transform:translateY(-50%);">⠿</span>`;
-
-                // Render card by type
-                const cardContent = window._renderCardTypeContent(c, contextData);
-                html += `<div class="card" style="position:relative;padding:1.5rem;" data-card-id="${c.cc_id}" draggable="false">${grip}${editCtrl}${cardContent}</div>`;
+                html += _renderSingleContentCardHtml(c, cards, dataKey, containerId, contextData);
             });
             html += '</div>';
         }
     });
 
     // Add card/section buttons (visible in edit mode)
-    html += `<div class="spine-edit-ctrl" style="display:none;gap:0.5rem;margin-top:1rem;">
-        <button class="btn-secondary" onclick="window.spineAddSection('${dataKey}','${containerId}')" style="font-size:0.8rem;padding:0.3rem 0.8rem;">+ Add Section</button>
-        <button class="btn-secondary" onclick="window.spineAddCard('${dataKey}','${containerId}')" style="font-size:0.8rem;padding:0.3rem 0.8rem;">+ Add Card</button>
+    html += `<div class="ce-edit-ctrl" style="display:none;gap:0.5rem;margin-top:1rem;">
+        <button class="btn-secondary" onclick="window.ceAddSection('${dataKey}','${containerId}')" style="font-size:0.8rem;padding:0.3rem 0.8rem;">+ Add Section</button>
+        <button class="btn-secondary" onclick="window.ceAddCard('${dataKey}','${containerId}')" style="font-size:0.8rem;padding:0.3rem 0.8rem;">+ Add Card</button>
     </div>`;
 
     container.innerHTML = html;
@@ -3263,7 +3419,7 @@ function renderSpineObjectives(objectives, wrapInCard = true) {
                 <span style="color:var(--energy-alert);">🎯</span>
                 <span class="spine-obj-text" data-obj-id="${o.id}">${o.text}</span>
             </div>
-            <div class="spine-edit-ctrl" style="display:none;gap:0.25rem;align-items:center;">
+            <div class="ce-edit-ctrl" style="display:none;gap:0.25rem;align-items:center;">
                 <button onclick="window.spineMoveObj('${o.id}',-1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);opacity:${idx===0?'0.2':'1'};" ${idx===0?'disabled':''}><span class="material-symbols-outlined" style="font-size:1.1rem;">arrow_upward</span></button>
                 <button onclick="window.spineMoveObj('${o.id}',1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);opacity:${idx===objectives.length-1?'0.2':'1'};" ${idx===objectives.length-1?'disabled':''}><span class="material-symbols-outlined" style="font-size:1.1rem;">arrow_downward</span></button>
                 <button onclick="window.spineDeleteObj('${o.id}')" style="background:none;border:none;cursor:pointer;color:var(--energy-alert);"><span class="material-symbols-outlined" style="font-size:1.1rem;">delete</span></button>
@@ -3271,7 +3427,7 @@ function renderSpineObjectives(objectives, wrapInCard = true) {
         </li>`;
     });
     html += '</ul>';
-    html += '<button class="btn-secondary spine-edit-ctrl" onclick="window.spineAddObj()" style="display:none;font-size:0.75rem;padding:0.2rem 0.5rem;margin-top:0.5rem;">+ Add Objective</button>';
+    html += '<button class="btn-secondary ce-edit-ctrl" onclick="window.spineAddObj()" style="display:none;font-size:0.75rem;padding:0.2rem 0.5rem;margin-top:0.5rem;">+ Add Objective</button>';
     if (wrapInCard) html += '</div>';
     return html;
 }
@@ -3298,9 +3454,9 @@ function setupContentEditToggle(dataKey, containerId, btnId) {
         cancelBtn.parentNode.replaceChild(freshCancel, cancelBtn);
         freshCancel.addEventListener('click', async () => {
             isAppEditMode = false;
-            _spinePendingReorders = [];
+            _cePendingReorders = [];
             const container = document.getElementById(containerId);
-            if (container) container.classList.remove('spine-edit-active');
+            if (container) container.classList.remove('ce-edit-active');
             editToggle.style.background = ''; editToggle.style.color = '';
             editToggle.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
             freshCancel.style.display = 'none';
@@ -3327,33 +3483,33 @@ function setupContentEditToggle(dataKey, containerId, btnId) {
         if (isAppEditMode) {
             // Add edit-active class for CSS-driven grip visibility
             const container = document.getElementById(containerId);
-            if (container) container.classList.add('spine-edit-active');
+            if (container) container.classList.add('ce-edit-active');
             // Show edit controls
-            document.querySelectorAll('.spine-edit-ctrl').forEach(el => { el.style.display = 'flex'; });
-            document.querySelectorAll('.spine-width-select').forEach(el => { el.style.display = 'inline-block'; });
+            document.querySelectorAll('.ce-edit-ctrl').forEach(el => { el.style.display = 'flex'; });
+            document.querySelectorAll('.ce-width-select').forEach(el => { el.style.display = 'inline-block'; });
 
             // Section titles → inputs
-            document.querySelectorAll('.spine-section-title').forEach(el => {
+            document.querySelectorAll('.ce-section-title').forEach(el => {
                 const input = document.createElement('input');
                 input.type = 'text'; input.value = el.textContent;
-                input.className = 'spine-edit-sec-title'; input.dataset.cardId = el.dataset.cardId;
+                input.className = 'ce-edit-sec-title'; input.dataset.cardId = el.dataset.cardId;
                 input.style.cssText = 'font-size:1.17rem;font-weight:600;color:var(--text-tertiary);background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:4px;padding:0.25rem 0.5rem;';
                 el.replaceWith(input);
             });
 
             // Card titles → inputs
-            document.querySelectorAll('.spine-card-title').forEach(el => {
+            document.querySelectorAll('.ce-card-title').forEach(el => {
                 const input = document.createElement('input');
                 input.type = 'text'; input.value = el.textContent;
-                input.className = 'spine-edit-card-title'; input.dataset.cardId = el.dataset.cardId;
+                input.className = 'ce-edit-card-title'; input.dataset.cardId = el.dataset.cardId;
                 input.style.cssText = 'font-size:1.1rem;font-weight:600;color:var(--text-primary);background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:4px;padding:0.3rem 0.5rem;width:100%;margin-bottom:0.5rem;';
                 el.replaceWith(input);
             });
 
             // Card content → textareas
-            document.querySelectorAll('.spine-card-content').forEach(el => {
+            document.querySelectorAll('.ce-card-content').forEach(el => {
                 const ta = document.createElement('textarea');
-                ta.value = el.textContent; ta.className = 'spine-edit-card-content'; ta.dataset.cardId = el.dataset.cardId;
+                ta.value = el.textContent; ta.className = 'ce-edit-card-content'; ta.dataset.cardId = el.dataset.cardId;
                 ta.style.cssText = 'width:100%;min-height:150px;resize:vertical;padding:0.5rem;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);border-radius:4px;font-family:Inter,sans-serif;font-size:0.9rem;line-height:1.6;';
                 el.replaceWith(ta);
             });
@@ -3372,7 +3528,7 @@ function setupContentEditToggle(dataKey, containerId, btnId) {
         } else {
             // Remove edit-active class
             const container = document.getElementById(containerId);
-            if (container) container.classList.remove('spine-edit-active');
+            if (container) container.classList.remove('ce-edit-active');
             // "Done" — show loading, persist everything
             editToggle.disabled = true;
             editToggle.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;animation:spin 1s linear infinite;">autorenew</span> Saving...';
@@ -3391,11 +3547,11 @@ async function persistContentEdits(dataKey, containerId, btnId) {
     const updates = [];
 
     // Collect section title & width changes
-    document.querySelectorAll('.spine-edit-sec-title').forEach(input => {
+    document.querySelectorAll('.ce-edit-sec-title').forEach(input => {
         const id = parseInt(input.dataset.cardId);
         if (id) updates.push({ ccId: id, fields: { cc_title: input.value } });
     });
-    document.querySelectorAll('.spine-width-select').forEach(sel => {
+    document.querySelectorAll('.ce-width-select').forEach(sel => {
         const id = parseInt(sel.dataset.cardId);
         if (id) {
             const existing = updates.find(u => u.ccId === id);
@@ -3405,13 +3561,13 @@ async function persistContentEdits(dataKey, containerId, btnId) {
     });
 
     // Collect cascaded card type changes
-    document.querySelectorAll('.spine-entity-select').forEach(sel => {
+    document.querySelectorAll('.ce-entity-select').forEach(sel => {
         const id = parseInt(sel.dataset.cardId);
         if (id) {
             let entity = sel.value;
             let finalType = entity;
             if (['action', 'interaction', 'stakeholder'].includes(entity)) {
-                const formatSel = sel.parentElement.querySelector('.spine-format-select');
+                const formatSel = sel.parentElement.querySelector('.ce-format-select');
                 const format = formatSel ? formatSel.value : 'view';
                 finalType = `${entity}_${format}`;
             }
@@ -3422,11 +3578,11 @@ async function persistContentEdits(dataKey, containerId, btnId) {
     });
 
     // Collect card title + content changes
-    document.querySelectorAll('.spine-edit-card-title').forEach(input => {
+    document.querySelectorAll('.ce-edit-card-title').forEach(input => {
         const id = parseInt(input.dataset.cardId);
         if (id) updates.push({ ccId: id, fields: { cc_title: input.value } });
     });
-    document.querySelectorAll('.spine-edit-card-content').forEach(ta => {
+    document.querySelectorAll('.ce-edit-card-content').forEach(ta => {
         const id = parseInt(ta.dataset.cardId);
         if (id) {
             const existing = updates.find(u => u.ccId === id);
@@ -3459,9 +3615,9 @@ async function persistContentEdits(dataKey, containerId, btnId) {
     if (spine) window.updateData('spine', spine);
 
     // Persist any pending reorder/nest changes from drag-and-drop
-    if (_spinePendingReorders.length > 0) {
-        const reorders = _spinePendingReorders.filter(r => r.newOrder !== undefined);
-        const nests = _spinePendingReorders.filter(r => r.fields);
+    if (_cePendingReorders.length > 0) {
+        const reorders = _cePendingReorders.filter(r => r.newOrder !== undefined);
+        const nests = _cePendingReorders.filter(r => r.fields);
 
         if (window.reorderContentCards && reorders.length > 0) {
             await window.reorderContentCards(reorders);
@@ -3473,7 +3629,7 @@ async function persistContentEdits(dataKey, containerId, btnId) {
             }
             console.log('[Strategy] Persisted', nests.length, 'nest updates');
         }
-        _spinePendingReorders = [];
+        _cePendingReorders = [];
     }
 
     // Refresh spine cache and re-render
@@ -3487,7 +3643,7 @@ async function persistContentEdits(dataKey, containerId, btnId) {
 
 // ---- STRATEGY CARD OPERATIONS ----
 
-window.spineChangeCardEntity = function (ccId, entity, dataKey) {
+window.ceChangeCardEntity = function (ccId, entity, dataKey) {
     const cardsArray = dataKey === 'messaging' ? _msgCards : _spineCards;
     if (!cardsArray) return;
     const card = cardsArray.find(c => c.cc_id === ccId);
@@ -3498,16 +3654,16 @@ window.spineChangeCardEntity = function (ccId, entity, dataKey) {
         card.cc_card_type = finalType;
         
         // Update DOM for format dropdown
-        const sel = document.querySelector(`.spine-entity-select[data-card-id="${ccId}"]`);
+        const sel = document.querySelector(`.ce-entity-select[data-card-id="${ccId}"]`);
         if (sel) {
-            let formatSel = sel.parentElement.querySelector('.spine-format-select');
+            let formatSel = sel.parentElement.querySelector('.ce-format-select');
             if (needsFormat) {
                 if (!formatSel) {
                     formatSel = document.createElement('select');
-                    formatSel.className = 'spine-format-select';
+                    formatSel.className = 'ce-format-select';
                     formatSel.dataset.cardId = ccId;
                     formatSel.style.cssText = "font-size:0.72rem;padding:0.15rem 0.3rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);max-width:110px;";
-                    formatSel.onchange = function() { window.spineChangeCardFormat(ccId, this.value, entity, dataKey); };
+                    formatSel.onchange = function() { window.ceChangeCardFormat(ccId, this.value, entity, dataKey); };
                     
                     const formatOptions = [
                         { value: 'view', label: 'List (Top 3)' },
@@ -3524,7 +3680,7 @@ window.spineChangeCardEntity = function (ccId, entity, dataKey) {
     }
 };
 
-window.spineChangeCardFormat = function (ccId, format, entity, dataKey) {
+window.ceChangeCardFormat = function (ccId, format, entity, dataKey) {
     const cardsArray = dataKey === 'messaging' ? _msgCards : _spineCards;
     if (!cardsArray) return;
     const card = cardsArray.find(c => c.cc_id === ccId);
@@ -3533,7 +3689,7 @@ window.spineChangeCardFormat = function (ccId, format, entity, dataKey) {
     }
 };
 
-window.spineMoveCard = function (ccId, direction, dataKey, containerId) {
+window.ceMoveCard = function (ccId, direction, dataKey, containerId) {
     const cardsArray = dataKey === 'messaging' ? _msgCards : _spineCards;
     if (!cardsArray) return;
     const topCards = cardsArray.filter(c => !c.cc_parent_card_id && c.cc_active !== false).sort((a, b) => a.cc_order - b.cc_order);
@@ -3545,7 +3701,7 @@ window.spineMoveCard = function (ccId, direction, dataKey, containerId) {
     topCards[idx].cc_order = topCards[swapIdx].cc_order;
     topCards[swapIdx].cc_order = tmpOrder;
     // Track pending reorders (will be persisted on Done)
-    _spinePendingReorders.push(
+    _cePendingReorders.push(
         { ccId: topCards[idx].cc_id, newOrder: topCards[idx].cc_order },
         { ccId: topCards[swapIdx].cc_id, newOrder: topCards[swapIdx].cc_order }
     );
@@ -3554,7 +3710,7 @@ window.spineMoveCard = function (ccId, direction, dataKey, containerId) {
     if (isAppEditMode) { isAppEditMode = false; document.getElementById(containerId.replace('cards-container', 'edit-toggle'))?.click(); }
 };
 
-window.spineDeleteCard = async function (ccId, dataKey, containerId) {
+window.ceDeleteCard = async function (ccId, dataKey, containerId) {
     if (!confirm('Remove this card?')) return;
     if (window.softDeleteContentCard) await window.softDeleteContentCard(ccId);
     
@@ -3570,7 +3726,7 @@ window.spineDeleteCard = async function (ccId, dataKey, containerId) {
     if (isAppEditMode) { isAppEditMode = false; document.getElementById(containerId.replace('cards-container', 'edit-toggle'))?.click(); }
 };
 
-window.spineAddSection = async function (dataKey, containerId) {
+window.ceAddSection = async function (dataKey, containerId) {
     const cardsArray = dataKey === 'messaging' ? _msgCards : _spineCards;
     const maxOrder = (cardsArray || []).reduce((m, c) => Math.max(m, c.cc_order || 0), 0);
     if (window.insertContentCard) {
@@ -3585,7 +3741,7 @@ window.spineAddSection = async function (dataKey, containerId) {
     }
 };
 
-window.spineAddCard = async function (dataKey, containerId) {
+window.ceAddCard = async function (dataKey, containerId) {
     const cardsArray = dataKey === 'messaging' ? _msgCards : _spineCards;
     const maxOrder = (cardsArray || []).reduce((m, c) => Math.max(m, c.cc_order || 0), 0);
     if (window.insertContentCard) {
@@ -3609,8 +3765,8 @@ window.spineMoveObj = function (id, dir) {
     else if (dir === 1 && idx < spine.objectives.length - 1) { [spine.objectives[idx], spine.objectives[idx+1]] = [spine.objectives[idx+1], spine.objectives[idx]]; }
     window.updateData('spine', spine);
     renderContentCards('spine', 'strategy-cards-container'); 
-    setupContentEditToggle('spine', 'strategy-cards-container', 'spine-edit-toggle');
-    if (isAppEditMode) { isAppEditMode = false; document.getElementById('spine-edit-toggle')?.click(); }
+    setupContentEditToggle('spine', 'strategy-cards-container', 'ce-edit-toggle');
+    if (isAppEditMode) { isAppEditMode = false; document.getElementById('ce-edit-toggle')?.click(); }
 };
 
 window.spineDeleteObj = async function (id) {
@@ -3622,8 +3778,8 @@ window.spineDeleteObj = async function (id) {
     if (soId && window.softDeleteStrategyObjective) await window.softDeleteStrategyObjective(soId);
     window.updateData('spine', spine);
     renderContentCards('spine', 'strategy-cards-container'); 
-    setupContentEditToggle('spine', 'strategy-cards-container', 'spine-edit-toggle');
-    if (isAppEditMode) { isAppEditMode = false; document.getElementById('spine-edit-toggle')?.click(); }
+    setupContentEditToggle('spine', 'strategy-cards-container', 'ce-edit-toggle');
+    if (isAppEditMode) { isAppEditMode = false; document.getElementById('ce-edit-toggle')?.click(); }
 };
 
 window.spineAddObj = async function () {
@@ -3636,8 +3792,8 @@ window.spineAddObj = async function () {
     } else { spine.objectives.push({ id: 'obj' + Date.now(), text: 'New Objective' }); }
     window.updateData('spine', spine);
     renderContentCards('spine', 'strategy-cards-container'); 
-    setupContentEditToggle('spine', 'strategy-cards-container', 'spine-edit-toggle');
-    if (isAppEditMode) { isAppEditMode = false; document.getElementById('spine-edit-toggle')?.click(); }
+    setupContentEditToggle('spine', 'strategy-cards-container', 'ce-edit-toggle');
+    if (isAppEditMode) { isAppEditMode = false; document.getElementById('ce-edit-toggle')?.click(); }
 };
 
 
@@ -3683,7 +3839,7 @@ window._initSpineDragDrop = function (dataKey, containerId) {
 
     // Mouse down on grip — start drag
     container.addEventListener('mousedown', function (e) {
-        const grip = e.target.closest('.spine-drag-grip');
+        const grip = e.target.closest('.ce-drag-grip');
         if (!grip) return;
         e.preventDefault();
 
@@ -3692,7 +3848,7 @@ window._initSpineDragDrop = function (dataKey, containerId) {
         if (!dragEl) { dragCardId = null; return; }
 
         startY = e.clientY;
-        dragEl.classList.add('spine-dragging');
+        dragEl.classList.add('ce-dragging');
 
         // Create ghost overlay (looks exactly like the dragged card)
         ghostEl = dragEl.cloneNode(true);
@@ -3751,7 +3907,7 @@ window._initSpineDragDrop = function (dataKey, containerId) {
 
         if (hoverEl) {
             const rect = hoverEl.getBoundingClientRect();
-            const isSection = hoverEl.classList.contains('spine-section-row');
+            const isSection = hoverEl.classList.contains('ce-section-row');
             const horizontal = isInHorizontalGrid(hoverEl);
 
             if (horizontal) {
@@ -3815,7 +3971,7 @@ window._initSpineDragDrop = function (dataKey, containerId) {
                 const card = (cardsArray || []).find(c => c.cc_id === dragCardId);
                 if (card) {
                     card.cc_parent_card_id = dropCardId;
-                    _spinePendingReorders.push({ ccId: dragCardId, fields: { cc_parent_card_id: dropCardId } });
+                    _cePendingReorders.push({ ccId: dragCardId, fields: { cc_parent_card_id: dropCardId } });
                     console.log('[DnD] Nested card', dragCardId, 'into', dropCardId);
                 }
             } else {
@@ -3836,10 +3992,25 @@ window._initSpineDragDrop = function (dataKey, containerId) {
                     // Reassign cc_order values
                     topCards.forEach((c, i) => {
                         c.cc_order = i + 1;
-                        _spinePendingReorders.push({ ccId: c.cc_id, newOrder: c.cc_order });
+                        _cePendingReorders.push({ ccId: c.cc_id, newOrder: c.cc_order });
                     });
                     console.log('[DnD] Reordered', topCards.length, 'cards');
                 }
+            }
+
+            // Sync visible inputs to array before re-rendering
+            if (isAppEditMode) {
+                const cardsArray = dataKey === 'messaging' ? _msgCards : _spineCards;
+                document.querySelectorAll('.ce-edit-sec-title, .ce-edit-card-title').forEach(input => {
+                    const id = parseInt(input.dataset.cardId);
+                    const c = (cardsArray || []).find(x => x.cc_id === id);
+                    if (c) c.cc_title = input.value;
+                });
+                document.querySelectorAll('.ce-edit-card-content').forEach(ta => {
+                    const id = parseInt(ta.dataset.cardId);
+                    const c = (cardsArray || []).find(x => x.cc_id === id);
+                    if (c) c.cc_content = ta.value;
+                });
             }
 
             // Re-render with new order
@@ -3853,7 +4024,7 @@ window._initSpineDragDrop = function (dataKey, containerId) {
 
     function cleanup() {
         clearIndicators();
-        if (dragEl) dragEl.classList.remove('spine-dragging');
+        if (dragEl) dragEl.classList.remove('ce-dragging');
         if (ghostEl) { ghostEl.remove(); ghostEl = null; }
         dragEl = null;
         dragCardId = null;

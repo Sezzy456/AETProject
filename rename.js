@@ -34,7 +34,7 @@ const replacements = {
 
 const files = [
     'js/app.js',
-    'pages/strategy.html'
+    'pages/strategy_spine.html'
 ];
 
 files.forEach(file => {

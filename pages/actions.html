@@ -20,55 +20,52 @@
             style="width: 200px; padding:0.45rem 0.75rem 0.45rem 2rem; border:1px solid var(--border-subtle); background:rgba(0,0,0,0.02); color:var(--text-primary); border-radius:20px; font-size:0.82rem; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--energy-algae)'" onblur="this.style.borderColor='var(--border-subtle)'">
     </div>
 
-    <div class="custom-filter-pill" id="act-filter-status" data-on-change="filterActions" style="position:relative; display:inline-block;">
-        <button class="filter-trigger" data-label-base="Status" data-default-label="All" style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:20px; padding:0.4rem 0.75rem; font-size:0.82rem; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:0.25rem; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="if(this.style.background!=='var(--energy-algae)') this.style.borderColor='var(--border-subtle)'">
-            Status: All <span class="material-symbols-outlined" style="font-size:1.1rem;">expand_more</span>
+    <div class="custom-filter-mega" style="position:relative; display:inline-block;">
+        <button id="act-mega-trigger" onclick="window.toggleMegaMenu('act-mega-menu')" style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:20px; padding:0.4rem 1rem; font-size:0.85rem; font-weight:500; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:0.4rem; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--energy-algae)';this.style.color='var(--text-primary)'" onmouseout="if(!this.classList.contains('active')) { this.style.borderColor='var(--border-subtle)';this.style.color='var(--text-secondary)'; }">
+            <span class="material-symbols-outlined" style="font-size:1.2rem;">filter_list</span> Filters <span id="act-filter-count" style="display:none;background:var(--energy-algae);color:#fff;border-radius:10px;padding:0.1rem 0.4rem;font-size:0.7rem;font-weight:700;">0</span>
         </button>
-        <div class="filter-dropdown" style="display:none; position:absolute; top:100%; left:0; margin-top:0.25rem; background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:8px; padding:0.5rem; min-width:160px; z-index:100; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="" checked> All</label>
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Pending"> Pending</label>
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Planned"> Planned</label>
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="In Progress"> In Progress</label>
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Completed"> Completed</label>
-        </div>
-    </div>
+        <div id="act-mega-menu" class="mega-menu-dropdown" style="display:none; position:absolute; top:100%; left:0; margin-top:0.5rem; background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:12px; padding:1.5rem; min-width:380px; z-index:100; box-shadow:0 8px 24px rgba(0,0,0,0.12);">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+                
+                <div class="mega-menu-group" id="act-filter-status" data-on-change="filterActions">
+                    <h4 style="margin:0 0 0.5rem 0; font-size:0.85rem; color:var(--text-primary); border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">Status</h4>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="" checked> All</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Pending"> Pending</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Planned"> Planned</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="In Progress"> In Progress</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Completed"> Completed</label>
+                </div>
 
-    <div class="custom-filter-pill" id="act-filter-owner" data-on-change="filterActions" style="position:relative; display:inline-block;">
-        <button class="filter-trigger" data-label-base="Owner" data-default-label="All" style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:20px; padding:0.4rem 0.75rem; font-size:0.82rem; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:0.25rem; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="if(this.style.background!=='var(--energy-algae)') this.style.borderColor='var(--border-subtle)'">
-            Owner: All <span class="material-symbols-outlined" style="font-size:1.1rem;">expand_more</span>
-        </button>
-        <div class="filter-dropdown" style="display:none; position:absolute; top:100%; left:0; margin-top:0.25rem; background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:8px; padding:0.5rem; min-width:180px; z-index:100; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="" checked> All</label>
-            <!-- Populated dynamically -->
-        </div>
-    </div>
+                <div class="mega-menu-group" id="act-filter-owner" data-on-change="filterActions">
+                    <h4 style="margin:0 0 0.5rem 0; font-size:0.85rem; color:var(--text-primary); border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">Owner</h4>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="" checked> All</label>
+                    <!-- Populated dynamically -->
+                </div>
 
-    <div class="custom-filter-pill" id="act-filter-due" data-on-change="filterActions" style="position:relative; display:inline-block;">
-        <button class="filter-trigger" data-label-base="Due" data-default-label="All" style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:20px; padding:0.4rem 0.75rem; font-size:0.82rem; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:0.25rem; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="if(this.style.background!=='var(--energy-algae)') this.style.borderColor='var(--border-subtle)'">
-            Due: All <span class="material-symbols-outlined" style="font-size:1.1rem;">expand_more</span>
-        </button>
-        <div class="filter-dropdown" style="display:none; position:absolute; top:100%; left:0; margin-top:0.25rem; background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:8px; padding:0.5rem; min-width:180px; z-index:100; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="" checked> All</label>
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="overdue"> Overdue</label>
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="7"> Due ≤ 7 days</label>
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="14"> Due ≤ 14 days</label>
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="30"> Due ≤ 30 days</label>
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="none"> No due date</label>
+                <div class="mega-menu-group" id="act-filter-due" data-on-change="filterActions">
+                    <h4 style="margin:0 0 0.5rem 0; font-size:0.85rem; color:var(--text-primary); border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">Due Date</h4>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="" checked> All</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="overdue"> Overdue</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="7"> Due ≤ 7 days</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="14"> Due ≤ 14 days</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="30"> Due ≤ 30 days</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="none"> No due date</label>
+                </div>
+                
+                <div class="mega-menu-group" id="act-filter-phase" data-on-change="filterActions">
+                    <h4 style="margin:0 0 0.5rem 0; font-size:0.85rem; color:var(--text-primary); border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">Phase</h4>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="" checked> All</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Phase 1"> Phase 1</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Phase 2"> Phase 2</label>
+                </div>
+            </div>
+            
+            <div style="display:flex; justify-content:flex-end; margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--border-subtle); gap:0.5rem;">
+                <button class="btn-secondary" onclick="window.clearActionsFilters()" style="padding:0.3rem 0.8rem; font-size:0.8rem;">Clear All</button>
+                <button class="btn-primary" onclick="window.toggleMegaMenu('act-mega-menu')" style="padding:0.3rem 0.8rem; font-size:0.8rem;">Apply</button>
+            </div>
         </div>
     </div>
-    
-    <div class="custom-filter-pill" id="act-filter-phase" data-on-change="filterActions" style="position:relative; display:inline-block;">
-        <button class="filter-trigger" data-label-base="Phase" data-default-label="All" style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:20px; padding:0.4rem 0.75rem; font-size:0.82rem; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:0.25rem; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="if(this.style.background!=='var(--energy-algae)') this.style.borderColor='var(--border-subtle)'">
-            Phase: All <span class="material-symbols-outlined" style="font-size:1.1rem;">expand_more</span>
-        </button>
-        <div class="filter-dropdown" style="display:none; position:absolute; top:100%; left:0; margin-top:0.25rem; background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:8px; padding:0.5rem; min-width:160px; z-index:100; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="" checked> All</label>
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Phase 1"> Phase 1</label>
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Phase 2"> Phase 2</label>
-        </div>
-    </div>
-    
-    <button class="btn-secondary" onclick="window.clearActionsFilters()" style="background:transparent; border:none; color:var(--text-tertiary); font-size:0.8rem; cursor:pointer; padding:0 0.5rem; text-decoration:underline;">Clear</button>
 
     <div style="margin-left:auto; display:flex; gap:1rem; align-items:center;">
         <label style="display:flex; align-items:center; gap:0.35rem; font-size:0.82rem; color:var(--text-secondary); cursor:pointer;">
@@ -115,10 +112,18 @@
 <div id="act-view-kanban" style="display:none;">
     <div id="kanban-toggles" style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
         <span>Toggle Columns:</span>
-        <button class="kanban-toggle-pill active" data-col="Pending" onclick="window.toggleKanbanCol('Pending', this)" style="display:inline-flex; align-items:center; gap:0.3rem; padding:0.25rem 0.7rem; border-radius:100px; border:1.5px solid #94a3b8; background:rgba(148,163,184,0.15); color:var(--text-primary); cursor:pointer; font-family:inherit; font-size:0.78rem; font-weight:500; transition:all 0.2s;"><span style="width:8px;height:8px;background:#94a3b8;border-radius:2px;display:inline-block;"></span> Pending</button>
-        <button class="kanban-toggle-pill active" data-col="Planned" onclick="window.toggleKanbanCol('Planned', this)" style="display:inline-flex; align-items:center; gap:0.3rem; padding:0.25rem 0.7rem; border-radius:100px; border:1.5px solid #818cf8; background:rgba(129,140,248,0.15); color:var(--text-primary); cursor:pointer; font-family:inherit; font-size:0.78rem; font-weight:500; transition:all 0.2s;"><span style="width:8px;height:8px;background:#818cf8;border-radius:2px;display:inline-block;"></span> Planned</button>
-        <button class="kanban-toggle-pill active" data-col="In Progress" onclick="window.toggleKanbanCol('In Progress', this)" style="display:inline-flex; align-items:center; gap:0.3rem; padding:0.25rem 0.7rem; border-radius:100px; border:1.5px solid #60a5fa; background:rgba(96,165,250,0.15); color:var(--text-primary); cursor:pointer; font-family:inherit; font-size:0.78rem; font-weight:500; transition:all 0.2s;"><span style="width:8px;height:8px;background:#60a5fa;border-radius:2px;display:inline-block;"></span> In Progress</button>
-        <button class="kanban-toggle-pill active" data-col="Completed" onclick="window.toggleKanbanCol('Completed', this)" style="display:inline-flex; align-items:center; gap:0.3rem; padding:0.25rem 0.7rem; border-radius:100px; border:1.5px solid #34d399; background:rgba(52,211,153,0.15); color:var(--text-primary); cursor:pointer; font-family:inherit; font-size:0.78rem; font-weight:500; transition:all 0.2s;"><span style="width:8px;height:8px;background:#34d399;border-radius:2px;display:inline-block;"></span> Completed</button>
+        <button class="kanban-toggle-pill active" data-col="Pending" onclick="window.toggleKanbanCol('Pending', this)" style="display:inline-flex; align-items:center; gap:0.2rem; padding:0.25rem 0.7rem 0.25rem 0.5rem; border-radius:100px; border:1.5px solid #94a3b8; background:rgba(148,163,184,0.15); color:var(--text-primary); cursor:pointer; font-family:inherit; font-size:0.78rem; font-weight:500; transition:all 0.2s;">
+            <span class="material-symbols-outlined kanban-cb" style="font-size:1rem;color:#94a3b8;">check_box</span> Pending
+        </button>
+        <button class="kanban-toggle-pill active" data-col="Planned" onclick="window.toggleKanbanCol('Planned', this)" style="display:inline-flex; align-items:center; gap:0.2rem; padding:0.25rem 0.7rem 0.25rem 0.5rem; border-radius:100px; border:1.5px solid #818cf8; background:rgba(129,140,248,0.15); color:var(--text-primary); cursor:pointer; font-family:inherit; font-size:0.78rem; font-weight:500; transition:all 0.2s;">
+            <span class="material-symbols-outlined kanban-cb" style="font-size:1rem;color:#818cf8;">check_box</span> Planned
+        </button>
+        <button class="kanban-toggle-pill active" data-col="In Progress" onclick="window.toggleKanbanCol('In Progress', this)" style="display:inline-flex; align-items:center; gap:0.2rem; padding:0.25rem 0.7rem 0.25rem 0.5rem; border-radius:100px; border:1.5px solid #60a5fa; background:rgba(96,165,250,0.15); color:var(--text-primary); cursor:pointer; font-family:inherit; font-size:0.78rem; font-weight:500; transition:all 0.2s;">
+            <span class="material-symbols-outlined kanban-cb" style="font-size:1rem;color:#60a5fa;">check_box</span> In Progress
+        </button>
+        <button class="kanban-toggle-pill active" data-col="Completed" onclick="window.toggleKanbanCol('Completed', this)" style="display:inline-flex; align-items:center; gap:0.2rem; padding:0.25rem 0.7rem 0.25rem 0.5rem; border-radius:100px; border:1.5px solid #34d399; background:rgba(52,211,153,0.15); color:var(--text-primary); cursor:pointer; font-family:inherit; font-size:0.78rem; font-weight:500; transition:all 0.2s;">
+            <span class="material-symbols-outlined kanban-cb" style="font-size:1rem;color:#34d399;">check_box</span> Completed
+        </button>
     </div>
     <div id="act-kanban-container" style="display:grid; grid-template-columns:repeat(4,1fr); gap:0.75rem; align-items:start; overflow:hidden;">
         <!-- Populated by renderActions() -->

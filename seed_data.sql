@@ -67,8 +67,17 @@ VALUES
   (1, 'card',    'Economic Impact',   'Demonstrate tangible economic benefits: jobs, investment, local procurement', TRUE, 'half', 3, NULL, NULL, TRUE, NOW(), 1, NOW(), 1),
   -- Knowledge bank cards
   (2, 'card', 'Council Messaging', 'Key messages for council audience: #Focus on jobs and revenue#', FALSE, 'full', 1, NULL, 'sta-001', TRUE, NOW(), 1, NOW(), 1),
-  -- Dashboard card
-  (3, 'card', 'Active Actions',    '5 actions in progress, 2 overdue', FALSE, 'third', 1, NULL, NULL, TRUE, NOW(), 1, NOW(), 1);
+  -- Dashboard cards (Phase 6 Layout)
+  (3, 'stakeholder_summary', 'Stakeholders', NULL, FALSE, 'third', 1, NULL, NULL, TRUE, NOW(), 1, NOW(), 1),
+  (3, 'interaction_summary', 'Interactions', NULL, FALSE, 'third', 2, NULL, NULL, TRUE, NOW(), 1, NOW(), 1),
+  (3, 'action_summary', 'Actions', NULL, FALSE, 'third', 3, NULL, NULL, TRUE, NOW(), 1, NOW(), 1),
+  (3, 'card', 'Focus Area', 'Whole company focus area goes here', FALSE, 'half', 4, NULL, NULL, TRUE, NOW(), 1, NOW(), 1),
+  (3, 'card', 'Executive Summary', 'The team is currently focused on realigning key stakeholders following recent regulatory announcements. Immediate action is required on the messaging toolkit to ensure consistent communication across all channels.', FALSE, 'half', 5, NULL, NULL, TRUE, NOW(), 1, NOW(), 1),
+  (3, 'action_view', 'Overdue Actions', 'overdue', FALSE, 'half', 6, NULL, NULL, TRUE, NOW(), 1, NOW(), 1),
+  (3, 'action_view', 'Upcoming Actions', 'upcoming', FALSE, 'half', 7, NULL, NULL, TRUE, NOW(), 1, NOW(), 1),
+  (3, 'interaction_view', 'Upcoming Updates', 'upcoming', FALSE, 'half', 8, NULL, NULL, TRUE, NOW(), 1, NOW(), 1),
+  (3, 'interaction_view', 'Recent Updates', 'recent', FALSE, 'half', 9, NULL, NULL, TRUE, NOW(), 1, NOW(), 1),
+  (3, 'objectives_link', 'Strategy Room', 'objectives', FALSE, 'half', 10, NULL, NULL, TRUE, NOW(), 1, NOW(), 1);
 
 -- ─── PAGE ACCESS ───
 INSERT INTO tbl_Page_Access (PAC_page_ID, PAC_user_ID, PAC_can_view, PAC_can_edit, PAC_user_hidden, PAC_active, PAC_created, PAC_created_by, PAC_modified, PAC_modified_by)

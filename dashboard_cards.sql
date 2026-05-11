@@ -16,17 +16,17 @@ DELETE FROM tbl_content_card WHERE cc_page_id = 3;
 -- Stakeholders overview
 INSERT INTO tbl_content_card
   (cc_page_id, cc_card_type, cc_title, cc_width, cc_order, cc_active, cc_created, cc_created_by, cc_modified, cc_modified_by)
-VALUES (3, 'overview_card', 'Stakeholders', 'third', 1, true, NOW(), 1, NOW(), 1);
+VALUES (3, 'stakeholder_summary', 'Stakeholders', 'third', 1, true, NOW(), 1, NOW(), 1);
 
 -- Interactions overview
 INSERT INTO tbl_content_card
   (cc_page_id, cc_card_type, cc_title, cc_width, cc_order, cc_active, cc_created, cc_created_by, cc_modified, cc_modified_by)
-VALUES (3, 'overview_card', 'Interactions', 'third', 2, true, NOW(), 1, NOW(), 1);
+VALUES (3, 'interaction_summary', 'Interactions', 'third', 2, true, NOW(), 1, NOW(), 1);
 
 -- Actions overview
 INSERT INTO tbl_content_card
   (cc_page_id, cc_card_type, cc_title, cc_width, cc_order, cc_active, cc_created, cc_created_by, cc_modified, cc_modified_by)
-VALUES (3, 'overview_card', 'Actions', 'third', 3, true, NOW(), 1, NOW(), 1);
+VALUES (3, 'action_summary', 'Actions', 'third', 3, true, NOW(), 1, NOW(), 1);
 
 -- ─── CONTENT CARDS (order 4-5) ───
 -- Focus Area
@@ -43,28 +43,28 @@ VALUES (3, 'card', 'Executive Summary', 'AI summary of what you specifically sho
 -- Overdue Actions
 INSERT INTO tbl_content_card
   (cc_page_id, cc_card_type, cc_title, cc_width, cc_order, cc_filter, cc_active, cc_created, cc_created_by, cc_modified, cc_modified_by)
-VALUES (3, 'actions_link', 'Overdue Actions', 'full', 6, 'overdue', true, NOW(), 1, NOW(), 1);
+VALUES (3, 'action_view', 'Overdue Actions', 'half', 6, 'overdue', true, NOW(), 1, NOW(), 1);
 
 -- Upcoming Actions
 INSERT INTO tbl_content_card
   (cc_page_id, cc_card_type, cc_title, cc_width, cc_order, cc_filter, cc_active, cc_created, cc_created_by, cc_modified, cc_modified_by)
-VALUES (3, 'actions_link', 'Upcoming Actions', 'full', 7, 'upcoming', true, NOW(), 1, NOW(), 1);
+VALUES (3, 'action_view', 'Upcoming Actions', 'half', 7, 'upcoming', true, NOW(), 1, NOW(), 1);
 
 -- Upcoming Interactions
 INSERT INTO tbl_content_card
   (cc_page_id, cc_card_type, cc_title, cc_width, cc_order, cc_filter, cc_active, cc_created, cc_created_by, cc_modified, cc_modified_by)
-VALUES (3, 'interactions_link', 'Upcoming Interactions', 'full', 8, 'upcoming', true, NOW(), 1, NOW(), 1);
+VALUES (3, 'interaction_view', 'Upcoming Interactions', 'half', 8, 'upcoming', true, NOW(), 1, NOW(), 1);
 
 -- Recent Interactions
 INSERT INTO tbl_content_card
   (cc_page_id, cc_card_type, cc_title, cc_width, cc_order, cc_filter, cc_active, cc_created, cc_created_by, cc_modified, cc_modified_by)
-VALUES (3, 'interactions_link', 'Recent Interactions', 'full', 9, 'recent', true, NOW(), 1, NOW(), 1);
+VALUES (3, 'interaction_view', 'Recent Interactions', 'half', 9, 'recent', true, NOW(), 1, NOW(), 1);
 
 -- ─── PAGE LINK (order 10) ───
 -- Strategy Room link card
 INSERT INTO tbl_content_card
   (cc_page_id, cc_card_type, cc_title, cc_width, cc_order, cc_filter, cc_active, cc_created, cc_created_by, cc_modified, cc_modified_by)
-VALUES (3, 'page_link', 'Strategy Room', 'full', 10, 'objectives', true, NOW(), 1, NOW(), 1);
+VALUES (3, 'objectives_link', 'Strategy Room', 'half', 10, 'objectives', true, NOW(), 1, NOW(), 1);
 
 -- Link the page_link card to the Strategy page (cp_id = 1)
 -- We need the cc_id of the card we just inserted, so use a subquery

@@ -95,19 +95,36 @@
             style="width: 200px; padding:0.45rem 0.75rem 0.45rem 2rem; border:1px solid var(--border-subtle); background:rgba(0,0,0,0.02); color:var(--text-primary); border-radius:20px; font-size:0.82rem; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--energy-algae)'" onblur="this.style.borderColor='var(--border-subtle)'">
     </div>
 
-    <div class="custom-filter-pill" id="interactions-filter-type" data-on-change="filterInteractions" style="position:relative; display:inline-block;">
-        <button class="filter-trigger" data-label-base="Type" data-default-label="All" style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:20px; padding:0.4rem 0.75rem; font-size:0.82rem; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:0.25rem; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="if(this.style.background!=='var(--energy-algae)') this.style.borderColor='var(--border-subtle)'">
-            Type: All <span class="material-symbols-outlined" style="font-size:1.1rem;">expand_more</span>
+    <div class="custom-filter-mega" style="position:relative; display:inline-block;">
+        <button id="interactions-mega-trigger" onclick="window.toggleMegaMenu('interactions-mega-menu')" style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:20px; padding:0.4rem 1rem; font-size:0.85rem; font-weight:500; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:0.4rem; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--energy-algae)';this.style.color='var(--text-primary)'" onmouseout="if(!this.classList.contains('active')) { this.style.borderColor='var(--border-subtle)';this.style.color='var(--text-secondary)'; }">
+            <span class="material-symbols-outlined" style="font-size:1.2rem;">filter_list</span> Filters <span id="interactions-filter-count" style="display:none;background:var(--energy-algae);color:#fff;border-radius:10px;padding:0.1rem 0.4rem;font-size:0.7rem;font-weight:700;">0</span>
         </button>
-        <div class="filter-dropdown" style="display:none; position:absolute; top:100%; left:0; margin-top:0.25rem; background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:8px; padding:0.5rem; min-width:180px; z-index:100; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="" checked> All</label>
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Meeting"> Meeting</label>
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Email"> Email</label>
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Call"> Call</label>
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Grant"> Grant</label>
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Support"> Support</label>
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Status"> Status</label>
-            <label style="display:flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Other"> Other</label>
+        <div id="interactions-mega-menu" class="mega-menu-dropdown" style="display:none; position:absolute; top:100%; left:0; margin-top:0.5rem; background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:12px; padding:1.5rem; min-width:380px; z-index:100; box-shadow:0 8px 24px rgba(0,0,0,0.12);">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+                
+                <div class="mega-menu-group" id="interactions-filter-type" data-on-change="filterInteractions">
+                    <h4 style="margin:0 0 0.5rem 0; font-size:0.85rem; color:var(--text-primary); border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">Type</h4>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="" checked> All</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Meeting"> Meeting</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Email"> Email</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Call"> Call</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Grant"> Grant</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Support"> Support</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Status"> Status</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Other"> Other</label>
+                </div>
+
+                <div class="mega-menu-group" id="interactions-filter-stakeholder" data-on-change="filterInteractions">
+                    <h4 style="margin:0 0 0.5rem 0; font-size:0.85rem; color:var(--text-primary); border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">Stakeholder</h4>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="" checked> All</label>
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+            
+            <div style="display:flex; justify-content:flex-end; margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--border-subtle); gap:0.5rem;">
+                <button class="btn-secondary" onclick="window.clearInteractionsFilters()" style="padding:0.3rem 0.8rem; font-size:0.8rem;">Clear All</button>
+                <button class="btn-primary" onclick="window.toggleMegaMenu('interactions-mega-menu')" style="padding:0.3rem 0.8rem; font-size:0.8rem;">Apply</button>
+            </div>
         </div>
     </div>
 
@@ -128,12 +145,12 @@
 <div style="margin-bottom: 1.5rem;">
     <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-tertiary); margin-bottom: 0.5rem; text-transform: uppercase;">Quick Filters</div>
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <button class="quick-filter-btn"><span style="color: #ef4444;">🔴</span> Tense Only</button>
-        <button class="quick-filter-btn">📝 Has Actions</button>
-        <button class="quick-filter-btn">📁 Grants</button>
-        <button class="quick-filter-btn">📧 Emails</button>
-        <button class="quick-filter-btn">Follow-Ups</button>
-        <button class="quick-filter-btn">🔒 Restricted</button>
+        <button class="quick-filter-btn" onclick="document.getElementById('interactions-search').value='Tense'; window.filterInteractions();"><span style="color: #ef4444;">🔴</span> Tense Only</button>
+        <button class="quick-filter-btn" onclick="document.getElementById('interactions-search').value='Action'; window.filterInteractions();">📝 Has Actions</button>
+        <button class="quick-filter-btn" onclick="document.getElementById('interactions-search').value='Grant'; window.filterInteractions();">📁 Grants</button>
+        <button class="quick-filter-btn" onclick="document.getElementById('interactions-search').value='Email'; window.filterInteractions();">📧 Emails</button>
+        <button class="quick-filter-btn" onclick="document.getElementById('interactions-search').value='Follow-up'; window.filterInteractions();">Follow-Ups</button>
+        <button class="quick-filter-btn" onclick="document.getElementById('interactions-search').value=''; window.clearInteractionsFilters();">✕ Clear</button>
     </div>
 </div>
 
