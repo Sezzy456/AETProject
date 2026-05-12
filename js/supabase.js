@@ -146,13 +146,19 @@ async function fetchInteractions() {
             const origId = r.in_original_id;
             const intDate = r.in_date ? new Date(r.in_date) : null;
             const attendees = (attRows||[]).filter(a => a.ia_interaction_original_id===origId).map(a => contactMap[a.ia_contact_id]||'Unknown');
-            const topics = (agendaRows||[]).filter(a => a.iai_interaction_original_id===origId).map(a => a.iai_details||a.iai_type||'');
+            const agendaItems = (agendaRows||[]).filter(a => a.iai_interaction_original_id===origId).map(a => ({
+                id: a.iai_id,
+                type: a.iai_type || 'Discuss',
+                objective: a.iai_objective_id || a.iai_action_id || '',
+                details: a.iai_details || ''
+            }));
+            const topics = agendaItems.map(a => a.details || a.type);
 
             return {
                 id: origId, _dbId: r.in_id, date: intDate?intDate.toLocaleDateString('en-GB',{weekday:'long',hour:'2-digit',minute:'2-digit'}):'',
                 rawDate: intDate?intDate.toISOString().substring(0,10):'', type: intDate&&intDate>now?'Upcoming':'Recent',
                 title: r.in_title||'', agenda: r.in_purpose||'', discussed: r.in_description||'',
-                topics, attendees, outcomeScore: r.in_outcome_score, outcomeNotes: r.in_outcome_notes||'',
+                topics, attendees, agendaItems, outcomeScore: r.in_outcome_score, outcomeNotes: r.in_outcome_notes||'',
                 followUpDate: r.in_follow_up_date?new Date(r.in_follow_up_date).toISOString().substring(0,10):''
             };
         });
@@ -300,6 +306,7 @@ async function updateStakeholderDB(originalId, s) {
             sta_email_tone: s.contactConduct?.emailTone,
             sta_elevator_pitch: s.contactConduct?.elevatorPitches,
             sta_active: true,
+            sta_created: current.sta_created || new Date().toISOString(),
             sta_modified: new Date().toISOString()
         };
         
@@ -340,6 +347,7 @@ async function updateActionDB(originalId, a) {
             ac_timing_due: a.dueDate,
             ac_description: a.description,
             ac_active: true,
+            ac_created: current.ac_created || new Date().toISOString(),
             ac_modified: new Date().toISOString()
         };
         
@@ -549,7 +557,8 @@ window.saveInteraction = async function() {
         const ints = window.getData('interactions') || [];
         const i = ints.find(x => x.id == window.currentInteractionId);
         if (i) {
-            const saved = await updateInteractionDB(i, false);
+            const { data: existing } = await _sb.from('tbl_interaction').select('in_original_id').eq('in_original_id', i.id).maybeSingle();
+            const saved = await updateInteractionDB(i, !existing);
             if (saved) {
                 const fresh = await fetchInteractions();
                 if (fresh) _sbCache.interactions = fresh;

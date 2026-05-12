@@ -42,21 +42,8 @@
 
     <div style="display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1.5rem;">
         <div style="width: 100px; color: var(--text-tertiary); font-size: 0.9rem; padding-top: 0.5rem;">Agenda:</div>
-        <div style="flex: 1;">
-            <div class="card" style="border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1rem; position: relative;">
-                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                    <span class="interaction-pill" style="background: rgba(0,0,0,0.05); border: none;">
-                        <span class="material-symbols-outlined" style="font-size: 1rem;">chat</span> Discuss
-                    </span>
-                    <select id="detail-int-agenda-objective" style="flex: 1; border: 1px solid var(--border-subtle); border-radius: 4px; padding: 0.5rem; font-family: 'Inter', sans-serif;" disabled>
-                        <option value="">objective / action</option>
-                    </select>
-                </div>
-                <div style="display: flex; gap: 1rem; align-items: center;">
-                    <div style="width: 60px; font-weight: 600; font-size: 0.9rem;">Details:</div>
-                    <div id="detail-int-agenda-details-text" style="flex: 1; font-size: 0.9rem; color: var(--text-primary);">Talk / talked about the meeting with [person] and the blockages in the project.</div>
-                </div>
-            </div>
+        <div id="detail-int-agenda-view-container" style="flex: 1; display: flex; flex-direction: column; gap: 1rem;">
+            <!-- Populated dynamically by JS -->
         </div>
     </div>
 </div>

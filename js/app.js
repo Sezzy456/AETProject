@@ -1319,6 +1319,32 @@ function renderInteractionDetail() {
         }).join('');
     }
 
+    const agendaContainer = document.getElementById('detail-int-agenda-view-container');
+    if (agendaContainer) {
+        const items = interaction.agendaItems || [];
+        if (items.length === 0) {
+            agendaContainer.innerHTML = `<div style="font-size: 0.9rem; color: var(--text-tertiary); font-style: italic;">No agenda items</div>`;
+        } else {
+            const icons = { 'Discuss': 'chat', 'Review': 'preview', 'Decide': 'gavel', 'Other': 'more_horiz' };
+            agendaContainer.innerHTML = items.map(item => `
+                <div class="card" style="border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1rem; position: relative;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <span class="interaction-pill" style="background: rgba(0,0,0,0.05); border: none;">
+                            <span class="material-symbols-outlined" style="font-size: 1rem;">${icons[item.type] || 'chat'}</span> ${item.type || 'Discuss'}
+                        </span>
+                        <div style="flex: 1; border: 1px solid var(--border-subtle); border-radius: 4px; padding: 0.5rem; background: var(--bg-app); font-size: 0.9rem; color: var(--text-secondary);">
+                            ${item.objective || 'General objective / action'}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <div style="width: 60px; font-weight: 600; font-size: 0.9rem; color: var(--text-secondary);">Details:</div>
+                        <div style="flex: 1; font-size: 0.9rem; color: var(--text-primary);">${item.details || 'No details provided.'}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
     // Auto-open edit mode if flagged
     if (window._interactionOpenInEditMode) {
         window._interactionOpenInEditMode = false;
@@ -1346,7 +1372,7 @@ window.saveInteraction = function () {
 
     if (isNew) {
         const newInt = {
-            id: Date.now(),
+            id: 'int-' + Date.now(),
             title: title,
             rawDate: date,
             date: date,
@@ -1359,6 +1385,7 @@ window.saveInteraction = function () {
             attendees: ["Vant", "Mayor of CoGB"],
             agendaItems: JSON.parse(JSON.stringify(window._currentAgendaItems || []))
         };
+        window.currentInteractionId = newInt.id;
         interactions.unshift(newInt);
     } else {
         const idx = interactions.findIndex(i => i.id == window.currentInteractionId);
