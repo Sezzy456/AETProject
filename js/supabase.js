@@ -248,23 +248,33 @@ async function saveInteraction(uiData, isNew) {
             });
             if (error) throw error;
         } else {
-            const { error } = await _sb.from('tbl_interaction').update({
+            const { error: updErr } = await _sb.from('tbl_interaction').update({
                 in_title: uiData.title, in_date: uiData.rawDate, in_type: uiData.type,
                 in_purpose: uiData.agenda, in_description: uiData.discussed,
                 in_outcome_score: uiData.outcomeScore, in_outcome_notes: uiData.outcomeNotes,
                 in_modified: new Date().toISOString()
             }).eq('in_original_id', uiData.id);
-            if (error) throw error;
+            if (updErr) {
+                console.error('[Supabase] Interaction update failed:', updErr);
+                throw updErr;
+            }
         }
         return true;
-    } catch (e) { console.error('[Supabase] saveInteraction error:', e); return false; }
+    } catch (e) { 
+        console.error('[Supabase] saveInteraction exception:', e); 
+        alert(`Interaction save failed: ${e.message || 'Unknown error. Check console.'}`);
+        return false; 
+    }
 }
 
 async function updateStakeholderDB(originalId, s) {
     if (!_sb) return false;
     try {
-        const { data: current } = await _sb.from('tbl_stakeholder').select('*').eq('sta_original_id', originalId).eq('sta_active', true).single();
-        if (!current) return false;
+        const { data: current, error: selectErr } = await _sb.from('tbl_stakeholder').select('*').eq('sta_original_id', originalId).eq('sta_active', true).single();
+        if (!current) {
+            console.warn('[Supabase] Could not find active stakeholder to version:', originalId, selectErr);
+            return false;
+        }
         
         await _sb.from('tbl_stakeholder').update({ sta_active: false }).eq('sta_id', current.sta_id);
         
@@ -275,14 +285,14 @@ async function updateStakeholderDB(originalId, s) {
             sta_name: s.name,
             sta_role: s.role,
             sta_narrative_hook: s.narrativeHook,
-            sta_values: s.values,
+            sta_values: s.powerDynamics?.values || s.values || [],
             sta_influence: parseInt(s.powerDynamics?.influence) || parseInt(s.powerGrid?.influence) || 5,
             sta_interest: parseInt(s.powerDynamics?.interest) || parseInt(s.powerGrid?.interest) || 5,
             sta_decision_authority: s.decisionAuthority || s.powerDynamics?.authority,
             sta_posture_current: s.postureJourney?.current,
             sta_posture_desired: s.postureJourney?.desired,
             sta_posture_next_step: s.postureJourney?.nextStep,
-            sta_posture_target_date: s.postureJourney?.goalTarget,
+            sta_posture_target_date: s.postureJourney?.target || s.postureJourney?.goalTarget,
             sta_barriers: s.strategicApproach?.barriers,
             sta_engagement_approach: s.strategicApproach?.engagementApproach,
             sta_comm_preference: s.contactConduct?.preferences,
@@ -292,11 +302,18 @@ async function updateStakeholderDB(originalId, s) {
             sta_modified: new Date().toISOString()
         };
         
-        const { error } = await _sb.from('tbl_stakeholder').insert(newRow);
-        if (error) throw error;
+        const { error: insertErr } = await _sb.from('tbl_stakeholder').insert(newRow);
+        if (insertErr) {
+            console.error('[Supabase] Insert version failed:', insertErr);
+            throw insertErr;
+        }
         console.log('[Supabase] Stakeholder versioned & updated:', originalId);
         return true;
-    } catch (e) { console.error('[Supabase] updateStakeholderDB error:', e); return false; }
+    } catch (e) { 
+        console.error('[Supabase] updateStakeholderDB exception:', e); 
+        alert(`Database save failed: ${e.message || 'Unknown error. Check console.'}`);
+        return false; 
+    }
 }
 
 async function updateActionDB(originalId, a) {
@@ -321,11 +338,18 @@ async function updateActionDB(originalId, a) {
             ac_modified: new Date().toISOString()
         };
         
-        const { error } = await _sb.from('tbl_action').insert(newRow);
-        if (error) throw error;
+        const { error: insertErr } = await _sb.from('tbl_action').insert(newRow);
+        if (insertErr) {
+            console.error('[Supabase] Insert action version failed:', insertErr);
+            throw insertErr;
+        }
         console.log('[Supabase] Action versioned & updated:', originalId);
         return true;
-    } catch (e) { console.error('[Supabase] updateActionDB error:', e); return false; }
+    } catch (e) { 
+        console.error('[Supabase] updateActionDB exception:', e); 
+        alert(`Action save failed: ${e.message || 'Unknown error. Check console.'}`);
+        return false; 
+    }
 }
 
 // ── CONTENT CARDS + VARIATIONS ──────────────────────────────────
