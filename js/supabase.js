@@ -234,7 +234,7 @@ async function saveStakeholderStatus(originalId, newStatus, note) {
     } catch (e) { console.error('[Supabase] saveStakeholderStatus error:', e); return false; }
 }
 
-async function saveInteraction(uiData, isNew) {
+async function updateInteractionDB(uiData, isNew) {
     if (!_sb) return false;
     try {
         if (isNew) {
@@ -273,6 +273,7 @@ async function updateStakeholderDB(originalId, s) {
         const { data: current, error: selectErr } = await _sb.from('tbl_stakeholder').select('*').eq('sta_original_id', originalId).eq('sta_active', true).single();
         if (!current) {
             console.warn('[Supabase] Could not find active stakeholder to version:', originalId, selectErr);
+            alert(`Stakeholder save failed: Could not find active record in DB to version. Check console for ID: ${originalId}`);
             return false;
         }
         
@@ -319,8 +320,12 @@ async function updateStakeholderDB(originalId, s) {
 async function updateActionDB(originalId, a) {
     if (!_sb) return false;
     try {
-        const { data: current } = await _sb.from('tbl_action').select('*').eq('ac_original_id', originalId).eq('ac_active', true).single();
-        if (!current) return false;
+        const { data: current, error: selErr } = await _sb.from('tbl_action').select('*').eq('ac_original_id', originalId).eq('ac_active', true).single();
+        if (!current) {
+            console.warn('[Supabase] Could not find active action to version:', originalId, selErr);
+            alert(`Action save failed: Could not find active record in DB to version. Check console for ID: ${originalId}`);
+            return false;
+        }
         
         await _sb.from('tbl_action').update({ ac_active: false }).eq('ac_id', current.ac_id);
         
@@ -544,7 +549,7 @@ window.saveInteraction = async function() {
         const ints = window.getData('interactions') || [];
         const i = ints.find(x => x.id == window.currentInteractionId);
         if (i) {
-            const saved = await saveInteraction(i, false);
+            const saved = await updateInteractionDB(i, false);
             if (saved) {
                 const fresh = await fetchInteractions();
                 if (fresh) _sbCache.interactions = fresh;
@@ -572,15 +577,15 @@ window.saveStakeholder = async function() {
 };
 
 // Override save action
-const _origAdetSave = window.adetSave;
-window.adetSave = async function() {
-    if (_origAdetSave) _origAdetSave();
+const _origSaveCurrentAction = window.saveCurrentAction;
+window.saveCurrentAction = async function() {
+    if (_origSaveCurrentAction) _origSaveCurrentAction();
     
-    if (_sbReady && window.currentActionId) {
+    if (_sbReady && window._actCurrentId) {
         const actions = window.getData('actions') || [];
-        const a = actions.find(i => i.id == window.currentActionId);
+        const a = actions.find(i => i.id == window._actCurrentId);
         if (a) {
-            const saved = await updateActionDB(window.currentActionId, a);
+            const saved = await updateActionDB(window._actCurrentId, a);
             if (saved) {
                 const fresh = await fetchActions();
                 if (fresh) _sbCache.actions = fresh;
