@@ -254,14 +254,33 @@ async function updateInteractionDB(uiData, isNew) {
             });
             if (error) throw error;
         } else {
-            const { error: updErr } = await _sb.from('tbl_interaction').update({
-                in_title: uiData.title, in_date: uiData.rawDate, in_type: uiData.type,
-                in_purpose: uiData.agenda, in_description: uiData.discussed,
-                in_outcome_score: uiData.outcomeScore, in_outcome_notes: uiData.outcomeNotes,
+            const { data: current, error: selErr } = await _sb.from('tbl_interaction').select('*').eq('in_original_id', uiData.id).eq('in_active', true).single();
+            if (!current) {
+                console.warn('[Supabase] Could not find active interaction to version:', uiData.id, selErr);
+                alert(`Interaction save failed: Could not find active record in DB to version. Check console for ID: ${uiData.id}`);
+                return false;
+            }
+            
+            await _sb.from('tbl_interaction').update({ in_active: false }).eq('in_id', current.in_id);
+            
+            const { in_id, ...rest } = current;
+            const newRow = {
+                ...rest,
+                in_title: uiData.title || current.in_title,
+                in_date: uiData.rawDate || current.in_date,
+                in_type: uiData.type || current.in_type,
+                in_purpose: uiData.agenda || current.in_purpose,
+                in_description: uiData.discussed || current.in_description,
+                in_outcome_score: uiData.outcomeScore || current.in_outcome_score,
+                in_outcome_notes: uiData.outcomeNotes || current.in_outcome_notes,
+                in_active: true,
+                in_created: current.in_created || new Date().toISOString(),
                 in_modified: new Date().toISOString()
-            }).eq('in_original_id', uiData.id);
+            };
+            
+            const { error: updErr } = await _sb.from('tbl_interaction').insert(newRow);
             if (updErr) {
-                console.error('[Supabase] Interaction update failed:', updErr);
+                console.error('[Supabase] Interaction version creation failed:', updErr);
                 throw updErr;
             }
         }
