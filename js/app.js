@@ -1317,6 +1317,11 @@ window.saveInteraction = function () {
     const title = document.getElementById('edit-int-purpose')?.value || 'New Interaction';
     const date = document.getElementById('edit-int-date')?.value || '';
     const desc = document.getElementById('edit-int-description')?.value || '';
+    const typeBtns = document.querySelectorAll('.update-type-btn.active');
+    const types = Array.from(typeBtns).map(btn => btn.getAttribute('data-val'));
+    const type = types.length > 0 ? types.join(', ') : 'Other';
+    const outcomeScore = document.getElementById('edit-int-outcome-slider')?.value || 5;
+    const outcomeNotes = document.getElementById('edit-int-outcome-notes')?.value || '';
 
     const isNew = !window.currentInteractionId;
     const interactions = window.getData('interactions') || [];
@@ -1327,9 +1332,11 @@ window.saveInteraction = function () {
             title: title,
             rawDate: date,
             date: date,
-            type: 'Upcoming',
+            type: type,
             agenda: desc,
             discussed: desc,
+            outcomeScore: parseInt(outcomeScore, 10),
+            outcomeNotes: outcomeNotes,
             topics: [],
             attendees: ["Vant", "Mayor of CoGB"]
         };
@@ -1340,7 +1347,10 @@ window.saveInteraction = function () {
             interactions[idx].title = title;
             interactions[idx].rawDate = date;
             interactions[idx].date = date;
+            interactions[idx].type = type;
             interactions[idx].agenda = desc;
+            interactions[idx].outcomeScore = parseInt(outcomeScore, 10);
+            interactions[idx].outcomeNotes = outcomeNotes;
         }
     }
 
@@ -1422,6 +1432,26 @@ window.toggleInteractionEdit = function() {
                 if (purposeEl) purposeEl.value = interaction.title || '';
                 if (dateEl) dateEl.value = interaction.rawDate || '';
                 if (descEl) descEl.value = interaction.agenda || interaction.discussed || '';
+
+                // Populate type buttons
+                document.querySelectorAll('.update-type-btn').forEach(btn => btn.classList.remove('active'));
+                if (interaction.type) {
+                    const savedTypes = interaction.type.split(',').map(t => t.trim());
+                    savedTypes.forEach(t => {
+                        const btn = document.querySelector(`.update-type-btn[data-val="${t}"]`);
+                        if (btn) btn.classList.add('active');
+                    });
+                }
+
+                // Populate outcome
+                const outcomeSlider = document.getElementById('edit-int-outcome-slider');
+                const outcomeVal = document.getElementById('edit-int-outcome-val');
+                const outcomeNotes = document.getElementById('edit-int-outcome-notes');
+                if (outcomeSlider) {
+                    outcomeSlider.value = interaction.outcomeScore || 5;
+                    if (outcomeVal) outcomeVal.innerText = outcomeSlider.value;
+                }
+                if (outcomeNotes) outcomeNotes.value = interaction.outcomeNotes || '';
             }
         }
         viewMode.style.display = 'none';

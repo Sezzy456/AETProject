@@ -240,15 +240,92 @@ async function saveInteraction(uiData, isNew) {
         if (isNew) {
             const { error } = await _sb.from('tbl_interaction').insert({
                 in_original_id: 'int-'+Date.now(), in_title: uiData.title||'New Interaction',
-                in_date: uiData.rawDate||new Date().toISOString(), in_type:'Other',
+                in_date: uiData.rawDate||new Date().toISOString(), in_type: uiData.type || 'Other',
                 in_purpose: uiData.agenda||'', in_description: uiData.discussed||uiData.agenda||'',
+                in_outcome_score: uiData.outcomeScore || 5, in_outcome_notes: uiData.outcomeNotes || '',
                 in_active: true, in_created: new Date().toISOString(), in_created_by: 1,
                 in_modified: new Date().toISOString(), in_modified_by: 1
             });
             if (error) throw error;
+        } else {
+            const { error } = await _sb.from('tbl_interaction').update({
+                in_title: uiData.title, in_date: uiData.rawDate, in_type: uiData.type,
+                in_purpose: uiData.agenda, in_description: uiData.discussed,
+                in_outcome_score: uiData.outcomeScore, in_outcome_notes: uiData.outcomeNotes,
+                in_modified: new Date().toISOString()
+            }).eq('in_original_id', uiData.id);
+            if (error) throw error;
         }
         return true;
     } catch (e) { console.error('[Supabase] saveInteraction error:', e); return false; }
+}
+
+async function updateStakeholderDB(originalId, s) {
+    if (!_sb) return false;
+    try {
+        const { data: current } = await _sb.from('tbl_stakeholder').select('*').eq('sta_original_id', originalId).eq('sta_active', true).single();
+        if (!current) return false;
+        
+        await _sb.from('tbl_stakeholder').update({ sta_active: false }).eq('sta_id', current.sta_id);
+        
+        const { sta_id, ...rest } = current;
+        
+        const newRow = {
+            ...rest,
+            sta_name: s.name,
+            sta_role: s.role,
+            sta_narrative_hook: s.narrativeHook,
+            sta_values: s.values,
+            sta_influence: parseInt(s.powerGrid?.influence) || 1,
+            sta_interest: parseInt(s.powerGrid?.interest) || 1,
+            sta_decision_authority: s.decisionAuthority,
+            sta_posture_current: s.postureJourney?.current,
+            sta_posture_desired: s.postureJourney?.desired,
+            sta_posture_next_step: s.postureJourney?.nextStep,
+            sta_posture_target_date: s.postureJourney?.goalTarget,
+            sta_barriers: s.strategicApproach?.barriers,
+            sta_engagement_approach: s.strategicApproach?.engagementApproach,
+            sta_comm_preference: s.contactConduct?.preferences,
+            sta_email_tone: s.contactConduct?.emailTone,
+            sta_elevator_pitch: s.contactConduct?.elevatorPitches,
+            sta_active: true,
+            sta_modified: new Date().toISOString()
+        };
+        
+        const { error } = await _sb.from('tbl_stakeholder').insert(newRow);
+        if (error) throw error;
+        console.log('[Supabase] Stakeholder versioned & updated:', originalId);
+        return true;
+    } catch (e) { console.error('[Supabase] updateStakeholderDB error:', e); return false; }
+}
+
+async function updateActionDB(originalId, a) {
+    if (!_sb) return false;
+    try {
+        const { data: current } = await _sb.from('tbl_action').select('*').eq('ac_original_id', originalId).eq('ac_active', true).single();
+        if (!current) return false;
+        
+        await _sb.from('tbl_action').update({ ac_active: false }).eq('ac_id', current.ac_id);
+        
+        const { ac_id, ...rest } = current;
+        
+        const newRow = {
+            ...rest,
+            ac_activity: a.title,
+            ac_status: a.status,
+            ac_priority: a.priority,
+            ac_phase: a.phase,
+            ac_timing_due: a.dueDate,
+            ac_description: a.description,
+            ac_active: true,
+            ac_modified: new Date().toISOString()
+        };
+        
+        const { error } = await _sb.from('tbl_action').insert(newRow);
+        if (error) throw error;
+        console.log('[Supabase] Action versioned & updated:', originalId);
+        return true;
+    } catch (e) { console.error('[Supabase] updateActionDB error:', e); return false; }
 }
 
 // ── CONTENT CARDS + VARIATIONS ──────────────────────────────────
@@ -437,20 +514,55 @@ window.updateDetailStatus = async function(newStatus) {
 // Override save interaction
 const _origSaveInteraction = window.saveInteraction;
 window.saveInteraction = async function() {
-    if (_sbReady) {
-        const title = document.getElementById('edit-int-purpose')?.value||'New Interaction';
-        const date = document.getElementById('edit-int-date')?.value||'';
-        const desc = document.getElementById('edit-int-description')?.value||'';
-        const saved = await saveInteraction({ title, rawDate:date, agenda:desc, discussed:desc }, !window.currentInteractionId);
-        if (saved) {
-            const fresh = await fetchInteractions();
-            if (fresh) _sbCache.interactions = fresh;
-            loadView('interactions');
-            history.pushState(null,'','#interactions');
-            return;
+    if (_origSaveInteraction) _origSaveInteraction();
+    
+    if (_sbReady && window.currentInteractionId) {
+        const ints = window.getData('interactions') || [];
+        const i = ints.find(x => x.id == window.currentInteractionId);
+        if (i) {
+            const saved = await saveInteraction(i, false);
+            if (saved) {
+                const fresh = await fetchInteractions();
+                if (fresh) _sbCache.interactions = fresh;
+            }
         }
     }
-    if (_origSaveInteraction) _origSaveInteraction();
+};
+
+// Override save stakeholder
+const _origSaveStakeholder = window.saveStakeholder;
+window.saveStakeholder = async function() {
+    if (_origSaveStakeholder) _origSaveStakeholder();
+    
+    if (_sbReady && window.currentStakeholderId) {
+        const stakeholders = window.getData('stakeholders') || [];
+        const s = stakeholders.find(i => i.id == window.currentStakeholderId);
+        if (s) {
+            const saved = await updateStakeholderDB(window.currentStakeholderId, s);
+            if (saved) {
+                const fresh = await fetchStakeholders();
+                if (fresh) _sbCache.stakeholders = fresh;
+            }
+        }
+    }
+};
+
+// Override save action
+const _origAdetSave = window.adetSave;
+window.adetSave = async function() {
+    if (_origAdetSave) _origAdetSave();
+    
+    if (_sbReady && window.currentActionId) {
+        const actions = window.getData('actions') || [];
+        const a = actions.find(i => i.id == window.currentActionId);
+        if (a) {
+            const saved = await updateActionDB(window.currentActionId, a);
+            if (saved) {
+                const fresh = await fetchActions();
+                if (fresh) _sbCache.actions = fresh;
+            }
+        }
+    }
 };
 
 // ── BOOT ────────────────────────────────────────────────────────
