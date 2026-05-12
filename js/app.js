@@ -697,25 +697,28 @@ function renderStakeholderDetail() {
         setTxt('view-influence-label', s.powerDynamics.influence);
         setTxt('view-interest-label', s.powerDynamics.interest);
 
-        const inf = (s.powerDynamics.influence || '').toLowerCase();
-        const int_ = (s.powerDynamics.interest || '').toLowerCase();
+        const inf = parseInt(s.powerDynamics.influence, 10) || 5;
+        const int_ = parseInt(s.powerDynamics.interest, 10) || 5;
         let verbStr = 'MONITOR';
-        if (inf === 'high' && int_ === 'high') verbStr = 'ENGAGE';
-        else if (inf === 'high' && int_ === 'low') verbStr = 'SATISFY';
-        else if (inf === 'low' && int_ === 'high') verbStr = 'INFORM';
+        if (inf >= 5 && int_ >= 5) verbStr = 'ENGAGE';
+        else if (inf >= 5 && int_ < 5) verbStr = 'SATISFY';
+        else if (inf < 5 && int_ >= 5) verbStr = 'INFORM';
 
         const vBadge = document.getElementById('view-matrix-verb');
         if (vBadge) vBadge.textContent = verbStr;
 
-        const getPct = (str) => str.toLowerCase() === 'high' ? '100%' : str.toLowerCase() === 'medium' ? '50%' : '15%';
         const infBar = document.getElementById('view-influence-bar');
         const intBar = document.getElementById('view-interest-bar');
-        if (infBar) infBar.style.width = getPct(s.powerDynamics.influence || '');
-        if (intBar) intBar.style.width = getPct(s.powerDynamics.interest || '');
+        const infLabel = document.getElementById('view-influence-label');
+        const intLabel = document.getElementById('view-interest-label');
+        if (infBar) infBar.style.width = (inf / 10 * 100) + '%';
+        if (intBar) intBar.style.width = (int_ / 10 * 100) + '%';
+        if (infLabel) infLabel.innerText = inf + '/10';
+        if (intLabel) intLabel.innerText = int_ + '/10';
 
         setTxt('view-authority', s.powerDynamics.authority);
 
-        const pvC = document.getElementById('view-power-values-container');
+        const pvC = document.getElementById('view-values-container');
         if (pvC && s.powerDynamics.values) {
             pvC.innerHTML = s.powerDynamics.values.map(v => `<span style="background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-secondary); border-radius:4px; padding:0.2rem 0.5rem; font-size:0.75rem;">${v}</span>`).join('');
         }
@@ -961,14 +964,20 @@ window.toggleStakeholderEdit = function () {
             if (s) {
                 const set = (elId, v) => { const el = document.getElementById(elId); if(el) el.value = v || ''; };
                 set('sdet-e-narrativeHook', s.narrativeHook);
-                set('sdet-e-values', (s.values || []).join(', '));
-                set('sdet-e-influence', s.powerGrid?.influence || '');
-                set('sdet-e-interest', s.powerGrid?.interest || '');
-                set('sdet-e-authority', s.decisionAuthority || '');
+                set('sdet-e-values', (s.powerDynamics?.values || []).join(', '));
+                set('sdet-e-status', s.status);
+                set('sdet-e-influence', s.powerDynamics?.influence || '5');
+                set('sdet-e-interest', s.powerDynamics?.interest || '5');
+                set('sdet-e-authority', s.powerDynamics?.authority || s.decisionAuthority || '');
+                const infDisp = document.getElementById('sdet-e-inf-display');
+                if (infDisp) infDisp.innerText = s.powerDynamics?.influence || '5';
+                const intDisp = document.getElementById('sdet-e-int-display');
+                if (intDisp) intDisp.innerText = s.powerDynamics?.interest || '5';
+                
                 set('sdet-e-posture-current', s.postureJourney?.current || '');
                 set('sdet-e-posture-desired', s.postureJourney?.desired || '');
                 set('sdet-e-posture-next', s.postureJourney?.nextStep || '');
-                set('sdet-e-posture-target', s.postureJourney?.goalTarget || '');
+                set('sdet-e-posture-target', s.postureJourney?.target || s.postureJourney?.goalTarget || '');
                 set('sdet-e-barriers', s.strategicApproach?.barriers || '');
                 set('sdet-e-engagement-approach', s.strategicApproach?.engagementApproach || '');
                 set('sdet-e-tactics', s.strategicApproach?.tactics ? JSON.stringify(s.strategicApproach.tactics, null, 2) : '');
@@ -998,18 +1007,27 @@ window.saveStakeholder = function () {
     const get = (elId) => { const el = document.getElementById(elId); return el ? el.value : ''; };
 
     s.narrativeHook = get('sdet-e-narrativeHook');
-    s.values = get('sdet-e-values').split(',').map(v => v.trim()).filter(Boolean);
     
-    if (!s.powerGrid) s.powerGrid = {};
-    s.powerGrid.influence = parseInt(get('sdet-e-influence'), 10) || 0;
-    s.powerGrid.interest = parseInt(get('sdet-e-interest'), 10) || 0;
-    s.decisionAuthority = get('sdet-e-authority');
+    if (!s.powerDynamics) s.powerDynamics = {};
+    s.powerDynamics.values = get('sdet-e-values').split(',').map(v => v.trim()).filter(Boolean);
+    s.powerDynamics.influence = parseInt(get('sdet-e-influence'), 10) || 5;
+    s.powerDynamics.interest = parseInt(get('sdet-e-interest'), 10) || 5;
+    s.powerDynamics.authority = get('sdet-e-authority');
+    s.decisionAuthority = s.powerDynamics.authority; // Keep for compatibility if needed
+    
+    const newStatus = get('sdet-e-status');
+    if (newStatus && newStatus !== s.status) {
+        if (!s.statusHistory) s.statusHistory = [];
+        const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        s.statusHistory.push({ date: dateStr, status: newStatus, notes: 'Status updated via profile edit.' });
+        s.status = newStatus;
+    }
     
     if (!s.postureJourney) s.postureJourney = {};
     s.postureJourney.current = get('sdet-e-posture-current');
     s.postureJourney.desired = get('sdet-e-posture-desired');
     s.postureJourney.nextStep = get('sdet-e-posture-next');
-    s.postureJourney.goalTarget = get('sdet-e-posture-target');
+    s.postureJourney.target = get('sdet-e-posture-target');
 
     if (!s.strategicApproach) s.strategicApproach = {};
     s.strategicApproach.barriers = get('sdet-e-barriers');
@@ -1338,7 +1356,8 @@ window.saveInteraction = function () {
             outcomeScore: parseInt(outcomeScore, 10),
             outcomeNotes: outcomeNotes,
             topics: [],
-            attendees: ["Vant", "Mayor of CoGB"]
+            attendees: ["Vant", "Mayor of CoGB"],
+            agendaItems: JSON.parse(JSON.stringify(window._currentAgendaItems || []))
         };
         interactions.unshift(newInt);
     } else {
@@ -1351,6 +1370,7 @@ window.saveInteraction = function () {
             interactions[idx].agenda = desc;
             interactions[idx].outcomeScore = parseInt(outcomeScore, 10);
             interactions[idx].outcomeNotes = outcomeNotes;
+            interactions[idx].agendaItems = JSON.parse(JSON.stringify(window._currentAgendaItems || []));
         }
     }
 
@@ -1400,6 +1420,108 @@ window.savePullupAction = function() {
     }
     
     alert('Action added to Actions list successfully.');
+};
+
+window._currentAgendaItems = [];
+
+window.renderAgendaItems = function() {
+    const container = document.getElementById('edit-int-agenda-container');
+    if (!container) return;
+    
+    if (window._currentAgendaItems.length === 0) {
+        window._currentAgendaItems.push({ id: Date.now(), objective: '', details: '' });
+    }
+    
+    container.innerHTML = window._currentAgendaItems.map((item, index) => `
+        <div style="flex: 1; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1.5rem; position: relative;">
+            <div style="position: absolute; left: 0.5rem; top: 1.5rem; color: var(--text-tertiary); cursor: move;">
+                <span class="material-symbols-outlined">drag_indicator</span>
+            </div>
+            <div style="margin-left: 1.5rem;">
+                <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+                    <select class="agenda-objective" data-id="${item.id}" style="flex: 1; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.5rem; font-family: 'Inter', sans-serif; background: #fff;" onchange="window.updateAgendaItem(${item.id}, 'objective', this.value)">
+                        <option value="">Link to Objective / Action...</option>
+                        <option value="Stakeholder Messaging Toolkit" ${item.objective === 'Stakeholder Messaging Toolkit' ? 'selected' : ''}>Stakeholder Messaging Toolkit</option>
+                    </select>
+                    <div style="display: flex; gap: 0.25rem;">
+                        <button type="button" style="width: 32px; height: 32px; border: 1px solid var(--border-subtle); background: #fff; border-radius:4px; cursor: pointer;" onclick="window.addAgendaItem()">+</button>
+                        <button type="button" style="width: 32px; height: 32px; border: 1px solid var(--border-subtle); background: #fff; border-radius:4px; cursor: pointer;" onclick="window.removeAgendaItem(${item.id})">-</button>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+                    <label style="font-weight: 600; margin: 0; font-size:0.9rem;">Details:</label>
+                    <input type="text" class="agenda-details" data-id="${item.id}" value="${item.details || ''}" style="flex: 1; border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; padding: 0.5rem; font-family: 'Inter', sans-serif;" oninput="window.updateAgendaItem(${item.id}, 'details', this.value)">
+                </div>
+                
+                <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.75rem; cursor: pointer;" onclick="window.toggleQuickActionEdit(${item.id}, event)">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--text-secondary); font-size: 0.9rem; font-weight:600;">Quick Edit Action</span>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <button type="button" class="btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.8rem;" onclick="event.stopPropagation(); window.viewActionEdit();">Advanced</button>
+                            <span style="color: var(--text-tertiary); font-size: 0.85rem;">(click to expand)</span>
+                            <span class="material-symbols-outlined" style="color: var(--text-tertiary);">expand_more</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INLINE QUICK EDIT ACTION CONTAINER -->
+                <div id="quick-action-expand-${item.id}" style="display:none; border:1px solid var(--border-subtle); border-top:none; border-bottom-left-radius:8px; border-bottom-right-radius:8px; padding:1.5rem; background:#fff; margin-top:-4px;">
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <label style="width: 100px; color: var(--text-secondary); font-size:0.9rem;">Action Title:</label>
+                            <input type="text" value="${item.objective || ''}" style="flex: 1; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; background: #fff;">
+                        </div>
+                        
+                        <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                            <label style="width: 100px; color: var(--text-secondary); padding-top: 0.5rem; font-size:0.9rem;">Description:</label>
+                            <textarea rows="2" style="flex: 1; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; background: #fff;">${item.details || ''}</textarea>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <label style="width: 100px; color: var(--text-secondary); font-size:0.9rem;">Status:</label>
+                            <select style="width: 200px; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; background: #fff;">
+                                <option>In Progress</option>
+                                <option>At Risk</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+};
+
+window.addAgendaItem = function() {
+    window._currentAgendaItems.push({ id: Date.now() + Math.random(), objective: '', details: '' });
+    window.renderAgendaItems();
+};
+
+window.removeAgendaItem = function(id) {
+    window._currentAgendaItems = window._currentAgendaItems.filter(i => i.id !== id);
+    if (window._currentAgendaItems.length === 0) {
+        window.addAgendaItem(); // keep at least one
+    } else {
+        window.renderAgendaItems();
+    }
+};
+
+window.updateAgendaItem = function(id, field, value) {
+    const item = window._currentAgendaItems.find(i => i.id === id);
+    if (item) {
+        item[field] = value;
+    }
+};
+
+window.toggleQuickActionEdit = function(id, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    const el = document.getElementById(`quick-action-expand-${id}`);
+    if (el) {
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
 };
 
 window.toggleInteractionEdit = function() {
@@ -1452,7 +1574,15 @@ window.toggleInteractionEdit = function() {
                     if (outcomeVal) outcomeVal.innerText = outcomeSlider.value;
                 }
                 if (outcomeNotes) outcomeNotes.value = interaction.outcomeNotes || '';
+                
+                // Populate agenda
+                window._currentAgendaItems = interaction.agendaItems || [];
+                window.renderAgendaItems();
             }
+        } else {
+            // New interaction
+            window._currentAgendaItems = [];
+            window.renderAgendaItems();
         }
         viewMode.style.display = 'none';
         editMode.style.display = 'block';
