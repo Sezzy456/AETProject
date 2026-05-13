@@ -324,6 +324,7 @@ async function updateStakeholderDB(originalId, s) {
             sta_comm_preference: s.contactConduct?.preferences,
             sta_email_tone: s.contactConduct?.emailTone,
             sta_elevator_pitch: s.contactConduct?.elevatorPitches,
+            sta_audience_message: s.audienceMessage,
             sta_active: true,
             sta_created: current.sta_created || new Date().toISOString(),
             sta_modified: new Date().toISOString()

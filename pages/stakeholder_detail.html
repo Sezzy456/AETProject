@@ -115,18 +115,27 @@ details > summary::-webkit-details-marker { display: none; }
 <div class="sdet-row" style="margin-top:1.5rem;">
     <div class="sdet-row-label">Posture Journey:</div>
     <div class="sdet-row-content" style="flex:1;">
-        <div style="display:flex; align-items:center; gap:2rem;">
-            <div class="sdet-card" style="flex:1; padding:1rem;">
+        <div style="display:flex; align-items:stretch; gap:1rem;">
+            <div class="sdet-card" style="flex:1; padding:1rem; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-surface);">
                 <div style="color:#6b7280; font-size:0.8rem; font-weight:600; margin-bottom:0.5rem;">Current:</div>
                 <div id="view-posture-current" style="font-size:0.95rem;">-</div>
             </div>
-            <span class="material-symbols-outlined" style="color:var(--text-tertiary);">arrow_forward</span>
-            <div style="flex:1; border:1px solid #3b82f6; padding:1rem; border-radius:12px; background:rgba(59,130,246,0.05);">
-                <div style="color:#6b7280; font-size:0.8rem; font-weight:600; margin-bottom:0.5rem;">Desired:</div>
-                <div id="view-posture-desired" style="font-size:0.95rem;">-</div>
-                <div style="margin-top:1rem; font-size:0.85rem; border-top:1px solid rgba(59,130,246,0.2); padding-top:0.5rem; display:flex; justify-content:space-between;">
-                    <span><span style="color:#ef4444; font-weight:bold;">Next Step:</span> <span id="view-posture-next">-</span></span>
-                    <span><span style="color:#ef4444; font-weight:bold;">Target Date:</span> <span id="view-posture-target">-</span></span>
+            
+            <div style="width:120px; display:flex; flex-direction:column; align-items:center; justify-content:center; flex-shrink:0;">
+                <span class="material-symbols-outlined" style="color:var(--text-tertiary); margin-bottom:0.25rem;">arrow_forward</span>
+                <div style="text-align:center; font-size:0.75rem;">
+                    <div style="color:#ef4444; font-weight:bold;">Next Step:</div>
+                    <div id="view-posture-next" style="color:var(--text-secondary); line-height:1.2; margin-top:0.2rem;">-</div>
+                </div>
+            </div>
+
+            <div style="flex:1; display:flex; flex-direction:column; gap:0.5rem;">
+                <div style="border:1px solid #3b82f6; padding:1rem; border-radius:12px; background:rgba(59,130,246,0.05); flex:1;">
+                    <div style="color:#6b7280; font-size:0.8rem; font-weight:600; margin-bottom:0.5rem;">Desired:</div>
+                    <div id="view-posture-desired" style="font-size:0.95rem;">-</div>
+                </div>
+                <div style="text-align:center; font-size:0.85rem; padding:0.25rem;">
+                    <span style="color:#ef4444; font-weight:bold;">Target Date:</span> <span id="view-posture-target">-</span>
                 </div>
             </div>
         </div>
@@ -136,6 +145,24 @@ details > summary::-webkit-details-marker { display: none; }
 <div class="sdet-row">
     <div class="sdet-row-label">Engagement Approach:</div>
     <div id="view-engagement-approach" class="sdet-row-content" style="font-size:0.95rem; line-height:1.5;">-</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     INTERACTIONS VIEW
+═══════════════════════════════════════════════════════════ -->
+<h3 class="sdet-section-title">Recent Updates</h3>
+
+<div id="stakeholder-interactions-container" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1.5rem;">
+    <!-- Interactions injected here -->
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     ACTIONS VIEW
+═══════════════════════════════════════════════════════════ -->
+<h3 class="sdet-section-title">Actions</h3>
+
+<div id="stakeholder-actions-container" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1.5rem;">
+    <!-- Actions injected here -->
 </div>
 
 <!-- ══════════════════════════════════════════════════════════
@@ -164,14 +191,19 @@ details > summary::-webkit-details-marker { display: none; }
     <h4 style="font-size:1rem; margin-bottom:1rem; color:var(--text-secondary);">Key Contacts</h4>
     <div style="display:flex; gap:2rem; flex-wrap:wrap;">
         <div id="view-contacts-list" style="flex:1; display:flex; flex-direction:column; gap:1rem; min-width:300px;"></div>
-        <div class="sdet-card" style="width:300px; padding:1rem;">
-            <span style="font-size:0.8rem; font-weight:600; display:block; margin-bottom:0.5rem;">Quick Add:</span>
-            <input type="text" placeholder="Name" style="width:100%; padding:0.4rem; margin-bottom:0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); border-radius:4px;">
-            <input type="text" placeholder="Role (e.g. CEO)" style="width:100%; padding:0.4rem; margin-bottom:0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); border-radius:4px;">
-            <input type="text" placeholder="Email Address" style="width:100%; padding:0.4rem; margin-bottom:0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); border-radius:4px;">
-            <input type="text" placeholder="Phone Number" style="width:100%; padding:0.4rem; margin-bottom:0.8rem; border:1px solid var(--border-subtle); background:var(--bg-surface); border-radius:4px;">
-            <div style="display:flex; justify-content:flex-end;">
-                <button class="btn-primary" style="background:#a3a3a3; border:none; color:white; padding:0.2rem 1rem;">Add</button>
+        <div style="width:300px;">
+            <button class="btn-secondary" style="width:100%; justify-content:center; display:flex; align-items:center; gap:0.5rem;" onclick="const el=document.getElementById('quick-add-form'); el.style.display=el.style.display==='none'?'block':'none';">
+                <span class="material-symbols-outlined">person_add</span> Quick Add Contact
+            </button>
+            <div id="quick-add-form" class="sdet-card" style="display:none; padding:1rem; margin-top:0.5rem;">
+                <span style="font-size:0.8rem; font-weight:600; display:block; margin-bottom:0.5rem;">Quick Add:</span>
+                <input type="text" placeholder="Name" style="width:100%; padding:0.4rem; margin-bottom:0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); border-radius:4px;">
+                <input type="text" placeholder="Role (e.g. CEO)" style="width:100%; padding:0.4rem; margin-bottom:0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); border-radius:4px;">
+                <input type="text" placeholder="Email Address" style="width:100%; padding:0.4rem; margin-bottom:0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); border-radius:4px;">
+                <input type="text" placeholder="Phone Number" style="width:100%; padding:0.4rem; margin-bottom:0.8rem; border:1px solid var(--border-subtle); background:var(--bg-surface); border-radius:4px;">
+                <div style="display:flex; justify-content:flex-end;">
+                    <button class="btn-primary" style="background:#a3a3a3; border:none; color:white; padding:0.2rem 1rem;">Add</button>
+                </div>
             </div>
         </div>
     </div>
@@ -256,23 +288,7 @@ details > summary::-webkit-details-marker { display: none; }
 </details>
 
 
-<!-- ══════════════════════════════════════════════════════════
-     ACTIONS VIEW
-═══════════════════════════════════════════════════════════ -->
-<h3 class="sdet-section-title">Actions View</h3>
 
-<div id="stakeholder-actions-container" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1rem;">
-    <!-- Actions injected here -->
-</div>
-
-<!-- ══════════════════════════════════════════════════════════
-     INTERACTIONS VIEW
-═══════════════════════════════════════════════════════════ -->
-<h3 class="sdet-section-title">Recent Updates</h3>
-
-<div id="stakeholder-interactions-container" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1rem;">
-    <!-- Interactions injected here -->
-</div>
 
 </div>
 
@@ -286,6 +302,13 @@ details > summary::-webkit-details-marker { display: none; }
     <div class="sdet-row-label">Narrative Hook:</div>
     <div class="sdet-row-content">
         <textarea id="sdet-e-narrativeHook" rows="2" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; font-family:inherit; font-style:italic; font-size:0.95rem;"></textarea>
+    </div>
+</div>
+
+<div class="sdet-row">
+    <div class="sdet-row-label">Audience Message:</div>
+    <div class="sdet-row-content">
+        <textarea id="sdet-e-audience-message" rows="3" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; font-family:inherit; font-size:0.95rem; resize:vertical;"></textarea>
     </div>
 </div>
 
