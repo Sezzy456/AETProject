@@ -41,6 +41,8 @@
 .details-content { padding:1.5rem; border-top:1px solid var(--border-subtle); background:var(--bg-surface); }
 details > summary { list-style: none; }
 details > summary::-webkit-details-marker { display: none; }
+.sdet-section-details > summary { list-style: none; }
+.sdet-section-details > summary::-webkit-details-marker { display: none; }
 </style>
 
 <!-- ── BREADCRUMBS + HEADER ────────────────────────────────── -->
@@ -53,27 +55,22 @@ details > summary::-webkit-details-marker { display: none; }
             
             <div style="display:flex; align-items:center; gap:0.25rem; position:relative;">
                 <span style="color:var(--text-tertiary); margin-left:0.5rem;">Status:</span>
-                <span id="view-status-badge" style="background:rgba(245, 158, 11, 0.2); color:var(--energy-mid); padding:0.2rem 0.6rem; border-radius:4px; font-weight:600; font-size:0.8rem; cursor:pointer;" onclick="document.getElementById('view-status-selector-popup').style.display = document.getElementById('view-status-selector-popup').style.display === 'none' ? 'block' : 'none';">-</span>
-                <span class="material-symbols-outlined" style="font-size:1rem; cursor:pointer; color:var(--text-tertiary);" onclick="document.getElementById('view-status-selector-popup').style.display = document.getElementById('view-status-selector-popup').style.display === 'none' ? 'block' : 'none';">info</span>
-                
-                <!-- Status Pop-up -->
-                <div id="view-status-selector-popup" style="display:none; position:absolute; top:120%; left:0; background:white; border:1px solid var(--border-subtle); border-radius:8px; padding:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.1); z-index:100; width:300px;">
-                    <div style="font-size:0.85rem; font-weight:600; margin-bottom:0.5rem;">Change Status</div>
-                    <div class="seg-bar" id="view-status-selector" style="margin-top:0.5rem; margin-bottom:1rem; width:100%;">
-                        <div class="seg-block" style="background:#ef4444;" onclick="window._tempStatus = 'Critical/At Risk'; document.querySelectorAll('#view-status-selector .seg-block').forEach(b => b.classList.remove('active')); this.classList.add('active');" title="Critical/At Risk"></div>
-                        <div class="seg-block" style="background:#f97316;" onclick="window._tempStatus = 'Strained'; document.querySelectorAll('#view-status-selector .seg-block').forEach(b => b.classList.remove('active')); this.classList.add('active');" title="Strained"></div>
-                        <div class="seg-block" style="background:#eab308;" onclick="window._tempStatus = 'Friction Points'; document.querySelectorAll('#view-status-selector .seg-block').forEach(b => b.classList.remove('active')); this.classList.add('active');" title="Friction Points"></div>
-                        <div class="seg-block" style="background:#f9fafb;" onclick="window._tempStatus = 'Dormant'; document.querySelectorAll('#view-status-selector .seg-block').forEach(b => b.classList.remove('active')); this.classList.add('active');" title="Dormant"></div>
-                        <div class="seg-block" style="background:#a3e635;" onclick="window._tempStatus = 'Stable'; document.querySelectorAll('#view-status-selector .seg-block').forEach(b => b.classList.remove('active')); this.classList.add('active');" title="Stable"></div>
-                        <div class="seg-block" style="background:#22c55e;" onclick="window._tempStatus = 'Operational'; document.querySelectorAll('#view-status-selector .seg-block').forEach(b => b.classList.remove('active')); this.classList.add('active');" title="Operational"></div>
-                    </div>
-                    <div style="display:flex; justify-content:flex-end;">
-                        <button class="btn-primary" style="padding:0.2rem 0.8rem; font-size:0.8rem;" onclick="if(window._tempStatus) updateDetailStatus(window._tempStatus); document.getElementById('view-status-selector-popup').style.display='none';">Save Status</button>
+                <span id="view-status-badge" style="background:rgba(245, 158, 11, 0.2); color:var(--energy-mid); padding:0.2rem 0.6rem; border-radius:4px; font-weight:600; font-size:0.8rem;">-</span>
+                <div class="custom-tooltip">
+                    <span class="material-symbols-outlined" style="display:block; font-size:1rem; cursor:help; color:var(--text-tertiary);">info</span>
+                    <div class="custom-tooltip-content" style="width:280px; top:120%; right:auto; left:0; transform:none; font-family:var(--font-body),sans-serif; font-weight:normal; text-transform:none;">
+                        <div style="font-weight:bold; margin-bottom:0.5rem;">Status Definitions</div>
+                        <div class="status-def"><div class="status-dot" style="background:#22c55e;"></div><div><strong>Operational:</strong> Functioning normally, no major issues.</div></div>
+                        <div class="status-def"><div class="status-dot" style="background:#a3e635;"></div><div><strong>Stable:</strong> Consistent, but requires monitoring.</div></div>
+                        <div class="status-def"><div class="status-dot" style="background:#f9fafb;"></div><div><strong>Dormant:</strong> Inactive or paused relationship.</div></div>
+                        <div class="status-def"><div class="status-dot" style="background:#eab308;"></div><div><strong>Friction Points:</strong> Minor issues or disagreements.</div></div>
+                        <div class="status-def"><div class="status-dot" style="background:#f97316;"></div><div><strong>Strained:</strong> Significant tension, needs active management.</div></div>
+                        <div class="status-def" style="margin-bottom:0;"><div class="status-dot" style="background:#ef4444;"></div><div><strong>Critical/At Risk:</strong> Relationship in jeopardy.</div></div>
                     </div>
                 </div>
             </div>
 
-            <div style="display:flex; align-items:center; gap:0.25rem;">
+            <div style="display:flex; align-items:center; gap:0.25rem; margin-left:1.5rem;">
                 <span style="color:var(--text-tertiary); margin-left:0.5rem;">Priority:</span>
                 <span id="view-matrix-verb" class="matrix-verb-badge"></span>
                 <div class="custom-tooltip">
@@ -122,7 +119,7 @@ details > summary::-webkit-details-marker { display: none; }
     <div class="sdet-row-label">Posture Journey:</div>
     <div class="sdet-row-content" style="flex:1;">
         <div style="display:flex; align-items:flex-start; gap:1rem;">
-            <div class="sdet-card" style="flex:1; flex-basis:0; min-width:0; padding:1rem; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-surface);">
+            <div class="sdet-card" style="flex:0.6; flex-basis:0; min-width:0; padding:1rem; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-surface);">
                 <div style="color:#6b7280; font-size:0.8rem; font-weight:600; margin-bottom:0.5rem;">Current:</div>
                 <div id="view-posture-current" style="font-size:0.95rem;">-</div>
             </div>
@@ -156,25 +153,37 @@ details > summary::-webkit-details-marker { display: none; }
 <!-- ══════════════════════════════════════════════════════════
      INTERACTIONS VIEW
 ═══════════════════════════════════════════════════════════ -->
-<h3 class="sdet-section-title">Recent Updates</h3>
-
+<details class="sdet-section-details" open>
+<summary class="sdet-section-title" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+    <span>Recent Updates</span>
+    <span class="material-symbols-outlined">expand_more</span>
+</summary>
 <div id="stakeholder-interactions-container" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1.5rem;">
     <!-- Interactions injected here -->
 </div>
+</details>
 
 <!-- ══════════════════════════════════════════════════════════
      ACTIONS VIEW
 ═══════════════════════════════════════════════════════════ -->
-<h3 class="sdet-section-title">Actions</h3>
-
+<details class="sdet-section-details" open>
+<summary class="sdet-section-title" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+    <span>Actions</span>
+    <span class="material-symbols-outlined">expand_more</span>
+</summary>
 <div id="stakeholder-actions-container" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1.5rem;">
     <!-- Actions injected here -->
 </div>
+</details>
 
 <!-- ══════════════════════════════════════════════════════════
      CONTACT CONDUCT / COMMUNICATION
 ═══════════════════════════════════════════════════════════ -->
-<h3 class="sdet-section-title">Communication & Contacts</h3>
+<details class="sdet-section-details" open>
+<summary class="sdet-section-title" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+    <span>Communication & Contacts</span>
+    <span class="material-symbols-outlined">expand_more</span>
+</summary>
 
 <div class="sdet-row">
     <div class="sdet-row-label">Audience Specific Message:</div>
@@ -217,12 +226,16 @@ details > summary::-webkit-details-marker { display: none; }
     </div>
     </div>
 </div>
-</div>
+</details>
 
 <!-- ══════════════════════════════════════════════════════════
      ADVANCED SETTINGS DROPDOWNS
 ═══════════════════════════════════════════════════════════ -->
-<h3 class="sdet-section-title">Stakeholder Analysis (Advanced)</h3>
+<details class="sdet-section-details" open>
+<summary class="sdet-section-title" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+    <span>Stakeholder Analysis (Advanced)</span>
+    <span class="material-symbols-outlined">expand_more</span>
+</summary>
 
 <details class="details-panel">
     <summary class="details-summary">
@@ -306,9 +319,7 @@ details > summary::-webkit-details-marker { display: none; }
         </div>
     </div>
 </details>
-
-
-
+</details>
 
 </div>
 

@@ -70,7 +70,7 @@ async function fetchStakeholders() {
                 id: r.sta_original_id, _dbId: r.sta_id, name: r.sta_name||'', role: r.sta_role||'',
                 status: STATUS_INT_TO_LABEL[r.sta_status] || r.sta_status || 'Unknown',
                 statusHistory, narrativeHook: r.sta_narrative_hook||'', values: r.sta_values||[],
-                powerDynamics: { influence: INFLUENCE_INT_TO_LABEL[r.sta_influence]||'Low', interest: INFLUENCE_INT_TO_LABEL[r.sta_interest]||'Low', authority: r.sta_decision_authority||'', values: r.sta_values||[] },
+                powerDynamics: { influence: r.sta_influence||5, interest: r.sta_interest||5, authority: r.sta_decision_authority||'', values: r.sta_values||[] },
                 postureJourney: { current: r.sta_posture_current||'', desired: r.sta_posture_desired||'', nextStep: r.sta_posture_next_step||'', target: r.sta_posture_target_date||'' },
                 strategicApproach: { barriers: r.sta_barriers||'', engagementApproach: r.sta_engagement_approach||'', tactics: [] },
                 contactConduct: { preferences: r.sta_comm_preference||'', emailTone: r.sta_email_tone||'', elevatorPitches: r.sta_elevator_pitch||'' },
