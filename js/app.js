@@ -715,6 +715,8 @@ function renderStakeholderDetail() {
         if (intBar) intBar.style.width = (int_ / 10 * 100) + '%';
         if (infLabel) infLabel.innerText = inf + '/10';
         if (intLabel) intLabel.innerText = int_ + '/10';
+        setTxt('header-influence-label', inf + '/10');
+        setTxt('header-interest-label', int_ + '/10');
 
         setTxt('view-authority', s.powerDynamics.authority);
 
