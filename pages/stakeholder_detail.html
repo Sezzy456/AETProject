@@ -119,12 +119,12 @@ details > summary::-webkit-details-marker { display: none; }
     <div class="sdet-row-label">Posture Journey:</div>
     <div class="sdet-row-content" style="flex:1;">
         <div style="display:flex; align-items:flex-start; gap:1rem;">
-            <div class="sdet-card" style="flex:1; flex-basis:0; min-width:0; padding:1rem; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-surface);">
+            <div class="sdet-card" style="flex: 1; box-sizing: border-box; min-width: 0; padding:1rem; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-surface);">
                 <div style="color:#6b7280; font-size:0.8rem; font-weight:600; margin-bottom:0.5rem;">Current:</div>
                 <div id="view-posture-current" style="font-size:0.95rem;">-</div>
             </div>
             
-            <div style="width:120px; display:flex; flex-direction:column; align-items:center; justify-content:center; flex-shrink:0; padding-top:1.5rem;">
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex-shrink:0; padding:1.5rem 0.5rem 0 0.5rem; max-width: 200px;">
                 <span class="material-symbols-outlined" style="color:var(--text-tertiary); margin-bottom:0.25rem;">arrow_forward</span>
                 <div style="text-align:center; font-size:0.75rem;">
                     <div style="color:#ef4444; font-weight:bold;">Next Step:</div>
@@ -132,7 +132,7 @@ details > summary::-webkit-details-marker { display: none; }
                 </div>
             </div>
 
-            <div style="flex:1; flex-basis:0; min-width:0; display:flex; flex-direction:column; gap:0.5rem;">
+            <div style="flex: 1; box-sizing: border-box; min-width: 0; display:flex; flex-direction:column; gap:0.5rem;">
                 <div style="border:1px solid #3b82f6; padding:1rem; border-radius:12px; background:rgba(59,130,246,0.05); flex:1;">
                     <div style="color:#6b7280; font-size:0.8rem; font-weight:600; margin-bottom:0.5rem;">Desired:</div>
                     <div id="view-posture-desired" style="font-size:0.95rem;">-</div>
