@@ -41,6 +41,8 @@
 .details-content { padding:1.5rem; border-top:1px solid var(--border-subtle); background:var(--bg-surface); }
 details > summary { list-style: none; }
 details > summary::-webkit-details-marker { display: none; }
+details > summary .material-symbols-outlined { transition: transform 0.2s ease-in-out; transform: rotate(-90deg); }
+details[open] > summary .material-symbols-outlined { transform: rotate(0deg); }
 </style>
 
 <!-- ── BREADCRUMBS + HEADER ────────────────────────────────── -->
@@ -141,7 +143,12 @@ details > summary::-webkit-details-marker { display: none; }
 <!-- ══════════════════════════════════════════════════════════
      CONTACT CONDUCT / COMMUNICATION
 ═══════════════════════════════════════════════════════════ -->
-<h3 class="sdet-section-title">Communication & Contacts</h3>
+<details class="details-panel" open>
+    <summary class="details-summary">
+        <h3 class="sdet-section-title" style="margin:0; border:none; padding:0;">Communication & Contacts</h3>
+        <span class="material-symbols-outlined">expand_more</span>
+    </summary>
+    <div class="details-content">
 
 <div class="sdet-row">
     <div class="sdet-row-label">Audience Specific Message:</div>
@@ -176,11 +183,17 @@ details > summary::-webkit-details-marker { display: none; }
         </div>
     </div>
 </div>
+</details>
 
 <!-- ══════════════════════════════════════════════════════════
      ADVANCED SETTINGS DROPDOWNS
 ═══════════════════════════════════════════════════════════ -->
-<h3 class="sdet-section-title">Stakeholder Analysis (Advanced)</h3>
+<details class="details-panel" open>
+    <summary class="details-summary">
+        <h3 class="sdet-section-title" style="margin:0; border:none; padding:0;">Stakeholder Analysis (Advanced)</h3>
+        <span class="material-symbols-outlined">expand_more</span>
+    </summary>
+    <div class="details-content" style="background:var(--bg-app); border:none; padding-bottom:0;">
 
 <details class="details-panel">
     <summary class="details-summary">
@@ -254,25 +267,40 @@ details > summary::-webkit-details-marker { display: none; }
         </div>
     </div>
 </details>
-
+    </div>
+</details>
 
 <!-- ══════════════════════════════════════════════════════════
      ACTIONS VIEW
 ═══════════════════════════════════════════════════════════ -->
-<h3 class="sdet-section-title">Actions View</h3>
+<details class="details-panel" open>
+    <summary class="details-summary">
+        <h3 class="sdet-section-title" style="margin:0; border:none; padding:0;">Actions View</h3>
+        <span class="material-symbols-outlined">expand_more</span>
+    </summary>
+    <div class="details-content">
 
 <div id="stakeholder-actions-container" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1rem;">
     <!-- Actions injected here -->
 </div>
+    </div>
+</details>
 
 <!-- ══════════════════════════════════════════════════════════
      INTERACTIONS VIEW
 ═══════════════════════════════════════════════════════════ -->
-<h3 class="sdet-section-title">Recent Updates</h3>
+<details class="details-panel" open>
+    <summary class="details-summary">
+        <h3 class="sdet-section-title" style="margin:0; border:none; padding:0;">Recent Updates</h3>
+        <span class="material-symbols-outlined">expand_more</span>
+    </summary>
+    <div class="details-content">
 
 <div id="stakeholder-interactions-container" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1rem;">
     <!-- Interactions injected here -->
 </div>
+    </div>
+</details>
 
 </div>
 
