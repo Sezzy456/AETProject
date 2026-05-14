@@ -1,0 +1,27 @@
+{
+  "name": "aetproject",
+  "version": "1.0.0",
+  "description": "https://sezzy456.github.io/AETProject/ <- Live demo",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sezzy456/AETProject.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Sezzy456/AETProject/issues"
+  },
+  "homepage": "https://github.com/Sezzy456/AETProject#readme",
+  "dependencies": {
+    "@netlify/functions": "^5.2.1",
+    "@supabase/supabase-js": "^2.105.4",
+    "openai": "^6.37.0"
+  }
+}

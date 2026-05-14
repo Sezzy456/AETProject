@@ -356,6 +356,25 @@ function renderDashboard(pageIdOverride) {
             }
 
             case 'card': {
+                if (card.cc_title === 'Executive Summary' || card.cc_title === 'Retrospective Summary') {
+                    const cardId = 'ai-summary-' + Math.random().toString(36).substr(2, 9);
+                    setTimeout(async () => {
+                        const el = document.getElementById(cardId);
+                        if (!el) return;
+                        try {
+                            const res = await fetch('/.netlify/functions/generate-summary');
+                            if (res.ok) {
+                                const data = await res.json();
+                                el.innerHTML = data.summary || 'Summary unavailable.';
+                            } else {
+                                el.innerHTML = 'Failed to load AI summary.';
+                            }
+                        } catch (e) {
+                            el.innerHTML = 'Error loading AI summary.';
+                        }
+                    }, 50);
+                    return `<div class="card" style="${colSpan}"><h3 style="color:var(--text-tertiary);margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem;">${card.cc_title || ''} <span style="font-size:0.9rem;color:var(--energy-mid);">✨ AI Generated</span></h3><p id="${cardId}" style="font-size:1rem;color:var(--text-secondary);margin:0;line-height:1.5;"><span class="material-symbols-outlined" style="animation:spin 1s linear infinite; font-size:1rem; vertical-align:middle; margin-right: 0.25rem;">autorenew</span> Generating live summary...</p></div>`;
+                }
                 return `<div class="card" style="${colSpan}"><h3 style="color:var(--text-tertiary);margin-bottom:0.5rem;">${card.cc_title || ''}</h3><p style="font-size:1rem;color:var(--text-secondary);margin:0;">${card.cc_content || ''}</p></div>`;
             }
 
