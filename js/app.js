@@ -1358,7 +1358,8 @@ window.saveInteraction = function () {
     const title = document.getElementById('edit-int-purpose')?.value || 'New Interaction';
     const date = document.getElementById('edit-int-date')?.value || '';
     const desc = document.getElementById('edit-int-description')?.value || '';
-    const typeBtns = document.querySelectorAll('.update-type-btn.active');
+    const editMode = document.getElementById('int-edit-mode');
+    const typeBtns = editMode ? editMode.querySelectorAll('.update-type-btn.active') : document.querySelectorAll('.update-type-btn.active');
     const type = typeBtns.length > 0 ? typeBtns[0].getAttribute('data-val') : 'Other';
     const outcomeScore = document.getElementById('edit-int-outcome-slider')?.value || 5;
     const outcomeNotes = document.getElementById('edit-int-outcome-notes')?.value || '';
@@ -1651,14 +1652,16 @@ window.toggleInteractionEdit = function() {
                 if (descEl) descEl.value = interaction.agenda || interaction.discussed || '';
 
                 // Populate type buttons
-                document.querySelectorAll('.update-type-btn').forEach(btn => btn.classList.remove('active'));
-                if (interaction.type) {
-                    const savedTypes = interaction.type.split(',').map(t => t.trim());
-                    // Select only the first one since it's now single select
-                    if (savedTypes.length > 0) {
-                        const targetType = savedTypes[0].toLowerCase();
-                        const btn = Array.from(document.querySelectorAll('.update-type-btn')).find(b => b.dataset.val.toLowerCase() === targetType);
-                        if (btn) btn.classList.add('active');
+                if (document.getElementById('int-edit-mode')) {
+                    document.getElementById('int-edit-mode').querySelectorAll('.update-type-btn').forEach(btn => btn.classList.remove('active'));
+                    if (interaction.type) {
+                        const savedTypes = interaction.type.split(',').map(t => t.trim());
+                        // Select only the first one since it's now single select
+                        if (savedTypes.length > 0) {
+                            const targetType = savedTypes[0].toLowerCase();
+                            const btn = Array.from(document.getElementById('int-edit-mode').querySelectorAll('.update-type-btn')).find(b => b.dataset.val.toLowerCase() === targetType);
+                            if (btn) btn.classList.add('active');
+                        }
                     }
                 }
 

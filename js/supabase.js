@@ -307,8 +307,8 @@ async function updateInteractionDB(uiData, isNew) {
         // Now save Attendees
         // Save Attendees
         const { data: existingAtt } = await _sb.from('tbl_interaction_attendee').select('*').eq('ia_interaction_original_id', uiData.id).eq('ia_active', true);
-        const existingIds = (existingAtt || []).map(a => a.ia_contact_id);
-        const newIds = uiData.attendeeIds || [];
+        const existingIds = (existingAtt || []).map(a => String(a.ia_contact_id));
+        const newIds = (uiData.attendeeIds || []).map(id => String(id));
         
         const toRemove = existingIds.filter(id => !newIds.includes(id));
         const toAdd = newIds.filter(id => !existingIds.includes(id));
@@ -337,8 +337,8 @@ async function updateInteractionDB(uiData, isNew) {
                     iai_interaction_original_id: uiData.id,
                     iai_type: ag.linkType || 'Discuss',
                     iai_action_id: ag.linked_action_original_id || null,
-                    iai_objective_id: ag.linked_objective_id ? parseInt(ag.linked_objective_id.replace('obj', '')) : null,
-                    iai_details: ag.new_action_name || ag.details || '',
+                    iai_objective_id: ag.linked_objective_id ? parseInt(String(ag.linked_objective_id).replace('obj', '')) : null,
+                    iai_details: ag.linkType === 'new_action' ? (ag.new_action_name || ag.details || '') : (ag.details || ''),
                     iai_order: idx + 1,
                     iai_active: true,
                     iai_created: new Date().toISOString()
