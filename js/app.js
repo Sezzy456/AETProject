@@ -1655,12 +1655,14 @@ window.toggleInteractionEdit = function() {
                     document.getElementById('edit-int-type-group').querySelectorAll('.update-type-btn').forEach(btn => btn.classList.remove('active'));
                     if (interaction.type) {
                         const savedTypes = interaction.type.split(',').map(t => t.trim());
-                        // Select only the first one since it's now single select
                         if (savedTypes.length > 0) {
                             const targetType = savedTypes[0].toLowerCase();
                             const btn = Array.from(document.getElementById('edit-int-type-group').querySelectorAll('.update-type-btn')).find(b => b.dataset.val.toLowerCase() === targetType);
                             if (btn) btn.classList.add('active');
                         }
+                    } else {
+                        const btn = Array.from(document.getElementById('edit-int-type-group').querySelectorAll('.update-type-btn')).find(b => b.dataset.val.toLowerCase() === 'other');
+                        if (btn) btn.classList.add('active');
                     }
                 }
 
