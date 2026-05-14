@@ -305,33 +305,47 @@ async function updateInteractionDB(uiData, isNew) {
         }
 
         // Now save Attendees
-        if (uiData.attendeeIds && uiData.attendeeIds.length > 0) {
-            // First deactivate old attendees
-            await _sb.from('tbl_interaction_attendee').update({ ia_active: false }).eq('ia_interaction_original_id', uiData.id);
-            // Insert new
-            const attRows = uiData.attendeeIds.map(cId => ({
+        // Save Attendees
+        const { data: existingAtt } = await _sb.from('tbl_interaction_attendee').select('*').eq('ia_interaction_original_id', uiData.id).eq('ia_active', true);
+        const existingIds = (existingAtt || []).map(a => a.ia_contact_id);
+        const newIds = uiData.attendeeIds || [];
+        
+        const toRemove = existingIds.filter(id => !newIds.includes(id));
+        const toAdd = newIds.filter(id => !existingIds.includes(id));
+        
+        if (toRemove.length > 0) {
+            await _sb.from('tbl_interaction_attendee').update({ ia_active: false }).eq('ia_interaction_original_id', uiData.id).in('ia_contact_id', toRemove);
+        }
+        
+        if (toAdd.length > 0) {
+            const attRows = toAdd.map(cId => ({
                 ia_interaction_original_id: uiData.id,
                 ia_contact_id: cId,
                 ia_active: true,
                 ia_created: new Date().toISOString()
             }));
-            await _sb.from('tbl_interaction_attendee').insert(attRows);
+            const { error: attErr } = await _sb.from('tbl_interaction_attendee').insert(attRows);
+            if (attErr) throw attErr;
         }
 
         // Save Agenda Items
-        if (uiData.agendaItems && uiData.agendaItems.length > 0) {
+        if (uiData.agendaItems) {
+            // Soft delete old ones
             await _sb.from('tbl_interaction_agenda_item').update({ iai_active: false }).eq('iai_interaction_original_id', uiData.id);
-            const agRows = uiData.agendaItems.map((ag, idx) => ({
-                iai_interaction_original_id: uiData.id,
-                iai_type: ag.linkType || 'Discuss',
-                iai_action_id: ag.linked_action_original_id || null,
-                iai_objective_id: ag.linked_objective_id ? parseInt(ag.linked_objective_id.replace('obj', '')) : null,
-                iai_details: ag.new_action_name || ag.details || '',
-                iai_order: idx + 1,
-                iai_active: true,
-                iai_created: new Date().toISOString()
-            }));
-            await _sb.from('tbl_interaction_agenda_item').insert(agRows);
+            if (uiData.agendaItems.length > 0) {
+                const agRows = uiData.agendaItems.map((ag, idx) => ({
+                    iai_interaction_original_id: uiData.id,
+                    iai_type: ag.linkType || 'Discuss',
+                    iai_action_id: ag.linked_action_original_id || null,
+                    iai_objective_id: ag.linked_objective_id ? parseInt(ag.linked_objective_id.replace('obj', '')) : null,
+                    iai_details: ag.new_action_name || ag.details || '',
+                    iai_order: idx + 1,
+                    iai_active: true,
+                    iai_created: new Date().toISOString()
+                }));
+                const { error: agErr } = await _sb.from('tbl_interaction_agenda_item').insert(agRows);
+                if (agErr) throw agErr;
+            }
         }
 
         return true;

@@ -1256,7 +1256,8 @@ function renderInteractionDetail() {
         if (score >= 7) { color = '#22c55e'; word = 'Positive'; }
         else if (score <= 3) { color = '#ef4444'; word = 'Negative'; }
         
-        statusEl.innerHTML = `Completed <div style="display:inline-flex; align-items:center; gap:0.4rem; margin-left:1rem; padding:0.2rem 0.6rem; border-radius:100px; background:rgba(0,0,0,0.05); color:var(--text-secondary); font-size:0.8rem; font-weight:600;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${color};"></span> Outcome: ${word} (${score}/10)</div>`;
+        const intType = interaction.type || 'Other';
+        statusEl.innerHTML = `Completed <div style="display:inline-flex; align-items:center; gap:0.4rem; margin-left:1rem; padding:0.2rem 0.6rem; border-radius:100px; background:rgba(0,0,0,0.05); color:var(--text-secondary); font-size:0.8rem; font-weight:600;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${color};"></span> Outcome: ${word} (${score}/10)</div> <span style="color:var(--text-secondary); font-size:0.9rem; margin-left:0.5rem;">• ${intType}</span>`;
         statusEl.style.color = '#22c55e';
     }
 
@@ -1283,18 +1284,31 @@ function renderInteractionDetail() {
     const agendaContainer = document.getElementById('detail-int-agenda-view-container');
     if (agendaContainer) {
         const items = interaction.agendaItems || [];
+        const spine = window.getData('spine') || {};
+        const actions = window.getData('actions') || [];
+        
         if (items.length === 0) {
             agendaContainer.innerHTML = `<div style="font-size: 0.9rem; color: var(--text-tertiary); font-style: italic;">No agenda items</div>`;
         } else {
-            const icons = { 'Discuss': 'chat', 'Review': 'preview', 'Decide': 'gavel', 'Other': 'more_horiz' };
-            agendaContainer.innerHTML = items.map(item => `
+            const icons = { 'action': 'task', 'objective': 'flag', 'new_action': 'add_circle', 'Discuss': 'chat' };
+            agendaContainer.innerHTML = items.map(item => {
+                let linkTitle = item.new_action_name || 'New Action';
+                if (item.linkType === 'objective') {
+                    linkTitle = spine.objectives?.find(o => o.id === item.linked_objective_id)?.text || 'Unknown Objective';
+                } else if (item.linkType === 'action') {
+                    linkTitle = actions.find(a => a.id === item.linked_action_original_id)?.activity || 'Unknown Action';
+                }
+                const iconName = icons[item.linkType] || 'chat';
+                const typeLabel = item.linkType === 'action' ? 'Action' : (item.linkType === 'objective' ? 'Objective' : (item.linkType === 'new_action' ? 'New Action' : 'Discuss'));
+
+                return `
                 <div class="card" style="border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1rem; position: relative;">
                     <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
                         <span class="interaction-pill" style="background: rgba(0,0,0,0.05); border: none;">
-                            <span class="material-symbols-outlined" style="font-size: 1rem;">${icons[item.type] || 'chat'}</span> ${item.type || 'Discuss'}
+                            <span class="material-symbols-outlined" style="font-size: 1rem;">${iconName}</span> ${typeLabel}
                         </span>
                         <div style="flex: 1; border: 1px solid var(--border-subtle); border-radius: 4px; padding: 0.5rem; background: var(--bg-app); font-size: 0.9rem; color: var(--text-secondary);">
-                            ${item.objective || 'General objective / action'}
+                            ${linkTitle}
                         </div>
                     </div>
                     <div style="display: flex; gap: 1rem; align-items: center;">
@@ -1302,7 +1316,8 @@ function renderInteractionDetail() {
                         <div style="flex: 1; font-size: 0.9rem; color: var(--text-primary);">${item.details || 'No details provided.'}</div>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
     }
 
@@ -1641,7 +1656,8 @@ window.toggleInteractionEdit = function() {
                     const savedTypes = interaction.type.split(',').map(t => t.trim());
                     // Select only the first one since it's now single select
                     if (savedTypes.length > 0) {
-                        const btn = document.querySelector(`.update-type-btn[data-val="${savedTypes[0]}"]`);
+                        const targetType = savedTypes[0].toLowerCase();
+                        const btn = Array.from(document.querySelectorAll('.update-type-btn')).find(b => b.dataset.val.toLowerCase() === targetType);
                         if (btn) btn.classList.add('active');
                     }
                 }
