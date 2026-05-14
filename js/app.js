@@ -715,6 +715,8 @@ function renderStakeholderDetail() {
         if (intBar) intBar.style.width = (int_ / 10 * 100) + '%';
         if (infLabel) infLabel.innerText = inf + '/10';
         if (intLabel) intLabel.innerText = int_ + '/10';
+        setTxt('header-influence-label', inf + '/10');
+        setTxt('header-interest-label', int_ + '/10');
 
         setTxt('view-authority', s.powerDynamics.authority);
 
@@ -856,62 +858,11 @@ function renderStakeholderDetail() {
                         <span class="material-symbols-outlined">groups</span> ${s.name}
                     </div>
                     <p id="aud-msg-text" style="font-size:0.9rem; line-height:1.5; color:var(--text-primary); margin:0;">${s.audienceMessage}</p>
-                    <div style="margin-top:1rem; display:flex; justify-content:flex-end;">
-                        <button class="btn-secondary" style="font-size:0.75rem; padding:0.25rem 0.6rem;" onclick="window._editAudienceMsg()">
-                            <span class="material-symbols-outlined" style="font-size:0.9rem; vertical-align:middle;">edit</span> Edit
-                        </button>
-                    </div>
                 </div>`;
         } else {
-            audContainer.innerHTML = `
-                <button class="btn-secondary" onclick="window._editAudienceMsg()" style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.85rem; padding:0.5rem 1rem;">
-                    <span class="material-symbols-outlined" style="font-size:1rem;">add</span> Add audience specific message
-                </button>`;
+            audContainer.innerHTML = '<span style="color:var(--text-tertiary); font-style:italic; font-size:0.9rem;">No audience specific message set.</span>';
         }
     }
-
-    // Inline audience message edit handler
-    window._editAudienceMsg = function () {
-        if (!audContainer) return;
-        const current = s.audienceMessage || '';
-        audContainer.innerHTML = `
-            <div class="sdet-card">
-                <div style="display:flex; align-items:center; gap:0.5rem; color:#3b82f6; font-weight:600; margin-bottom:0.75rem;">
-                    <span class="material-symbols-outlined">groups</span> ${s.name}
-                </div>
-                <textarea id="aud-msg-edit" style="width:100%; min-height:120px; padding:0.75rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-family:inherit; font-size:0.9rem; line-height:1.5; resize:vertical;">${current}</textarea>
-                <div style="margin-top:0.75rem; display:flex; justify-content:flex-end; gap:0.5rem;">
-                    <button class="btn-secondary" onclick="window._cancelAudienceMsg()" style="font-size:0.78rem;">Cancel</button>
-                    <button class="btn-primary" id="aud-msg-save-btn" onclick="window._saveAudienceMsg()" style="font-size:0.78rem;">Save</button>
-                </div>
-            </div>`;
-    };
-
-    window._cancelAudienceMsg = function () {
-        renderStakeholderDetail();
-    };
-
-    window._saveAudienceMsg = async function () {
-        const ta = document.getElementById('aud-msg-edit');
-        const btn = document.getElementById('aud-msg-save-btn');
-        if (!ta || !btn) return;
-        const newMsg = ta.value.trim();
-        btn.disabled = true;
-        btn.innerHTML = '<span class="material-symbols-outlined spin" style="font-size:0.9rem;">autorenew</span> Saving...';
-        try {
-            if (window._sb) {
-                await window._sb.from('tbl_stakeholder')
-                    .update({ sta_audience_message: newMsg })
-                    .eq('sta_id', s._dbId);
-            }
-            s.audienceMessage = newMsg;
-            renderStakeholderDetail();
-        } catch (e) {
-            console.error('[Stakeholder] Save audience msg error:', e);
-            btn.disabled = false;
-            btn.textContent = 'Save';
-        }
-    };
 
     // Linked Actions
     const actContainer = document.getElementById('stakeholder-actions-container');
@@ -964,6 +915,7 @@ window.toggleStakeholderEdit = function () {
             if (s) {
                 const set = (elId, v) => { const el = document.getElementById(elId); if(el) el.value = v || ''; };
                 set('sdet-e-narrativeHook', s.narrativeHook);
+                set('sdet-e-audience-message', s.audienceMessage || '');
                 set('sdet-e-values', (s.powerDynamics?.values || []).join(', '));
                 set('sdet-e-status', s.status);
                 set('sdet-e-influence', s.powerDynamics?.influence || '5');
@@ -1007,6 +959,7 @@ window.saveStakeholder = function () {
     const get = (elId) => { const el = document.getElementById(elId); return el ? el.value : ''; };
 
     s.narrativeHook = get('sdet-e-narrativeHook');
+    s.audienceMessage = get('sdet-e-audience-message');
     
     if (!s.powerDynamics) s.powerDynamics = {};
     s.powerDynamics.values = get('sdet-e-values').split(',').map(v => v.trim()).filter(Boolean);

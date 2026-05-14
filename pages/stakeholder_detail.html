@@ -41,8 +41,8 @@
 .details-content { padding:1.5rem; border-top:1px solid var(--border-subtle); background:var(--bg-surface); }
 details > summary { list-style: none; }
 details > summary::-webkit-details-marker { display: none; }
-details > summary .material-symbols-outlined { transition: transform 0.2s ease-in-out; transform: rotate(-90deg); }
-details[open] > summary .material-symbols-outlined { transform: rotate(0deg); }
+.sdet-section-details > summary { list-style: none; }
+.sdet-section-details > summary::-webkit-details-marker { display: none; }
 </style>
 
 <!-- ── BREADCRUMBS + HEADER ────────────────────────────────── -->
@@ -51,23 +51,43 @@ details[open] > summary .material-symbols-outlined { transform: rotate(0deg); }
         <button class="btn-secondary" onclick="loadView('stakeholders')" style="height:32px; padding:0 0.75rem; font-size:0.8rem; margin-bottom:1rem;">← Back to Stakeholders</button>
         <h1 id="detail-name" style="margin-bottom:0.5rem; font-size:2rem;">Loading Profile...</h1>
         <div style="font-size:0.9rem; color:var(--text-secondary); display:flex; align-items:center; gap:0.5rem;">
-            <span style="color:var(--text-tertiary);">Role:</span> <span id="view-role" style="font-weight:600;">-</span>
-            <div style="display:flex; align-items:center; gap:0.5rem; position:relative;">
-                <span id="view-status-badge" style="background:rgba(245, 158, 11, 0.2); color:var(--energy-mid); padding:0.2rem 0.6rem; border-radius:4px; font-weight:600; font-size:0.8rem; cursor:pointer;" onclick="document.getElementById('view-status-selector-popup').style.display = document.getElementById('view-status-selector-popup').style.display === 'none' ? 'block' : 'none';">-</span>
-                
-                <!-- Status Pop-up -->
-                <div id="view-status-selector-popup" style="display:none; position:absolute; top:120%; left:0; background:white; border:1px solid var(--border-subtle); border-radius:8px; padding:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.1); z-index:100; width:300px;">
-                    <div style="font-size:0.85rem; font-weight:600; margin-bottom:0.5rem;">Change Status</div>
-                    <div class="seg-bar" id="view-status-selector" style="margin-top:0.5rem; margin-bottom:1rem; width:100%;">
-                        <div class="seg-block" style="background:#ef4444;" onclick="window._tempStatus = 'Critical/At Risk'; document.querySelectorAll('#view-status-selector .seg-block').forEach(b => b.classList.remove('active')); this.classList.add('active');" title="Critical/At Risk"></div>
-                        <div class="seg-block" style="background:#f97316;" onclick="window._tempStatus = 'Strained'; document.querySelectorAll('#view-status-selector .seg-block').forEach(b => b.classList.remove('active')); this.classList.add('active');" title="Strained"></div>
-                        <div class="seg-block" style="background:#eab308;" onclick="window._tempStatus = 'Friction Points'; document.querySelectorAll('#view-status-selector .seg-block').forEach(b => b.classList.remove('active')); this.classList.add('active');" title="Friction Points"></div>
-                        <div class="seg-block" style="background:#f9fafb;" onclick="window._tempStatus = 'Dormant'; document.querySelectorAll('#view-status-selector .seg-block').forEach(b => b.classList.remove('active')); this.classList.add('active');" title="Dormant"></div>
-                        <div class="seg-block" style="background:#a3e635;" onclick="window._tempStatus = 'Stable'; document.querySelectorAll('#view-status-selector .seg-block').forEach(b => b.classList.remove('active')); this.classList.add('active');" title="Stable"></div>
-                        <div class="seg-block" style="background:#22c55e;" onclick="window._tempStatus = 'Operational'; document.querySelectorAll('#view-status-selector .seg-block').forEach(b => b.classList.remove('active')); this.classList.add('active');" title="Operational"></div>
+            <span><span style="color:var(--text-tertiary);">Role:</span> <span id="view-role" style="font-weight:600;">-</span></span>
+            
+            <div style="display:flex; align-items:center; gap:0.25rem; position:relative;">
+                <span style="color:var(--text-tertiary); margin-left:0.5rem; margin-right:0.5rem;">Status:</span>
+                <span id="view-status-badge" style="background:rgba(245, 158, 11, 0.2); color:var(--energy-mid); padding:0.2rem 0.6rem; border-radius:4px; font-weight:600; font-size:0.8rem;">-</span>
+                <div class="custom-tooltip">
+                    <span class="material-symbols-outlined" style="display:block; font-size:1rem; cursor:help; color:var(--text-tertiary);">info</span>
+                    <div class="custom-tooltip-content" style="width:280px; top:120%; right:auto; left:0; transform:none; font-family:var(--font-body),sans-serif; font-weight:normal; text-transform:none;">
+                        <div style="font-weight:bold; margin-bottom:0.5rem;">Status Definitions</div>
+                        <div class="status-def"><div class="status-dot" style="background:#22c55e;"></div><div><strong>Operational:</strong> Functioning normally, no major issues.</div></div>
+                        <div class="status-def"><div class="status-dot" style="background:#a3e635;"></div><div><strong>Stable:</strong> Consistent, but requires monitoring.</div></div>
+                        <div class="status-def"><div class="status-dot" style="background:#f9fafb;"></div><div><strong>Dormant:</strong> Inactive or paused relationship.</div></div>
+                        <div class="status-def"><div class="status-dot" style="background:#eab308;"></div><div><strong>Friction Points:</strong> Minor issues or disagreements.</div></div>
+                        <div class="status-def"><div class="status-dot" style="background:#f97316;"></div><div><strong>Strained:</strong> Significant tension, needs active management.</div></div>
+                        <div class="status-def" style="margin-bottom:0;"><div class="status-dot" style="background:#ef4444;"></div><div><strong>Critical/At Risk:</strong> Relationship in jeopardy.</div></div>
                     </div>
-                    <div style="display:flex; justify-content:flex-end;">
-                        <button class="btn-primary" style="padding:0.2rem 0.8rem; font-size:0.8rem;" onclick="if(window._tempStatus) updateDetailStatus(window._tempStatus); document.getElementById('view-status-selector-popup').style.display='none';">Save Status</button>
+                </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:0.25rem; margin-left:1.5rem;">
+                <span style="color:var(--text-tertiary); margin-left:0.5rem; margin-right:0.5rem;">Priority:</span>
+                <span id="view-matrix-verb" class="matrix-verb-badge"></span>
+                <div class="custom-tooltip">
+                    <span class="material-symbols-outlined" style="display:block; font-size:1rem; cursor:help; color:var(--text-tertiary);">info</span>
+                    <div class="custom-tooltip-content" style="width:300px; top:120%; right:auto; left:0; transform:none; font-family:var(--font-body),sans-serif; font-weight:normal; text-transform:none;">
+                        <div class="matrix-container">
+                            <div class="matrix-plus-top">+</div><div class="matrix-y-axis">Influence</div><div class="matrix-minus-bot">-</div>
+                            <div class="matrix-minus-left">-</div><div class="matrix-x-axis">Interest</div><div class="matrix-plus-right">+</div>
+                            <div class="matrix-box matrix-tl"><div class="sub">High influence<br>Low interest</div><div class="title">SATISFY</div></div>
+                            <div class="matrix-box matrix-tr"><div class="sub">High influence<br>High interest</div><div class="title">ENGAGE</div></div>
+                            <div class="matrix-box matrix-bl" style="color:#000;"><div class="sub" style="color:rgba(0,0,0,0.8);">Low influence<br>Low interest</div><div class="title">MONITOR</div></div>
+                            <div class="matrix-box matrix-br" style="color:#000;"><div class="sub" style="color:rgba(0,0,0,0.8);">Low influence<br>High interest</div><div class="title">INFORM</div></div>
+                        </div>
+                        <div style="margin-top:1rem; text-align:center; font-size:0.75rem; color:var(--text-secondary); text-transform:none;">Based on Power Dynamics grid</div>
+                        <div style="margin-top:1rem; text-align:center; font-size:0.8rem; border-top:1px solid var(--border-subtle); padding-top:0.5rem; color:var(--text-primary);">
+                            Influence: <strong id="header-influence-label">-</strong> &nbsp;|&nbsp; Interest: <strong id="header-interest-label">-</strong>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -92,43 +112,33 @@ details[open] > summary .material-symbols-outlined { transform: rotate(0deg); }
     <div id="view-narrativeHook" class="sdet-row-content" style="font-style:italic;">-</div>
 </div>
 
-<div class="sdet-row" style="align-items:center;">
-    <div class="sdet-row-label">Priority Level:</div>
-    <div class="sdet-row-content" style="display:flex; align-items:center; gap:0.5rem;">
-        <span id="view-matrix-verb" class="matrix-verb-badge"></span>
-        <div class="custom-tooltip">
-            <span class="material-symbols-outlined" style="display:block; font-size:1rem; cursor:help;">info</span>
-            <div class="custom-tooltip-content" style="width:300px; top:120%; right:auto; left:0; transform:none; font-family:var(--font-body),sans-serif; font-weight:normal; text-transform:none;">
-                <div class="matrix-container">
-                    <div class="matrix-plus-top">+</div><div class="matrix-y-axis">Influence</div><div class="matrix-minus-bot">-</div>
-                    <div class="matrix-minus-left">-</div><div class="matrix-x-axis">Interest</div><div class="matrix-plus-right">+</div>
-                    <div class="matrix-box matrix-tl"><div class="sub">High influence<br>Low interest</div><div class="title">SATISFY</div></div>
-                    <div class="matrix-box matrix-tr"><div class="sub">High influence<br>High interest</div><div class="title">ENGAGE</div></div>
-                    <div class="matrix-box matrix-bl" style="color:#000;"><div class="sub" style="color:rgba(0,0,0,0.8);">Low influence<br>Low interest</div><div class="title">MONITOR</div></div>
-                    <div class="matrix-box matrix-br" style="color:#000;"><div class="sub" style="color:rgba(0,0,0,0.8);">Low influence<br>High interest</div><div class="title">INFORM</div></div>
-                </div>
-                <div style="margin-top:1rem; text-align:center; font-size:0.75rem; color:var(--text-secondary); text-transform:none;">Based on Power Dynamics grid</div>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <!-- ── POSTURE JOURNEY ─────────────────────────────────────── -->
 <div class="sdet-row" style="margin-top:1.5rem;">
     <div class="sdet-row-label">Posture Journey:</div>
     <div class="sdet-row-content" style="flex:1;">
-        <div style="display:flex; align-items:center; gap:2rem;">
-            <div class="sdet-card" style="flex:1; padding:1rem;">
+        <div style="display:grid; grid-template-columns: 1fr auto 1fr; align-items:start; gap:1rem;">
+            <div class="sdet-card" style="min-width: 0; padding:1rem; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-surface);">
                 <div style="color:#6b7280; font-size:0.8rem; font-weight:600; margin-bottom:0.5rem;">Current:</div>
                 <div id="view-posture-current" style="font-size:0.95rem;">-</div>
             </div>
-            <span class="material-symbols-outlined" style="color:var(--text-tertiary);">arrow_forward</span>
-            <div style="flex:1; border:1px solid #3b82f6; padding:1rem; border-radius:12px; background:rgba(59,130,246,0.05);">
-                <div style="color:#6b7280; font-size:0.8rem; font-weight:600; margin-bottom:0.5rem;">Desired:</div>
-                <div id="view-posture-desired" style="font-size:0.95rem;">-</div>
-                <div style="margin-top:1rem; font-size:0.85rem; border-top:1px solid rgba(59,130,246,0.2); padding-top:0.5rem; display:flex; justify-content:space-between;">
-                    <span><span style="color:#ef4444; font-weight:bold;">Next Step:</span> <span id="view-posture-next">-</span></span>
-                    <span><span style="color:#ef4444; font-weight:bold;">Target Date:</span> <span id="view-posture-target">-</span></span>
+            
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:1.5rem 0.5rem 0 0.5rem; max-width: 200px;">
+                <span class="material-symbols-outlined" style="color:var(--text-tertiary); margin-bottom:0.25rem;">arrow_forward</span>
+                <div style="text-align:center; font-size:0.75rem;">
+                    <div style="color:#ef4444; font-weight:bold;">Next Step:</div>
+                    <div id="view-posture-next" style="color:var(--text-secondary); line-height:1.2; margin-top:0.2rem;">-</div>
+                </div>
+            </div>
+
+            <div style="min-width: 0; display:flex; flex-direction:column; gap:0.5rem;">
+                <div style="border:1px solid #3b82f6; padding:1rem; border-radius:12px; background:rgba(59,130,246,0.05); flex:1;">
+                    <div style="color:#6b7280; font-size:0.8rem; font-weight:600; margin-bottom:0.5rem;">Desired:</div>
+                    <div id="view-posture-desired" style="font-size:0.95rem;">-</div>
+                </div>
+                <div style="text-align:center; font-size:0.85rem; padding:0.25rem;">
+                    <span style="color:#ef4444; font-weight:bold;">Target Date:</span> <span id="view-posture-target">-</span>
                 </div>
             </div>
         </div>
@@ -141,14 +151,39 @@ details[open] > summary .material-symbols-outlined { transform: rotate(0deg); }
 </div>
 
 <!-- ══════════════════════════════════════════════════════════
+     INTERACTIONS VIEW
+═══════════════════════════════════════════════════════════ -->
+<details class="sdet-section-details" open>
+<summary class="sdet-section-title" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+    <span>Recent Updates</span>
+    <span class="material-symbols-outlined">expand_more</span>
+</summary>
+<div id="stakeholder-interactions-container" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1.5rem;">
+    <!-- Interactions injected here -->
+</div>
+</details>
+
+<!-- ══════════════════════════════════════════════════════════
+     ACTIONS VIEW
+═══════════════════════════════════════════════════════════ -->
+<details class="sdet-section-details" open>
+<summary class="sdet-section-title" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+    <span>Actions</span>
+    <span class="material-symbols-outlined">expand_more</span>
+</summary>
+<div id="stakeholder-actions-container" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1.5rem;">
+    <!-- Actions injected here -->
+</div>
+</details>
+
+<!-- ══════════════════════════════════════════════════════════
      CONTACT CONDUCT / COMMUNICATION
 ═══════════════════════════════════════════════════════════ -->
-<details class="details-panel" open>
-    <summary class="details-summary">
-        <h3 class="sdet-section-title" style="margin:0; border:none; padding:0;">Communication & Contacts</h3>
-        <span class="material-symbols-outlined">expand_more</span>
-    </summary>
-    <div class="details-content">
+<details class="sdet-section-details" open>
+<summary class="sdet-section-title" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+    <span>Communication & Contacts</span>
+    <span class="material-symbols-outlined">expand_more</span>
+</summary>
 
 <div class="sdet-row">
     <div class="sdet-row-label">Audience Specific Message:</div>
@@ -167,20 +202,28 @@ details[open] > summary .material-symbols-outlined { transform: rotate(0deg); }
     <div id="view-contact-pitch" class="sdet-row-content">-</div>
 </div>
 
-<div style="margin-top:1.5rem; margin-bottom:1.5rem;">
-    <h4 style="font-size:1rem; margin-bottom:1rem; color:var(--text-secondary);">Key Contacts</h4>
-    <div style="display:flex; gap:2rem; flex-wrap:wrap;">
+<div class="sdet-row" style="margin-top:1.5rem; margin-bottom:1.5rem;">
+    <div class="sdet-row-label">Key Contacts:</div>
+    <div class="sdet-row-content">
+        <div style="display:flex; gap:2rem; flex-wrap:wrap;">
         <div id="view-contacts-list" style="flex:1; display:flex; flex-direction:column; gap:1rem; min-width:300px;"></div>
-        <div class="sdet-card" style="width:300px; padding:1rem;">
-            <span style="font-size:0.8rem; font-weight:600; display:block; margin-bottom:0.5rem;">Quick Add:</span>
-            <input type="text" placeholder="Name" style="width:100%; padding:0.4rem; margin-bottom:0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); border-radius:4px;">
-            <input type="text" placeholder="Role (e.g. CEO)" style="width:100%; padding:0.4rem; margin-bottom:0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); border-radius:4px;">
-            <input type="text" placeholder="Email Address" style="width:100%; padding:0.4rem; margin-bottom:0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); border-radius:4px;">
-            <input type="text" placeholder="Phone Number" style="width:100%; padding:0.4rem; margin-bottom:0.8rem; border:1px solid var(--border-subtle); background:var(--bg-surface); border-radius:4px;">
-            <div style="display:flex; justify-content:flex-end;">
-                <button class="btn-primary" style="background:#a3a3a3; border:none; color:white; padding:0.2rem 1rem;">Add</button>
+        <div style="width:300px;">
+            <button class="btn-secondary" style="width:100%; justify-content:space-between; display:flex; align-items:center; gap:0.5rem;" onclick="const el=document.getElementById('quick-add-form'); const icon=document.getElementById('quick-add-arrow'); if(el.style.display==='none'){el.style.display='block'; icon.innerText='expand_less';}else{el.style.display='none'; icon.innerText='expand_more';}">
+                <div style="display:flex; align-items:center; gap:0.5rem;"><span class="material-symbols-outlined">person_add</span> Quick Add Contact</div>
+                <span id="quick-add-arrow" class="material-symbols-outlined">expand_more</span>
+            </button>
+            <div id="quick-add-form" class="sdet-card" style="display:none; padding:1rem; margin-top:0.5rem;">
+                <span style="font-size:0.8rem; font-weight:600; display:block; margin-bottom:0.5rem;">Quick Add:</span>
+                <input type="text" placeholder="Name" style="width:100%; padding:0.4rem; margin-bottom:0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); border-radius:4px;">
+                <input type="text" placeholder="Role (e.g. CEO)" style="width:100%; padding:0.4rem; margin-bottom:0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); border-radius:4px;">
+                <input type="text" placeholder="Email Address" style="width:100%; padding:0.4rem; margin-bottom:0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); border-radius:4px;">
+                <input type="text" placeholder="Phone Number" style="width:100%; padding:0.4rem; margin-bottom:0.8rem; border:1px solid var(--border-subtle); background:var(--bg-surface); border-radius:4px;">
+                <div style="display:flex; justify-content:flex-end;">
+                    <button class="btn-primary" style="background:#a3a3a3; border:none; color:white; padding:0.2rem 1rem;">Add</button>
+                </div>
             </div>
         </div>
+    </div>
     </div>
 </div>
 </details>
@@ -188,12 +231,21 @@ details[open] > summary .material-symbols-outlined { transform: rotate(0deg); }
 <!-- ══════════════════════════════════════════════════════════
      ADVANCED SETTINGS DROPDOWNS
 ═══════════════════════════════════════════════════════════ -->
-<details class="details-panel" open>
+<details class="sdet-section-details" open>
+<summary class="sdet-section-title" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+    <span>Stakeholder Analysis (Advanced)</span>
+    <span class="material-symbols-outlined">expand_more</span>
+</summary>
+
+<details class="details-panel">
     <summary class="details-summary">
-        <h3 class="sdet-section-title" style="margin:0; border:none; padding:0;">Stakeholder Analysis (Advanced)</h3>
+        <span>Advanced Status Analysis</span>
         <span class="material-symbols-outlined">expand_more</span>
     </summary>
-    <div class="details-content" style="background:var(--bg-app); border:none; padding-bottom:0;">
+    <div class="details-content" style="position:relative; min-height:160px; overflow-x:auto;">
+        <div id="view-status-history-lines" style="position:relative; width:100%; min-width:400px; height:120px;"></div>
+    </div>
+</details>
 
 <details class="details-panel">
     <summary class="details-summary">
@@ -267,39 +319,7 @@ details[open] > summary .material-symbols-outlined { transform: rotate(0deg); }
         </div>
     </div>
 </details>
-    </div>
-</details>
 
-<!-- ══════════════════════════════════════════════════════════
-     ACTIONS VIEW
-═══════════════════════════════════════════════════════════ -->
-<details class="details-panel" open>
-    <summary class="details-summary">
-        <h3 class="sdet-section-title" style="margin:0; border:none; padding:0;">Actions View</h3>
-        <span class="material-symbols-outlined">expand_more</span>
-    </summary>
-    <div class="details-content">
-
-<div id="stakeholder-actions-container" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1rem;">
-    <!-- Actions injected here -->
-</div>
-    </div>
-</details>
-
-<!-- ══════════════════════════════════════════════════════════
-     INTERACTIONS VIEW
-═══════════════════════════════════════════════════════════ -->
-<details class="details-panel" open>
-    <summary class="details-summary">
-        <h3 class="sdet-section-title" style="margin:0; border:none; padding:0;">Recent Updates</h3>
-        <span class="material-symbols-outlined">expand_more</span>
-    </summary>
-    <div class="details-content">
-
-<div id="stakeholder-interactions-container" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1rem;">
-    <!-- Interactions injected here -->
-</div>
-    </div>
 </details>
 
 </div>
@@ -314,6 +334,13 @@ details[open] > summary .material-symbols-outlined { transform: rotate(0deg); }
     <div class="sdet-row-label">Narrative Hook:</div>
     <div class="sdet-row-content">
         <textarea id="sdet-e-narrativeHook" rows="2" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; font-family:inherit; font-style:italic; font-size:0.95rem;"></textarea>
+    </div>
+</div>
+
+<div class="sdet-row">
+    <div class="sdet-row-label">Audience Message:</div>
+    <div class="sdet-row-content">
+        <textarea id="sdet-e-audience-message" rows="3" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; font-family:inherit; font-size:0.95rem; resize:vertical;"></textarea>
     </div>
 </div>
 
