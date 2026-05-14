@@ -1,0 +1,6 @@
+[build]
+  # Tell Netlify not to fail the build when it finds these specific keys
+  # in the client-side code, as Supabase anon keys and URLs are meant to be public.
+  
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "SUPABASE_URL,SUPABASE_ANON_KEY"
