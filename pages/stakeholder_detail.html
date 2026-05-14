@@ -43,6 +43,14 @@ details > summary { list-style: none; }
 details > summary::-webkit-details-marker { display: none; }
 .sdet-section-details > summary { list-style: none; }
 .sdet-section-details > summary::-webkit-details-marker { display: none; }
+
+details > summary .material-symbols-outlined {
+    transition: transform 0.2s ease-in-out;
+    transform: rotate(-90deg);
+}
+details[open] > summary .material-symbols-outlined {
+    transform: rotate(0deg);
+}
 </style>
 
 <!-- ── BREADCRUMBS + HEADER ────────────────────────────────── -->
