@@ -1628,20 +1628,11 @@ window.toggleInteractionEdit = function() {
     
     if (isEditing) {
         if (window.saveInteraction) window.saveInteraction();
-        viewMode.style.display = 'block';
-        editMode.style.display = 'none';
-        editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
-        if (cancelBtn) cancelBtn.style.display = 'none';
-        if (subtitleView) subtitleView.style.display = 'flex';
-        if (subtitleEdit) subtitleEdit.style.display = 'none';
-        if (window.renderInteractionDetail) window.renderInteractionDetail();
+        return; // supabase.js interceptor will call cancelInteractionEdit on success
     } else {
         window._intOriginalSnapshot = null;
         const id = window.currentInteractionId;
         if (id) {
-            const interactions = window.getData('interactions') || [];
-            const interaction = interactions.find(i => i.id == id);
-            if (interaction) {
                 window._intOriginalSnapshot = JSON.parse(JSON.stringify(interaction));
                 const purposeEl = document.getElementById('edit-int-purpose');
                 const dateEl = document.getElementById('edit-int-date');

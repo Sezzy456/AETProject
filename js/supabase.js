@@ -164,8 +164,8 @@ async function fetchInteractions() {
             const agendaItems = (agendaRows||[]).filter(a => a.iai_interaction_original_id===origId).map(a => ({
                 id: a.iai_id,
                 linkType: a.iai_type || 'Discuss',
-                linked_objective_id: a.iai_objective_id ? 'obj' + a.iai_objective_id : '',
-                linked_action_original_id: a.iai_action_id || '',
+                linked_objective_id: a.iai_linked_objective_id ? 'obj' + a.iai_linked_objective_id : '',
+                linked_action_original_id: a.iai_linked_action_original_id || '',
                 new_action_name: (a.iai_type === 'new_action') ? a.iai_details : '',
                 details: a.iai_details || ''
             }));
@@ -334,8 +334,8 @@ async function updateInteractionDB(uiData, isNew) {
                 const agRows = uiData.agendaItems.map((ag, idx) => ({
                     iai_interaction_original_id: uiData.id,
                     iai_type: ag.linkType || 'Discuss',
-                    iai_action_original_id: ag.linked_action_original_id || null,
-                    iai_objective_id: ag.linked_objective_id ? parseInt(String(ag.linked_objective_id).replace('obj', '')) : null,
+                    iai_linked_action_original_id: ag.linked_action_original_id || null,
+                    iai_linked_objective_id: ag.linked_objective_id ? parseInt(String(ag.linked_objective_id).replace('obj', '')) : null,
                     iai_details: ag.linkType === 'new_action' ? (ag.new_action_name || ag.details || '') : (ag.details || ''),
                     iai_order: idx + 1,
                     iai_active: true,
@@ -647,6 +647,14 @@ window.saveInteraction = async function() {
             if (saved) {
                 const fresh = await fetchInteractions();
                 if (fresh) _sbCache.interactions = fresh;
+                
+                const toast = document.getElementById('global-toast');
+                if (toast) {
+                    toast.innerText = 'Saved changes!';
+                    toast.style.background = '#10b981'; // green
+                    setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+                }
+                
                 if (window.cancelInteractionEdit) window.cancelInteractionEdit();
             } else {
                 // Remove toast if it failed
