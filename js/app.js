@@ -1244,11 +1244,19 @@ function renderInteractionDetail() {
     document.getElementById('detail-int-date').textContent = formatDate(intDateStr) + (intRelPast ? ' · ' + intRelPast : '');
 
     const statusEl = document.getElementById('detail-int-status');
-    if (interaction.type === 'Upcoming') {
-        statusEl.textContent = 'Upcoming';
+    const statusVal = interaction.status || (interaction.type === 'Upcoming' ? 'Upcoming' : 'Completed');
+    
+    if (statusVal === 'Upcoming') {
+        statusEl.innerHTML = 'Upcoming';
         statusEl.style.color = '#ef4444';
     } else {
-        statusEl.textContent = 'Completed';
+        const score = parseInt(interaction.outcomeScore) || 5;
+        let color = '#eab308';
+        let word = 'Neutral';
+        if (score >= 7) { color = '#22c55e'; word = 'Positive'; }
+        else if (score <= 3) { color = '#ef4444'; word = 'Negative'; }
+        
+        statusEl.innerHTML = `Completed <div style="display:inline-flex; align-items:center; gap:0.4rem; margin-left:1rem; padding:0.2rem 0.6rem; border-radius:100px; background:rgba(0,0,0,0.05); color:var(--text-secondary); font-size:0.8rem; font-weight:600;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${color};"></span> Outcome: ${word} (${score}/10)</div>`;
         statusEl.style.color = '#22c55e';
     }
 
@@ -1319,6 +1327,8 @@ window.saveInteraction = function () {
     const type = types.length > 0 ? types.join(', ') : 'Other';
     const outcomeScore = document.getElementById('edit-int-outcome-slider')?.value || 5;
     const outcomeNotes = document.getElementById('edit-int-outcome-notes')?.value || '';
+    const statusEl = document.getElementById('edit-int-status');
+    const status = statusEl ? statusEl.value : 'Completed';
 
     const isNew = !window.currentInteractionId;
     const interactions = window.getData('interactions') || [];
@@ -1330,6 +1340,7 @@ window.saveInteraction = function () {
             rawDate: date,
             date: date,
             type: type,
+            status: status,
             agenda: desc,
             discussed: desc,
             outcomeScore: parseInt(outcomeScore, 10),
@@ -1347,6 +1358,7 @@ window.saveInteraction = function () {
             interactions[idx].rawDate = date;
             interactions[idx].date = date;
             interactions[idx].type = type;
+            interactions[idx].status = status;
             interactions[idx].agenda = desc;
             interactions[idx].outcomeScore = parseInt(outcomeScore, 10);
             interactions[idx].outcomeNotes = outcomeNotes;
@@ -1408,82 +1420,106 @@ window.renderAgendaItems = function() {
     const container = document.getElementById('edit-int-agenda-container');
     if (!container) return;
     
-    if (window._currentAgendaItems.length === 0) {
-        window._currentAgendaItems.push({ id: Date.now(), objective: '', details: '' });
+    if (!document.getElementById('agenda-styles-injected')) {
+        document.head.insertAdjacentHTML('beforeend', '<style id="agenda-styles-injected">details[open] > summary .agenda-expand-icon { transform: rotate(0deg) !important; } details > summary::-webkit-details-marker { display: none; }</style>');
     }
     
-    container.innerHTML = window._currentAgendaItems.map((item, index) => `
-        <div style="flex: 1; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1.5rem; position: relative;">
-            <div style="position: absolute; left: 0.5rem; top: 1.5rem; color: var(--text-tertiary); cursor: move;">
-                <span class="material-symbols-outlined">drag_indicator</span>
-            </div>
-            <div style="margin-left: 1.5rem;">
-                <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
-                    <select class="agenda-objective" data-id="${item.id}" style="flex: 1; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.5rem; font-family: 'Inter', sans-serif; background: #fff;" onchange="window.updateAgendaItem(${item.id}, 'objective', this.value)">
-                        <option value="">Link to Objective / Action...</option>
-                        <option value="Stakeholder Messaging Toolkit" ${item.objective === 'Stakeholder Messaging Toolkit' ? 'selected' : ''}>Stakeholder Messaging Toolkit</option>
-                    </select>
-                    <div style="display: flex; gap: 0.25rem;">
-                        <button type="button" style="width: 32px; height: 32px; border: 1px solid var(--border-subtle); background: #fff; border-radius:4px; cursor: pointer;" onclick="window.addAgendaItem()">+</button>
-                        <button type="button" style="width: 32px; height: 32px; border: 1px solid var(--border-subtle); background: #fff; border-radius:4px; cursor: pointer;" onclick="window.removeAgendaItem(${item.id})">-</button>
+    container.innerHTML = window._currentAgendaItems.map((item, index) => {
+        const isActionLinked = item.linkType === 'action' && item.linked_action_original_id;
+        
+        return `
+        <div style="flex: 1; border: 1px solid var(--border-subtle); border-radius: 8px; position: relative; margin-bottom: 0.5rem; background:#fff;">
+            <div style="padding: 1rem 1.5rem;">
+                <div style="display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1rem;">
+                    <div style="color: var(--text-tertiary); cursor: move; padding-top:0.4rem;">
+                        <span class="material-symbols-outlined">drag_indicator</span>
                     </div>
-                </div>
-                
-                <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
-                    <label style="font-weight: 600; margin: 0; font-size:0.9rem;">Details:</label>
-                    <input type="text" class="agenda-details" data-id="${item.id}" value="${item.details || ''}" style="flex: 1; border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; padding: 0.5rem; font-family: 'Inter', sans-serif;" oninput="window.updateAgendaItem(${item.id}, 'details', this.value)">
-                </div>
-                
-                <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.75rem; cursor: pointer;" onclick="window.toggleQuickActionEdit(${item.id}, event)">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: var(--text-secondary); font-size: 0.9rem; font-weight:600;">Quick Edit Action</span>
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <button type="button" class="btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.8rem;" onclick="event.stopPropagation(); window.viewActionEdit();">Advanced</button>
-                            <span style="color: var(--text-tertiary); font-size: 0.85rem;">(click to expand)</span>
-                            <span class="material-symbols-outlined" style="color: var(--text-tertiary);">expand_more</span>
+                    <div style="flex: 1; display:flex; flex-direction:column; gap:0.5rem;">
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <select class="agenda-link-type" data-id="${item.id}" style="border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; font-family: 'Inter', sans-serif; background: #fff;" onchange="window.updateAgendaItem(${item.id}, 'linkType', this.value); window.renderAgendaItems();">
+                                <option value="">Select Link Type...</option>
+                                <option value="action" ${item.linkType === 'action' ? 'selected' : ''}>Link to Action</option>
+                                <option value="objective" ${item.linkType === 'objective' ? 'selected' : ''}>Link to Objective</option>
+                                <option value="new_action" ${item.linkType === 'new_action' ? 'selected' : ''}>Make New Action</option>
+                            </select>
+                            
+                            ${item.linkType === 'action' ? `
+                                <select class="agenda-action" data-id="${item.id}" style="flex:1; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; font-family: 'Inter', sans-serif; background: #fff;" onchange="window.updateAgendaItem(${item.id}, 'linked_action_original_id', this.value); window.renderAgendaItems();">
+                                    <option value="">Select Action...</option>
+                                    <option value="act-123" ${item.linked_action_original_id === 'act-123' ? 'selected' : ''}>Draft Communications Plan</option>
+                                    <option value="act-124" ${item.linked_action_original_id === 'act-124' ? 'selected' : ''}>Finalize Budget</option>
+                                </select>
+                            ` : item.linkType === 'objective' ? `
+                                <select class="agenda-objective" data-id="${item.id}" style="flex:1; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; font-family: 'Inter', sans-serif; background: #fff;" onchange="window.updateAgendaItem(${item.id}, 'linked_objective_id', this.value); window.renderAgendaItems();">
+                                    <option value="">Select Objective...</option>
+                                    <option value="obj-1" ${item.linked_objective_id === 'obj-1' ? 'selected' : ''}>Stakeholder Messaging Toolkit</option>
+                                    <option value="obj-2" ${item.linked_objective_id === 'obj-2' ? 'selected' : ''}>Quarterly Review</option>
+                                </select>
+                            ` : item.linkType === 'new_action' ? `
+                                <input type="text" placeholder="New Action Name" value="${item.new_action_name || ''}" style="flex:1; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; font-family: 'Inter', sans-serif; background: #fff;" oninput="window.updateAgendaItem(${item.id}, 'new_action_name', this.value)">
+                            ` : `
+                                <div style="flex:1;"></div>
+                            `}
+                            
+                            <div style="display: flex; gap: 0.25rem;">
+                                <button type="button" style="width: 32px; height: 32px; border: none; background: #ef4444; color:white; border-radius:4px; cursor: pointer; display:flex; align-items:center; justify-content:center;" onclick="window.removeAgendaItem(${item.id})" title="Remove Agenda Item"><span class="material-symbols-outlined" style="font-size:1rem;">remove</span></button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <label style="font-weight: 600; margin: 0; font-size:0.9rem;">Details:</label>
+                            <input type="text" class="agenda-details" data-id="${item.id}" value="${item.details || ''}" style="flex: 1; border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; padding: 0.5rem; font-family: 'Inter', sans-serif;" oninput="window.updateAgendaItem(${item.id}, 'details', this.value)">
                         </div>
                     </div>
                 </div>
-
-                <!-- INLINE QUICK EDIT ACTION CONTAINER -->
-                <div id="quick-action-expand-${item.id}" style="display:none; border:1px solid var(--border-subtle); border-top:none; border-bottom-left-radius:8px; border-bottom-right-radius:8px; padding:1.5rem; background:#fff; margin-top:-4px;">
+            </div>
+            
+            ${isActionLinked ? `
+            <details style="border-top: 1px solid var(--border-subtle);">
+                <summary style="padding: 0.75rem 1.5rem; background: rgba(0,0,0,0.02); cursor: pointer; display: flex; justify-content: space-between; align-items: center; list-style:none;">
+                    <span style="color: var(--text-secondary); font-size: 0.9rem; font-weight:600;">Quick Edit Action</span>
+                    <span class="material-symbols-outlined agenda-expand-icon" style="color: var(--text-tertiary); transition: transform 0.2s; transform: rotate(-90deg);">expand_more</span>
+                </summary>
+                
+                <div style="padding:1.5rem; background:#fff; border-top:1px solid var(--border-subtle); border-bottom-left-radius:8px; border-bottom-right-radius:8px;">
                     <div style="display: flex; flex-direction: column; gap: 1rem;">
                         <div style="display: flex; align-items: center; gap: 1rem;">
                             <label style="width: 100px; color: var(--text-secondary); font-size:0.9rem;">Action Title:</label>
-                            <input type="text" value="${item.objective || ''}" style="flex: 1; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; background: #fff;">
+                            <input type="text" value="${item.details || ''}" style="flex: 1; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; background: #fff;">
                         </div>
                         
                         <div style="display: flex; align-items: flex-start; gap: 1rem;">
                             <label style="width: 100px; color: var(--text-secondary); padding-top: 0.5rem; font-size:0.9rem;">Description:</label>
-                            <textarea rows="2" style="flex: 1; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; background: #fff;">${item.details || ''}</textarea>
+                            <textarea rows="2" style="flex: 1; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; background: #fff;"></textarea>
                         </div>
                         
-                        <div style="display: flex; align-items: center; gap: 1rem;">
-                            <label style="width: 100px; color: var(--text-secondary); font-size:0.9rem;">Status:</label>
-                            <select style="width: 200px; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; background: #fff;">
-                                <option>In Progress</option>
-                                <option>At Risk</option>
-                            </select>
+                        <div style="display: flex; align-items: center; gap: 1rem; justify-content:space-between;">
+                            <div style="display:flex; align-items:center; gap:1rem;">
+                                <label style="width: 100px; color: var(--text-secondary); font-size:0.9rem;">Status:</label>
+                                <select style="width: 200px; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; background: #fff;">
+                                    <option>In Progress</option>
+                                    <option>At Risk</option>
+                                </select>
+                            </div>
+                            <button type="button" class="btn-secondary" style="padding:0.3rem 0.75rem; font-size:0.85rem;" onclick="event.stopPropagation(); window.viewActionEdit();">Advanced</button>
                         </div>
                     </div>
                 </div>
-            </div>
+            </details>
+            ` : ''}
         </div>
-    `).join('');
+        `;
+    }).join('');
 };
 
 window.addAgendaItem = function() {
-    window._currentAgendaItems.push({ id: Date.now() + Math.random(), objective: '', details: '' });
+    window._currentAgendaItems.push({ id: Date.now() + Math.random(), linkType: '', details: '' });
     window.renderAgendaItems();
 };
 
 window.removeAgendaItem = function(id) {
     window._currentAgendaItems = window._currentAgendaItems.filter(i => i.id !== id);
-    if (window._currentAgendaItems.length === 0) {
-        window.addAgendaItem(); // keep at least one
-    } else {
-        window.renderAgendaItems();
-    }
+    window.renderAgendaItems();
 };
 
 window.updateAgendaItem = function(id, field, value) {
@@ -1548,10 +1584,21 @@ window.toggleInteractionEdit = function() {
                 // Populate outcome
                 const outcomeSlider = document.getElementById('edit-int-outcome-slider');
                 const outcomeVal = document.getElementById('edit-int-outcome-val');
+                const outcomeValBtn = document.getElementById('edit-int-outcome-val-btn');
+                const outcomeBtn = document.getElementById('edit-int-outcome-btn');
                 const outcomeNotes = document.getElementById('edit-int-outcome-notes');
+                const statusEl = document.getElementById('edit-int-status');
+                
+                if (statusEl) statusEl.value = interaction.status || (interaction.type === 'Upcoming' ? 'Upcoming' : 'Completed');
+                if (document.getElementById('edit-int-outcome-wrapper')) {
+                    document.getElementById('edit-int-outcome-wrapper').style.display = (statusEl && statusEl.value === 'Completed') ? 'block' : 'none';
+                }
+
                 if (outcomeSlider) {
                     outcomeSlider.value = interaction.outcomeScore || 5;
                     if (outcomeVal) outcomeVal.innerText = outcomeSlider.value;
+                    if (outcomeValBtn) outcomeValBtn.innerText = outcomeSlider.value;
+                    if (outcomeBtn) outcomeBtn.style.background = outcomeSlider.value >= 7 ? '#22c55e' : (outcomeSlider.value >= 4 ? '#eab308' : '#ef4444');
                 }
                 if (outcomeNotes) outcomeNotes.value = interaction.outcomeNotes || '';
                 
@@ -1564,6 +1611,23 @@ window.toggleInteractionEdit = function() {
             window._currentAgendaItems = [];
             window.renderAgendaItems();
         }
+        
+        // Populate attendees dummy list for the popover
+        const attendeesMockList = document.getElementById('edit-int-attendees-mock-list');
+        if (attendeesMockList) {
+            const stakeholders = window.getData('stakeholders') || [];
+            if (stakeholders.length > 0) {
+                attendeesMockList.innerHTML = stakeholders.slice(0, 5).map(s => `
+                    <div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="mock-contact-item" onmouseover="this.style.background='var(--bg-app)'" onmouseout="this.style.background='transparent'" onclick="alert('Mock: Selected ' + '${s.name}'); document.getElementById('edit-int-attendees-popover').style.display='none';">
+                        <div style="width:24px; height:24px; border-radius:50%; background:#3b82f6; color:white; display:flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:bold;">${s.name.substring(0,2).toUpperCase()}</div>
+                        <div style="font-size:0.85rem; color:var(--text-primary); font-weight:500;">${s.name}</div>
+                    </div>
+                `).join('');
+            } else {
+                attendeesMockList.innerHTML = '<div style="font-size:0.8rem; color:var(--text-tertiary);">No stakeholders found</div>';
+            }
+        }
+        
         viewMode.style.display = 'none';
         editMode.style.display = 'block';
         editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done';

@@ -56,11 +56,55 @@
         .update-type-btn { border:1px solid var(--border-subtle); background:#fff; padding:0.5rem 1rem; border-radius:8px; display:inline-flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.9rem; transition:all 0.2s; color:var(--text-secondary); }
         .update-type-btn:hover { background:var(--bg-app); }
         .update-type-btn.active { background:#ecfdf5; color:#10b981; border-color:#10b981; font-weight:600; }
+        .privacy-btn { transition: all 0.2s; color: var(--text-secondary); }
+        .privacy-btn:hover { background: var(--bg-app); }
+        .privacy-btn.active { background: rgba(59, 130, 246, 0.1); font-weight: 600; color: #3b82f6 !important; }
     </style>
 
     <div style="margin-bottom: 1.5rem;">
-        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Purpose:</label>
-        <input type="text" id="edit-int-purpose" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-size:1.1rem; font-weight:600; font-family: 'Inter', sans-serif;">
+        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Title:</label>
+        <input type="text" id="edit-int-purpose" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-size:1.1rem; font-weight:600; font-family: 'Inter', sans-serif; margin-bottom:0.5rem;">
+        
+        <div style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap; margin-top:0.5rem;">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+                <label style="font-weight: 500; color: #6b7280; font-size:0.9rem; margin:0;">Date:</label>
+                <input type="date" id="edit-int-date" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; padding: 0.3rem 0.5rem; font-family: 'Inter', sans-serif; font-size:0.9rem;">
+            </div>
+            
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+                <label style="font-weight: 500; color: #6b7280; font-size:0.9rem; margin:0;">Status:</label>
+                <select id="edit-int-status" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; padding: 0.3rem 0.5rem; font-family: 'Inter', sans-serif; font-size:0.9rem;" onchange="document.getElementById('edit-int-outcome-wrapper').style.display = this.value === 'Completed' ? 'block' : 'none';">
+                    <option value="Upcoming">Upcoming</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+                
+                <!-- Outcome popover root -->
+                <div id="edit-int-outcome-wrapper" style="position:relative; display:none; margin-left:0.5rem;">
+                    <button type="button" id="edit-int-outcome-btn" onclick="document.getElementById('edit-int-outcome-popover').style.display = document.getElementById('edit-int-outcome-popover').style.display === 'none' ? 'block' : 'none';" style="display:flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%; border:none; background:#22c55e; color:white; cursor:pointer; font-weight:bold; font-size:0.75rem; box-shadow:0 1px 3px rgba(0,0,0,0.1);" title="Set Outcome">
+                        <span id="edit-int-outcome-val-btn">5</span>
+                    </button>
+                    <!-- Popover -->
+                    <div id="edit-int-outcome-popover" class="sdet-card" style="display:none; position:absolute; top:120%; left:0; z-index:100; width:300px; padding:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+                        <label style="font-weight: 600; margin-bottom: 0.5rem; display:block; color: var(--text-primary); font-size:0.9rem;">Outcome (1-10): <span id="edit-int-outcome-val" style="font-weight:bold;color:var(--text-primary);">5</span></label>
+                        <input type="range" id="edit-int-outcome-slider" min="1" max="10" step="1" value="5" style="width: 100%; accent-color:#22c55e; margin-bottom:1rem;" oninput="document.getElementById('edit-int-outcome-val').innerText = this.value; document.getElementById('edit-int-outcome-val-btn').innerText = this.value; document.getElementById('edit-int-outcome-btn').style.background = this.value >= 7 ? '#22c55e' : (this.value >= 4 ? '#eab308' : '#ef4444');">
+                        <label style="font-weight: 600; margin-bottom: 0.5rem; display:block; color: var(--text-primary); font-size:0.9rem;">Outcome Notes (private):</label>
+                        <textarea id="edit-int-outcome-notes" placeholder="Elaborate on outcome / how it went" rows="2" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif; resize:vertical; font-size:0.9rem;"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+                <label style="font-weight: 500; color: #6b7280; font-size:0.9rem; margin:0;">Type:</label>
+                <div id="edit-int-type-group" style="display: flex; gap: 0.25rem; flex-wrap:wrap;">
+                    <button class="update-type-btn" style="padding:0.2rem 0.5rem; font-size:0.8rem;" onclick="this.classList.toggle('active')" data-val="Phone">Phone</button>
+                    <button class="update-type-btn" style="padding:0.2rem 0.5rem; font-size:0.8rem;" onclick="this.classList.toggle('active')" data-val="Email">Email</button>
+                    <button class="update-type-btn" style="padding:0.2rem 0.5rem; font-size:0.8rem;" onclick="this.classList.toggle('active')" data-val="In-Person">In-Person</button>
+                    <button class="update-type-btn" style="padding:0.2rem 0.5rem; font-size:0.8rem;" onclick="this.classList.toggle('active')" data-val="Video">Video</button>
+                    <button class="update-type-btn" style="padding:0.2rem 0.5rem; font-size:0.8rem;" onclick="this.classList.toggle('active')" data-val="Other">Other</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div style="margin-bottom: 1.5rem;">
@@ -68,37 +112,20 @@
         <textarea id="edit-int-description" rows="3" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; resize: vertical; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif; font-size:0.95rem;"></textarea>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; margin-bottom: 1.5rem;">
-        <div>
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Date:</label>
-            <input type="date" id="edit-int-date" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
-        </div>
-        <div>
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Update Type:</label>
-            <div id="edit-int-type-group" style="display: flex; gap: 0.5rem; flex-wrap:wrap;">
-                <button class="update-type-btn" onclick="this.classList.toggle('active')" data-val="Phone"><span class="material-symbols-outlined" style="font-size:1.1rem;">call</span> Phone</button>
-                <button class="update-type-btn" onclick="this.classList.toggle('active')" data-val="Email"><span class="material-symbols-outlined" style="font-size:1.1rem;">mail</span> Email</button>
-                <button class="update-type-btn" onclick="this.classList.toggle('active')" data-val="In-Person"><span class="material-symbols-outlined" style="font-size:1.1rem;">groups</span> In-Person</button>
-                <button class="update-type-btn" onclick="this.classList.toggle('active')" data-val="Video"><span class="material-symbols-outlined" style="font-size:1.1rem;">videocam</span> Video</button>
-                <button class="update-type-btn" onclick="this.classList.toggle('active')" data-val="Other"><span class="material-symbols-outlined" style="font-size:1.1rem;">more_horiz</span> Other</button>
-            </div>
-        </div>
-    </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem; align-items: start;">
-        <div>
-            <label style="font-weight: 500; margin-bottom: 0.5rem; display:block; color: #6b7280;">Outcome (1-10): <span id="edit-int-outcome-val" style="font-weight:bold;color:var(--text-primary);">5</span></label>
-            <input type="range" id="edit-int-outcome-slider" min="1" max="10" step="1" value="5" style="width: 100%; accent-color:#22c55e;" oninput="document.getElementById('edit-int-outcome-val').innerText = this.value">
-        </div>
-        <div>
-            <label style="font-weight: 500; margin-bottom: 0.5rem; display:block; color: #6b7280;">Outcome Notes (private):</label>
-            <textarea id="edit-int-outcome-notes" placeholder="Elaborate on outcome / how it went" rows="2" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif; resize:vertical;"></textarea>
-        </div>
-    </div>
 
     <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem;">
         <label style="font-weight: 500; margin: 0; color: #6b7280;">Attendees:</label>
-        <button style="width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border-subtle); background: #f3f4f6; cursor: pointer; display: flex; align-items: center; justify-content: center;">+</button>
+        <div style="position:relative;">
+            <button style="width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border-subtle); background: #f3f4f6; cursor: pointer; display: flex; align-items: center; justify-content: center;" onclick="const p = document.getElementById('edit-int-attendees-popover'); p.style.display = p.style.display==='none'?'block':'none';">+</button>
+            <!-- Contacts popover mock -->
+            <div id="edit-int-attendees-popover" class="sdet-card" style="display:none; position:absolute; top:120%; left:0; z-index:100; width:250px; padding:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+                <div style="font-weight:600; margin-bottom:0.5rem; font-size:0.9rem;">Add Attendee</div>
+                <div style="display:flex; flex-direction:column; gap:0.5rem;" id="edit-int-attendees-mock-list">
+                    <!-- Populated by JS mock data from tbl_interaction_attendee_id -->
+                </div>
+            </div>
+        </div>
         <div id="edit-int-attendees-list" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
             <!-- Populated by JS -->
         </div>
@@ -121,10 +148,10 @@
 
     <div style="margin-bottom: 2rem; font-size: 0.9rem; color: var(--text-secondary); display: flex; gap: 1rem; align-items: center;">
         Privacy: 
-        <span style="display: flex; align-items: center; gap: 0.25rem; color: #3b82f6;"><span class="material-symbols-outlined" style="font-size: 1rem;">language</span> Public/Official</span>
-        <span style="display: flex; align-items: center; gap: 0.25rem;"><span class="material-symbols-outlined" style="font-size: 1rem;">groups</span> Attendees</span>
-        <span style="display: flex; align-items: center; gap: 0.25rem;"><span class="material-symbols-outlined" style="font-size: 1rem;">lock</span> Restricted</span>
-        <span style="display: flex; align-items: center; gap: 0.25rem;"><b>+</b> Advanced / Custom</span>
+        <span class="privacy-btn active" onclick="document.querySelectorAll('.privacy-btn').forEach(e=>e.classList.remove('active')); this.classList.add('active');" style="display: flex; align-items: center; gap: 0.25rem; color: #3b82f6; cursor:pointer; padding:0.2rem 0.5rem; border-radius:4px;"><span class="material-symbols-outlined" style="font-size: 1rem;">language</span> Public/Official</span>
+        <span class="privacy-btn" onclick="document.querySelectorAll('.privacy-btn').forEach(e=>e.classList.remove('active')); this.classList.add('active');" style="display: flex; align-items: center; gap: 0.25rem; cursor:pointer; padding:0.2rem 0.5rem; border-radius:4px;"><span class="material-symbols-outlined" style="font-size: 1rem;">groups</span> Attendees</span>
+        <span class="privacy-btn" onclick="document.querySelectorAll('.privacy-btn').forEach(e=>e.classList.remove('active')); this.classList.add('active');" style="display: flex; align-items: center; gap: 0.25rem; cursor:pointer; padding:0.2rem 0.5rem; border-radius:4px;"><span class="material-symbols-outlined" style="font-size: 1rem;">lock</span> Restricted</span>
+        <span class="privacy-btn" onclick="document.querySelectorAll('.privacy-btn').forEach(e=>e.classList.remove('active')); this.classList.add('active');" style="display: flex; align-items: center; gap: 0.25rem; cursor:pointer; padding:0.2rem 0.5rem; border-radius:4px;"><b>+</b> Advanced / Custom</span>
     </div>
 
     <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--border-subtle); padding-top: 1.5rem;">
