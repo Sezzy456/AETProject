@@ -334,7 +334,7 @@ async function updateInteractionDB(uiData, isNew) {
                 const agRows = uiData.agendaItems.map((ag, idx) => ({
                     iai_interaction_original_id: uiData.id,
                     iai_type: ag.linkType || 'Discuss',
-                    iai_action_id: ag.linked_action_original_id || null,
+                    iai_action_original_id: ag.linked_action_original_id || null,
                     iai_objective_id: ag.linked_objective_id ? parseInt(String(ag.linked_objective_id).replace('obj', '')) : null,
                     iai_details: ag.linkType === 'new_action' ? (ag.new_action_name || ag.details || '') : (ag.details || ''),
                     iai_order: idx + 1,
