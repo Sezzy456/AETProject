@@ -1317,18 +1317,38 @@ function renderInteractionDetail() {
     }
 }
 
+window.updateInteractionStatus = function() {
+    const dateInput = document.getElementById('edit-int-date');
+    const statusDisplay = document.getElementById('edit-int-status-display');
+    const outcomeWrapper = document.getElementById('edit-int-outcome-wrapper');
+    if (!dateInput || !statusDisplay) return;
+    
+    const d = new Date(dateInput.value);
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    if (!dateInput.value || d >= today) {
+        statusDisplay.innerText = 'Upcoming';
+        statusDisplay.style.color = '#ef4444';
+        if (outcomeWrapper) outcomeWrapper.style.display = 'none';
+    } else {
+        statusDisplay.innerText = 'Completed';
+        statusDisplay.style.color = '#22c55e';
+        if (outcomeWrapper) outcomeWrapper.style.display = 'block';
+    }
+};
+
 window.saveInteraction = function () {
     // Collect data
     const title = document.getElementById('edit-int-purpose')?.value || 'New Interaction';
     const date = document.getElementById('edit-int-date')?.value || '';
     const desc = document.getElementById('edit-int-description')?.value || '';
     const typeBtns = document.querySelectorAll('.update-type-btn.active');
-    const types = Array.from(typeBtns).map(btn => btn.getAttribute('data-val'));
-    const type = types.length > 0 ? types.join(', ') : 'Other';
+    const type = typeBtns.length > 0 ? typeBtns[0].getAttribute('data-val') : 'Other';
     const outcomeScore = document.getElementById('edit-int-outcome-slider')?.value || 5;
     const outcomeNotes = document.getElementById('edit-int-outcome-notes')?.value || '';
-    const statusEl = document.getElementById('edit-int-status');
-    const status = statusEl ? statusEl.value : 'Completed';
+    const statusEl = document.getElementById('edit-int-status-display');
+    const status = statusEl ? statusEl.innerText : 'Completed';
 
     const isNew = !window.currentInteractionId;
     const interactions = window.getData('interactions') || [];
@@ -1435,8 +1455,8 @@ window.renderAgendaItems = function() {
                         <span class="material-symbols-outlined">drag_indicator</span>
                     </div>
                     <div style="flex: 1; display:flex; flex-direction:column; gap:0.5rem;">
-                        <div style="display: flex; gap: 1rem; align-items: center;">
-                            <select class="agenda-link-type" data-id="${item.id}" style="border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; font-family: 'Inter', sans-serif; background: #fff;" onchange="window.updateAgendaItem(${item.id}, 'linkType', this.value); window.renderAgendaItems();">
+                        <div style="display: flex; gap: 1rem; align-items: center; width:100%;">
+                            <select class="agenda-link-type" data-id="${item.id}" style="flex: 1; min-width: 0; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; font-family: 'Inter', sans-serif; background: #fff;" onchange="window.updateAgendaItem(${item.id}, 'linkType', this.value); window.renderAgendaItems();">
                                 <option value="">Select Link Type...</option>
                                 <option value="action" ${item.linkType === 'action' ? 'selected' : ''}>Link to Action</option>
                                 <option value="objective" ${item.linkType === 'objective' ? 'selected' : ''}>Link to Objective</option>
@@ -1444,19 +1464,19 @@ window.renderAgendaItems = function() {
                             </select>
                             
                             ${item.linkType === 'action' ? `
-                                <select class="agenda-action" data-id="${item.id}" style="flex:1; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; font-family: 'Inter', sans-serif; background: #fff;" onchange="window.updateAgendaItem(${item.id}, 'linked_action_original_id', this.value); window.renderAgendaItems();">
+                                <select class="agenda-action" data-id="${item.id}" style="flex: 1; min-width: 0; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; font-family: 'Inter', sans-serif; background: #fff;" onchange="window.updateAgendaItem(${item.id}, 'linked_action_original_id', this.value); window.renderAgendaItems();">
                                     <option value="">Select Action...</option>
                                     <option value="act-123" ${item.linked_action_original_id === 'act-123' ? 'selected' : ''}>Draft Communications Plan</option>
                                     <option value="act-124" ${item.linked_action_original_id === 'act-124' ? 'selected' : ''}>Finalize Budget</option>
                                 </select>
                             ` : item.linkType === 'objective' ? `
-                                <select class="agenda-objective" data-id="${item.id}" style="flex:1; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; font-family: 'Inter', sans-serif; background: #fff;" onchange="window.updateAgendaItem(${item.id}, 'linked_objective_id', this.value); window.renderAgendaItems();">
+                                <select class="agenda-objective" data-id="${item.id}" style="flex: 1; min-width: 0; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; font-family: 'Inter', sans-serif; background: #fff;" onchange="window.updateAgendaItem(${item.id}, 'linked_objective_id', this.value); window.renderAgendaItems();">
                                     <option value="">Select Objective...</option>
                                     <option value="obj-1" ${item.linked_objective_id === 'obj-1' ? 'selected' : ''}>Stakeholder Messaging Toolkit</option>
                                     <option value="obj-2" ${item.linked_objective_id === 'obj-2' ? 'selected' : ''}>Quarterly Review</option>
                                 </select>
                             ` : item.linkType === 'new_action' ? `
-                                <input type="text" placeholder="New Action Name" value="${item.new_action_name || ''}" style="flex:1; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; font-family: 'Inter', sans-serif; background: #fff;" oninput="window.updateAgendaItem(${item.id}, 'new_action_name', this.value)">
+                                <input type="text" placeholder="New Action Name" value="${item.new_action_name || ''}" style="flex: 1; min-width: 0; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; font-family: 'Inter', sans-serif; background: #fff;" oninput="window.updateAgendaItem(${item.id}, 'new_action_name', this.value)">
                             ` : `
                                 <div style="flex:1;"></div>
                             `}
@@ -1545,6 +1565,9 @@ window.toggleInteractionEdit = function() {
     const editMode = document.getElementById('int-edit-mode');
     const editBtn = document.getElementById('int-edit-toggle-btn');
     const cancelBtn = document.getElementById('int-cancel-btn');
+    const titleView = document.getElementById('detail-int-title');
+    const subtitleView = document.getElementById('detail-int-subtitle-view');
+    const subtitleEdit = document.getElementById('detail-int-subtitle-edit');
     
     if (!viewMode || !editMode) return;
     
@@ -1556,6 +1579,9 @@ window.toggleInteractionEdit = function() {
         editMode.style.display = 'none';
         editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
         if (cancelBtn) cancelBtn.style.display = 'none';
+        if (subtitleView) subtitleView.style.display = 'flex';
+        if (subtitleEdit) subtitleEdit.style.display = 'none';
+        if (window.renderInteractionDetail) window.renderInteractionDetail();
     } else {
         window._intOriginalSnapshot = null;
         const id = window.currentInteractionId;
@@ -1575,23 +1601,22 @@ window.toggleInteractionEdit = function() {
                 document.querySelectorAll('.update-type-btn').forEach(btn => btn.classList.remove('active'));
                 if (interaction.type) {
                     const savedTypes = interaction.type.split(',').map(t => t.trim());
-                    savedTypes.forEach(t => {
-                        const btn = document.querySelector(`.update-type-btn[data-val="${t}"]`);
+                    // Select only the first one since it's now single select
+                    if (savedTypes.length > 0) {
+                        const btn = document.querySelector(`.update-type-btn[data-val="${savedTypes[0]}"]`);
                         if (btn) btn.classList.add('active');
-                    });
+                    }
                 }
 
-                // Populate outcome
+                // Populate outcome and status
                 const outcomeSlider = document.getElementById('edit-int-outcome-slider');
                 const outcomeVal = document.getElementById('edit-int-outcome-val');
                 const outcomeValBtn = document.getElementById('edit-int-outcome-val-btn');
                 const outcomeBtn = document.getElementById('edit-int-outcome-btn');
                 const outcomeNotes = document.getElementById('edit-int-outcome-notes');
-                const statusEl = document.getElementById('edit-int-status');
                 
-                if (statusEl) statusEl.value = interaction.status || (interaction.type === 'Upcoming' ? 'Upcoming' : 'Completed');
-                if (document.getElementById('edit-int-outcome-wrapper')) {
-                    document.getElementById('edit-int-outcome-wrapper').style.display = (statusEl && statusEl.value === 'Completed') ? 'block' : 'none';
+                if (window.updateInteractionStatus) {
+                    window.updateInteractionStatus();
                 }
 
                 if (outcomeSlider) {
@@ -1615,16 +1640,16 @@ window.toggleInteractionEdit = function() {
         // Populate attendees dummy list for the popover
         const attendeesMockList = document.getElementById('edit-int-attendees-mock-list');
         if (attendeesMockList) {
-            const stakeholders = window.getData('stakeholders') || [];
-            if (stakeholders.length > 0) {
-                attendeesMockList.innerHTML = stakeholders.slice(0, 5).map(s => `
-                    <div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="mock-contact-item" onmouseover="this.style.background='var(--bg-app)'" onmouseout="this.style.background='transparent'" onclick="alert('Mock: Selected ' + '${s.name}'); document.getElementById('edit-int-attendees-popover').style.display='none';">
-                        <div style="width:24px; height:24px; border-radius:50%; background:#3b82f6; color:white; display:flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:bold;">${s.name.substring(0,2).toUpperCase()}</div>
-                        <div style="font-size:0.85rem; color:var(--text-primary); font-weight:500;">${s.name}</div>
+            const contacts = window.getData('contacts') || [];
+            if (contacts.length > 0) {
+                attendeesMockList.innerHTML = contacts.slice(0, 5).map(c => `
+                    <div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="mock-contact-item" onmouseover="this.style.background='var(--bg-app)'" onmouseout="this.style.background='transparent'" onclick="alert('Mock: Selected ' + '${c.name}'); document.getElementById('edit-int-attendees-popover').style.display='none';">
+                        <div style="width:24px; height:24px; border-radius:50%; background:#3b82f6; color:white; display:flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:bold;">${(c.name || 'U').substring(0,2).toUpperCase()}</div>
+                        <div style="font-size:0.85rem; color:var(--text-primary); font-weight:500;">${c.name}</div>
                     </div>
                 `).join('');
             } else {
-                attendeesMockList.innerHTML = '<div style="font-size:0.8rem; color:var(--text-tertiary);">No stakeholders found</div>';
+                attendeesMockList.innerHTML = '<div style="font-size:0.8rem; color:var(--text-tertiary);">No contacts found</div>';
             }
         }
         
@@ -1632,6 +1657,8 @@ window.toggleInteractionEdit = function() {
         editMode.style.display = 'block';
         editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done';
         if (cancelBtn) cancelBtn.style.display = 'inline-flex';
+        if (subtitleView) subtitleView.style.display = 'none';
+        if (subtitleEdit) subtitleEdit.style.display = 'flex';
     }
 };
 
@@ -1640,6 +1667,8 @@ window.cancelInteractionEdit = function() {
     const editMode = document.getElementById('int-edit-mode');
     const editBtn = document.getElementById('int-edit-toggle-btn');
     const cancelBtn = document.getElementById('int-cancel-btn');
+    const subtitleView = document.getElementById('detail-int-subtitle-view');
+    const subtitleEdit = document.getElementById('detail-int-subtitle-edit');
     
     if (window._intOriginalSnapshot && window.currentInteractionId) {
         const interactions = window.getData('interactions') || [];
@@ -1654,6 +1683,8 @@ window.cancelInteractionEdit = function() {
     if (editMode) editMode.style.display = 'none';
     if (editBtn) editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
     if (cancelBtn) cancelBtn.style.display = 'none';
+    if (subtitleView) subtitleView.style.display = 'flex';
+    if (subtitleEdit) subtitleEdit.style.display = 'none';
     
     if (typeof renderInteractionDetail === 'function') renderInteractionDetail();
 };
