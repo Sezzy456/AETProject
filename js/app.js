@@ -1410,8 +1410,7 @@ window.saveInteraction = function () {
     window.updateData('interactions', interactions);
     renderInteractionDetail();
     
-    window.showToast("Saving interaction...");
-    window.cancelInteractionEdit();
+    // We do NOT showToast or cancelEdit here. supabase.js intercepts saveInteraction and will do it after the async save completes.
 };
 
 window.toggleActionPullup = function() {

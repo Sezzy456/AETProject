@@ -279,7 +279,8 @@ async function updateInteractionDB(uiData, isNew) {
                 return false;
             }
             
-            await _sb.from('tbl_interaction').update({ in_active: false }).eq('in_id', current.in_id);
+            const { error: deactivateErr } = await _sb.from('tbl_interaction').update({ in_active: false }).eq('in_id', current.in_id);
+            if (deactivateErr) throw deactivateErr;
             
             const { in_id, ...rest } = current;
             const newRow = {
@@ -298,10 +299,7 @@ async function updateInteractionDB(uiData, isNew) {
             };
             
             const { error: updErr } = await _sb.from('tbl_interaction').insert(newRow);
-            if (updErr) {
-                console.error('[Supabase] Interaction version creation failed:', updErr);
-                throw updErr;
-            }
+            if (updErr) throw updErr;
         }
 
         // Now save Attendees
@@ -351,7 +349,7 @@ async function updateInteractionDB(uiData, isNew) {
         return true;
     } catch (e) { 
         console.error('[Supabase] saveInteraction exception:', e); 
-        alert(`Interaction save failed: ${e.message || 'Unknown error. Check console.'}`);
+        alert(`Interaction save failed: ${e.message || JSON.stringify(e) || 'Unknown error. Check console.'}`);
         return false; 
     }
 }
@@ -642,11 +640,18 @@ window.saveInteraction = async function() {
         const ints = window.getData('interactions') || [];
         const i = ints.find(x => x.id == window.currentInteractionId);
         if (i) {
-            const { data: existing } = await _sb.from('tbl_interaction').select('in_original_id').eq('in_original_id', i.id).maybeSingle();
-            const saved = await updateInteractionDB(i, !existing);
+            if (window.showToast) window.showToast("Saving interaction...");
+            const { data: existingRows } = await _sb.from('tbl_interaction').select('in_original_id').eq('in_original_id', i.id).limit(1);
+            const isNew = !existingRows || existingRows.length === 0;
+            const saved = await updateInteractionDB(i, isNew);
             if (saved) {
                 const fresh = await fetchInteractions();
                 if (fresh) _sbCache.interactions = fresh;
+                if (window.cancelInteractionEdit) window.cancelInteractionEdit();
+            } else {
+                // Remove toast if it failed
+                const toast = document.getElementById('global-toast');
+                if (toast) toast.style.opacity = '0';
             }
         }
     }
