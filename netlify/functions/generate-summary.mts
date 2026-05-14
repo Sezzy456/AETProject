@@ -37,7 +37,7 @@ export default async (req: Request, context: Context) => {
 
     if (actErr || intErr || staErr) {
       console.error("Error fetching data from Supabase", { actErr, intErr, staErr });
-      throw new Error("Failed to fetch context data");
+      throw new Error(`Failed to fetch context data: ${JSON.stringify({ actErr, intErr, staErr })}`);
     }
 
     // 3. Prepare prompt for OpenAI
