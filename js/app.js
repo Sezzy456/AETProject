@@ -321,6 +321,7 @@ function renderDashboard(pageIdOverride) {
     const stats = window.getData('stats');
     const actions = window.getData('actions') || [];
     const interactions = window.getData('interactions') || [];
+    const stakeholders = window.getData('stakeholders') || [];
     const spine = window.getData('spine');
     const pageLinks = window.getData('pageLinks') || [];
 
