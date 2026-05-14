@@ -165,7 +165,7 @@ async function fetchInteractions() {
                 id: a.iai_id,
                 linkType: a.iai_type || 'Discuss',
                 linked_objective_id: a.iai_objective_id ? 'obj' + a.iai_objective_id : '',
-                linked_action_original_id: a.iai_action_original_id || '',
+                linked_action_original_id: a.iai_action_id || '',
                 new_action_name: (a.iai_type === 'new_action') ? a.iai_details : '',
                 details: a.iai_details || ''
             }));
@@ -266,6 +266,7 @@ async function updateInteractionDB(uiData, isNew) {
                 in_date: uiData.rawDate||new Date().toISOString(), in_type: uiData.type || 'Other',
                 in_purpose: uiData.agenda||'', in_description: uiData.discussed||uiData.agenda||'',
                 in_outcome_score: uiData.outcomeScore || 5, in_outcome_notes: uiData.outcomeNotes || '',
+                in_follow_up_date: uiData.followUpDate || null,
                 in_active: true, in_created: new Date().toISOString(), in_created_by: 1,
                 in_modified: new Date().toISOString(), in_modified_by: 1
             });
@@ -290,6 +291,7 @@ async function updateInteractionDB(uiData, isNew) {
                 in_description: uiData.discussed || current.in_description,
                 in_outcome_score: uiData.outcomeScore || current.in_outcome_score,
                 in_outcome_notes: uiData.outcomeNotes || current.in_outcome_notes,
+                in_follow_up_date: uiData.followUpDate || current.in_follow_up_date,
                 in_active: true,
                 in_created: current.in_created || new Date().toISOString(),
                 in_modified: new Date().toISOString()
@@ -322,7 +324,7 @@ async function updateInteractionDB(uiData, isNew) {
             const agRows = uiData.agendaItems.map((ag, idx) => ({
                 iai_interaction_original_id: uiData.id,
                 iai_type: ag.linkType || 'Discuss',
-                iai_action_original_id: ag.linked_action_original_id || null,
+                iai_action_id: ag.linked_action_original_id || null,
                 iai_objective_id: ag.linked_objective_id ? parseInt(ag.linked_objective_id.replace('obj', '')) : null,
                 iai_details: ag.new_action_name || ag.details || '',
                 iai_order: idx + 1,

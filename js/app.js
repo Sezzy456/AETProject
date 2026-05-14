@@ -1368,6 +1368,7 @@ window.saveInteraction = function () {
             topics: [],
             attendeeIds: window._currentAttendeeIds ? window._currentAttendeeIds.map(a => a.id) : [],
             attendees: window._currentAttendeeIds ? window._currentAttendeeIds.map(a => a.name) : [],
+            followUpDate: (document.getElementById('edit-int-followup') && document.getElementById('edit-int-followup').checked) ? document.getElementById('edit-int-followup-date').value : '',
             agendaItems: JSON.parse(JSON.stringify(window._currentAgendaItems || []))
         };
         window.currentInteractionId = newInt.id;
@@ -1385,12 +1386,16 @@ window.saveInteraction = function () {
             interactions[idx].outcomeNotes = outcomeNotes;
             interactions[idx].attendeeIds = window._currentAttendeeIds ? window._currentAttendeeIds.map(a => a.id) : [];
             interactions[idx].attendees = window._currentAttendeeIds ? window._currentAttendeeIds.map(a => a.name) : [];
+            interactions[idx].followUpDate = (document.getElementById('edit-int-followup') && document.getElementById('edit-int-followup').checked) ? document.getElementById('edit-int-followup-date').value : '';
             interactions[idx].agendaItems = JSON.parse(JSON.stringify(window._currentAgendaItems || []));
         }
     }
 
     window.updateData('interactions', interactions);
     renderInteractionDetail();
+    
+    window.showToast("Saving interaction...");
+    window.cancelInteractionEdit();
 };
 
 window.toggleActionPullup = function() {
@@ -1481,7 +1486,10 @@ window.renderAgendaItems = function() {
                                     ${objectives.map(o => `<option value="${o.id}" ${item.linked_objective_id == o.id ? 'selected' : ''}>${o.text}</option>`).join('')}
                                 </select>
                             ` : item.linkType === 'new_action' ? `
-                                <input type="text" placeholder="New Action Name" value="${item.new_action_name || ''}" style="flex: 1; min-width: 0; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; font-family: 'Inter', sans-serif; background: #fff;" oninput="window.updateAgendaItem(${item.id}, 'new_action_name', this.value)">
+                                <div style="flex: 1; min-width: 0; display:flex; gap:0.5rem;">
+                                    <input type="text" id="agenda-new-action-${item.id}" placeholder="New Action Name" value="${item.new_action_name || ''}" style="flex: 1; min-width: 0; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; font-family: 'Inter', sans-serif; background: #fff;" oninput="window.updateAgendaItem(${item.id}, 'new_action_name', this.value)">
+                                    <button type="button" style="border: 1px solid #2563eb; background: #3b82f6; color:white; border-radius: 6px; padding: 0 0.75rem; font-size:0.85rem; font-weight:500; cursor:pointer;" onclick="const t = document.getElementById('pu-title'); if(t) t.value=document.getElementById('agenda-new-action-${item.id}').value; window.toggleActionPullup();">Quick Add</button>
+                                </div>
                             ` : `
                                 <div style="flex:1;"></div>
                             `}
@@ -1669,6 +1677,19 @@ window.toggleInteractionEdit = function() {
                     }));
                 }
                 window.renderInteractionAttendees();
+                
+                const followInput = document.getElementById('edit-int-followup');
+                const followDate = document.getElementById('edit-int-followup-date');
+                if (interaction.followUpDate) {
+                    if (followInput) followInput.checked = true;
+                    if (followDate) {
+                        followDate.style.display = 'block';
+                        followDate.value = interaction.followUpDate;
+                    }
+                } else {
+                    if (followInput) followInput.checked = false;
+                    if (followDate) followDate.style.display = 'none';
+                }
             }
         } else {
             // New interaction
@@ -1676,6 +1697,10 @@ window.toggleInteractionEdit = function() {
             window.renderAgendaItems();
             window._currentAttendeeIds = [];
             window.renderInteractionAttendees();
+            const followInput = document.getElementById('edit-int-followup');
+            const followDate = document.getElementById('edit-int-followup-date');
+            if (followInput) followInput.checked = false;
+            if (followDate) followDate.style.display = 'none';
         }
         
         // Populate attendees dummy list for the popover
@@ -4938,4 +4963,22 @@ document.addEventListener('click', function(e) {
         outPopover.style.display = 'none';
     }
 });
+
+window.showToast = function(message) {
+    let toast = document.getElementById('global-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'global-toast';
+        toast.style.cssText = 'position:fixed; bottom:2rem; left:50%; transform:translateX(-50%); background:#10b981; color:#fff; padding:0.75rem 1.5rem; border-radius:8px; font-weight:500; font-family:"Inter", sans-serif; box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:9999; opacity:0; transition:all 0.3s ease; pointer-events:none;';
+        document.body.appendChild(toast);
+    }
+    toast.innerText = message;
+    toast.style.opacity = '1';
+    toast.style.transform = 'translate(-50%, -20px)';
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translate(-50%, 0)';
+    }, 2500);
+};
 

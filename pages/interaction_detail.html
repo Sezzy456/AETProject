@@ -139,8 +139,9 @@
 
     <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem;">
         <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; margin-bottom: 0;">
-            <input type="checkbox"> Follow-up Date / Schedule next interaction
+            <input type="checkbox" id="edit-int-followup" onchange="document.getElementById('edit-int-followup-date').style.display = this.checked ? 'block' : 'none';"> Follow-up Date / Schedule next interaction
         </label>
+        <input type="date" id="edit-int-followup-date" style="display:none; border:1px solid var(--border-subtle); border-radius:4px; padding:0.2rem 0.5rem; font-family:'Inter', sans-serif; font-size:0.85rem;">
     </div>
 
     <div style="margin-bottom: 2rem; font-size: 0.9rem; color: var(--text-secondary); display: flex; gap: 1rem; align-items: center;">
