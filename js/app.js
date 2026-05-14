@@ -363,7 +363,7 @@ function renderDashboard(pageIdOverride) {
                         const el = document.getElementById(cardId);
                         if (!el) return;
                         try {
-                            const res = await fetch('/.netlify/functions/generate-summary');
+                            const res = await fetch('/api/generate-summary');
                             if (res.ok) {
                                 const data = await res.json();
                                 el.innerHTML = data.summary || 'Summary unavailable.';
