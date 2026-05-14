@@ -173,16 +173,3 @@
     flex-shrink: 0;
 }
 </style>
-
-<script>
-document.addEventListener('click', function(e) {
-    const attPopover = document.getElementById('edit-int-attendees-popover');
-    if (attPopover && attPopover.style.display === 'block' && !e.target.closest('#edit-int-attendees-wrapper')) {
-        attPopover.style.display = 'none';
-    }
-    const outPopover = document.getElementById('edit-int-outcome-popover');
-    if (outPopover && outPopover.style.display === 'block' && !e.target.closest('#edit-int-outcome-wrapper')) {
-        outPopover.style.display = 'none';
-    }
-});
-</script>

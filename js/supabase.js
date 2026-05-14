@@ -82,6 +82,20 @@ async function fetchStakeholders() {
     } catch (e) { console.error('[Supabase] fetchStakeholders error:', e); return null; }
 }
 
+// ── CONTACTS ────────────────────────────────────────────────────
+
+async function fetchContacts() {
+    if (!_sb) return null;
+    try {
+        const { data: contacts } = await _sb.from('tbl_contact').select('*').eq('co_active', true);
+        return (contacts || []).map(c => ({
+            id: c.co_id,
+            name: `${c.co_first_name} ${c.co_last_name}`.trim(),
+            organisation: c.co_organisation || ''
+        }));
+    } catch (e) { console.error('[Supabase] fetchContacts error:', e); return null; }
+}
+
 // ── ACTIONS ─────────────────────────────────────────────────────
 
 async function fetchActions() {
@@ -146,10 +160,13 @@ async function fetchInteractions() {
             const origId = r.in_original_id;
             const intDate = r.in_date ? new Date(r.in_date) : null;
             const attendees = (attRows||[]).filter(a => a.ia_interaction_original_id===origId).map(a => contactMap[a.ia_contact_id]||'Unknown');
+            const attendeeIds = (attRows||[]).filter(a => a.ia_interaction_original_id===origId).map(a => a.ia_contact_id);
             const agendaItems = (agendaRows||[]).filter(a => a.iai_interaction_original_id===origId).map(a => ({
                 id: a.iai_id,
-                type: a.iai_type || 'Discuss',
-                objective: a.iai_objective_id || a.iai_action_id || '',
+                linkType: a.iai_type || 'Discuss',
+                linked_objective_id: a.iai_objective_id ? 'obj' + a.iai_objective_id : '',
+                linked_action_original_id: a.iai_action_original_id || '',
+                new_action_name: (a.iai_type === 'new_action') ? a.iai_details : '',
                 details: a.iai_details || ''
             }));
             const topics = agendaItems.map(a => a.details || a.type);
@@ -158,7 +175,7 @@ async function fetchInteractions() {
                 id: origId, _dbId: r.in_id, date: intDate?intDate.toLocaleDateString('en-GB',{weekday:'long',hour:'2-digit',minute:'2-digit'}):'',
                 rawDate: intDate?intDate.toISOString().substring(0,10):'', type: intDate&&intDate>now?'Upcoming':'Recent',
                 title: r.in_title||'', agenda: r.in_purpose||'', discussed: r.in_description||'',
-                topics, attendees, agendaItems, outcomeScore: r.in_outcome_score, outcomeNotes: r.in_outcome_notes||'',
+                topics, attendees, attendeeIds, agendaItems, outcomeScore: r.in_outcome_score, outcomeNotes: r.in_outcome_notes||'',
                 followUpDate: r.in_follow_up_date?new Date(r.in_follow_up_date).toISOString().substring(0,10):''
             };
         });
@@ -284,6 +301,37 @@ async function updateInteractionDB(uiData, isNew) {
                 throw updErr;
             }
         }
+
+        // Now save Attendees
+        if (uiData.attendeeIds && uiData.attendeeIds.length > 0) {
+            // First deactivate old attendees
+            await _sb.from('tbl_interaction_attendee').update({ ia_active: false }).eq('ia_interaction_original_id', uiData.id);
+            // Insert new
+            const attRows = uiData.attendeeIds.map(cId => ({
+                ia_interaction_original_id: uiData.id,
+                ia_contact_id: cId,
+                ia_active: true,
+                ia_created: new Date().toISOString()
+            }));
+            await _sb.from('tbl_interaction_attendee').insert(attRows);
+        }
+
+        // Save Agenda Items
+        if (uiData.agendaItems && uiData.agendaItems.length > 0) {
+            await _sb.from('tbl_interaction_agenda_item').update({ iai_active: false }).eq('iai_interaction_original_id', uiData.id);
+            const agRows = uiData.agendaItems.map((ag, idx) => ({
+                iai_interaction_original_id: uiData.id,
+                iai_type: ag.linkType || 'Discuss',
+                iai_action_original_id: ag.linked_action_original_id || null,
+                iai_objective_id: ag.linked_objective_id ? parseInt(ag.linked_objective_id.replace('obj', '')) : null,
+                iai_details: ag.new_action_name || ag.details || '',
+                iai_order: idx + 1,
+                iai_active: true,
+                iai_created: new Date().toISOString()
+            }));
+            await _sb.from('tbl_interaction_agenda_item').insert(agRows);
+        }
+
         return true;
     } catch (e) { 
         console.error('[Supabase] saveInteraction exception:', e); 
@@ -514,9 +562,9 @@ async function preloadSupabaseData() {
     if (!_sb) return false;
     console.log('[Supabase] Pre-loading data...');
     try {
-        const [stakeholders, actions, interactions, spine, stats, dashCards, pageLinks, dashVariations] = await Promise.all([
+        const [stakeholders, actions, interactions, spine, stats, dashCards, pageLinks, dashVariations, contacts] = await Promise.all([
             fetchStakeholders(), fetchActions(), fetchInteractions(), fetchSpine(), fetchStats(),
-            fetchDashboardCards(), fetchPageLinks(), fetchVariationPages('dashboard')
+            fetchDashboardCards(), fetchPageLinks(), fetchVariationPages('dashboard'), fetchContacts()
         ]);
         if (stakeholders) _sbCache.stakeholders = stakeholders;
         if (actions) _sbCache.actions = actions;
@@ -526,6 +574,7 @@ async function preloadSupabaseData() {
         if (dashCards) _sbCache.dashboardCards = dashCards;
         if (pageLinks) _sbCache.pageLinks = pageLinks;
         if (dashVariations) _sbCache.dashboardVariations = dashVariations;
+        if (contacts) _sbCache.contacts = contacts;
         _sbReady = Object.keys(_sbCache).length > 0;
         console.log('[Supabase] Cache loaded:', Object.keys(_sbCache).join(', '));
         return _sbReady;

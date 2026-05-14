@@ -1366,7 +1366,8 @@ window.saveInteraction = function () {
             outcomeScore: parseInt(outcomeScore, 10),
             outcomeNotes: outcomeNotes,
             topics: [],
-            attendees: ["Vant", "Mayor of CoGB"],
+            attendeeIds: window._currentAttendeeIds ? window._currentAttendeeIds.map(a => a.id) : [],
+            attendees: window._currentAttendeeIds ? window._currentAttendeeIds.map(a => a.name) : [],
             agendaItems: JSON.parse(JSON.stringify(window._currentAgendaItems || []))
         };
         window.currentInteractionId = newInt.id;
@@ -1382,6 +1383,8 @@ window.saveInteraction = function () {
             interactions[idx].agenda = desc;
             interactions[idx].outcomeScore = parseInt(outcomeScore, 10);
             interactions[idx].outcomeNotes = outcomeNotes;
+            interactions[idx].attendeeIds = window._currentAttendeeIds ? window._currentAttendeeIds.map(a => a.id) : [];
+            interactions[idx].attendees = window._currentAttendeeIds ? window._currentAttendeeIds.map(a => a.name) : [];
             interactions[idx].agendaItems = JSON.parse(JSON.stringify(window._currentAgendaItems || []));
         }
     }
@@ -1444,6 +1447,10 @@ window.renderAgendaItems = function() {
         document.head.insertAdjacentHTML('beforeend', '<style id="agenda-styles-injected">details[open] > summary .agenda-expand-icon { transform: rotate(0deg) !important; } details > summary::-webkit-details-marker { display: none; }</style>');
     }
     
+    const spine = window.getData('spine') || {};
+    const objectives = spine.objectives || [];
+    const actions = window.getData('actions') || [];
+    
     container.innerHTML = window._currentAgendaItems.map((item, index) => {
         const isActionLinked = item.linkType === 'action' && item.linked_action_original_id;
         
@@ -1466,14 +1473,12 @@ window.renderAgendaItems = function() {
                             ${item.linkType === 'action' ? `
                                 <select class="agenda-action" data-id="${item.id}" style="flex: 1; min-width: 0; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; font-family: 'Inter', sans-serif; background: #fff;" onchange="window.updateAgendaItem(${item.id}, 'linked_action_original_id', this.value); window.renderAgendaItems();">
                                     <option value="">Select Action...</option>
-                                    <option value="act-123" ${item.linked_action_original_id === 'act-123' ? 'selected' : ''}>Draft Communications Plan</option>
-                                    <option value="act-124" ${item.linked_action_original_id === 'act-124' ? 'selected' : ''}>Finalize Budget</option>
+                                    ${actions.map(a => `<option value="${a.id}" ${item.linked_action_original_id == a.id ? 'selected' : ''}>${a.activity || a.title || 'Unnamed Action'}</option>`).join('')}
                                 </select>
                             ` : item.linkType === 'objective' ? `
                                 <select class="agenda-objective" data-id="${item.id}" style="flex: 1; min-width: 0; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; font-family: 'Inter', sans-serif; background: #fff;" onchange="window.updateAgendaItem(${item.id}, 'linked_objective_id', this.value); window.renderAgendaItems();">
                                     <option value="">Select Objective...</option>
-                                    <option value="obj-1" ${item.linked_objective_id === 'obj-1' ? 'selected' : ''}>Stakeholder Messaging Toolkit</option>
-                                    <option value="obj-2" ${item.linked_objective_id === 'obj-2' ? 'selected' : ''}>Quarterly Review</option>
+                                    ${objectives.map(o => `<option value="${o.id}" ${item.linked_objective_id == o.id ? 'selected' : ''}>${o.text}</option>`).join('')}
                                 </select>
                             ` : item.linkType === 'new_action' ? `
                                 <input type="text" placeholder="New Action Name" value="${item.new_action_name || ''}" style="flex: 1; min-width: 0; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem; font-family: 'Inter', sans-serif; background: #fff;" oninput="window.updateAgendaItem(${item.id}, 'new_action_name', this.value)">
@@ -1560,6 +1565,31 @@ window.toggleQuickActionEdit = function(id, event) {
     }
 };
 
+window._currentAttendeeIds = [];
+
+window.addInteractionAttendee = function(id, name) {
+    if (!window._currentAttendeeIds.some(a => a.id === id)) {
+        window._currentAttendeeIds.push({ id, name });
+        window.renderInteractionAttendees();
+    }
+};
+
+window.removeInteractionAttendee = function(id) {
+    window._currentAttendeeIds = window._currentAttendeeIds.filter(a => a.id !== id);
+    window.renderInteractionAttendees();
+};
+
+window.renderInteractionAttendees = function() {
+    const list = document.getElementById('edit-int-attendees-list');
+    if (!list) return;
+    list.innerHTML = window._currentAttendeeIds.map(a => `
+        <div style="background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:4px; padding:0.2rem 0.5rem; font-size:0.85rem; display:flex; align-items:center; gap:0.4rem;">
+            ${a.name}
+            <span class="material-symbols-outlined" style="font-size:1rem; cursor:pointer; color:var(--text-tertiary);" onclick="window.removeInteractionAttendee('${a.id}')">close</span>
+        </div>
+    `).join('');
+};
+
 window.toggleInteractionEdit = function() {
     const viewMode = document.getElementById('int-view-mode');
     const editMode = document.getElementById('int-edit-mode');
@@ -1630,11 +1660,22 @@ window.toggleInteractionEdit = function() {
                 // Populate agenda
                 window._currentAgendaItems = interaction.agendaItems || [];
                 window.renderAgendaItems();
+                
+                window._currentAttendeeIds = [];
+                if (interaction.attendeeIds && interaction.attendees) {
+                    window._currentAttendeeIds = interaction.attendeeIds.map((id, idx) => ({
+                        id: id,
+                        name: interaction.attendees[idx] || 'Unknown'
+                    }));
+                }
+                window.renderInteractionAttendees();
             }
         } else {
             // New interaction
             window._currentAgendaItems = [];
             window.renderAgendaItems();
+            window._currentAttendeeIds = [];
+            window.renderInteractionAttendees();
         }
         
         // Populate attendees dummy list for the popover
@@ -1643,7 +1684,7 @@ window.toggleInteractionEdit = function() {
             const contacts = window.getData('contacts') || [];
             if (contacts.length > 0) {
                 attendeesMockList.innerHTML = contacts.slice(0, 5).map(c => `
-                    <div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="mock-contact-item" onmouseover="this.style.background='var(--bg-app)'" onmouseout="this.style.background='transparent'" onclick="alert('Mock: Selected ' + '${c.name}'); document.getElementById('edit-int-attendees-popover').style.display='none';">
+                    <div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="mock-contact-item" onmouseover="this.style.background='var(--bg-app)'" onmouseout="this.style.background='transparent'" onclick="window.addInteractionAttendee('${c.id}', '${c.name.replace(/'/g, "\\'")}'); document.getElementById('edit-int-attendees-popover').style.display='none';">
                         <div style="width:24px; height:24px; border-radius:50%; background:#3b82f6; color:white; display:flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:bold;">${(c.name || 'U').substring(0,2).toUpperCase()}</div>
                         <div style="font-size:0.85rem; color:var(--text-primary); font-weight:500;">${c.name}</div>
                     </div>
@@ -4885,4 +4926,16 @@ window.saveAndApproveApproval = async function(mpcId) {
         if (card) card.style.opacity = '1';
     }
 };
+
+// Global click listener for closing popovers
+document.addEventListener('click', function(e) {
+    const attPopover = document.getElementById('edit-int-attendees-popover');
+    if (attPopover && attPopover.style.display === 'block' && !e.target.closest('#edit-int-attendees-wrapper')) {
+        attPopover.style.display = 'none';
+    }
+    const outPopover = document.getElementById('edit-int-outcome-popover');
+    if (outPopover && outPopover.style.display === 'block' && !e.target.closest('#edit-int-outcome-wrapper')) {
+        outPopover.style.display = 'none';
+    }
+});
 
