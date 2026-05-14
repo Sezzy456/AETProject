@@ -24,9 +24,9 @@ export default async (req: Request, context: Context) => {
 
     // - Interactions (Upcoming or recent)
     const { data: interactions, error: intErr } = await supabaseClient
-      .from('tbl_activity_log')
-      .select('al_title, al_date, al_type')
-      .order('al_date', { ascending: false })
+      .from('tbl_interaction')
+      .select('in_title, in_date, in_type')
+      .order('in_date', { ascending: false })
       .limit(10);
 
     // - Stakeholders needing attention
