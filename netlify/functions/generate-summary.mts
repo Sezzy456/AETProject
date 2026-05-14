@@ -18,8 +18,8 @@ export default async (req: Request, context: Context) => {
     // - Actions (active/overdue)
     const { data: actions, error: actErr } = await supabaseClient
       .from('tbl_action')
-      .select('act_activity, act_status, act_due_date, act_owner')
-      .neq('act_status', 'Completed')
+      .select('ac_title, ac_status, ac_due_date')
+      .neq('ac_status', 'Completed')
       .limit(10);
 
     // - Interactions (Upcoming or recent)
@@ -29,11 +29,11 @@ export default async (req: Request, context: Context) => {
       .order('in_date', { ascending: false })
       .limit(10);
 
-    // - Stakeholders needing attention
+    // - Stakeholders
     const { data: stakeholders, error: staErr } = await supabaseClient
       .from('tbl_stakeholder')
-      .select('sta_name, sta_status')
-      .in('sta_status', ['Needs Attention', 'Critical/At Risk', 'Strained', 'Friction Points']);
+      .select('sta_name, sta_role, sta_status')
+      .limit(15);
 
     if (actErr || intErr || staErr) {
       console.error("Error fetching data from Supabase", { actErr, intErr, staErr });
