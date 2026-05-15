@@ -1653,6 +1653,9 @@ window.toggleInteractionEdit = function() {
         window._intOriginalSnapshot = null;
         const id = window.currentInteractionId;
         if (id) {
+            const interactions = window.getData('interactions') || [];
+            const interaction = interactions.find(i => i.id == id);
+            if (interaction) {
                 window._intOriginalSnapshot = JSON.parse(JSON.stringify(interaction));
                 const purposeEl = document.getElementById('edit-int-purpose');
                 const dateEl = document.getElementById('edit-int-date');
