@@ -368,9 +368,12 @@ function renderDashboard(pageIdOverride) {
                                 const data = await res.json();
                                 el.innerHTML = data.summary || 'Summary unavailable.';
                             } else {
-                                el.innerHTML = 'Failed to load AI summary.';
+                                const errData = await res.json().catch(() => ({}));
+                                console.error('AI Summary Error:', errData);
+                                el.innerHTML = `Failed to load AI summary. ${errData.error ? '(' + errData.error + ')' : ''}`;
                             }
                         } catch (e) {
+                            console.error('AI Summary Network/Fetch Error:', e);
                             el.innerHTML = 'Error loading AI summary.';
                         }
                     }, 50);
