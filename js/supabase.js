@@ -704,14 +704,18 @@ window.saveCurrentAction = async function() {
 // ── BOOT ────────────────────────────────────────────────────────
 
 window.bootSupabase = async function() {
-    if (!initSupabase()) { console.warn('[Supabase] Client not available — using localStorage'); return; }
+    if (!initSupabase()) { 
+        console.warn('[Supabase] Client not available — using localStorage'); 
+        loadView(window.location.hash.replace('#','')||'dashboard');
+        return; 
+    }
     const loaded = await preloadSupabaseData();
     if (loaded) {
         console.log('[Supabase] ✅ Data loaded — reloading current view');
-        loadView(window.location.hash.replace('#','')||'dashboard');
     } else {
         console.warn('[Supabase] No data loaded — falling back to localStorage');
     }
+    loadView(window.location.hash.replace('#','')||'dashboard');
 };
 
 // ── PENDING APPROVALS ────────────────────────────────────────────────────────
