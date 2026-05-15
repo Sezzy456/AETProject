@@ -712,11 +712,11 @@ window.bootSupabase = async function() {
     const loaded = await preloadSupabaseData();
     if (loaded) {
         console.log('[Supabase] ✅ Data loaded — reloading current view');
-        loadView(window.location.hash.replace('#','')||'dashboard');
     } else {
         console.warn('[Supabase] No data loaded — falling back to localStorage');
         loadView(window.location.hash.replace('#','')||'dashboard');
     }
+    loadView(window.location.hash.replace('#','')||'dashboard');
 };
 
 // ── PENDING APPROVALS ────────────────────────────────────────────────────────
