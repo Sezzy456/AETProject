@@ -709,3 +709,4 @@ window.updateStakeholder = function (id, updates) {
     }
     return false;
 }
+// Linter check
