@@ -363,14 +363,12 @@ function renderDashboard(pageIdOverride) {
                         const el = document.getElementById(cardId);
                         if (!el) return;
                         try {
-                            const res = await fetch('/api/generate-summary');
-                            if (res.ok) {
-                                const data = await res.json();
+                            const data = await window.generateAISummary();
+                            if (data && data.success) {
                                 el.innerHTML = data.summary || 'Summary unavailable.';
                             } else {
-                                const errData = await res.json().catch(() => ({}));
-                                console.error('AI Summary Error:', errData);
-                                el.innerHTML = `Failed to load AI summary. ${errData.error ? '(' + errData.error + ')' : ''}`;
+                                console.error('AI Summary Error:', data);
+                                el.innerHTML = `Failed to load AI summary. ${data?.error ? '(' + data.error + ')' : ''}`;
                             }
                         } catch (e) {
                             console.error('AI Summary Network/Fetch Error:', e);

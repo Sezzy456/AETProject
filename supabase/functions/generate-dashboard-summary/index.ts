@@ -28,26 +28,26 @@ Deno.serve(async (req) => {
     // - Actions (active/overdue)
     const { data: actions, error: actErr } = await supabaseClient
       .from('tbl_action')
-      .select('act_activity, act_status, act_due_date, act_owner')
-      .neq('act_status', 'Completed')
+      .select('ac_title, ac_status, ac_due_date')
+      .neq('ac_status', 'Completed')
       .limit(10);
 
     // - Interactions (Upcoming or recent)
     const { data: interactions, error: intErr } = await supabaseClient
-      .from('tbl_activity_log')
-      .select('al_title, al_date, al_type')
-      .order('al_date', { ascending: false })
+      .from('tbl_interaction')
+      .select('in_title, in_date')
+      .order('in_date', { ascending: false })
       .limit(10);
 
-    // - Stakeholders needing attention
+    // - Stakeholders needing attention (3: Friction Points, 4: Strained, 5: Critical/At Risk)
     const { data: stakeholders, error: staErr } = await supabaseClient
       .from('tbl_stakeholder')
       .select('sta_name, sta_status')
-      .in('sta_status', ['Needs Attention', 'Critical/At Risk', 'Strained', 'Friction Points']);
+      .in('sta_status', [3, 4, 5]);
 
     if (actErr || intErr || staErr) {
       console.error("Error fetching data", { actErr, intErr, staErr });
-      throw new Error("Failed to fetch context data");
+      return new Response(JSON.stringify({ error: "Failed to fetch context data", details: { actErr, intErr, staErr } }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 });
     }
 
     // 3. Prepare prompt for LLM

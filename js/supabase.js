@@ -761,3 +761,21 @@ window.approvePendingChange = async function(mpcId, finalData, status = 'edited_
         return false;
     }
 };
+
+// ── AI SUMMARY ──────────────────────────────────────────────────
+window.generateAISummary = async function() {
+    if (!_sb) return { error: "Supabase not initialized" };
+    try {
+        const { data, error } = await _sb.functions.invoke('generate-dashboard-summary', {
+            method: 'POST'
+        });
+        if (error) {
+            console.error("[Supabase] generate-dashboard-summary error:", error);
+            return { error: error.message || "Function error" };
+        }
+        return data;
+    } catch (e) {
+        console.error("[Supabase] generate-dashboard-summary exception:", e);
+        return { error: e.message };
+    }
+};
