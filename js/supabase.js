@@ -176,7 +176,10 @@ async function fetchInteractions() {
                 rawDate: intDate?intDate.toISOString().substring(0,10):'', type: intDate&&intDate>now?'Upcoming':'Recent',
                 title: r.in_title||'', agenda: r.in_purpose||'', discussed: r.in_description||'',
                 topics, attendees, attendeeIds, agendaItems, outcomeScore: r.in_outcome_score, outcomeNotes: r.in_outcome_notes||'',
-                followUpDate: r.in_follow_up_date?new Date(r.in_follow_up_date).toISOString().substring(0,10):''
+                followUpDate: r.in_follow_up_date?new Date(r.in_follow_up_date).toISOString().substring(0,10):'',
+                linkedStakeholderId: r.in_linked_stakeholder_original_id || '',
+                linkedObjectiveId: r.in_linked_objective_id || '',
+                linkedActionId: r.in_linked_action_original_id || ''
             };
         });
     } catch (e) { console.error('[Supabase] fetchInteractions error:', e); return null; }
@@ -267,6 +270,9 @@ async function updateInteractionDB(uiData, isNew) {
                 in_purpose: uiData.agenda||'', in_description: uiData.discussed||uiData.agenda||'',
                 in_outcome_score: uiData.outcomeScore || 5, in_outcome_notes: uiData.outcomeNotes || '',
                 in_follow_up_date: uiData.followUpDate || null,
+                in_linked_stakeholder_original_id: uiData.linkedStakeholderId || null,
+                in_linked_objective_id: uiData.linkedObjectiveId ? parseInt(uiData.linkedObjectiveId.replace('obj', '')) : null,
+                in_linked_action_original_id: uiData.linkedActionId || null,
                 in_active: true, in_created: new Date().toISOString(), in_created_by: 1,
                 in_modified: new Date().toISOString(), in_modified_by: 1
             });
@@ -292,7 +298,10 @@ async function updateInteractionDB(uiData, isNew) {
                 in_description: uiData.discussed || current.in_description,
                 in_outcome_score: uiData.outcomeScore || current.in_outcome_score,
                 in_outcome_notes: uiData.outcomeNotes || current.in_outcome_notes,
-                in_follow_up_date: uiData.followUpDate || current.in_follow_up_date,
+                in_follow_up_date: uiData.followUpDate !== undefined ? (uiData.followUpDate || null) : current.in_follow_up_date,
+                in_linked_stakeholder_original_id: uiData.linkedStakeholderId !== undefined ? (uiData.linkedStakeholderId || null) : current.in_linked_stakeholder_original_id,
+                in_linked_objective_id: uiData.linkedObjectiveId !== undefined ? (uiData.linkedObjectiveId ? parseInt(uiData.linkedObjectiveId.replace('obj', '')) : null) : current.in_linked_objective_id,
+                in_linked_action_original_id: uiData.linkedActionId !== undefined ? (uiData.linkedActionId || null) : current.in_linked_action_original_id,
                 in_active: true,
                 in_created: current.in_created || new Date().toISOString(),
                 in_modified: new Date().toISOString()

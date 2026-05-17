@@ -163,7 +163,10 @@ details[open] > summary .material-symbols-outlined {
 ═══════════════════════════════════════════════════════════ -->
 <details class="sdet-section-details" open>
 <summary class="sdet-section-title" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
-    <span>Recent Updates</span>
+    <div style="display:flex; align-items:center; gap:1rem;">
+        <span>Recent Updates</span>
+        <button class="btn-primary" style="padding:0.2rem 0.6rem; font-size:0.75rem; height:auto; text-transform:none; letter-spacing:normal;" onclick="event.stopPropagation(); window._prefillStakeholderId=window.currentStakeholderId; window.viewInteractionEdit();">+ Add Update</button>
+    </div>
     <span class="material-symbols-outlined">expand_more</span>
 </summary>
 <div id="stakeholder-interactions-container" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1.5rem;">

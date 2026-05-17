@@ -8,9 +8,12 @@
     <div>
         <button class="btn-secondary" onclick="loadView('interactions')" style="height: 32px; padding: 0 0.75rem; font-size: 0.8rem; margin-bottom: 1rem;">← Back to Update Log</button>
         <h1 id="detail-int-title" style="margin-bottom: 0.5rem; font-size: 2rem;">Interaction Detail</h1>
-        <div id="detail-int-subtitle-view" style="font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem;">
+        <div id="detail-int-subtitle-view" style="font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
             <span>Date:</span> <span id="detail-int-date" style="font-weight: 600;">-</span> 
             <span id="detail-int-status" style="color: #ef4444; font-weight: 600;">Upcoming</span>
+            <span id="detail-int-link-stakeholder" style="display:none; font-weight:600; color:var(--text-primary); background:var(--bg-app); padding:0.1rem 0.4rem; border-radius:4px; margin-left:0.5rem;"><span class="material-symbols-outlined" style="font-size:0.9rem; vertical-align:-2px; margin-right:0.15rem;">domain</span><span></span></span>
+            <span id="detail-int-link-objective" style="display:none; font-weight:600; color:var(--text-primary); background:var(--bg-app); padding:0.1rem 0.4rem; border-radius:4px;"><span class="material-symbols-outlined" style="font-size:0.9rem; vertical-align:-2px; margin-right:0.15rem;">flag</span><span></span></span>
+            <span id="detail-int-link-action" style="display:none; font-weight:600; color:var(--text-primary); background:var(--bg-app); padding:0.1rem 0.4rem; border-radius:4px;"><span class="material-symbols-outlined" style="font-size:0.9rem; vertical-align:-2px; margin-right:0.15rem;">task_alt</span><span></span></span>
         </div>
 
         <!-- Edit mode header -->
@@ -109,7 +112,26 @@
         <textarea id="edit-int-description" rows="3" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; resize: vertical; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif; font-size:0.95rem;"></textarea>
     </div>
 
-
+    <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Linked Stakeholder:</label>
+            <select id="edit-int-link-stakeholder" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
+                <option value="">None</option>
+            </select>
+        </div>
+        <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Linked Objective:</label>
+            <select id="edit-int-link-objective" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
+                <option value="">None</option>
+            </select>
+        </div>
+        <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Linked Action:</label>
+            <select id="edit-int-link-action" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
+                <option value="">None</option>
+            </select>
+        </div>
+    </div>
 
     <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem;">
         <label style="font-weight: 500; margin: 0; color: #6b7280;">Attendees:</label>

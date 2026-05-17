@@ -1229,6 +1229,26 @@ function _renderInteractionsList(interactions) {
         const titleText = a.title || (a.agenda || a.discussed || '').substring(0, 60) + ((a.agenda || a.discussed || '').length > 60 ? '…' : '') || 'Untitled';
         const summaryText = a.agenda || a.discussed || '';
 
+        let linkedStakeholderName = a.stakeholder || '';
+        let linkedObjectiveName = '';
+        let linkedActionName = '';
+        
+        if (a.linkedStakeholderId) {
+            const stas = window.getData('stakeholders') || [];
+            const st = stas.find(s => s.id === a.linkedStakeholderId);
+            if (st) linkedStakeholderName = st.name;
+        }
+        if (a.linkedObjectiveId) {
+            const spine = window.getData('spine') || { objectives: [] };
+            const obj = (spine.objectives || []).find(o => String(o.id) === 'obj' + a.linkedObjectiveId || String(o.id) === String(a.linkedObjectiveId));
+            if (obj) linkedObjectiveName = obj.text;
+        }
+        if (a.linkedActionId) {
+            const acts = window.getData('actions') || [];
+            const ac = acts.find(act => String(act.id) === String(a.linkedActionId));
+            if (ac) linkedActionName = ac.activity;
+        }
+
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:stretch; gap:1rem; min-height: 100%;">
                 <div style="flex:1; min-width:0; display:flex; flex-direction:column;">
@@ -1238,8 +1258,10 @@ function _renderInteractionsList(interactions) {
                     <div style="font-weight:700; font-size:1rem; color:var(--text-primary); margin-bottom:0.3rem;">${titleText}</div>
                     <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.6rem;">${summaryText.length > 150 ? summaryText.substring(0, 147) + '...' : summaryText}</div>
                     ${agendaHtml ? `<div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.6rem; flex-wrap:wrap;">${agendaHtml}</div>` : ''}
-                    <div style="font-size:0.8rem; color:var(--text-tertiary); margin-top:auto;">
-                        ${a.stakeholder ? `<span style="font-weight:600; color:var(--text-secondary);">Stakeholder:</span> ${a.stakeholder}` : ''}
+                    <div style="font-size:0.8rem; color:var(--text-tertiary); margin-top:auto; display:flex; flex-wrap:wrap; gap:0.75rem;">
+                        ${linkedStakeholderName ? `<span><span style="font-weight:600; color:var(--text-secondary);">Stakeholder:</span> ${linkedStakeholderName}</span>` : ''}
+                        ${linkedObjectiveName ? `<span><span style="font-weight:600; color:var(--text-secondary);">Objective:</span> ${linkedObjectiveName}</span>` : ''}
+                        ${linkedActionName ? `<span><span style="font-weight:600; color:var(--text-secondary);">Action:</span> ${linkedActionName}</span>` : ''}
                     </div>
                 </div>
                 <div style="text-align:right; flex-shrink:0; display:flex; flex-direction:column; justify-content:flex-end;">
@@ -1280,6 +1302,42 @@ function renderInteractionDetail() {
         const intType = interaction.type || 'Other';
         statusEl.innerHTML = `Completed <div style="display:inline-flex; align-items:center; gap:0.4rem; margin-left:1rem; padding:0.2rem 0.6rem; border-radius:100px; background:rgba(0,0,0,0.05); color:var(--text-secondary); font-size:0.8rem; font-weight:600;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${color};"></span> Outcome: ${word} (${score}/10)</div> <span style="color:var(--text-secondary); font-size:0.9rem; margin-left:0.5rem;">• ${intType}</span>`;
         statusEl.style.color = '#22c55e';
+    }
+
+    let linkedStakeholderName = '';
+    let linkedObjectiveName = '';
+    let linkedActionName = '';
+    
+    if (interaction.linkedStakeholderId) {
+        const stas = window.getData('stakeholders') || [];
+        const st = stas.find(s => s.id === interaction.linkedStakeholderId);
+        if (st) linkedStakeholderName = st.name;
+    }
+    if (interaction.linkedObjectiveId) {
+        const spine = window.getData('spine') || { objectives: [] };
+        const obj = (spine.objectives || []).find(o => String(o.id) === 'obj' + interaction.linkedObjectiveId || String(o.id) === String(interaction.linkedObjectiveId));
+        if (obj) linkedObjectiveName = obj.text;
+    }
+    if (interaction.linkedActionId) {
+        const acts = window.getData('actions') || [];
+        const ac = acts.find(act => String(act.id) === String(interaction.linkedActionId));
+        if (ac) linkedActionName = ac.activity;
+    }
+
+    const stEl = document.getElementById('detail-int-link-stakeholder');
+    if (stEl) {
+        if (linkedStakeholderName) { stEl.style.display = 'inline-flex'; stEl.querySelector('span:last-child').textContent = linkedStakeholderName; }
+        else stEl.style.display = 'none';
+    }
+    const obEl = document.getElementById('detail-int-link-objective');
+    if (obEl) {
+        if (linkedObjectiveName) { obEl.style.display = 'inline-flex'; obEl.querySelector('span:last-child').textContent = linkedObjectiveName; }
+        else obEl.style.display = 'none';
+    }
+    const acEl = document.getElementById('detail-int-link-action');
+    if (acEl) {
+        if (linkedActionName) { acEl.style.display = 'inline-flex'; acEl.querySelector('span:last-child').textContent = linkedActionName; }
+        else acEl.style.display = 'none';
     }
 
     const descEl = document.getElementById('detail-int-description');
@@ -1386,6 +1444,10 @@ window.saveInteraction = function () {
     const outcomeNotes = document.getElementById('edit-int-outcome-notes')?.value || '';
     const statusEl = document.getElementById('edit-int-status-display');
     const status = statusEl ? statusEl.innerText : 'Completed';
+    
+    const linkedStakeholderId = document.getElementById('edit-int-link-stakeholder')?.value || '';
+    const linkedObjectiveId = document.getElementById('edit-int-link-objective')?.value || '';
+    const linkedActionId = document.getElementById('edit-int-link-action')?.value || '';
 
     const isNew = !window.currentInteractionId;
     const interactions = window.getData('interactions') || [];
@@ -1406,6 +1468,9 @@ window.saveInteraction = function () {
             attendeeIds: window._currentAttendeeIds ? window._currentAttendeeIds.map(a => a.id) : [],
             attendees: window._currentAttendeeIds ? window._currentAttendeeIds.map(a => a.name) : [],
             followUpDate: (document.getElementById('edit-int-followup') && document.getElementById('edit-int-followup').checked) ? document.getElementById('edit-int-followup-date').value : '',
+            linkedStakeholderId: linkedStakeholderId,
+            linkedObjectiveId: linkedObjectiveId,
+            linkedActionId: linkedActionId,
             agendaItems: JSON.parse(JSON.stringify(window._currentAgendaItems || []))
         };
         window.currentInteractionId = newInt.id;
@@ -1425,6 +1490,9 @@ window.saveInteraction = function () {
             interactions[idx].attendeeIds = window._currentAttendeeIds ? window._currentAttendeeIds.map(a => a.id) : [];
             interactions[idx].attendees = window._currentAttendeeIds ? window._currentAttendeeIds.map(a => a.name) : [];
             interactions[idx].followUpDate = (document.getElementById('edit-int-followup') && document.getElementById('edit-int-followup').checked) ? document.getElementById('edit-int-followup-date').value : '';
+            interactions[idx].linkedStakeholderId = linkedStakeholderId;
+            interactions[idx].linkedObjectiveId = linkedObjectiveId;
+            interactions[idx].linkedActionId = linkedActionId;
             interactions[idx].agendaItems = JSON.parse(JSON.stringify(window._currentAgendaItems || []));
         }
     }
@@ -1674,8 +1742,29 @@ window.toggleInteractionEdit = function() {
     } else {
         window._intOriginalSnapshot = null;
         const id = window.currentInteractionId;
+        
+        // Populate linking dropdowns
+        const interactions = window.getData('interactions') || [];
+        const interaction = id ? interactions.find(i => i.id == id) : null;
+        
+        const stas = window.getData('stakeholders') || [];
+        const spine = window.getData('spine') || { objectives: [] };
+        const acts = window.getData('actions') || [];
+        
+        const linkStId = interaction ? interaction.linkedStakeholderId : (window._prefillStakeholderId || '');
+        const linkObId = interaction ? interaction.linkedObjectiveId : '';
+        const linkAcId = interaction ? interaction.linkedActionId : '';
+
+        const editSt = document.getElementById('edit-int-link-stakeholder');
+        if (editSt) editSt.innerHTML = '<option value="">None</option>' + stas.map(s => `<option value="${s.id}" ${linkStId === s.id ? 'selected' : ''}>${s.name}</option>`).join('');
+        
+        const editOb = document.getElementById('edit-int-link-objective');
+        if (editOb) editOb.innerHTML = '<option value="">None</option>' + (spine.objectives || []).map(o => `<option value="${o.id.replace('obj', '')}" ${String(linkObId) === String(o.id.replace('obj', '')) ? 'selected' : ''}>${o.text}</option>`).join('');
+        
+        const editAc = document.getElementById('edit-int-link-action');
+        if (editAc) editAc.innerHTML = '<option value="">None</option>' + acts.map(a => `<option value="${a.id}" ${String(linkAcId) === String(a.id) ? 'selected' : ''}>${a.activity}</option>`).join('');
+
         if (id) {
-            const interactions = window.getData('interactions') || [];
             const interaction = interactions.find(i => i.id == id);
             if (interaction) {
                 window._intOriginalSnapshot = JSON.parse(JSON.stringify(interaction));
