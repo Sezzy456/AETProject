@@ -1230,20 +1230,20 @@ function _renderInteractionsList(interactions) {
         const summaryText = a.agenda || a.discussed || '';
 
         card.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
-                <div style="flex:1; min-width:0;">
+            <div style="display:flex; justify-content:space-between; align-items:stretch; gap:1rem; min-height: 100%;">
+                <div style="flex:1; min-width:0; display:flex; flex-direction:column;">
                     <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem; flex-wrap:wrap;">
                         ${statusBadge}
-                        ${agendaHtml}
                     </div>
                     <div style="font-weight:700; font-size:1rem; color:var(--text-primary); margin-bottom:0.3rem;">${titleText}</div>
-                    <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.4rem;">${summaryText.length > 150 ? summaryText.substring(0, 147) + '...' : summaryText}</div>
-                    <div style="font-size:0.8rem; color:var(--text-tertiary);">
+                    <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.6rem;">${summaryText.length > 150 ? summaryText.substring(0, 147) + '...' : summaryText}</div>
+                    ${agendaHtml ? `<div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.6rem; flex-wrap:wrap;">${agendaHtml}</div>` : ''}
+                    <div style="font-size:0.8rem; color:var(--text-tertiary); margin-top:auto;">
                         ${a.stakeholder ? `<span style="font-weight:600; color:var(--text-secondary);">Stakeholder:</span> ${a.stakeholder}` : ''}
                     </div>
                 </div>
-                <div style="text-align:right; flex-shrink:0; min-width:110px;">
-                    ${attendeesHtml ? `<div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.4rem; display:flex; align-items:center; gap:0.25rem; justify-content:flex-end; flex-wrap:wrap; max-width:200px;">${attendeesHtml}</div>` : ''}
+                <div style="text-align:right; flex-shrink:0; display:flex; flex-direction:column; justify-content:flex-end;">
+                    ${attendeesHtml ? `<div style="font-size:0.8rem; color:var(--text-tertiary); display:flex; align-items:center; gap:0.6rem; justify-content:flex-end; white-space:nowrap;">${attendeesHtml}</div>` : ''}
                 </div>
             </div>
         `;
