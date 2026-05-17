@@ -1435,6 +1435,26 @@ window.saveInteraction = function () {
     // We do NOT showToast or cancelEdit here. supabase.js intercepts saveInteraction and will do it after the async save completes.
 };
 
+window.archiveInteraction = function () {
+    if (!window.currentInteractionId) return;
+    
+    let interactions = window.getData('interactions') || [];
+    interactions = interactions.filter(i => i.id != window.currentInteractionId);
+    window.updateData('interactions', interactions);
+    
+    const toast = document.getElementById('global-toast');
+    if (toast) {
+        toast.innerText = 'Update log archived';
+        toast.style.background = '#6b7280';
+        toast.style.opacity = '1';
+        setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+    }
+    
+    window.currentInteractionId = null;
+    loadView('interactions');
+    history.pushState(null, '', '#interactions');
+};
+
 window.toggleActionPullup = function() {
     const pu = document.getElementById('action-pullup-overlay');
     if (pu) {
@@ -1727,6 +1747,8 @@ window.toggleInteractionEdit = function() {
                     if (followDate) followDate.style.display = 'none';
                 }
             }
+            const archiveBtn = document.getElementById('int-archive-btn');
+            if (archiveBtn) archiveBtn.style.display = 'block';
         } else {
             // New interaction
             window._currentAgendaItems = [];
@@ -1737,6 +1759,8 @@ window.toggleInteractionEdit = function() {
             const followDate = document.getElementById('edit-int-followup-date');
             if (followInput) followInput.checked = false;
             if (followDate) followDate.style.display = 'none';
+            const archiveBtn = document.getElementById('int-archive-btn');
+            if (archiveBtn) archiveBtn.style.display = 'none';
         }
         
         // Populate attendees dummy list for the popover
