@@ -1418,6 +1418,7 @@ window.saveInteraction = function () {
             interactions[idx].type = type;
             interactions[idx].status = status;
             interactions[idx].agenda = desc;
+            interactions[idx].discussed = desc;
             interactions[idx].outcomeScore = parseInt(outcomeScore, 10);
             interactions[idx].outcomeNotes = outcomeNotes;
             interactions[idx].attendeeIds = window._currentAttendeeIds ? window._currentAttendeeIds.map(a => a.id) : [];

@@ -262,7 +262,7 @@ async function updateInteractionDB(uiData, isNew) {
     try {
         if (isNew) {
             const { error } = await _sb.from('tbl_interaction').insert({
-                in_original_id: 'int-'+Date.now(), in_title: uiData.title||'New Interaction',
+                in_original_id: uiData.id, in_title: uiData.title||'New Interaction',
                 in_date: uiData.rawDate||new Date().toISOString(), in_type: uiData.type || 'Other',
                 in_purpose: uiData.agenda||'', in_description: uiData.discussed||uiData.agenda||'',
                 in_outcome_score: uiData.outcomeScore || 5, in_outcome_notes: uiData.outcomeNotes || '',
@@ -655,7 +655,10 @@ window.saveInteraction = async function() {
                     setTimeout(() => { toast.style.opacity = '0'; }, 2000);
                 }
                 
-                if (window.cancelInteractionEdit) window.cancelInteractionEdit();
+                if (window.cancelInteractionEdit) {
+                    window._intOriginalSnapshot = null;
+                    window.cancelInteractionEdit();
+                }
             } else {
                 // Remove toast if it failed
                 const toast = document.getElementById('global-toast');
