@@ -453,6 +453,24 @@ async function updateActionDB(uiData, isNew) {
             if (!isNaN(d.getTime())) dbDate = d.toISOString();
         }
 
+        let completedDate = null;
+        if (uiData.versionControl?.dateCompleted) {
+            const dc = uiData.versionControl.dateCompleted;
+            if (dc.includes('/')) {
+                const p = dc.split('/');
+                if (p.length === 3) completedDate = new Date(`20${p[2]}-${p[1]}-${p[0]}`).toISOString();
+            } else {
+                const d = new Date(dc);
+                if (!isNaN(d.getTime())) completedDate = d.toISOString();
+            }
+        }
+
+        let startDateStr = null;
+        if (uiData.timing?.startDate) {
+            const d = new Date(uiData.timing.startDate);
+            if (!isNaN(d.getTime())) startDateStr = d.toISOString();
+        }
+
         const newRowBase = {
             ac_title: uiData.activity || 'New Action',
             ac_description: uiData.description || '',
@@ -472,7 +490,7 @@ async function updateActionDB(uiData, isNew) {
             ac_due_date: dbDate || null,
             ac_due_date_display: uiData.timing?.dueDateDisplay || '',
             ac_due_detail: uiData.timing?.dueDetail || '',
-            ac_start_date: uiData.timing?.startDate ? new Date(uiData.timing.startDate).toISOString() : null,
+            ac_start_date: startDateStr,
             ac_predicted_length: uiData.timing?.predictedLength || '',
             ac_resource_requirement: uiData.resourceRequirement || '',
             ac_note: uiData.other || '',
@@ -480,21 +498,24 @@ async function updateActionDB(uiData, isNew) {
             ac_todos: uiData.todos || [],
             ac_recent_progress: uiData.versionControl?.recentProgress || '',
             ac_current_blockers: uiData.versionControl?.currentBlockers || '',
-            ac_date_completed: uiData.versionControl?.dateCompleted ? new Date(uiData.versionControl.dateCompleted.split('/').reverse().join('-')).toISOString() : null,
+            ac_date_completed: completedDate,
             ac_active: true,
             ac_modified: new Date().toISOString(),
             ac_modified_by: 1
         };
 
         if (isNew) {
-            const { error: insertErr } = await _sb.from('tbl_action').insert({
+            const { data: inserted, error: insertErr } = await _sb.from('tbl_action').insert({
                 ...newRowBase,
-                ac_original_id: uiData.id,
+                ac_original_id: null,
                 ac_created: new Date().toISOString(),
                 ac_created_by: 1
-            });
+            }).select().single();
             if (insertErr) throw insertErr;
-            console.log('[Supabase] Action inserted:', uiData.id);
+            
+            // Link original ID to self
+            await _sb.from('tbl_action').update({ ac_original_id: inserted.ac_id }).eq('ac_id', inserted.ac_id);
+            console.log('[Supabase] Action inserted:', inserted.ac_id);
         } else {
             const { data: current, error: selErr } = await _sb.from('tbl_action').select('*').eq('ac_original_id', uiData.id).eq('ac_active', true).single();
             if (!current) {
