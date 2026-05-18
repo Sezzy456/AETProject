@@ -505,7 +505,10 @@ async function updateActionDB(uiData, isNew) {
             
             await _sb.from('tbl_action').update({ ac_active: false }).eq('ac_id', current.ac_id);
             
+            const { ac_id, ...rest } = current;
+            
             const { error: insertErr } = await _sb.from('tbl_action').insert({
+                ...rest,
                 ...newRowBase,
                 ac_original_id: uiData.id,
                 ac_created: current.ac_created || new Date().toISOString(),
