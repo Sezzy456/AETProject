@@ -2333,6 +2333,10 @@ window.filterActions = function () {
 
     let actions = window.getData('actions') || [];
 
+    // Filter out invalid statuses created by AI agent previously
+    const validStatuses = ['Planned', 'Pending', 'In Progress', 'Completed'];
+    actions = actions.filter(a => validStatuses.includes(a.status));
+
     // Dynamic owner populate (once)
     const ownerPill = document.getElementById('act-filter-owner');
     if (ownerPill) {
@@ -2505,6 +2509,7 @@ function _actRenderList(actions) {
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
                 <div style="flex:1; min-width:0;">
                     <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:0.4rem; flex-wrap:wrap;">
+                        ${rel.text ? `<span style="color:${rel.color}; font-weight:${isOverdue ? '600' : '500'}; font-size:0.8rem;">${rel.text}</span>` : ''}
                         <span class="act-status-badge" style="background:${sc.bg};color:${sc.color};border-color:${sc.dot};">${a.status}</span>
                         ${tags}
                     </div>
@@ -2520,9 +2525,6 @@ function _actRenderList(actions) {
                         <span class="material-symbols-outlined" style="font-size:0.9rem;">person</span> ${a.owner || '-'}
                     </div>
                     ${advStatus ? `<div style="margin-bottom:0.2rem;">${advStatus}</div>` : ''}
-                    <div style="font-size:0.8rem; color:${rel.color}; font-weight:${isOverdue ? '600' : '400'};">
-                        ${rel.text}
-                    </div>
                 </div>
             </div>
         </div>`;
@@ -3022,10 +3024,26 @@ const _adetOwnerColors = { 'Vant': '#ef4444', 'AET': '#3b82f6', 'AET + Vant': '#
 
 function renderActionDetail() {
     const id = window.currentActionId;
-    const actions = window.getData('actions') || [];
-    const a = actions.find(x => x.id === id);
+    let actions = window.getData('actions') || [];
+    let a = actions.find(x => x.id === id);
 
-    if (!a) {
+    if (window.isAddingAction) {
+        a = {
+            id: 'new-' + Date.now(),
+            activity: 'New Action',
+            status: 'Pending',
+            description: '',
+            audience: [],
+            owner: '',
+            tags: [],
+            timing: {},
+            versionControl: {},
+            commsObjectiveId: null,
+            _isNew: true
+        };
+        actions.push(a); // Temporarily store in memory so openActionDetailEdit can find it
+        window.currentActionId = a.id;
+    } else if (!a) {
         const c = document.getElementById('view-container');
         if (c) c.innerHTML = '<div style="padding:2rem;"><h2>Action not found.</h2><button class="btn-secondary" onclick="loadView(\'actions\')">← Back to Actions</button></div>';
         return;
@@ -3419,6 +3437,27 @@ function renderActionDetail() {
     // Populate the objective dropdown in modal (now that DOM exists)
     _adetPopulateObjectiveSelect();
     _adetPopulateStakeholderSelect();
+
+    if (window.isAddingAction) {
+        window.openActionDetailEdit();
+    } else {
+        const vMode = document.getElementById('adet-view-mode');
+        const eMode = document.getElementById('adet-edit-mode');
+        if (vMode) vMode.style.display = '';
+        if (eMode) eMode.style.display = 'none';
+
+        const btnEdit = document.querySelector('button[onclick="window.adetSave()"]');
+        if (btnEdit) {
+            btnEdit.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
+            btnEdit.setAttribute('onclick', 'window.openActionDetailEdit()');
+        } else {
+            const staticEditBtn = document.querySelector('button[onclick="window.openActionDetailEdit()"]');
+            if (staticEditBtn) staticEditBtn.style.display = '';
+        }
+
+        const btnCancel = document.getElementById('adet-header-cancel-btn');
+        if (btnCancel) btnCancel.remove();
+    }
 }
 
 // ── Modal helpers ────────────────────────────────────────────────────
@@ -3789,6 +3828,16 @@ window.adetRevert = function () {
 };
 
 window.adetCancelEdit = function () {
+    if (window.isAddingAction) {
+        window.isAddingAction = false;
+        let actions = window.getData('actions') || [];
+        actions = actions.filter(x => x.id !== window.currentActionId);
+        window.updateData('actions', actions);
+        loadView('actions');
+        history.pushState(null, '', '#actions');
+        return;
+    }
+
     // Revert the action data to the snapshot taken when Edit was clicked
     if (window._adetOriginal) {
         const actions = window.getData('actions') || [];
@@ -3909,7 +3958,17 @@ window.adetSave = function () {
         }
     };
 
+        }
+    };
+
     window.updateData('actions', actions);
+
+    // Insert DB call if needed
+    if (window._sb && window.isAddingAction) {
+        // Mocked or future functionality
+    }
+
+    window.isAddingAction = false;
     window.closeActionDetailEdit();
     renderActionDetail();
 };

@@ -7,7 +7,7 @@
 <!-- Page header -->
 <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
     <h2 style="margin:0;">Actions</h2>
-    <button class="btn-primary" id="act-add-btn" onclick="window.openActionModal(null)" style="display:flex; align-items:center; gap:0.4rem;">
+    <button class="btn-primary" id="act-add-btn" onclick="window.currentActionId = null; window.isAddingAction = true; loadView('action_detail'); history.pushState(null, '', '#action_detail')" style="display:flex; align-items:center; gap:0.4rem;">
         <span class="material-symbols-outlined" style="font-size:1.1rem;">add</span> Add Action
     </button>
 </header>

@@ -56,7 +56,7 @@ details[open] > summary .material-symbols-outlined {
 <!-- ── BREADCRUMBS + HEADER ────────────────────────────────── -->
 <div style="margin-bottom:2rem; display:flex; align-items:flex-start; justify-content:space-between;">
     <div>
-        <button class="btn-secondary" onclick="loadView('stakeholders')" style="height:32px; padding:0 0.75rem; font-size:0.8rem; margin-bottom:1rem;">← Back to Stakeholders</button>
+        <button class="btn-secondary" onclick="loadView('stakeholders'); history.pushState(null, '', '#stakeholders')" style="height:32px; padding:0 0.75rem; font-size:0.8rem; margin-bottom:1rem;">← Back to Stakeholders</button>
         <h1 id="detail-name" style="margin-bottom:0.5rem; font-size:2rem;">Loading Profile...</h1>
         <div style="font-size:0.9rem; color:var(--text-secondary); display:flex; align-items:center; gap:0.5rem;">
             <span><span style="color:var(--text-tertiary);">Role:</span> <span id="view-role" style="font-weight:600;">-</span></span>

@@ -6,7 +6,7 @@
 <!-- ── HEADER ─────────────────────────────────────────────── -->
 <div style="margin-bottom: 2rem; display: flex; align-items: flex-start; justify-content: space-between;">
     <div>
-        <button class="btn-secondary" onclick="loadView('interactions')" style="height: 32px; padding: 0 0.75rem; font-size: 0.8rem; margin-bottom: 1rem;">← Back to Update Log</button>
+        <button class="btn-secondary" onclick="loadView('interactions'); history.pushState(null, '', '#interactions')" style="height: 32px; padding: 0 0.75rem; font-size: 0.8rem; margin-bottom: 1rem;">← Back to Update Log</button>
         <h1 id="detail-int-title" style="margin-bottom: 0.5rem; font-size: 2rem;">Interaction Detail</h1>
         <div id="detail-int-subtitle-view" style="font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
             <span>Date:</span> <span id="detail-int-date" style="font-weight: 600;">-</span> 
