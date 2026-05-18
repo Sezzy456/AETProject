@@ -444,39 +444,76 @@ async function updateStakeholderDB(originalId, s) {
     }
 }
 
-async function updateActionDB(originalId, a) {
+async function updateActionDB(uiData, isNew) {
     if (!_sb) return false;
     try {
-        const { data: current, error: selErr } = await _sb.from('tbl_action').select('*').eq('ac_original_id', originalId).eq('ac_active', true).single();
-        if (!current) {
-            console.warn('[Supabase] Could not find active action to version:', originalId, selErr);
-            alert(`Action save failed: Could not find active record in DB to version. Check console for ID: ${originalId}`);
-            return false;
+        let dbDate = uiData.timing?.dueDate;
+        if (dbDate && !dbDate.includes('Z')) {
+            const d = new Date(dbDate);
+            if (!isNaN(d.getTime())) dbDate = d.toISOString();
         }
-        
-        await _sb.from('tbl_action').update({ ac_active: false }).eq('ac_id', current.ac_id);
-        
-        const { ac_id, ...rest } = current;
-        
-        const newRow = {
-            ...rest,
-            ac_activity: a.title,
-            ac_status: a.status,
-            ac_priority: a.priority,
-            ac_phase: a.phase,
-            ac_timing_due: a.dueDate,
-            ac_description: a.description,
+
+        const newRowBase = {
+            ac_title: uiData.activity || 'New Action',
+            ac_description: uiData.description || '',
+            ac_status: uiData.status || 'Pending',
+            ac_status_detail: uiData.advancedStatus || '',
+            ac_priority: uiData.priority || 'Medium',
+            ac_complexity: parseInt(uiData.complexity) || 3,
+            ac_phase: parseInt((uiData.phase || '').replace('Phase ', '')) || null,
+            ac_objective_id: uiData.commsObjectiveId ? parseInt(uiData.commsObjectiveId.replace('obj', '')) : null,
+            ac_desired_outcome: uiData.desiredOutcome || '',
+            ac_desired_outcome_type: uiData.desiredOutcomeType || 'text',
+            ac_outcome_stakeholder_original_id: uiData.desiredOutcomeStakeholderId || null,
+            ac_desired_posture: uiData.desiredPosture || '',
+            ac_success_criteria: uiData.successCriteria || '',
+            ac_kpi_target: uiData.kpiTarget || '',
+            ac_due_date_granularity: uiData.timing?.granularity || 'day',
+            ac_due_date: dbDate || null,
+            ac_due_date_display: uiData.timing?.dueDateDisplay || '',
+            ac_due_detail: uiData.timing?.dueDetail || '',
+            ac_start_date: uiData.timing?.startDate ? new Date(uiData.timing.startDate).toISOString() : null,
+            ac_predicted_length: uiData.timing?.predictedLength || '',
+            ac_resource_requirement: uiData.resourceRequirement || '',
+            ac_note: uiData.other || '',
+            ac_tags: uiData.tags || [],
+            ac_todos: uiData.todos || [],
+            ac_recent_progress: uiData.versionControl?.recentProgress || '',
+            ac_current_blockers: uiData.versionControl?.currentBlockers || '',
+            ac_date_completed: uiData.versionControl?.dateCompleted ? new Date(uiData.versionControl.dateCompleted.split('/').reverse().join('-')).toISOString() : null,
             ac_active: true,
-            ac_created: current.ac_created || new Date().toISOString(),
-            ac_modified: new Date().toISOString()
+            ac_modified: new Date().toISOString(),
+            ac_modified_by: 1
         };
-        
-        const { error: insertErr } = await _sb.from('tbl_action').insert(newRow);
-        if (insertErr) {
-            console.error('[Supabase] Insert action version failed:', insertErr);
-            throw insertErr;
+
+        if (isNew) {
+            const { error: insertErr } = await _sb.from('tbl_action').insert({
+                ...newRowBase,
+                ac_original_id: uiData.id,
+                ac_created: new Date().toISOString(),
+                ac_created_by: 1
+            });
+            if (insertErr) throw insertErr;
+            console.log('[Supabase] Action inserted:', uiData.id);
+        } else {
+            const { data: current, error: selErr } = await _sb.from('tbl_action').select('*').eq('ac_original_id', uiData.id).eq('ac_active', true).single();
+            if (!current) {
+                console.warn('[Supabase] Could not find active action to version:', uiData.id, selErr);
+                alert(`Action save failed: Could not find active record in DB to version. Check console for ID: ${uiData.id}`);
+                return false;
+            }
+            
+            await _sb.from('tbl_action').update({ ac_active: false }).eq('ac_id', current.ac_id);
+            
+            const { error: insertErr } = await _sb.from('tbl_action').insert({
+                ...newRowBase,
+                ac_original_id: uiData.id,
+                ac_created: current.ac_created || new Date().toISOString(),
+                ac_created_by: current.ac_created_by || 1
+            });
+            if (insertErr) throw insertErr;
+            console.log('[Supabase] Action versioned & updated:', uiData.id);
         }
-        console.log('[Supabase] Action versioned & updated:', originalId);
         return true;
     } catch (e) { 
         console.error('[Supabase] updateActionDB exception:', e); 

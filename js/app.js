@@ -3851,7 +3851,7 @@ window.adetCancelEdit = function () {
     renderActionDetail();
 };
 
-window.adetSave = function () {
+window.adetSave = async function () {
     const id = window.currentActionId;
     if (!id) return;
 
@@ -3958,18 +3958,36 @@ window.adetSave = function () {
         }
     };
 
-
+    const saveBtn = document.querySelector('[onclick="window.adetSave()"]');
+    const originalText = saveBtn ? saveBtn.innerHTML : 'Save';
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="material-symbols-outlined spin" style="font-size:0.9rem;">autorenew</span> Saving...';
+    }
 
     window.updateData('actions', actions);
 
-    // Insert DB call if needed
-    if (window._sb && window.isAddingAction) {
-        // Mocked or future functionality
+    // Insert DB call
+    if (window._sb && window.updateActionDB) {
+        await window.updateActionDB(actions[idx], window.isAddingAction);
     }
 
-    window.isAddingAction = false;
-    window.closeActionDetailEdit();
-    renderActionDetail();
+    if (saveBtn) {
+        saveBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Saved!';
+        saveBtn.style.background = 'var(--energy-algae)';
+        setTimeout(() => {
+            saveBtn.innerHTML = originalText;
+            saveBtn.style.background = '';
+            saveBtn.disabled = false;
+            window.isAddingAction = false;
+            window.closeActionDetailEdit();
+            renderActionDetail();
+        }, 800);
+    } else {
+        window.isAddingAction = false;
+        window.closeActionDetailEdit();
+        renderActionDetail();
+    }
 };
 
 window.adetDelete = function () {
