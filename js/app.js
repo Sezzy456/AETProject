@@ -916,6 +916,55 @@ function renderStakeholderDetail() {
     }
 }
 
+window.confirmAddStakeholder = function() {
+    const nameInput = document.getElementById('new-stakeholder-name');
+    const roleInput = document.getElementById('new-stakeholder-role');
+    const name = nameInput ? nameInput.value.trim() : '';
+    const role = roleInput ? roleInput.value.trim() : '';
+    
+    if (!name) {
+        alert("Please enter a stakeholder name.");
+        return;
+    }
+    
+    const stakeholders = window.getData('stakeholders') || [];
+    const newId = 'stk-' + Date.now();
+    const newStakeholder = {
+        id: newId,
+        name: name,
+        role: role,
+        status: 'Operational',
+        powerDynamics: { influence: 5, interest: 5, values: [] },
+        narrativeHook: '',
+        postureJourney: { current: '', desired: '', nextStep: '', target: '' },
+        strategicApproach: { barriers: '', engagementApproach: '', tactics: [] },
+        relationships: { internalLink: '', externalTension: '' },
+        contactConduct: { preferences: '', emailTone: '', elevatorPitches: '' },
+        contacts: [],
+        statusHistory: []
+    };
+    
+    stakeholders.push(newStakeholder);
+    window.updateData('stakeholders', stakeholders);
+    
+    // Clear inputs and close modal
+    if (nameInput) nameInput.value = '';
+    if (roleInput) roleInput.value = '';
+    const modal = document.getElementById('add-stakeholder-modal');
+    if (modal) modal.style.display = 'none';
+    
+    // Navigate to new stakeholder and open edit mode
+    window.currentStakeholderId = newId;
+    loadView('stakeholder_detail');
+    history.pushState(null, '', '#stakeholder_detail');
+    
+    setTimeout(() => {
+        if (typeof window.toggleStakeholderEdit === 'function') {
+            window.toggleStakeholderEdit();
+        }
+    }, 50);
+};
+
 window.toggleStakeholderEdit = function () {
     const viewMode = document.getElementById('sdet-view-mode');
     const editMode = document.getElementById('sdet-edit-mode');
@@ -1275,6 +1324,35 @@ function _renderInteractionsList(interactions) {
 
 function renderInteractionDetail() {
     const id = window.currentInteractionId;
+
+    // Auto-open edit mode if flagged
+    if (window._interactionOpenInEditMode) {
+        window._interactionOpenInEditMode = false;
+        setTimeout(() => {
+            if (typeof window.toggleInteractionEdit === 'function') {
+                window.toggleInteractionEdit();
+            }
+        }, 50);
+        
+        if (!id) {
+            const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+            const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+            setTxt('detail-int-title', 'New Update');
+            setTxt('detail-int-date', '');
+            setHtml('detail-int-status', 'Draft');
+            setHtml('detail-int-description', '<em>No details provided yet.</em>');
+            setHtml('detail-int-attendees', '');
+            const agContainer = document.getElementById('detail-int-agenda-view-container');
+            if (agContainer) agContainer.innerHTML = '';
+            
+            ['detail-int-link-stakeholder', 'detail-int-link-objective', 'detail-int-link-action'].forEach(linkId => {
+                const el = document.getElementById(linkId);
+                if (el) el.style.display = 'none';
+            });
+            return;
+        }
+    }
+
     if (!id) return;
 
     const interactions = window.getData('interactions') || [];
@@ -1400,15 +1478,6 @@ function renderInteractionDetail() {
         }
     }
 
-    // Auto-open edit mode if flagged
-    if (window._interactionOpenInEditMode) {
-        window._interactionOpenInEditMode = false;
-        setTimeout(() => {
-            if (typeof window.toggleInteractionEdit === 'function') {
-                window.toggleInteractionEdit();
-            }
-        }, 50);
-    }
 }
 
 window.updateInteractionStatus = function() {
