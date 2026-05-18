@@ -658,6 +658,26 @@ window.clearStakeholdersFilters = function () {
 function renderStakeholderDetail() {
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id') || window.currentStakeholderId;
+
+    if (window._stakeholderOpenInEditMode) {
+        window._stakeholderOpenInEditMode = false;
+        setTimeout(() => {
+            if (typeof window.toggleStakeholderEdit === 'function') {
+                window.toggleStakeholderEdit();
+            }
+        }, 50);
+        if (!id) {
+            const setTxt = (elId, value) => { const el = document.getElementById(elId); if (el) el.textContent = value || '-'; };
+            setTxt('detail-name', 'New Stakeholder');
+            setTxt('view-role', '');
+            document.getElementById('sdet-e-name-row').style.display = 'flex';
+            document.getElementById('sdet-e-role-row').style.display = 'flex';
+            return;
+        }
+    }
+
+    if (!id) return;
+
     const stakeholders = window.getData('stakeholders');
     const s = stakeholders.find(item => item.id == id);
 
@@ -916,53 +936,31 @@ function renderStakeholderDetail() {
     }
 }
 
-window.confirmAddStakeholder = function() {
-    const nameInput = document.getElementById('new-stakeholder-name');
-    const roleInput = document.getElementById('new-stakeholder-role');
-    const name = nameInput ? nameInput.value.trim() : '';
-    const role = roleInput ? roleInput.value.trim() : '';
+window.viewStakeholderEdit = function(id = null) {
+    window.currentStakeholderId = id;
+    window._stakeholderOpenInEditMode = true;
+    loadView('stakeholder_detail');
+    history.pushState(null, '', '#stakeholder_detail');
+};
+
+window.cancelStakeholderEdit = function() {
+    const editMode = document.getElementById('sdet-edit-mode');
+    if (!editMode) return;
     
-    if (!name) {
-        alert("Please enter a stakeholder name.");
+    if (!window.currentStakeholderId) {
+        loadView('stakeholders');
+        history.pushState(null, '', '#stakeholders');
         return;
     }
     
-    const stakeholders = window.getData('stakeholders') || [];
-    const newId = 'stk-' + Date.now();
-    const newStakeholder = {
-        id: newId,
-        name: name,
-        role: role,
-        status: 'Operational',
-        powerDynamics: { influence: 5, interest: 5, values: [] },
-        narrativeHook: '',
-        postureJourney: { current: '', desired: '', nextStep: '', target: '' },
-        strategicApproach: { barriers: '', engagementApproach: '', tactics: [] },
-        relationships: { internalLink: '', externalTension: '' },
-        contactConduct: { preferences: '', emailTone: '', elevatorPitches: '' },
-        contacts: [],
-        statusHistory: []
-    };
+    const viewMode = document.getElementById('sdet-view-mode');
+    const editBtn = document.getElementById('sdet-edit-toggle-btn');
+    const cancelBtn = document.getElementById('sdet-cancel-btn');
     
-    stakeholders.push(newStakeholder);
-    window.updateData('stakeholders', stakeholders);
-    
-    // Clear inputs and close modal
-    if (nameInput) nameInput.value = '';
-    if (roleInput) roleInput.value = '';
-    const modal = document.getElementById('add-stakeholder-modal');
-    if (modal) modal.style.display = 'none';
-    
-    // Navigate to new stakeholder and open edit mode
-    window.currentStakeholderId = newId;
-    loadView('stakeholder_detail');
-    history.pushState(null, '', '#stakeholder_detail');
-    
-    setTimeout(() => {
-        if (typeof window.toggleStakeholderEdit === 'function') {
-            window.toggleStakeholderEdit();
-        }
-    }, 50);
+    if (viewMode) viewMode.style.display = 'block';
+    if (editMode) editMode.style.display = 'none';
+    if (editBtn) editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
+    if (cancelBtn) cancelBtn.style.display = 'none';
 };
 
 window.toggleStakeholderEdit = function () {
@@ -979,11 +977,27 @@ window.toggleStakeholderEdit = function () {
         if (window.saveStakeholder) window.saveStakeholder();
     } else {
         const id = window.currentStakeholderId;
+        const set = (elId, v) => { const el = document.getElementById(elId); if(el) el.value = v || ''; };
+        const nameRow = document.getElementById('sdet-e-name-row');
+        const roleRow = document.getElementById('sdet-e-role-row');
+        if (nameRow) nameRow.style.display = 'flex';
+        if (roleRow) roleRow.style.display = 'flex';
+        
+        ['sdet-e-name', 'sdet-e-role', 'sdet-e-narrativeHook', 'sdet-e-audience-message', 'sdet-e-values', 'sdet-e-authority', 'sdet-e-posture-current', 'sdet-e-posture-desired', 'sdet-e-posture-next', 'sdet-e-posture-target', 'sdet-e-barriers', 'sdet-e-engagement-approach', 'sdet-e-tactics', 'sdet-e-rel-internal', 'sdet-e-rel-external', 'sdet-e-contact-pref', 'sdet-e-contact-tone', 'sdet-e-contact-pitch'].forEach(eid => set(eid, ''));
+        set('sdet-e-status', 'Operational');
+        set('sdet-e-influence', '5');
+        set('sdet-e-interest', '5');
+        const infDisp = document.getElementById('sdet-e-inf-display');
+        if (infDisp) infDisp.innerText = '5';
+        const intDisp = document.getElementById('sdet-e-int-display');
+        if (intDisp) intDisp.innerText = '5';
+
         if (id) {
             const stakeholders = window.getData('stakeholders') || [];
             const s = stakeholders.find(x => x.id === id);
             if (s) {
-                const set = (elId, v) => { const el = document.getElementById(elId); if(el) el.value = v || ''; };
+                set('sdet-e-name', s.name);
+                set('sdet-e-role', s.role);
                 set('sdet-e-narrativeHook', s.narrativeHook);
                 set('sdet-e-audience-message', s.audienceMessage || '');
                 set('sdet-e-values', (s.powerDynamics?.values || []).join(', '));
@@ -1018,16 +1032,23 @@ window.toggleStakeholderEdit = function () {
 };
 
 window.saveStakeholder = function () {
-    const id = window.currentStakeholderId;
-    if (!id) return;
-
+    let id = window.currentStakeholderId;
     const stakeholders = window.getData('stakeholders') || [];
-    const idx = stakeholders.findIndex(x => x.id === id);
-    if (idx === -1) return;
-
-    const s = stakeholders[idx];
     const get = (elId) => { const el = document.getElementById(elId); return el ? el.value : ''; };
+    
+    let s;
+    if (!id) {
+        id = 'stk-' + Date.now();
+        window.currentStakeholderId = id;
+        s = { id: id, powerDynamics: {}, postureJourney: {}, strategicApproach: {}, relationships: {}, contactConduct: {}, statusHistory: [] };
+        stakeholders.push(s);
+    } else {
+        s = stakeholders.find(x => x.id === id);
+        if (!s) return;
+    }
 
+    s.name = get('sdet-e-name').trim() || s.name || 'New Stakeholder';
+    s.role = get('sdet-e-role').trim() || s.role || '';
     s.narrativeHook = get('sdet-e-narrativeHook');
     s.audienceMessage = get('sdet-e-audience-message');
     
@@ -1236,7 +1257,7 @@ function _renderInteractionsList(interactions) {
     container.innerHTML = '';
 
     interactions.forEach(a => {
-        const isUpcoming = a.type === 'Upcoming';
+        const isUpcoming = a.status === 'Upcoming' || a.type === 'Upcoming';
         const rawDateStr = a.rawDate || a.date || '';
         const pastRelative = relativePastDate(rawDateStr);
         let color = 'var(--text-tertiary)';
@@ -1306,7 +1327,7 @@ function _renderInteractionsList(interactions) {
                     </div>
                     <div style="font-weight:700; font-size:1rem; color:var(--text-primary); margin-bottom:0.3rem;">${titleText}</div>
                     <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.6rem;">${summaryText.length > 150 ? summaryText.substring(0, 147) + '...' : summaryText}</div>
-                    ${agendaHtml ? `<div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.6rem; flex-wrap:wrap;">${agendaHtml}</div>` : ''}
+                    ${agendaHtml ? `<div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.6rem; flex-wrap:wrap;"><span style="font-size:0.85rem; font-weight:600; color:var(--text-secondary);">Agenda:</span> ${agendaHtml}</div>` : ''}
                     <div style="font-size:0.8rem; color:var(--text-tertiary); margin-top:auto; display:flex; flex-wrap:wrap; gap:0.75rem;">
                         ${linkedStakeholderName ? `<span><span style="font-weight:600; color:var(--text-secondary);">Stakeholder:</span> ${linkedStakeholderName}</span>` : ''}
                         ${linkedObjectiveName ? `<span><span style="font-weight:600; color:var(--text-secondary);">Objective:</span> ${linkedObjectiveName}</span>` : ''}
@@ -1365,7 +1386,7 @@ function renderInteractionDetail() {
     document.getElementById('detail-int-date').textContent = formatDate(intDateStr) + (intRelPast ? ' · ' + intRelPast : '');
 
     const statusEl = document.getElementById('detail-int-status');
-    const statusVal = interaction.status || (interaction.type === 'Upcoming' ? 'Upcoming' : 'Completed');
+    const statusVal = interaction.status || 'Completed';
     
     if (statusVal === 'Upcoming') {
         statusEl.innerHTML = 'Upcoming';
@@ -1484,13 +1505,34 @@ window.updateInteractionStatus = function() {
     const dateInput = document.getElementById('edit-int-date');
     const statusDisplay = document.getElementById('edit-int-status-display');
     const outcomeWrapper = document.getElementById('edit-int-outcome-wrapper');
+    const completedCb = document.getElementById('edit-int-completed-cb');
+    const completedLabel = document.getElementById('edit-int-completed-label');
     if (!dateInput || !statusDisplay) return;
     
     const d = new Date(dateInput.value);
-    const today = new Date();
-    today.setHours(0,0,0,0);
+    const now = new Date();
     
-    if (!dateInput.value || d >= today) {
+    let isCompleted = false;
+    
+    if (!dateInput.value) {
+        isCompleted = false;
+        if (completedLabel) completedLabel.style.display = 'none';
+    } else if (d > now) {
+        if (d.toDateString() === now.toDateString()) {
+            if (completedLabel) completedLabel.style.display = 'flex';
+            isCompleted = completedCb && completedCb.checked;
+        } else {
+            if (completedLabel) completedLabel.style.display = 'none';
+            if (completedCb) completedCb.checked = false;
+            isCompleted = false;
+        }
+    } else {
+        if (completedLabel) completedLabel.style.display = 'none';
+        if (completedCb) completedCb.checked = true;
+        isCompleted = true;
+    }
+
+    if (!isCompleted) {
         statusDisplay.innerText = 'Upcoming';
         statusDisplay.style.color = '#ef4444';
         if (outcomeWrapper) outcomeWrapper.style.display = 'none';
@@ -1867,15 +1909,25 @@ window.toggleInteractionEdit = function() {
                 const outcomeBtn = document.getElementById('edit-int-outcome-btn');
                 const outcomeNotes = document.getElementById('edit-int-outcome-notes');
                 
+                const completedCb = document.getElementById('edit-int-completed-cb');
+                if (completedCb) {
+                    completedCb.checked = (interaction.status === 'Completed');
+                }
+                
                 if (window.updateInteractionStatus) {
                     window.updateInteractionStatus();
                 }
 
                 if (outcomeSlider) {
-                    outcomeSlider.value = interaction.outcomeScore || 5;
+                    // For upcoming, don't show an outcome score if it hasn't happened. We just default to 5 visually if completed.
+                    const score = interaction.outcomeScore || (interaction.status === 'Upcoming' ? 5 : 5);
+                    outcomeSlider.value = score;
                     if (outcomeVal) outcomeVal.innerText = outcomeSlider.value;
                     if (outcomeValBtn) outcomeValBtn.innerText = outcomeSlider.value;
                     if (outcomeBtn) outcomeBtn.style.background = outcomeSlider.value >= 7 ? '#22c55e' : (outcomeSlider.value >= 4 ? '#eab308' : '#ef4444');
+                }
+                if (outcomeNotes) {
+                    outcomeNotes.value = interaction.outcomeNotes || '';
                 }
                 if (outcomeNotes) outcomeNotes.value = interaction.outcomeNotes || '';
                 

@@ -173,7 +173,9 @@ async function fetchInteractions() {
 
             return {
                 id: origId, _dbId: r.in_id, date: intDate?intDate.toLocaleDateString('en-GB',{weekday:'long',hour:'2-digit',minute:'2-digit'}):'',
-                rawDate: intDate?intDate.toISOString().substring(0,10):'', type: intDate&&intDate>now?'Upcoming':'Recent',
+                rawDate: intDate?new Date(intDate.getTime() - (intDate.getTimezoneOffset() * 60000)).toISOString().substring(0,16):'', 
+                type: r.in_type || 'Other',
+                status: (intDate && intDate > now) ? 'Upcoming' : 'Completed',
                 title: r.in_title||'', agenda: r.in_purpose||'', discussed: r.in_description||'',
                 topics, attendees, attendeeIds, agendaItems, outcomeScore: r.in_outcome_score, outcomeNotes: r.in_outcome_notes||'',
                 followUpDate: r.in_follow_up_date?new Date(r.in_follow_up_date).toISOString().substring(0,10):'',
@@ -367,39 +369,60 @@ async function updateStakeholderDB(originalId, s) {
     if (!_sb) return false;
     try {
         const { data: current, error: selectErr } = await _sb.from('tbl_stakeholder').select('*').eq('sta_original_id', originalId).eq('sta_active', true).single();
+        
+        let newRow;
         if (!current) {
-            console.warn('[Supabase] Could not find active stakeholder to version:', originalId, selectErr);
-            alert(`Stakeholder save failed: Could not find active record in DB to version. Check console for ID: ${originalId}`);
-            return false;
+            newRow = {
+                sta_original_id: originalId,
+                sta_name: s.name || 'New Stakeholder',
+                sta_role: s.role || '',
+                sta_status: LABEL_TO_STATUS_INT[s.status] || 1,
+                sta_narrative_hook: s.narrativeHook || '',
+                sta_values: s.powerDynamics?.values || s.values || [],
+                sta_influence: parseInt(s.powerDynamics?.influence) || parseInt(s.powerGrid?.influence) || 5,
+                sta_interest: parseInt(s.powerDynamics?.interest) || parseInt(s.powerGrid?.interest) || 5,
+                sta_decision_authority: s.decisionAuthority || s.powerDynamics?.authority || '',
+                sta_posture_current: s.postureJourney?.current || '',
+                sta_posture_desired: s.postureJourney?.desired || '',
+                sta_posture_next_step: s.postureJourney?.nextStep || '',
+                sta_posture_target_date: s.postureJourney?.target || s.postureJourney?.goalTarget || null,
+                sta_barriers: s.strategicApproach?.barriers || '',
+                sta_engagement_approach: s.strategicApproach?.engagementApproach || '',
+                sta_comm_preference: s.contactConduct?.preferences || '',
+                sta_email_tone: s.contactConduct?.emailTone || '',
+                sta_elevator_pitch: s.contactConduct?.elevatorPitches || '',
+                sta_audience_message: s.audienceMessage || '',
+                sta_active: true,
+                sta_created: new Date().toISOString(),
+                sta_modified: new Date().toISOString()
+            };
+        } else {
+            await _sb.from('tbl_stakeholder').update({ sta_active: false }).eq('sta_id', current.sta_id);
+            const { sta_id, ...rest } = current;
+            newRow = {
+                ...rest,
+                sta_name: s.name,
+                sta_role: s.role,
+                sta_narrative_hook: s.narrativeHook,
+                sta_values: s.powerDynamics?.values || s.values || [],
+                sta_influence: parseInt(s.powerDynamics?.influence) || parseInt(s.powerGrid?.influence) || 5,
+                sta_interest: parseInt(s.powerDynamics?.interest) || parseInt(s.powerGrid?.interest) || 5,
+                sta_decision_authority: s.decisionAuthority || s.powerDynamics?.authority,
+                sta_posture_current: s.postureJourney?.current,
+                sta_posture_desired: s.postureJourney?.desired,
+                sta_posture_next_step: s.postureJourney?.nextStep,
+                sta_posture_target_date: s.postureJourney?.target || s.postureJourney?.goalTarget,
+                sta_barriers: s.strategicApproach?.barriers,
+                sta_engagement_approach: s.strategicApproach?.engagementApproach,
+                sta_comm_preference: s.contactConduct?.preferences,
+                sta_email_tone: s.contactConduct?.emailTone,
+                sta_elevator_pitch: s.contactConduct?.elevatorPitches,
+                sta_audience_message: s.audienceMessage,
+                sta_active: true,
+                sta_created: current.sta_created || new Date().toISOString(),
+                sta_modified: new Date().toISOString()
+            };
         }
-        
-        await _sb.from('tbl_stakeholder').update({ sta_active: false }).eq('sta_id', current.sta_id);
-        
-        const { sta_id, ...rest } = current;
-        
-        const newRow = {
-            ...rest,
-            sta_name: s.name,
-            sta_role: s.role,
-            sta_narrative_hook: s.narrativeHook,
-            sta_values: s.powerDynamics?.values || s.values || [],
-            sta_influence: parseInt(s.powerDynamics?.influence) || parseInt(s.powerGrid?.influence) || 5,
-            sta_interest: parseInt(s.powerDynamics?.interest) || parseInt(s.powerGrid?.interest) || 5,
-            sta_decision_authority: s.decisionAuthority || s.powerDynamics?.authority,
-            sta_posture_current: s.postureJourney?.current,
-            sta_posture_desired: s.postureJourney?.desired,
-            sta_posture_next_step: s.postureJourney?.nextStep,
-            sta_posture_target_date: s.postureJourney?.target || s.postureJourney?.goalTarget,
-            sta_barriers: s.strategicApproach?.barriers,
-            sta_engagement_approach: s.strategicApproach?.engagementApproach,
-            sta_comm_preference: s.contactConduct?.preferences,
-            sta_email_tone: s.contactConduct?.emailTone,
-            sta_elevator_pitch: s.contactConduct?.elevatorPitches,
-            sta_audience_message: s.audienceMessage,
-            sta_active: true,
-            sta_created: current.sta_created || new Date().toISOString(),
-            sta_modified: new Date().toISOString()
-        };
         
         const { error: insertErr } = await _sb.from('tbl_stakeholder').insert(newRow);
         if (insertErr) {

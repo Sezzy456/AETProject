@@ -20,12 +20,16 @@
         <div id="detail-int-subtitle-edit" style="display:none; align-items:center; gap:1.5rem; flex-wrap:wrap; margin-top:0.5rem;">
             <div style="display:flex; align-items:center; gap:0.5rem;">
                 <label style="font-weight: 500; color: #6b7280; font-size:0.9rem; margin:0;">Date:</label>
-                <input type="date" id="edit-int-date" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; padding: 0.3rem 0.5rem; font-family: 'Inter', sans-serif; font-size:0.9rem;" onchange="if(window.updateInteractionStatus) window.updateInteractionStatus()">
+                <input type="datetime-local" id="edit-int-date" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; padding: 0.3rem 0.5rem; font-family: 'Inter', sans-serif; font-size:0.9rem;" onchange="if(window.updateInteractionStatus) window.updateInteractionStatus()">
             </div>
             
             <div style="display:flex; align-items:center; gap:0.5rem;">
                 <label style="font-weight: 500; color: #6b7280; font-size:0.9rem; margin:0;">Status:</label>
                 <span id="edit-int-status-display" style="font-weight:600; font-size:0.9rem; color:#ef4444;">Upcoming</span>
+                
+                <label id="edit-int-completed-label" style="display:none; font-size:0.85rem; align-items:center; gap:0.25rem;">
+                    <input type="checkbox" id="edit-int-completed-cb" onchange="window.updateInteractionStatus()"> Mark Completed
+                </label>
                 
                 <!-- Outcome popover root -->
                 <div id="edit-int-outcome-wrapper" style="position:relative; display:none; margin-left:0.5rem;">
@@ -49,6 +53,7 @@
                     <button class="update-type-btn" style="padding:0.2rem 0.5rem; font-size:0.8rem;" onclick="document.querySelectorAll('.update-type-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active');" data-val="Email">Email</button>
                     <button class="update-type-btn" style="padding:0.2rem 0.5rem; font-size:0.8rem;" onclick="document.querySelectorAll('.update-type-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active');" data-val="In-Person">In-Person</button>
                     <button class="update-type-btn" style="padding:0.2rem 0.5rem; font-size:0.8rem;" onclick="document.querySelectorAll('.update-type-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active');" data-val="Video">Video</button>
+                    <button class="update-type-btn" style="padding:0.2rem 0.5rem; font-size:0.8rem;" onclick="document.querySelectorAll('.update-type-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active');" data-val="Online">Online</button>
                     <button class="update-type-btn" style="padding:0.2rem 0.5rem; font-size:0.8rem;" onclick="document.querySelectorAll('.update-type-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active');" data-val="Other">Other</button>
                 </div>
             </div>

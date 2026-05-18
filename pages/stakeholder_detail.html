@@ -104,7 +104,7 @@ details[open] > summary .material-symbols-outlined {
         <span id="view-current-status-text" style="display:none;">-</span>
     </div>
     <div style="display:flex; align-items:center; gap:0.5rem; margin-top:2.5rem;">
-        <button id="sdet-cancel-btn" class="btn-secondary" style="display:none; align-items:center; gap:0.4rem;" onclick="window.toggleStakeholderEdit()">
+        <button id="sdet-cancel-btn" class="btn-secondary" style="display:none; align-items:center; gap:0.4rem;" onclick="window.cancelStakeholderEdit()">
             <span class="material-symbols-outlined" style="font-size:1rem;">close</span> Cancel
         </button>
         <button id="sdet-edit-toggle-btn" class="btn-primary" style="display:inline-flex;align-items:center;gap:0.4rem;" onclick="window.toggleStakeholderEdit()">
@@ -341,6 +341,19 @@ details[open] > summary .material-symbols-outlined {
 <div id="sdet-edit-mode" style="display:none; margin-bottom: 2rem;">
 
 <!-- ── IDENTITY INFO ─────────────────────────── -->
+<div class="sdet-row" id="sdet-e-name-row" style="margin-top:1.5rem;">
+    <div class="sdet-row-label">Name *:</div>
+    <div class="sdet-row-content">
+        <input type="text" id="sdet-e-name" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; font-family:inherit; font-size:0.95rem;">
+    </div>
+</div>
+
+<div class="sdet-row" id="sdet-e-role-row">
+    <div class="sdet-row-label">Role:</div>
+    <div class="sdet-row-content">
+        <input type="text" id="sdet-e-role" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; font-family:inherit; font-size:0.95rem;">
+    </div>
+</div>
 <div class="sdet-row">
     <div class="sdet-row-label">Narrative Hook:</div>
     <div class="sdet-row-content">
