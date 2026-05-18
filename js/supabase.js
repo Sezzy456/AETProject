@@ -444,7 +444,7 @@ async function updateStakeholderDB(originalId, s) {
     }
 }
 
-async function updateActionDB(uiData, isNew) {
+window.updateActionDB = async function(uiData, isNew) {
     if (!_sb) return false;
     try {
         let dbDate = uiData.timing?.dueDate;
@@ -826,7 +826,7 @@ window.saveCurrentAction = async function() {
         const actions = window.getData('actions') || [];
         const a = actions.find(i => i.id == window._actCurrentId);
         if (a) {
-            const saved = await updateActionDB(window._actCurrentId, a);
+            const saved = await window.updateActionDB(a, false);
             if (saved) {
                 const fresh = await fetchActions();
                 if (fresh) _sbCache.actions = fresh;

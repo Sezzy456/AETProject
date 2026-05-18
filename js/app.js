@@ -3968,7 +3968,7 @@ window.adetSave = async function () {
     window.updateData('actions', actions);
 
     // Insert DB call
-    if (window._sb && window.updateActionDB) {
+    if (window.updateActionDB) {
         await window.updateActionDB(actions[idx], window.isAddingAction);
     }
 
