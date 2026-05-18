@@ -3958,8 +3958,7 @@ window.adetSave = function () {
         }
     };
 
-        }
-    };
+
 
     window.updateData('actions', actions);
 
