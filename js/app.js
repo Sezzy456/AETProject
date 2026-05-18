@@ -42,15 +42,27 @@ function relativePastDate(dateStr) {
     if (!dateStr) return '';
     const d = new Date(dateStr.length <= 10 ? dateStr + 'T00:00:00' : dateStr);
     if (isNaN(d.getTime())) return '';
-    const now = new Date(); now.setHours(0,0,0,0);
-    const diff = Math.round((now - d) / (1000 * 60 * 60 * 24));
+    
+    const now = new Date();
+    if (d.toDateString() === now.toDateString()) {
+        const minDiff = Math.round((d - now) / (1000 * 60));
+        if (minDiff > 60) return `in ${Math.round(minDiff/60)} hours`;
+        if (minDiff > 0) return `in ${minDiff} min`;
+        if (minDiff < -60) return `${Math.round(Math.abs(minDiff)/60)} hours ago`;
+        if (minDiff < 0) return `${Math.abs(minDiff)} min ago`;
+        return 'today';
+    }
+    
+    const nowZero = new Date(now); nowZero.setHours(0,0,0,0);
+    const dZero = new Date(d); dZero.setHours(0,0,0,0);
+    const diff = Math.round((nowZero - dZero) / (1000 * 60 * 60 * 24));
+    
     if (diff < 0) {
         const absDiff = Math.abs(diff);
         if (absDiff >= 365) return `in ${Math.floor(absDiff/365)} year${Math.floor(absDiff/365)>1?'s':''}`;
         if (absDiff >= 31) return `in ${Math.floor(absDiff/30)} month${Math.floor(absDiff/30)>1?'s':''}`;
         return `in ${absDiff} day${absDiff>1?'s':''}`;
     }
-    if (diff === 0) return 'today';
     if (diff === 1) return 'yesterday';
     if (diff < 7) return `${diff} days ago`;
     if (diff < 14) return '1 week ago';
@@ -1332,7 +1344,7 @@ function _renderInteractionsList(interactions) {
                     </div>
                     <div style="font-weight:700; font-size:1rem; color:var(--text-primary); margin-bottom:0.3rem;">${titleText}</div>
                     <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.6rem;">${summaryText.length > 150 ? summaryText.substring(0, 147) + '...' : summaryText}</div>
-                    ${agendaHtml ? `<div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.6rem; flex-wrap:wrap;"><span style="font-size:0.85rem; font-weight:600; color:var(--text-secondary);">Agenda:</span> ${agendaHtml}</div>` : ''}
+                    ${agendaHtml ? `<div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.6rem; flex-wrap:wrap;"><span style="font-size:0.85rem; font-weight:400; color:var(--text-tertiary);">Agenda:</span> ${agendaHtml}</div>` : ''}
                     <div style="font-size:0.8rem; color:var(--text-tertiary); margin-top:auto; display:flex; flex-wrap:wrap; gap:0.75rem;">
                         ${linkedStakeholderName ? `<span><span style="font-weight:600; color:var(--text-secondary);">Stakeholder:</span> ${linkedStakeholderName}</span>` : ''}
                         ${linkedObjectiveName ? `<span><span style="font-weight:600; color:var(--text-secondary);">Objective:</span> ${linkedObjectiveName}</span>` : ''}

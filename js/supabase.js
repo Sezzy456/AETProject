@@ -265,10 +265,16 @@ async function saveStakeholderStatus(originalId, newStatus, note) {
 async function updateInteractionDB(uiData, isNew) {
     if (!_sb) return false;
     try {
+        let dbDate = uiData.rawDate;
+        if (dbDate && !dbDate.includes('Z')) {
+            const d = new Date(dbDate);
+            if (!isNaN(d.getTime())) dbDate = d.toISOString();
+        }
+
         if (isNew) {
             const { error } = await _sb.from('tbl_interaction').insert({
                 in_original_id: uiData.id, in_title: uiData.title||'New Interaction',
-                in_date: uiData.rawDate||new Date().toISOString(), in_type: uiData.type || 'Other',
+                in_date: dbDate || new Date().toISOString(), in_type: uiData.type || 'Other',
                 in_purpose: uiData.agenda||'', in_description: uiData.discussed||uiData.agenda||'',
                 in_outcome_score: uiData.outcomeScore || 5, in_outcome_notes: uiData.outcomeNotes || '',
                 in_follow_up_date: uiData.followUpDate || null,
@@ -294,7 +300,7 @@ async function updateInteractionDB(uiData, isNew) {
             const newRow = {
                 ...rest,
                 in_title: uiData.title || current.in_title,
-                in_date: uiData.rawDate || current.in_date,
+                in_date: dbDate || current.in_date,
                 in_type: uiData.type || current.in_type,
                 in_purpose: uiData.agenda || current.in_purpose,
                 in_description: uiData.discussed || current.in_description,
