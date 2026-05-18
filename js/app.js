@@ -1257,23 +1257,28 @@ function _renderInteractionsList(interactions) {
     container.innerHTML = '';
 
     interactions.forEach(a => {
-        const isUpcoming = a.status === 'Upcoming' || a.type === 'Upcoming';
         const rawDateStr = a.rawDate || a.date || '';
         const pastRelative = relativePastDate(rawDateStr);
+        let isUpcoming = false;
         let color = 'var(--text-tertiary)';
         let fw = '400';
+        
         if (rawDateStr) {
-            const d = new Date(rawDateStr.length <= 10 ? rawDateStr + 'T00:00:00' : rawDateStr);
-            const now = new Date(); now.setHours(0,0,0,0);
-            const diff = Math.round((now - d) / (1000 * 60 * 60 * 24));
-            if (diff < 0) {
+            const d = new Date(rawDateStr);
+            const now = new Date();
+            if (d > now) {
+                isUpcoming = true;
                 color = '#ef4444'; // upcoming
                 fw = '600';
-            } else if (diff <= 14) {
-                color = '#10b981'; // recent
-                fw = '600';
+            } else {
+                const diffDays = Math.round((now.setHours(0,0,0,0) - new Date(d).setHours(0,0,0,0)) / (1000 * 60 * 60 * 24));
+                if (diffDays <= 14) {
+                    color = '#10b981'; // recent
+                    fw = '600';
+                }
             }
         }
+        
         let statusBadge = `<span style="color:${color}; font-weight:${fw}; font-size:0.8rem;">${pastRelative || (isUpcoming ? 'Upcoming' : 'Completed')}</span>`;
 
         const agendaHtml = (a.topics || []).map(t => `<span style="font-size:0.68rem; padding:0.1rem 0.45rem; border-radius:100px; background:rgba(99,102,241,0.1); color:#6366f1; border:1px solid rgba(99,102,241,0.2);">${t}</span>`).join('');
@@ -1386,7 +1391,12 @@ function renderInteractionDetail() {
     document.getElementById('detail-int-date').textContent = formatDate(intDateStr) + (intRelPast ? ' · ' + intRelPast : '');
 
     const statusEl = document.getElementById('detail-int-status');
-    const statusVal = interaction.status || 'Completed';
+    let statusVal = interaction.status || 'Completed';
+    // Clean up old 'Upcoming' types masquerading as status
+    if (statusVal !== 'Upcoming' && statusVal !== 'Completed') {
+        const d = new Date(interaction.rawDate || '');
+        statusVal = (d > new Date()) ? 'Upcoming' : 'Completed';
+    }
     
     if (statusVal === 'Upcoming') {
         statusEl.innerHTML = 'Upcoming';
@@ -1398,7 +1408,9 @@ function renderInteractionDetail() {
         if (score >= 7) { color = '#22c55e'; word = 'Positive'; }
         else if (score <= 3) { color = '#ef4444'; word = 'Negative'; }
         
-        const intType = interaction.type || 'Other';
+        let intType = interaction.type || 'Other';
+        if (intType === 'Upcoming' || intType === 'Recent') intType = 'Other';
+        
         statusEl.innerHTML = `Completed <div style="display:inline-flex; align-items:center; gap:0.4rem; margin-left:1rem; padding:0.2rem 0.6rem; border-radius:100px; background:rgba(0,0,0,0.05); color:var(--text-secondary); font-size:0.8rem; font-weight:600;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${color};"></span> Outcome: ${word} (${score}/10)</div> <span style="color:var(--text-secondary); font-size:0.9rem; margin-left:0.5rem;">• ${intType}</span>`;
         statusEl.style.color = '#22c55e';
     }
@@ -1889,8 +1901,11 @@ window.toggleInteractionEdit = function() {
                 // Populate type buttons
                 if (document.getElementById('edit-int-type-group')) {
                     document.getElementById('edit-int-type-group').querySelectorAll('.update-type-btn').forEach(btn => btn.classList.remove('active'));
-                    if (interaction.type) {
-                        const savedTypes = interaction.type.split(',').map(t => t.trim());
+                    let intTypeForBtn = interaction.type;
+                    if (intTypeForBtn === 'Upcoming' || intTypeForBtn === 'Recent') intTypeForBtn = 'Other';
+                    
+                    if (intTypeForBtn) {
+                        const savedTypes = intTypeForBtn.split(',').map(t => t.trim());
                         if (savedTypes.length > 0) {
                             const targetType = savedTypes[0].toLowerCase();
                             const btn = Array.from(document.getElementById('edit-int-type-group').querySelectorAll('.update-type-btn')).find(b => b.dataset.val.toLowerCase() === targetType);
