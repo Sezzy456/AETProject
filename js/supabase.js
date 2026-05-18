@@ -119,6 +119,8 @@ async function fetchActions() {
             const origId = String(r.ac_original_id);
             const owners = (ownerRows||[]).filter(o => String(o.ao_action_original_id)===origId).map(o => { const c=contactMap[o.ao_contact_id]; return c?(c.co_organisation||`${c.co_first_name} ${c.co_last_name}`.trim()):''; }).filter(Boolean);
             const audiences = (audRows||[]).filter(a => String(a.aa_action_original_id)===origId).map(a => staMap[a.aa_stakeholder_original_id]||a.aa_stakeholder_original_id).filter(Boolean);
+            const ownerIds = (ownerRows||[]).filter(o => String(o.ao_action_original_id)===origId).map(o => String(o.ao_contact_id));
+            const audienceIds = (audRows||[]).filter(a => String(a.aa_action_original_id)===origId).map(a => a.aa_stakeholder_original_id);
             const objRef = r.ac_objective_id ? objMap[r.ac_objective_id] : null;
             const versions = (allVersions||[]).filter(v => String(v.ac_original_id)===origId);
             const previousVersions = versions.slice(0,-1).map(v => ({ version: v.ac_modified ? new Date(v.ac_modified).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+new Date(v.ac_modified).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) : '', note: v.ac_active?'Current':'Previous', who:'' }));
@@ -127,6 +129,7 @@ async function fetchActions() {
             return {
                 id: origId, _dbId: r.ac_id, activity: r.ac_title||'', description: r.ac_description||'',
                 owner: [...new Set(owners)].join(' + '), audience: audiences,
+                ownerIds: ownerIds, audienceIds: audienceIds,
                 status: r.ac_status||'Pending', advancedStatus: r.ac_status_detail||'',
                 tags: r.ac_tags||[], priority: r.ac_priority||'Medium', complexity: String(r.ac_complexity||3),
                 phase: r.ac_phase ? 'Phase '+r.ac_phase : '', commsObjectiveId: objRef?objRef.id:'',
@@ -504,6 +507,8 @@ window.updateActionDB = async function(uiData, isNew) {
             ac_modified_by: 1
         };
 
+        let actionOrigId;
+
         if (isNew) {
             const { data: inserted, error: insertErr } = await _sb.from('tbl_action').insert({
                 ...newRowBase,
@@ -515,12 +520,14 @@ window.updateActionDB = async function(uiData, isNew) {
             
             // Link original ID to self
             await _sb.from('tbl_action').update({ ac_original_id: inserted.ac_id }).eq('ac_id', inserted.ac_id);
+            actionOrigId = inserted.ac_id.toString();
             console.log('[Supabase] Action inserted:', inserted.ac_id);
         } else {
-            const { data: current, error: selErr } = await _sb.from('tbl_action').select('*').eq('ac_original_id', uiData.id).eq('ac_active', true).single();
+            actionOrigId = String(uiData.id);
+            const { data: current, error: selErr } = await _sb.from('tbl_action').select('*').eq('ac_original_id', actionOrigId).eq('ac_active', true).single();
             if (!current) {
-                console.warn('[Supabase] Could not find active action to version:', uiData.id, selErr);
-                alert(`Action save failed: Could not find active record in DB to version. Check console for ID: ${uiData.id}`);
+                console.warn('[Supabase] Could not find active action to version:', actionOrigId, selErr);
+                alert(`Action save failed: Could not find active record in DB to version. Check console for ID: ${actionOrigId}`);
                 return false;
             }
             
@@ -531,13 +538,50 @@ window.updateActionDB = async function(uiData, isNew) {
             const { error: insertErr } = await _sb.from('tbl_action').insert({
                 ...rest,
                 ...newRowBase,
-                ac_original_id: uiData.id,
+                ac_original_id: actionOrigId,
                 ac_created: current.ac_created || new Date().toISOString(),
                 ac_created_by: current.ac_created_by || 1
             });
             if (insertErr) throw insertErr;
-            console.log('[Supabase] Action versioned & updated:', uiData.id);
+            console.log('[Supabase] Action versioned & updated:', actionOrigId);
         }
+
+        // Save Owners
+        if (uiData.ownerIds !== undefined) {
+            const { data: existingOwners } = await _sb.from('tbl_action_owner').select('*').eq('ao_action_original_id', actionOrigId).eq('ao_active', true);
+            const existingOIds = (existingOwners || []).map(a => String(a.ao_contact_id));
+            const newOIds = (uiData.ownerIds || []).map(id => String(id).replace('c', ''));
+            
+            const toRemoveO = existingOIds.filter(id => !newOIds.includes(id));
+            const toAddO = newOIds.filter(id => !existingOIds.includes(id));
+            
+            if (toRemoveO.length > 0) {
+                await _sb.from('tbl_action_owner').update({ ao_active: false, ao_modified: new Date().toISOString(), ao_modified_by: 1 }).eq('ao_action_original_id', actionOrigId).in('ao_contact_id', toRemoveO).eq('ao_active', true);
+            }
+            if (toAddO.length > 0) {
+                const rows = toAddO.map(cId => ({ ao_action_original_id: actionOrigId, ao_contact_id: parseInt(cId), ao_active: true, ao_created: new Date().toISOString(), ao_created_by: 1, ao_modified: new Date().toISOString(), ao_modified_by: 1 }));
+                await _sb.from('tbl_action_owner').insert(rows);
+            }
+        }
+
+        // Save Audiences
+        if (uiData.audienceIds !== undefined) {
+            const { data: existingAuds } = await _sb.from('tbl_action_audience').select('*').eq('aa_action_original_id', actionOrigId).eq('aa_active', true);
+            const existingAIds = (existingAuds || []).map(a => String(a.aa_stakeholder_original_id));
+            const newAIds = (uiData.audienceIds || []).map(id => String(id));
+            
+            const toRemoveA = existingAIds.filter(id => !newAIds.includes(id));
+            const toAddA = newAIds.filter(id => !existingAIds.includes(id));
+            
+            if (toRemoveA.length > 0) {
+                await _sb.from('tbl_action_audience').update({ aa_active: false, aa_modified: new Date().toISOString(), aa_modified_by: 1 }).eq('aa_action_original_id', actionOrigId).in('aa_stakeholder_original_id', toRemoveA).eq('aa_active', true);
+            }
+            if (toAddA.length > 0) {
+                const rows = toAddA.map(sId => ({ aa_action_original_id: actionOrigId, aa_stakeholder_original_id: sId, aa_active: true, aa_created: new Date().toISOString(), aa_created_by: 1, aa_modified: new Date().toISOString(), aa_modified_by: 1 }));
+                await _sb.from('tbl_action_audience').insert(rows);
+            }
+        }
+
         return true;
     } catch (e) { 
         console.error('[Supabase] updateActionDB exception:', e); 

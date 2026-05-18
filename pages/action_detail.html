@@ -207,65 +207,85 @@
 <!-- ================================================================
      EDIT MODE — triggered by window.openActionDetailEdit()
 ================================================================ -->
-<div id="adet-edit-mode" style="display:none;">
-<!-- ── SUBTLE METADATA ROW (EDIT) ───────────────────────────── -->
-<div style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap; padding:0.4rem 0 0.75rem 0; font-size:0.85rem; color:var(--text-tertiary);">
-    <div style="display:flex; align-items:center; gap:0.4rem;">
-        <span class="material-symbols-outlined" style="font-size:0.95rem;">groups</span>
-        <select id="adet-e-audience-select" style="border:1px solid var(--border-subtle); border-radius:4px; padding:0.2rem 0.4rem; font-family:inherit; font-size:0.8rem;"></select>
-        <button type="button" onclick="window.adetAddAudience()" class="btn-secondary" style="padding:0.2rem 0.4rem; font-size:0.8rem; height:auto;">+</button>
-        <div id="adet-e-audience-chips" style="display:flex; gap:0.3rem; flex-wrap:wrap; margin-left:0.5rem;"></div>
-    </div>
-    <div style="display:flex; align-items:center; gap:0.4rem;">
-        <span style="font-size:0.85rem;">🎯</span>
-        <select id="adet-e-objective" style="border:1px solid #6366f1; border-radius:4px; padding:0.2rem 0.4rem; font-family:inherit; font-size:0.8rem; background:rgba(99,102,241,0.05); color:#6366f1; font-weight:600; cursor:pointer; outline:none;"></select>
-    </div>
-    <div style="display:flex; align-items:center; gap:0.4rem;">
-        <span class="material-symbols-outlined" style="font-size:0.95rem;">calendar_today</span>
-        <input type="date" id="adet-e-due-date" style="border:1px solid #6366f1; border-radius:4px; padding:0.2rem 0.4rem; font-family:inherit; font-size:0.8rem; background:rgba(99,102,241,0.05); color:#6366f1; font-weight:600; cursor:pointer; outline:none;">
-    </div>
-    <!-- Status Segmented Control inside Metadata Row for Edit Mode -->
-    <div style="display:flex; align-items:center; gap:0.4rem; margin-left:auto;">
-        <span style="font-weight:600; font-size:0.8rem;">Status:</span>
-        <div class="adet-segmented-control" id="adet-e-status-seg" style="margin:0;">
-            <button class="adet-seg-btn" data-status="Pending" onclick="window.adetSetStatus(this, 'Pending')">Pending</button>
-            <button class="adet-seg-btn" data-status="In Progress" onclick="window.adetSetStatus(this, 'In Progress')">In Progress</button>
-            <button class="adet-seg-btn" data-status="Complete" onclick="window.adetSetStatus(this, 'Complete')">Complete</button>
-            <button class="adet-seg-btn" data-status="Deferred" onclick="window.adetSetStatus(this, 'Deferred')">Deferred</button>
-        </div>
-    </div>
-</div>
-
-<!-- ── TITLE EDIT ───────────────────────────────────────────── -->
-<div style="margin-bottom:1.5rem;">
-    <input type="text" id="adet-e-title" placeholder="Action Title" style="width:100%; font-size:1.8rem; font-weight:800; border:1px solid var(--border-subtle); border-radius:8px; padding:0.5rem 1rem; font-family:inherit; color:var(--text-primary);">
-</div>
-
-<!-- ── DESCRIPTION (3/4) + TO-DO (1/4) ─────────────────────── -->
-<div style="display:grid; grid-template-columns:3fr 1fr; gap:1.5rem; align-items:start;">
-    <div>
-        <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.4rem; font-weight:500;">Description</div>
-        <div class="adet-card" style="padding:1.25rem;">
-            <textarea id="adet-e-description" rows="5" style="width:100%; border:1px solid var(--border-subtle); border-radius:6px; padding:0.75rem; font-family:inherit; font-size:0.95rem; resize:vertical;"></textarea>
-        </div>
-    </div>
-    <div>
-        <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.4rem; font-weight:500;">To-Do</div>
-        <div class="adet-card" style="padding:1rem;">
-            <div id="adet-e-todos" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:0.75rem;"></div>
-            <button type="button" onclick="window.adetAddTodo()" class="btn-secondary" style="width:100%; font-size:0.85rem; padding:0.4rem;">+ Add item</button>
-        </div>
-    </div>
-</div>
-
-<!-- ── DETAILS GRID ────────────────────────────────────────── -->
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; align-items:start;">
+<!-- ================================================================
+     EDIT MODE — triggered by window.openActionDetailEdit()
+================================================================ -->
+<div id="adet-edit-mode" style="display:none; padding-bottom: 80px;">
     
-    <!-- Left Column -->
-    <div>
-        <!-- Outcomes -->
-        <div class="adet-card" style="padding:1.25rem;">
-            <h3 class="adet-card-label" style="margin-bottom:0.75rem;">Desired Outcomes</h3>
+    <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Action Title:</label>
+        <input type="text" id="adet-e-title" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-size:1.1rem; font-weight:600; font-family: 'Inter', sans-serif;">
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Description:</label>
+        <textarea id="adet-e-description" rows="3" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; resize: vertical; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif; font-size:0.95rem;"></textarea>
+    </div>
+
+    <!-- Core Metadata Grid -->
+    <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Owner (Contact):</label>
+            <select id="adet-e-owner" multiple style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif; min-height: 80px;">
+            </select>
+            <div style="font-size:0.75rem; color:var(--text-tertiary); margin-top:0.25rem;">Hold Ctrl/Cmd to select multiple</div>
+        </div>
+        <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Audience (Stakeholders):</label>
+            <select id="adet-e-audience" multiple style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif; min-height: 80px;">
+            </select>
+        </div>
+        <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Linked Objective:</label>
+            <select id="adet-e-objective" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
+                <option value="">None</option>
+            </select>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start;">
+        <div style="flex: 1; min-width: 300px;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Timing / Due Date:</label>
+            <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+                <label><input type="radio" name="adet-e-date-type" value="exact" checked onchange="window.adetDateTypeChanged()"> Exact Date</label>
+                <label><input type="radio" name="adet-e-date-type" value="vague" onchange="window.adetDateTypeChanged()"> Vague Textual Date</label>
+            </div>
+            <input type="date" id="adet-e-due-date" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
+            <input type="text" id="adet-e-due-text" placeholder="e.g. End of Q3 2026" style="display:none; border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
+        </div>
+        <div style="flex: 1; min-width: 300px;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Status:</label>
+            <div class="adet-segmented-control" id="adet-e-status-seg" style="margin:0; width:100%;">
+                <button class="adet-seg-btn" data-status="Pending" onclick="window.adetSetStatus(this, 'Pending')">Pending</button>
+                <button class="adet-seg-btn" data-status="In Progress" onclick="window.adetSetStatus(this, 'In Progress')">In Progress</button>
+                <button class="adet-seg-btn" data-status="Complete" onclick="window.adetSetStatus(this, 'Complete')">Complete</button>
+                <button class="adet-seg-btn" data-status="Deferred" onclick="window.adetSetStatus(this, 'Deferred')">Deferred</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- To-Do Section (Always visible) -->
+    <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">To-Do Checklist:</label>
+        <div class="adet-card" style="padding:1rem; margin-bottom:0;">
+            <div id="adet-e-todos" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:0.75rem;"></div>
+            <button type="button" onclick="window.adetAddTodo()" class="btn-secondary" style="width:100%; font-size:0.85rem; padding:0.4rem;">+ Add To-Do Item</button>
+        </div>
+    </div>
+
+    <style>
+        .edit-details-group { border: 1px solid var(--border-subtle); border-radius: 8px; margin-bottom: 1rem; background: #fff; }
+        .edit-details-group summary { font-weight: 600; padding: 1rem; cursor: pointer; color: var(--text-secondary); outline: none; list-style: none; display: flex; align-items: center; justify-content: space-between; }
+        .edit-details-group summary::-webkit-details-marker { display: none; }
+        .edit-details-group summary::after { content: 'expand_more'; font-family: 'Material Symbols Outlined'; font-size: 1.2rem; }
+        .edit-details-group[open] summary::after { content: 'expand_less'; }
+        .edit-details-content { padding: 0 1rem 1rem 1rem; border-top: 1px solid var(--border-subtle); margin-top: 0.5rem; padding-top: 1rem; }
+    </style>
+
+    <!-- Collapsible: Desired Outcome -->
+    <details class="edit-details-group">
+        <summary>Desired Outcome & KPIs</summary>
+        <div class="edit-details-content">
             <textarea id="adet-e-outcome" rows="2" placeholder="Describe the outcome..." style="width:100%; border:1px solid var(--border-subtle); border-radius:6px; padding:0.5rem; font-family:inherit; font-size:0.9rem; margin-bottom:0.5rem;"></textarea>
             
             <div style="margin-bottom:0.75rem; font-size:0.85rem;">
@@ -289,52 +309,12 @@
             <label style="font-weight:600; margin-bottom:0.25rem; display:block; color:var(--text-secondary); font-size:0.85rem; margin-top:1rem;">KPI Target</label>
             <input type="text" id="adet-e-kpi" placeholder="e.g. 500 attendees" style="width:100%; border:1px solid var(--border-subtle); border-radius:6px; padding:0.5rem; font-family:inherit; font-size:0.9rem;">
         </div>
+    </details>
 
-        <!-- Meta Properties -->
-        <div class="adet-card" style="padding:1.25rem;">
-            <h3 class="adet-card-label" style="margin-bottom:0.75rem;">Properties</h3>
-            <div style="display:flex; flex-direction:column; gap:0.75rem; font-size:0.9rem;">
-                <div style="display:flex; align-items:center;">
-                    <div style="width:120px; color:var(--text-tertiary);">Tags</div>
-                    <div style="flex:1;">
-                        <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:0.4rem;">
-                            <button class="btn-secondary adet-tag-preset-btn" onclick="this.classList.toggle('active')">🏷️ Comms</button>
-                            <button class="btn-secondary adet-tag-preset-btn" onclick="this.classList.toggle('active')">🏷️ Financial</button>
-                            <button class="btn-secondary adet-tag-preset-btn" onclick="this.classList.toggle('active')">🏷️ Legal</button>
-                            <button class="btn-secondary adet-tag-preset-btn" onclick="this.classList.toggle('active')">🏷️ Strategy</button>
-                        </div>
-                        <div style="display:flex; gap:0.4rem;">
-                            <input type="text" id="adet-e-custom-tag" placeholder="Custom tag..." style="flex:1; border:1px solid var(--border-subtle); border-radius:4px; padding:0.3rem 0.5rem; font-size:0.85rem; font-family:inherit;">
-                            <button onclick="window.adetAddCustomTag()" class="btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.85rem;">Add</button>
-                        </div>
-                        <div id="adet-e-tag-chips" style="display:flex; gap:0.3rem; flex-wrap:wrap; margin-top:0.4rem;"></div>
-                    </div>
-                </div>
-                <div style="display:flex; align-items:center;">
-                    <div style="width:120px; color:var(--text-tertiary);">Priority</div>
-                    <select id="adet-e-priority" style="flex:1; border:1px solid var(--border-subtle); border-radius:4px; padding:0.3rem 0.5rem; font-size:0.9rem; font-family:inherit;">
-                        <option value="High">High</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Low">Low</option>
-                    </select>
-                </div>
-                <div style="display:flex; align-items:center;">
-                    <div style="width:120px; color:var(--text-tertiary);">Complexity</div>
-                    <div style="flex:1; display:flex; gap:0.2rem;" id="adet-e-complexity-stars">
-                        <!-- stars injected by app.js -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Right Column -->
-    <div>
-        <!-- Execution -->
-        <div class="adet-card" style="padding:1.25rem;">
-            <h3 class="adet-card-label" style="margin-bottom:0.75rem;">Execution & Version Control</h3>
-            <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:1rem; padding-bottom:0.75rem; border-bottom:1px solid var(--border-subtle);" id="adet-e-vc-meta"></div>
-            
+    <!-- Collapsible: Execution & Version Control -->
+    <details class="edit-details-group">
+        <summary>Execution & Version Control</summary>
+        <div class="edit-details-content">
             <label style="font-weight:600; margin-bottom:0.25rem; display:block; color:var(--text-secondary); font-size:0.85rem;">Recent Progress</label>
             <textarea id="adet-e-progress" rows="2" style="width:100%; border:1px solid var(--border-subtle); border-radius:6px; padding:0.5rem; font-family:inherit; font-size:0.9rem; margin-bottom:0.75rem;"></textarea>
             
@@ -350,10 +330,52 @@
             </div>
             <input type="date" id="adet-e-completed-date" style="display:none; margin-top:0.5rem; border:1px solid var(--border-subtle); border-radius:4px; padding:0.3rem 0.5rem; font-family:inherit; font-size:0.85rem;">
         </div>
+    </details>
 
-        <!-- Privacy & Access -->
-        <div class="adet-card" style="padding:1.25rem;">
-            <h3 class="adet-card-label" style="margin-bottom:0.75rem;">Privacy & Access</h3>
+    <!-- Collapsible: Properties (Tags, Complexity, Priority, Notes) -->
+    <details class="edit-details-group">
+        <summary>Properties & Notes</summary>
+        <div class="edit-details-content">
+            <div style="display:flex; align-items:center; margin-bottom: 0.75rem;">
+                <div style="width:120px; color:var(--text-tertiary); font-size:0.9rem;">Tags:</div>
+                <div style="flex:1;">
+                    <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:0.4rem;">
+                        <button class="btn-secondary adet-tag-preset-btn" onclick="this.classList.toggle('active')">🏷️ Comms</button>
+                        <button class="btn-secondary adet-tag-preset-btn" onclick="this.classList.toggle('active')">🏷️ Financial</button>
+                        <button class="btn-secondary adet-tag-preset-btn" onclick="this.classList.toggle('active')">🏷️ Legal</button>
+                        <button class="btn-secondary adet-tag-preset-btn" onclick="this.classList.toggle('active')">🏷️ Strategy</button>
+                    </div>
+                    <div style="display:flex; gap:0.4rem;">
+                        <input type="text" id="adet-e-custom-tag" placeholder="Custom tag..." style="flex:1; border:1px solid var(--border-subtle); border-radius:4px; padding:0.3rem 0.5rem; font-size:0.85rem; font-family:inherit;">
+                        <button onclick="window.adetAddCustomTag()" class="btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.85rem;">Add</button>
+                    </div>
+                    <div id="adet-e-tag-chips" style="display:flex; gap:0.3rem; flex-wrap:wrap; margin-top:0.4rem;"></div>
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; margin-bottom: 0.75rem;">
+                <div style="width:120px; color:var(--text-tertiary); font-size:0.9rem;">Priority:</div>
+                <select id="adet-e-priority" style="flex:1; border:1px solid var(--border-subtle); border-radius:4px; padding:0.3rem 0.5rem; font-size:0.9rem; font-family:inherit;">
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                </select>
+            </div>
+            <div style="display:flex; align-items:center; margin-bottom: 1rem;">
+                <div style="width:120px; color:var(--text-tertiary); font-size:0.9rem;">Complexity:</div>
+                <div style="flex:1; display:flex; gap:0.2rem;" id="adet-e-complexity-stars">
+                    <!-- stars injected by app.js -->
+                </div>
+            </div>
+
+            <label style="font-weight:600; margin-bottom:0.25rem; display:block; color:var(--text-secondary); font-size:0.85rem;">Other Notes</label>
+            <textarea id="adet-e-other" rows="3" style="width:100%; border:1px solid var(--border-subtle); border-radius:6px; padding:0.5rem; font-family:inherit; font-size:0.9rem;"></textarea>
+        </div>
+    </details>
+
+    <!-- Collapsible: Privacy & Access -->
+    <details class="edit-details-group">
+        <summary>Privacy & Access</summary>
+        <div class="edit-details-content">
             <div style="display:flex; flex-direction:column; gap:0.5rem; font-size:0.9rem;">
                 <label><input type="radio" name="adet-e-priv" value="Public/Official" onchange="window.adetPrivacyChanged()"> <span class="material-symbols-outlined" style="font-size:1rem; vertical-align:middle; color:#3b82f6;">language</span> Public/Official</label>
                 <label><input type="radio" name="adet-e-priv" value="Attendees" onchange="window.adetPrivacyChanged()"> <span class="material-symbols-outlined" style="font-size:1rem; vertical-align:middle;">groups</span> Shared with Team</label>
@@ -377,16 +399,15 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Other -->
-        <div class="adet-card" style="padding:1.25rem;">
-            <h3 class="adet-card-label" style="margin-bottom:0.75rem;">Other Notes</h3>
-            <textarea id="adet-e-other" rows="3" style="width:100%; border:1px solid var(--border-subtle); border-radius:6px; padding:0.5rem; font-family:inherit; font-size:0.9rem;"></textarea>
-        </div>
-    </div>
-</div>
+    </details>
 
 </div><!-- /adet-edit-mode -->
+
+<!-- Floating Save Bar -->
+<div id="adet-floating-save-bar" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--border-subtle); padding:1rem 2rem; box-shadow:0 -4px 12px rgba(0,0,0,0.05); z-index:100; justify-content:flex-end; gap:1rem; align-items:center;">
+    <button class="btn-secondary" onclick="window.closeActionDetailEdit()" style="padding: 0.6rem 1.5rem;">Cancel</button>
+    <button class="btn-primary" id="adet-floating-save-btn" onclick="window.adetSave()" style="padding: 0.6rem 2rem; font-weight: 600; background:var(--energy-algae);">Save Action</button>
+</div>
 
 <!-- ── STYLES ──────────────────────────────────────────────── -->
 <style>
