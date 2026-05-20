@@ -13,7 +13,7 @@
         <div style="display:flex; align-items:center; gap:0.75rem;">
             <div id="adet-owner-circle" title="" style="display:none; width:42px; height:42px; border-radius:50%; background:var(--energy-algae); color:#fff; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem; cursor:default;"></div>
             <div id="adet-owner-badge" style="padding:0.3rem 0.75rem; border-radius:6px; background:var(--energy-algae); color:#fff; font-weight:600; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.3rem;"><span class="material-symbols-outlined" style="font-size:0.9rem;">person</span><span id="adet-owner-name"></span></div>
-            <button onclick="window.openActionDetailEdit()" class="btn-primary" style="display:inline-flex;align-items:center;gap:0.4rem;">
+            <button id="adet-header-edit-btn" onclick="window.openActionDetailEdit()" class="btn-primary" style="display:inline-flex;align-items:center;gap:0.4rem;">
                 <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit
             </button>
         </div>
@@ -159,7 +159,7 @@
             <div style="flex:1; display:flex; align-items:center; gap:1rem;">
                 <div id="adet-due-display" class="adet-due-big"></div>
                 <div id="adet-due-detail" class="adet-due-detail"></div>
-                <div id="adet-granularity-pill" class="adet-granularity-pill"></div>
+                <div id="adet-vc-completed-pill" style="display:none;" class="adet-vc-completed-pill"></div>
             </div>
         </div>
     </div>
@@ -172,7 +172,7 @@
             <div>Created <strong id="adet-vc-created"></strong></div>
             <div>Last edited <strong id="adet-vc-edited"></strong></div>
             <div>By <span id="adet-vc-who" class="adet-vc-who-badge"></span></div>
-            <div id="adet-vc-completed-pill" style="display:none;" class="adet-vc-completed-pill"></div>
+            <button type="button" class="btn-secondary" onclick="if(confirm('Once it is archived it is gone. Are you sure you want to archive this action?')) window.adetArchive();" style="border-color: #fca5a5; color: #ef4444; padding: 0.2rem 0.5rem; font-size: 0.8rem; height: auto;">Archive</button>
         </div>
         <div class="adet-accordion" style="margin-top:0.75rem;">
             <button class="adet-accordion-toggle" onclick="window.adetToggleSection('adet-vc-prev')">
@@ -262,18 +262,9 @@
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Timing / Due Date:</label>
             <div style="display:flex; flex-direction:column; gap:0.5rem;">
                 <div style="margin-bottom:0.5rem;">
-                    <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Target Date & Granularity:</div>
-                    <div style="display:flex; flex-direction:column; gap:0.5rem;">
-                        <div class="adet-segmented-control" id="adet-e-gran-seg" style="margin:0; width:100%; display:flex;">
-                            <button type="button" class="adet-seg-btn active" data-gran="date" onclick="window.adetSetGranularity('date')">Exact Date</button>
-                            <button type="button" class="adet-seg-btn" data-gran="week" onclick="window.adetSetGranularity('week')">Week</button>
-                            <button type="button" class="adet-seg-btn" data-gran="month" onclick="window.adetSetGranularity('month')">Month</button>
-                        </div>
-                        <input type="hidden" id="adet-e-date-granularity" value="date">
-                        <input type="date" id="adet-e-due-date" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
-                        <input type="week" id="adet-e-due-week" style="display:none; border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
-                        <input type="month" id="adet-e-due-month" style="display:none; border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
-                    </div>
+                    <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Target Date:</div>
+                    <input type="date" id="adet-e-due-date" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
+                    <input type="hidden" id="adet-e-date-granularity" value="date">
                 </div>
                 <div>
                     <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Specific Time (Optional):</div>
@@ -327,11 +318,11 @@
         <div class="edit-details-content">
             <div style="margin-bottom:0.75rem; font-size:0.85rem;">
                 <label style="font-weight:600; margin-bottom:0.25rem; display:block; color:var(--text-secondary);">Outcome Type:</label>
-                <div style="display:flex; gap:1rem;">
-                    <label><input type="radio" name="adet-outcome-type" value="text" onchange="window.adetOutcomeTypeChanged()"> Text</label>
-                    <label><input type="radio" name="adet-outcome-type" value="posture" onchange="window.adetOutcomeTypeChanged()"> Posture Shift</label>
-                    <label><input type="radio" name="adet-outcome-type" value="asset" onchange="window.adetOutcomeTypeChanged()"> Asset</label>
-                </div>
+                <select id="adet-outcome-type-select" onchange="window.adetOutcomeTypeChanged()" style="width:100%; border:1px solid var(--border-subtle); border-radius:6px; padding:0.5rem; font-family:inherit; font-size:0.9rem;">
+                    <option value="text">Text</option>
+                    <option value="posture">Posture Shift</option>
+                    <option value="asset">Asset</option>
+                </select>
             </div>
 
             <div id="adet-e-outcome-text-wrap" style="margin-bottom:0.75rem;">
@@ -344,8 +335,9 @@
             </div>
             
             <div id="adet-e-outcome-asset-wrap" style="display:none; margin-bottom:0.75rem;">
-                <input list="adet-asset-datalist" id="adet-e-outcome-asset" placeholder="Select or describe an asset..." style="width:100%; border:1px solid var(--border-subtle); border-radius:6px; padding:0.5rem; font-family:inherit; font-size:0.9rem;">
-                <datalist id="adet-asset-datalist"></datalist>
+                <select id="adet-e-outcome-asset" style="width:100%; border:1px solid var(--border-subtle); border-radius:6px; padding:0.5rem; font-family:inherit; font-size:0.9rem;">
+                    <option value="">- Select Asset -</option>
+                </select>
             </div>
             
             <label style="font-weight:600; margin-bottom:0.25rem; display:block; color:var(--text-secondary); font-size:0.85rem; margin-top:1rem;">KPI Target</label>
@@ -365,10 +357,6 @@
             
             <label style="font-weight:600; margin-bottom:0.25rem; display:block; color:var(--text-secondary); font-size:0.85rem;">Advanced Status Detail</label>
             <input type="text" id="adet-e-adv-status" placeholder="e.g. Awaiting sign-off" style="width:100%; border:1px solid var(--border-subtle); border-radius:6px; padding:0.5rem; font-family:inherit; font-size:0.9rem; margin-bottom:0.75rem;">
-            
-            <div style="margin-top: 1rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem; display: flex; justify-content: flex-end;">
-                <button type="button" class="btn-danger" onclick="window.adetArchive()" style="padding: 0.4rem 0.8rem; font-size:0.85rem;">Archive Action</button>
-            </div>
         </div>
     </details>
 

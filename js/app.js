@@ -3586,7 +3586,7 @@ function renderActionDetail() {
             await window._sb.from('tbl_action')
                 .update({ ac_todos: action.todos })
                 .eq('ac_original_id', action.originalId)
-                .eq('ac_status_detail', 'Active');
+                .eq('ac_active', true);
         }
         if (btn) {
             btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:0.9rem;">check</span> Saved!';
@@ -3797,14 +3797,9 @@ window.openActionDetailEdit = function () {
 
     _adetPopulateStakeholderSelect();
     
-    const assetDatalist = document.getElementById('adet-asset-datalist');
-    if (assetDatalist) {
-        const assets = window._sbCache ? window._sbCache.assets || [] : [];
-        assetDatalist.innerHTML = assets.map(a => `<option value="${a.as_description}">`).join('');
-    }
 
     // Update header button to Done + add Cancel
-    const editBtn = document.querySelector('[onclick="window.openActionDetailEdit()"]');
+    const editBtn = document.getElementById('adet-header-edit-btn');
     if (editBtn) {
         editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done';
         editBtn.setAttribute('onclick', 'window.adetSave()');
@@ -3833,41 +3828,22 @@ window.openActionDetailEdit = function () {
     set('adet-e-title', a.activity);
     set('adet-e-description', a.description);
 
-    // Populate Owners
-    const ownerList = document.getElementById('adet-e-owner-list');
-    const ownerChips = document.getElementById('adet-e-owner-chips');
-    if (ownerList && ownerChips) {
-        ownerChips.innerHTML = '';
-        const contacts = window.getData('contacts') || [];
-        ownerList.innerHTML = contacts.map(c => `
-            <div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="sdet-hover-bg" onclick="window._adetAddOwnerChip('${c.id}', '${c.name.replace(/'/g, "\\'")}')">
-                <div class="int-avatar" style="background:var(--energy-algae);">${c.name.substring(0,2).toUpperCase()}</div>
-                <div>${c.name}${c.organisation ? ` <span style="color:var(--text-tertiary); font-size:0.8rem;">(${c.organisation})</span>` : ''}</div>
-            </div>
-        `).join('');
         const oIds = a.ownerIds || [];
         oIds.forEach(id => {
-            const c = contacts.find(x => x.id == id);
-            if (c) window._adetAddOwnerChip(c.id, c.name);
+            const c = contacts.find(x => x.id == id) || { id, name: 'Unknown' };
+            window._adetAddOwnerChip(c.id, c.name);
         });
     }
 
     // Populate Audience
-    const audList = document.getElementById('adet-e-audience-list');
     const audChips = document.getElementById('adet-e-audience-chips');
-    if (audList && audChips) {
+    if (audChips) {
         audChips.innerHTML = '';
         const stakeholders = window.getData('stakeholders') || [];
-        audList.innerHTML = stakeholders.map(s => `
-            <div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="sdet-hover-bg" onclick="window._adetAddAudienceChip('${s.id}', '${s.name.replace(/'/g, "\\'")}')">
-                <span class="material-symbols-outlined" style="color:var(--text-secondary); font-size:1.2rem;">account_circle</span>
-                <div>${s.name}</div>
-            </div>
-        `).join('');
         const aIds = a.audienceIds || [];
         aIds.forEach(id => {
-            const s = stakeholders.find(x => x.id == id);
-            if (s) window._adetAddAudienceChip(s.id, s.name);
+            const s = stakeholders.find(x => x.id == id) || { id, name: 'Unknown' };
+            window._adetAddAudienceChip(s.id, s.name);
         });
     }
 
@@ -3898,7 +3874,8 @@ window.openActionDetailEdit = function () {
 
     // Desired Outcome type
     const typeVal = a.desiredOutcomeType || 'text';
-    document.querySelectorAll('input[name="adet-outcome-type"]').forEach(r => { r.checked = r.value === typeVal; });
+    const typeSel = document.getElementById('adet-outcome-type-select');
+    if (typeSel) typeSel.value = typeVal;
     window.adetOutcomeTypeChanged();
     set('adet-e-outcome', a.desiredOutcome);
     const sh = document.getElementById('adet-e-outcome-stakeholder');
@@ -4086,10 +4063,13 @@ window.adetAddTodo = function () {
     el.insertAdjacentHTML('beforeend', _adetMakeEditTodoRow('new-' + Date.now(), false, ''));
 };
 
+
+
 // ── Desired Outcome type ─────────────────────────────────────────────
 
 window.adetOutcomeTypeChanged = function () {
-    const val = document.querySelector('input[name="adet-outcome-type"]:checked')?.value || 'text';
+    const sel = document.getElementById('adet-outcome-type-select');
+    const val = sel ? sel.value : 'text';
     const textEl = document.getElementById('adet-e-outcome-text-wrap');
     const pfEl = document.getElementById('adet-e-outcome-posture-wrap');
     const afEl = document.getElementById('adet-e-outcome-asset-wrap');
@@ -4107,15 +4087,16 @@ window.adetOutcomeTypeChanged = function () {
             if (window._adetOriginal?.desiredOutcomeStakeholderId) shSel.value = window._adetOriginal.desiredOutcomeStakeholderId;
         }
     }
-    // If asset is chosen and datalist is empty, populate it:
+    // If asset is chosen and select is empty, populate it:
     if (val === 'asset') {
-        const datalist = document.getElementById('adet-asset-datalist');
-        if (datalist && datalist.options.length === 0) {
+        const assetSel = document.getElementById('adet-e-outcome-asset');
+        if (assetSel && assetSel.options.length <= 1) {
             const loadAssets = async () => {
                 if (!window._sb) return;
                 const { data, error } = await window._sb.from('tbl_asset').select('*');
                 if (!error && data) {
-                    datalist.innerHTML = data.map(ast => `<option value="${ast.ass_title || ast.ass_id}"></option>`).join('');
+                    assetSel.innerHTML = '<option value="">- Select Asset -</option>' + data.map(ast => `<option value="${ast.as_id}">${ast.as_description}</option>`).join('');
+                    if (window._adetOriginal?.desiredOutcomeAsset) assetSel.value = window._adetOriginal.desiredOutcomeAsset;
                 }
             };
             loadAssets();
@@ -4185,7 +4166,7 @@ window.closeActionDetailEdit = function () {
     if (viewMode) viewMode.style.display = 'block';
     if (editMode) editMode.style.display = 'none';
     // Restore header button to Edit mode
-    const editBtn = document.querySelector('[onclick="window.adetSave()"]') || document.querySelector('[onclick="window.openActionDetailEdit()"]');
+    const editBtn = document.getElementById('adet-header-edit-btn');
     if (editBtn) {
         editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
         editBtn.setAttribute('onclick', 'window.openActionDetailEdit()');

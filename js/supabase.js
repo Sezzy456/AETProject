@@ -487,7 +487,7 @@ window.updateActionDB = async function(uiData, isNew) {
             ac_desired_outcome_type: uiData.desiredOutcomeType || 'text',
             ac_outcome_stakeholder_original_id: uiData.desiredOutcomeStakeholderId || null,
             ac_desired_posture: uiData.desiredPosture || '',
-            ac_desired_outcome_asset: uiData.desiredOutcomeAsset || null,
+            // ac_desired_outcome_asset: uiData.desiredOutcomeAsset || null,
             ac_success_criteria: uiData.successCriteria || '',
             ac_kpi_target: uiData.kpiTarget || '',
             ac_due_date_granularity: uiData.timing?.granularity || 'date',
