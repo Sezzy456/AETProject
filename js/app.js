@@ -3490,18 +3490,7 @@ function renderActionDetail() {
     txt('adet-resource', a.resourceRequirement);
 
     // ── To-Do List ──
-    const todos = a.todos || [];
-    const done = todos.filter(t => t.completed).length;
-    const pct = todos.length > 0 ? Math.round((done / todos.length) * 100) : 0;
-    const progText = document.getElementById('adet-todo-progress-text');
-    if (progText) progText.textContent = todos.length > 0 ? `${done}/${todos.length} complete — ${pct}%` : 'No items';
-    const progFill = document.getElementById('adet-todo-progress-fill');
-    if (progFill) progFill.style.width = pct + '%';
-    const todosEl = document.getElementById('adet-todos');
-    if (todosEl) {
-        todosEl.innerHTML = '';
-        window._renderInlineTodos();
-    }
+    // Handlers and renderer defined below
 
     // New Todo Handlers
     window._renderInlineTodos = function() {
@@ -3599,12 +3588,15 @@ function renderActionDetail() {
                 .eq('ac_original_id', action.originalId)
                 .eq('ac_status_detail', 'Active');
         }
-        
         if (btn) {
             btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:0.9rem;">check</span> Saved!';
             setTimeout(() => { btn.style.display = 'none'; btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:0.9rem;">save</span> Save'; }, 1500);
         }
     };
+    
+    // Initial render call
+    window._renderInlineTodos();
+
 
     // Show/hide todo section
     // To-Do section always visible (even when empty)
