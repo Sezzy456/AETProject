@@ -3885,13 +3885,14 @@ window.openActionDetailEdit = function () {
     _adetRefreshStars();
 
     // Tags — preset buttons
+    const arrTags = Array.isArray(a.tags) ? a.tags : (typeof a.tags === 'string' ? a.tags.split(',').map(x=>x.trim()) : []);
     document.querySelectorAll('.adet-tag-preset-btn').forEach(btn => {
         const tag = btn.textContent.trim().replace(/^[^\s]+\s/, '').trim();
-        btn.classList.toggle('active', (a.tags || []).some(t => t.trim() === tag));
+        btn.classList.toggle('active', arrTags.some(t => t.trim() === tag));
     });
     // Custom tags (non-preset)
     const presets = ['Comms', 'Financial', 'Legal', 'Strategy'];
-    const customTags = (a.tags || []).filter(t => !presets.includes(t.trim()));
+    const customTags = arrTags.filter(t => !presets.includes(t.trim()));
     const tagChipsEl = document.getElementById('adet-e-tag-chips');
     if (tagChipsEl) tagChipsEl.innerHTML = customTags.map((t, i) => _adetMakeEditChip(t, 'ctag-' + i)).join('');
 
@@ -4149,6 +4150,16 @@ window.adetSetGranularity = function(gran) {
         btn.classList.toggle('active', btn.dataset.gran === gran);
     });
     window.adetGranularityChange();
+};
+
+window.adetGranularityChange = function() {
+    const gran = document.getElementById('adet-e-date-granularity').value;
+    const d = document.getElementById('adet-e-due-date');
+    const w = document.getElementById('adet-e-due-week');
+    const m = document.getElementById('adet-e-due-month');
+    if(d) d.style.display = (gran === 'date') ? 'block' : 'none';
+    if(w) w.style.display = (gran === 'week') ? 'block' : 'none';
+    if(m) m.style.display = (gran === 'month') ? 'block' : 'none';
 };
 
 // ── Accordion helper ─────────────────────────────────────────────────
