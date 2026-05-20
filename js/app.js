@@ -3079,19 +3079,7 @@ function renderActionDetail() {
     const ownEl = document.getElementById('adet-owner-chips');
     const ownerCircle = document.getElementById('adet-owner-circle');
     const owners = a.owner ? a.owner.split('+').map(o => o.trim()).filter(Boolean) : [];
-    if (ownEl) {
-        ownEl.innerHTML = owners.length > 0
-            ? owners.map(o => {
-                const clr = _adetOwnerColors[o] || '#6b7280';
-                return `<span class="adet-owner-chip" style="background:${clr};">👤 ${o}</span>`;
-            }).join('')
-            : '<span class="adet-chip-empty">—</span>';
-    }
-    if (ownerCircle) {
-        const initials = owners.length > 0 ? owners[0].split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() : '?';
-        ownerCircle.textContent = initials;
-        ownerCircle.title = owners.join(', ') || 'No owner';
-    }
+    
     // Populate owner name badge
     const ownerBadge = document.getElementById('adet-owner-badge');
     const ownerNameEl = document.getElementById('adet-owner-name');
@@ -3191,16 +3179,15 @@ function renderActionDetail() {
     txt('adet-success-criteria', a.successCriteria || a.kpiTarget);
 
     // ── Logistics: Due Date ──
-    const granLabels = { month: 'Month', week: 'Week', day: 'Day', datetime: 'Day + Time' };
-    const gran = a.timing?.granularity || 'day';
     const granPill = document.getElementById('adet-granularity-pill');
-    if (granPill) granPill.textContent = granLabels[gran] || 'Day';
+    if (granPill) granPill.style.display = 'none';
 
     let dueDisplay = '—';
-    if (a.timing?.dueDateDisplay) {
-        dueDisplay = a.timing.dueDateDisplay;
-    } else if (a.timing?.dueDate) {
-        dueDisplay = formatDate(a.timing.dueDate);
+    if (a.timing?.dueDate) {
+        const d = new Date(a.timing.dueDate);
+        if (!isNaN(d.getTime())) {
+            dueDisplay = d.toLocaleString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', ' at');
+        }
     }
     txt('adet-due-display', dueDisplay);
 
@@ -3208,15 +3195,20 @@ function renderActionDetail() {
     const dueDetailEl = document.getElementById('adet-due-detail');
     if (dueDetailEl) {
         const isCompleted = a.status === 'Completed';
-        const rel = relativeDate(a.timing?.dueDate, isCompleted);
-        const dd = a.timing?.dueDetail;
-        if (a.timing?.dueDate) {
-            dueDetailEl.textContent = rel.text + (dd ? ' — ' + dd : '');
+        // Note: relativeDate is a helper, but we might just use the vague text if provided
+        const vagueText = a.timing?.dueDateDisplay;
+        const rel = window.relativeDate ? window.relativeDate(a.timing?.dueDate, isCompleted) : { text: '', color: '' };
+        
+        if (vagueText) {
+            dueDetailEl.textContent = vagueText;
+            dueDetailEl.style.color = 'var(--text-secondary)';
+        } else if (a.timing?.dueDate && rel.text) {
+            dueDetailEl.textContent = rel.text;
             dueDetailEl.style.color = rel.color;
         } else {
-            dueDetailEl.textContent = dd || '';
+            dueDetailEl.textContent = '';
         }
-        dueDetailEl.style.display = (a.timing?.dueDate || dd) ? '' : 'none';
+        dueDetailEl.style.display = (vagueText || a.timing?.dueDate) ? '' : 'none';
     }
 
     // ── Populate inline metadata row ──
@@ -3541,20 +3533,18 @@ window.openActionDetailEdit = function () {
     const ownerEl = document.getElementById('adet-e-owner');
     if (ownerEl) {
         const contacts = window.getData('contacts') || [];
-        ownerEl.innerHTML = contacts.map(c => `<option value="${c.id}">${c.name}${c.organisation ? ` (${c.organisation})` : ''}</option>`).join('');
-        // Select existing
+        ownerEl.innerHTML = '<option value="">Unassigned</option>' + contacts.map(c => `<option value="${c.id}">${c.name}${c.organisation ? ` (${c.organisation})` : ''}</option>`).join('');
         const oIds = a.ownerIds || [];
-        Array.from(ownerEl.options).forEach(opt => { opt.selected = oIds.includes(opt.value); });
+        if (oIds.length > 0) ownerEl.value = oIds[0];
     }
 
     // Populate Audience Select
     const audEl = document.getElementById('adet-e-audience');
     if (audEl) {
         const stakeholders = window.getData('stakeholders') || [];
-        audEl.innerHTML = stakeholders.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-        // Select existing
+        audEl.innerHTML = '<option value="">None</option>' + stakeholders.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
         const aIds = a.audienceIds || [];
-        Array.from(audEl.options).forEach(opt => { opt.selected = aIds.includes(opt.value); });
+        if (aIds.length > 0) audEl.value = aIds[0];
     }
 
     // Objective
@@ -3592,20 +3582,18 @@ window.openActionDetailEdit = function () {
     set('adet-e-outcome-asset', a.desiredOutcomeAsset);
     set('adet-e-kpi', a.successCriteria || a.kpiTarget);
 
-    // Due date granularity toggle
-    const gran = a.timing?.granularity || 'day';
-    window._adetGranularity = gran;
-    document.querySelectorAll('input[name="adet-e-date-type"]').forEach(r => { r.checked = false; });
-    const isVague = gran === 'vague';
-    const typeRad = document.querySelector(`input[name="adet-e-date-type"][value="${isVague ? 'vague' : 'exact'}"]`);
-    if (typeRad) typeRad.checked = true;
-    window.adetDateTypeChanged();
-
-    if (isVague) {
-        set('adet-e-due-text', a.timing?.dueDateDisplay || '');
+    // Due date (Exact and Vague)
+    if (a.timing?.dueDate) {
+        const d = new Date(a.timing.dueDate);
+        if (!isNaN(d.getTime())) {
+            // format as YYYY-MM-DDTHH:mm
+            const iso = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString();
+            set('adet-e-due-date', iso.substring(0, 16));
+        }
     } else {
-        set('adet-e-due-date', a.timing?.dueDate ? new Date(a.timing.dueDate).toISOString().substring(0, 10) : '');
+        set('adet-e-due-date', '');
     }
+    set('adet-e-due-text', a.timing?.dueDateDisplay || '');
 
     set('adet-e-due-detail', a.timing?.dueDetail);
     set('adet-e-start', a.timing?.startDate);
@@ -3657,15 +3645,6 @@ window.openActionDetailEdit = function () {
     const editMode = document.getElementById('adet-edit-mode');
     if (viewMode) viewMode.style.display = 'none';
     if (editMode) editMode.style.display = 'block';
-};
-
-window.adetDateTypeChanged = function () {
-    const isVague = document.querySelector('input[name="adet-e-date-type"]:checked')?.value === 'vague';
-    window._adetGranularity = isVague ? 'vague' : 'day';
-    const dateInput = document.getElementById('adet-e-due-date');
-    const textInput = document.getElementById('adet-e-due-text');
-    if (dateInput) dateInput.style.display = isVague ? 'none' : 'block';
-    if (textInput) textInput.style.display = isVague ? 'block' : 'none';
 };
 
 // ── Status & Complexity helpers ──────────────────────────────────────
@@ -3861,24 +3840,29 @@ window.adetSave = async function () {
         .map(c => c.textContent.replace('×', '').trim());
     const allTags = [...new Set([...activePre, ...customTags])];
 
-    // Collect IDs from Multi-Selects
+    // Collect IDs from Single-Selects
     const ownerEl = document.getElementById('adet-e-owner');
-    const ownerIds = ownerEl ? Array.from(ownerEl.selectedOptions).map(opt => parseInt(opt.value)) : [];
+    const ownerIds = ownerEl && ownerEl.value ? [parseInt(ownerEl.value)] : [];
     
     const audEl = document.getElementById('adet-e-audience');
-    const audienceIds = audEl ? Array.from(audEl.selectedOptions).map(opt => opt.value) : [];
+    const audienceIds = audEl && audEl.value ? [audEl.value] : [];
+    
+    // Map strings for immediate local rendering
+    const owner = ownerEl && ownerEl.value && ownerEl.selectedIndex > 0 ? ownerEl.options[ownerEl.selectedIndex].text.replace(/ \(.+\)$/, '') : '';
+    const audience = audEl && audEl.value && audEl.selectedIndex > 0 ? [audEl.options[audEl.selectedIndex].text] : [];
 
     // Due Date Extraction
+    const dateInp = document.getElementById('adet-e-due-date');
     let finalDueDate = '';
-    let finalDueDisplay = '';
-    const gran = window._adetGranularity;
-    if (gran === 'vague') {
-        const textInp = document.getElementById('adet-e-due-text');
-        finalDueDisplay = textInp ? textInp.value : '';
-    } else {
-        const dateInp = document.getElementById('adet-e-due-date');
-        finalDueDate = dateInp && dateInp.value ? dateInp.value + 'T00:00:00Z' : '';
+    if (dateInp && dateInp.value) {
+        const d = new Date(dateInp.value);
+        if (!isNaN(d.getTime())) {
+            finalDueDate = d.toISOString();
+        }
     }
+    
+    const textInp = document.getElementById('adet-e-due-text');
+    const finalDueDisplay = textInp ? textInp.value : '';
 
     // Collect todos
     const getTodos = () => Array.from(document.querySelectorAll('[id^="adet-todo-e-"]')).map((row, i) => ({
@@ -3907,6 +3891,8 @@ window.adetSave = async function () {
         description: document.getElementById('adet-e-description')?.value || '',
         ownerIds: ownerIds,
         audienceIds: audienceIds,
+        owner: owner,
+        audience: audience,
         status: currentStatus,
         advancedStatus: document.getElementById('adet-e-adv-status')?.value || '',
         tags: allTags,

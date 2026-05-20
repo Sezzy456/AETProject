@@ -226,13 +226,14 @@
     <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
         <div style="flex: 1; min-width: 200px;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Owner (Contact):</label>
-            <select id="adet-e-owner" multiple style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif; min-height: 80px;">
+            <select id="adet-e-owner" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
+                <option value="">Unassigned</option>
             </select>
-            <div style="font-size:0.75rem; color:var(--text-tertiary); margin-top:0.25rem;">Hold Ctrl/Cmd to select multiple</div>
         </div>
         <div style="flex: 1; min-width: 200px;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Audience (Stakeholders):</label>
-            <select id="adet-e-audience" multiple style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif; min-height: 80px;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Audience (Stakeholder):</label>
+            <select id="adet-e-audience" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
+                <option value="">None</option>
             </select>
         </div>
         <div style="flex: 1; min-width: 200px;">
@@ -246,20 +247,24 @@
     <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start;">
         <div style="flex: 1; min-width: 300px;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Timing / Due Date:</label>
-            <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
-                <label><input type="radio" name="adet-e-date-type" value="exact" checked onchange="window.adetDateTypeChanged()"> Exact Date</label>
-                <label><input type="radio" name="adet-e-date-type" value="vague" onchange="window.adetDateTypeChanged()"> Vague Textual Date</label>
+            <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                <div>
+                    <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Exact Date & Time:</div>
+                    <input type="datetime-local" id="adet-e-due-date" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
+                </div>
+                <div>
+                    <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Vague / Textual Date (Optional):</div>
+                    <input type="text" id="adet-e-due-text" placeholder="e.g. End of Q3 2026" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
+                </div>
             </div>
-            <input type="date" id="adet-e-due-date" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
-            <input type="text" id="adet-e-due-text" placeholder="e.g. End of Q3 2026" style="display:none; border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
         </div>
         <div style="flex: 1; min-width: 300px;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Status:</label>
             <div class="adet-segmented-control" id="adet-e-status-seg" style="margin:0; width:100%;">
                 <button class="adet-seg-btn" data-status="Pending" onclick="window.adetSetStatus(this, 'Pending')">Pending</button>
+                <button class="adet-seg-btn" data-status="Planned" onclick="window.adetSetStatus(this, 'Planned')">Planned</button>
                 <button class="adet-seg-btn" data-status="In Progress" onclick="window.adetSetStatus(this, 'In Progress')">In Progress</button>
                 <button class="adet-seg-btn" data-status="Complete" onclick="window.adetSetStatus(this, 'Complete')">Complete</button>
-                <button class="adet-seg-btn" data-status="Deferred" onclick="window.adetSetStatus(this, 'Deferred')">Deferred</button>
             </div>
         </div>
     </div>
