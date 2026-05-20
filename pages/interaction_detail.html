@@ -34,12 +34,15 @@
                 <!-- Outcome popover root -->
                 <div id="edit-int-outcome-wrapper" style="position:relative; display:none; margin-left:0.5rem;">
                     <button type="button" id="edit-int-outcome-btn" onclick="const p = document.getElementById('edit-int-outcome-popover'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; event.stopPropagation();" style="display:flex; align-items:center; gap:0.4rem; padding:0.2rem 0.6rem; border-radius:100px; border:1px solid var(--border-subtle); background:#fff; cursor:pointer; font-weight:600; font-size:0.8rem;" title="Set Outcome">
-                        Completed <span id="edit-int-outcome-val-btn" style="display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:#22c55e; color:white;">5</span>
+                        Completed <span id="edit-int-outcome-val-btn" style="display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:#94a3b8; color:white; font-size:0.75rem;">—</span>
                     </button>
                     <!-- Popover -->
                     <div id="edit-int-outcome-popover" class="sdet-card" style="display:none; position:absolute; top:120%; left:0; z-index:100; width:300px; padding:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.15); background:#fff;" onclick="event.stopPropagation()">
-                        <label style="font-weight: 600; margin-bottom: 0.5rem; display:block; color: var(--text-primary); font-size:0.9rem;">Outcome (1-10): <span id="edit-int-outcome-val" style="font-weight:bold;color:var(--text-primary);">5</span></label>
-                        <input type="range" id="edit-int-outcome-slider" min="1" max="10" step="1" value="5" style="width: 100%; accent-color:#22c55e; margin-bottom:1rem;" oninput="document.getElementById('edit-int-outcome-val').innerText = this.value; document.getElementById('edit-int-outcome-val-btn').innerText = this.value; document.getElementById('edit-int-outcome-val-btn').style.background = this.value >= 7 ? '#22c55e' : (this.value >= 4 ? '#eab308' : '#ef4444');">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                            <label style="font-weight: 600; margin: 0; color: var(--text-primary); font-size:0.9rem;">Outcome (1-10): <span id="edit-int-outcome-val" style="font-weight:bold;color:var(--text-primary);">—</span></label>
+                            <button type="button" class="btn-secondary" style="font-size:0.7rem; padding:0.15rem 0.5rem; border-radius:4px;" onclick="window.clearIntOutcome()">Clear</button>
+                        </div>
+                        <input type="range" id="edit-int-outcome-slider" min="1" max="10" step="1" value="5" style="width: 100%; margin-bottom:1rem; filter: grayscale(100%); opacity: 0.6; transition: all 0.2s;" oninput="window.updateIntOutcome(this.value)">
                         <label style="font-weight: 600; margin-bottom: 0.5rem; display:block; color: var(--text-primary); font-size:0.9rem;">Outcome Notes (private):</label>
                         <textarea id="edit-int-outcome-notes" placeholder="Elaborate on outcome / how it went" rows="2" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif; resize:vertical; font-size:0.9rem;"></textarea>
                     </div>

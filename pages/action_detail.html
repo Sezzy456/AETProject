@@ -63,6 +63,14 @@
                 <div id="adet-todo-progress-fill" class="adet-todo-progress-bar-fill" style="width:0%;"></div>
             </div>
             <div id="adet-todos" class="adet-todos-list"></div>
+            <div style="margin-top:0.75rem; display:flex; gap:0.5rem; align-items:center;">
+                <button class="btn-secondary" onclick="window._addInlineTodo()" style="font-size:0.8rem; height:28px; padding:0 0.6rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                    <span class="material-symbols-outlined" style="font-size:0.9rem;">add</span> Add To-Do
+                </button>
+                <button id="adet-todo-save-btn" class="btn-primary" onclick="window._saveInlineTodos()" style="display:none; font-size:0.8rem; height:28px; padding:0 0.6rem; align-items:center; gap:0.3rem;">
+                    <span class="material-symbols-outlined" style="font-size:0.9rem;">save</span> Save
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -75,20 +83,11 @@
     <div>
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.4rem;">
             <div style="font-size:0.8rem; color:var(--text-tertiary); font-weight:500;">Recent Progress</div>
-            <button id="adet-add-progress-btn" class="btn-secondary" onclick="window.adetShowProgressForm()" style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.78rem; height:28px; padding:0 0.6rem;">
+            <button id="adet-add-progress-btn" class="btn-secondary" onclick="window.adetShowUpdateLogForm()" style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.78rem; height:28px; padding:0 0.6rem;">
                 <span class="material-symbols-outlined" style="font-size:0.85rem;">add</span> Add Progress
             </button>
         </div>
-        <div id="adet-progress-form" style="display:none; margin-bottom:0.75rem;">
-            <div class="adet-card" style="padding:1rem;">
-                <label style="display:block; font-size:0.82rem; color:var(--text-tertiary); margin-bottom:0.4rem;">Progress note:</label>
-                <textarea id="adet-progress-input" rows="3" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-family:inherit; font-size:0.85rem; resize:vertical;"></textarea>
-                <div style="margin-top:0.5rem; display:flex; justify-content:flex-end; gap:0.5rem;">
-                    <button class="btn-secondary" onclick="window.adetHideProgressForm()" style="height:32px; font-size:0.82rem;">Cancel</button>
-                    <button class="btn-primary" id="adet-progress-save-btn" onclick="window.adetSaveProgress()" style="height:32px; font-size:0.82rem;">Save</button>
-                </div>
-            </div>
-        </div>
+
         <div class="adet-card" style="padding:1rem;">
             <div class="adet-fl">Most Recent Progress</div>
             <p id="adet-vc-progress" class="adet-text-value"></p>
@@ -223,18 +222,32 @@
     </div>
 
     <!-- Core Metadata Grid -->
-    <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+    <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items:flex-start;">
         <div style="flex: 1; min-width: 200px;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Owner (Contact):</label>
-            <select id="adet-e-owner" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
-                <option value="">Unassigned</option>
-            </select>
+            <div style="position:relative;">
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <button type="button" style="width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border-subtle); background: #f3f4f6; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink:0;" onclick="const p = document.getElementById('adet-e-owner-popover'); p.style.display = p.style.display==='none'?'block':'none'; event.stopPropagation();">+</button>
+                    <div id="adet-e-owner-chips" style="display: flex; gap: 0.5rem; flex-wrap: wrap;"></div>
+                </div>
+                <div id="adet-e-owner-popover" class="adet-card" style="display:none; position:absolute; top:120%; left:0; z-index:100; width:250px; padding:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.15); background:#fff;" onclick="event.stopPropagation()">
+                    <div style="font-weight:600; margin-bottom:0.5rem; font-size:0.9rem;">Add Owner</div>
+                    <div style="display:flex; flex-direction:column; gap:0.5rem; max-height:200px; overflow-y:auto;" id="adet-e-owner-list"></div>
+                </div>
+            </div>
         </div>
         <div style="flex: 1; min-width: 200px;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Audience (Stakeholder):</label>
-            <select id="adet-e-audience" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
-                <option value="">None</option>
-            </select>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Audience (Stakeholders):</label>
+            <div style="position:relative;">
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <button type="button" style="width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border-subtle); background: #f3f4f6; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink:0;" onclick="const p = document.getElementById('adet-e-audience-popover'); p.style.display = p.style.display==='none'?'block':'none'; event.stopPropagation();">+</button>
+                    <div id="adet-e-audience-chips" style="display: flex; gap: 0.5rem; flex-wrap: wrap;"></div>
+                </div>
+                <div id="adet-e-audience-popover" class="adet-card" style="display:none; position:absolute; top:120%; left:0; z-index:100; width:250px; padding:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.15); background:#fff;" onclick="event.stopPropagation()">
+                    <div style="font-weight:600; margin-bottom:0.5rem; font-size:0.9rem;">Add Audience</div>
+                    <div style="display:flex; flex-direction:column; gap:0.5rem; max-height:200px; overflow-y:auto;" id="adet-e-audience-list"></div>
+                </div>
+            </div>
         </div>
         <div style="flex: 1; min-width: 200px;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Linked Objective:</label>
@@ -248,9 +261,22 @@
         <div style="flex: 1; min-width: 300px;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #6b7280;">Timing / Due Date:</label>
             <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                <div style="margin-bottom:0.5rem;">
+                    <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Target Date & Granularity:</div>
+                    <div style="display:flex; gap:0.5rem;">
+                        <select id="adet-e-date-granularity" onchange="window.adetGranularityChange()" style="border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.5rem; background:#fff; font-family:'Inter', sans-serif;">
+                            <option value="date">Exact Date</option>
+                            <option value="week">Week</option>
+                            <option value="month">Month</option>
+                        </select>
+                        <input type="date" id="adet-e-due-date" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; flex: 1; padding: 0.5rem; font-family: 'Inter', sans-serif;">
+                        <input type="week" id="adet-e-due-week" style="display:none; border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; flex: 1; padding: 0.5rem; font-family: 'Inter', sans-serif;">
+                        <input type="month" id="adet-e-due-month" style="display:none; border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; flex: 1; padding: 0.5rem; font-family: 'Inter', sans-serif;">
+                    </div>
+                </div>
                 <div>
-                    <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Exact Date & Time:</div>
-                    <input type="datetime-local" id="adet-e-due-date" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
+                    <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Specific Time (Optional):</div>
+                    <input type="time" id="adet-e-due-time" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
                 </div>
                 <div>
                     <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Vague / Textual Date (Optional):</div>
@@ -290,16 +316,17 @@
     <!-- Collapsible: Desired Outcome -->
     <details class="edit-details-group">
         <summary>Desired Outcome & KPIs</summary>
-        <div class="edit-details-content">
-            <textarea id="adet-e-outcome" rows="2" placeholder="Describe the outcome..." style="width:100%; border:1px solid var(--border-subtle); border-radius:6px; padding:0.5rem; font-family:inherit; font-size:0.9rem; margin-bottom:0.5rem;"></textarea>
-            
             <div style="margin-bottom:0.75rem; font-size:0.85rem;">
                 <label style="font-weight:600; margin-bottom:0.25rem; display:block; color:var(--text-secondary);">Outcome Type:</label>
                 <div style="display:flex; gap:1rem;">
                     <label><input type="radio" name="adet-outcome-type" value="text" onchange="window.adetOutcomeTypeChanged()"> Text</label>
                     <label><input type="radio" name="adet-outcome-type" value="posture" onchange="window.adetOutcomeTypeChanged()"> Posture Shift</label>
-                    <label><input type="radio" name="adet-outcome-type" value="asset" onchange="window.adetOutcomeTypeChanged()"> Asset Delivery</label>
+                    <label><input type="radio" name="adet-outcome-type" value="asset" onchange="window.adetOutcomeTypeChanged()"> Asset</label>
                 </div>
+            </div>
+
+            <div id="adet-e-outcome-text-wrap" style="margin-bottom:0.75rem;">
+                <textarea id="adet-e-outcome" rows="2" placeholder="Describe the outcome..." style="width:100%; border:1px solid var(--border-subtle); border-radius:6px; padding:0.5rem; font-family:inherit; font-size:0.9rem;"></textarea>
             </div>
             
             <div id="adet-e-outcome-posture-wrap" style="display:none; margin-bottom:0.75rem;">
@@ -308,7 +335,8 @@
             </div>
             
             <div id="adet-e-outcome-asset-wrap" style="display:none; margin-bottom:0.75rem;">
-                <input type="text" id="adet-e-outcome-asset" placeholder="Asset URL or Name" style="width:100%; border:1px solid var(--border-subtle); border-radius:6px; padding:0.5rem; font-family:inherit; font-size:0.9rem;">
+                <input list="adet-asset-datalist" id="adet-e-outcome-asset" placeholder="Select or describe an asset..." style="width:100%; border:1px solid var(--border-subtle); border-radius:6px; padding:0.5rem; font-family:inherit; font-size:0.9rem;">
+                <datalist id="adet-asset-datalist"></datalist>
             </div>
             
             <label style="font-weight:600; margin-bottom:0.25rem; display:block; color:var(--text-secondary); font-size:0.85rem; margin-top:1rem;">KPI Target</label>
@@ -405,6 +433,10 @@
             </div>
         </div>
     </details>
+
+    <div style="display:flex; justify-content:flex-end; padding-top:1rem; border-top:1px solid var(--border-subtle); margin-top:2rem;">
+        <button class="btn-primary" style="padding:0.75rem 2rem; font-size:1rem;" onclick="window.adetSave()">Save Action</button>
+    </div>
 
 </div><!-- /adet-edit-mode -->
 

@@ -279,7 +279,7 @@ async function updateInteractionDB(uiData, isNew) {
                 in_original_id: uiData.id, in_title: uiData.title||'New Interaction',
                 in_date: dbDate || new Date().toISOString(), in_type: uiData.type || 'Other',
                 in_purpose: uiData.agenda||'', in_description: uiData.discussed||uiData.agenda||'',
-                in_outcome_score: uiData.outcomeScore || 5, in_outcome_notes: uiData.outcomeNotes || '',
+                in_outcome_score: uiData.outcomeScore !== undefined && uiData.outcomeScore !== null ? parseInt(uiData.outcomeScore) : null, in_outcome_notes: uiData.outcomeNotes || '',
                 in_follow_up_date: uiData.followUpDate || null,
                 in_linked_stakeholder_original_id: uiData.linkedStakeholderId || null,
                 in_linked_objective_id: uiData.linkedObjectiveId ? parseInt(uiData.linkedObjectiveId.replace('obj', '')) : null,
@@ -307,7 +307,7 @@ async function updateInteractionDB(uiData, isNew) {
                 in_type: uiData.type || current.in_type,
                 in_purpose: uiData.agenda || current.in_purpose,
                 in_description: uiData.discussed || current.in_description,
-                in_outcome_score: uiData.outcomeScore || current.in_outcome_score,
+                in_outcome_score: uiData.outcomeScore !== undefined ? (uiData.outcomeScore !== null ? parseInt(uiData.outcomeScore) : null) : current.in_outcome_score,
                 in_outcome_notes: uiData.outcomeNotes || current.in_outcome_notes,
                 in_follow_up_date: uiData.followUpDate !== undefined ? (uiData.followUpDate || null) : current.in_follow_up_date,
                 in_linked_stakeholder_original_id: uiData.linkedStakeholderId !== undefined ? (uiData.linkedStakeholderId || null) : current.in_linked_stakeholder_original_id,
@@ -487,9 +487,10 @@ window.updateActionDB = async function(uiData, isNew) {
             ac_desired_outcome_type: uiData.desiredOutcomeType || 'text',
             ac_outcome_stakeholder_original_id: uiData.desiredOutcomeStakeholderId || null,
             ac_desired_posture: uiData.desiredPosture || '',
+            ac_desired_outcome_asset: uiData.desiredOutcomeAsset || null,
             ac_success_criteria: uiData.successCriteria || '',
             ac_kpi_target: uiData.kpiTarget || '',
-            ac_due_date_granularity: uiData.timing?.granularity || 'day',
+            ac_due_date_granularity: uiData.timing?.granularity || 'date',
             ac_due_date: dbDate || null,
             ac_due_date_display: uiData.timing?.dueDateDisplay || '',
             ac_due_detail: uiData.timing?.dueDetail || '',
@@ -713,15 +714,29 @@ window.updateStrategyObjective = updateStrategyObjective;
 window.insertStrategyObjective = insertStrategyObjective;
 window.softDeleteStrategyObjective = softDeleteStrategyObjective;
 
+// ── ASSETS ──────────────────────────────────────────────────────
+
+async function fetchAssets() {
+    if (!_sb) return null;
+    try {
+        const { data: rows, error } = await _sb.from('tbl_asset').select('*').eq('as_active', true);
+        if (error) throw error;
+        return (rows || []).map(r => ({
+            id: r.as_id,
+            description: r.as_description || ''
+        }));
+    } catch (e) { console.error('[Supabase] fetchAssets error:', e); return null; }
+}
+
 // ── PRE-FETCH + CACHE ───────────────────────────────────────────
 
 async function preloadSupabaseData() {
     if (!_sb) return false;
     console.log('[Supabase] Pre-loading data...');
     try {
-        const [stakeholders, actions, interactions, spine, stats, dashCards, pageLinks, dashVariations, contacts] = await Promise.all([
+        const [stakeholders, actions, interactions, spine, stats, dashCards, pageLinks, dashVariations, contacts, assets] = await Promise.all([
             fetchStakeholders(), fetchActions(), fetchInteractions(), fetchSpine(), fetchStats(),
-            fetchDashboardCards(), fetchPageLinks(), fetchVariationPages('dashboard'), fetchContacts()
+            fetchDashboardCards(), fetchPageLinks(), fetchVariationPages('dashboard'), fetchContacts(), fetchAssets()
         ]);
         if (stakeholders) _sbCache.stakeholders = stakeholders;
         if (actions) _sbCache.actions = actions;
@@ -732,6 +747,7 @@ async function preloadSupabaseData() {
         if (pageLinks) _sbCache.pageLinks = pageLinks;
         if (dashVariations) _sbCache.dashboardVariations = dashVariations;
         if (contacts) _sbCache.contacts = contacts;
+        if (assets) _sbCache.assets = assets;
         _sbReady = Object.keys(_sbCache).length > 0;
         console.log('[Supabase] Cache loaded:', Object.keys(_sbCache).join(', '));
         return _sbReady;

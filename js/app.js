@@ -1567,6 +1567,50 @@ window.updateInteractionStatus = function() {
     }
 };
 
+window._currentOutcomeScore = null;
+
+window.updateIntOutcome = function(val, fromLoad = false) {
+    window._currentOutcomeScore = val;
+    const sVal = document.getElementById('edit-int-outcome-val');
+    const sValBtn = document.getElementById('edit-int-outcome-val-btn');
+    const sBtn = document.getElementById('edit-int-outcome-btn');
+    const slider = document.getElementById('edit-int-outcome-slider');
+    
+    if (sVal) sVal.innerText = val;
+    if (sValBtn) {
+        sValBtn.innerText = val;
+        sValBtn.style.background = val >= 7 ? '#22c55e' : (val >= 4 ? '#eab308' : '#ef4444');
+    }
+    if (sBtn) sBtn.style.background = val >= 7 ? '#22c55e' : (val >= 4 ? '#eab308' : '#ef4444');
+    
+    if (slider) {
+        slider.style.filter = 'none';
+        slider.style.opacity = '1';
+        if (!fromLoad) slider.value = val;
+    }
+};
+
+window.clearIntOutcome = function(fromLoad = false) {
+    window._currentOutcomeScore = null;
+    const sVal = document.getElementById('edit-int-outcome-val');
+    const sValBtn = document.getElementById('edit-int-outcome-val-btn');
+    const sBtn = document.getElementById('edit-int-outcome-btn');
+    const slider = document.getElementById('edit-int-outcome-slider');
+    
+    if (sVal) sVal.innerText = '—';
+    if (sValBtn) {
+        sValBtn.innerText = '—';
+        sValBtn.style.background = '#94a3b8';
+    }
+    if (sBtn) sBtn.style.background = '#fff';
+    
+    if (slider) {
+        slider.style.filter = 'grayscale(100%)';
+        slider.style.opacity = '0.6';
+        if (!fromLoad) slider.value = 5;
+    }
+};
+
 window.saveInteraction = function () {
     // Collect data
     const title = document.getElementById('edit-int-purpose')?.value || 'New Interaction';
@@ -1575,7 +1619,7 @@ window.saveInteraction = function () {
     const typeGroup = document.getElementById('edit-int-type-group');
     const typeBtns = typeGroup ? typeGroup.querySelectorAll('.update-type-btn.active') : document.querySelectorAll('.update-type-btn.active');
     const type = typeBtns.length > 0 ? typeBtns[0].getAttribute('data-val') : 'Other';
-    const outcomeScore = document.getElementById('edit-int-outcome-slider')?.value || 5;
+    const outcomeScore = window._currentOutcomeScore;
     const outcomeNotes = document.getElementById('edit-int-outcome-notes')?.value || '';
     const statusEl = document.getElementById('edit-int-status-display');
     const status = statusEl ? statusEl.innerText : 'Completed';
@@ -1888,7 +1932,7 @@ window.toggleInteractionEdit = function() {
         
         const linkStId = interaction ? interaction.linkedStakeholderId : (window._prefillStakeholderId || '');
         const linkObId = interaction ? interaction.linkedObjectiveId : '';
-        const linkAcId = interaction ? interaction.linkedActionId : '';
+        const linkAcId = interaction ? interaction.linkedActionId : (window._prefillActionId || '');
 
         const editSt = document.getElementById('edit-int-link-stakeholder');
         if (editSt) editSt.innerHTML = '<option value="">None</option>' + stas.map(s => `<option value="${s.id}" ${linkStId === s.id ? 'selected' : ''}>${s.name}</option>`).join('');
@@ -1946,12 +1990,14 @@ window.toggleInteractionEdit = function() {
                 }
 
                 if (outcomeSlider) {
-                    // For upcoming, don't show an outcome score if it hasn't happened. We just default to 5 visually if completed.
-                    const score = interaction.outcomeScore || (interaction.status === 'Upcoming' ? 5 : 5);
-                    outcomeSlider.value = score;
-                    if (outcomeVal) outcomeVal.innerText = outcomeSlider.value;
-                    if (outcomeValBtn) outcomeValBtn.innerText = outcomeSlider.value;
-                    if (outcomeBtn) outcomeBtn.style.background = outcomeSlider.value >= 7 ? '#22c55e' : (outcomeSlider.value >= 4 ? '#eab308' : '#ef4444');
+                    const score = interaction.outcomeScore;
+                    if (score != null) {
+                        window.updateIntOutcome(score, true);
+                        outcomeSlider.value = score;
+                    } else {
+                        window.clearIntOutcome(true);
+                        outcomeSlider.value = 5;
+                    }
                 }
                 if (outcomeNotes) {
                     outcomeNotes.value = interaction.outcomeNotes || '';
@@ -2710,6 +2756,18 @@ window.openActionModal = function (id) {
     overlay.style.display = 'block';
     _actPopulateObjectiveDropdown();
 
+    const oList = document.getElementById('act-f-owner-list');
+    if (oList) {
+        const contacts = window.getData('contacts') || [];
+        oList.innerHTML = contacts.map(c => `<div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="sdet-hover-bg" onclick="window.actAddOwnerChip('${c.id}', '${c.name.replace(/'/g, "\\'")}')"><div class="avatar" style="width:24px;height:24px;font-size:0.7rem;">${c.name.charAt(0)}</div><div style="font-size:0.8rem;">${c.name}</div></div>`).join('');
+    }
+    const aList = document.getElementById('act-f-audience-list');
+    if (aList) {
+        const stakeholders = window.getData('stakeholders') || [];
+        aList.innerHTML = '<div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="sdet-hover-bg" onclick="document.getElementById(\'act-f-audience-chips\').innerHTML=\'\'; document.getElementById(\'act-f-audience-popover\').style.display=\'none\';"><div style="font-size:0.8rem; font-style:italic;">None / - Select -</div></div>' + 
+            stakeholders.map(c => `<div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="sdet-hover-bg" onclick="window.actAddAudienceChip('${c.id}', '${c.name.replace(/'/g, "\\'")}')"><div style="font-size:0.8rem;">${c.name}</div></div>`).join('');
+    }
+
     const deleteBtn = document.getElementById('act-modal-delete-btn');
     if (deleteBtn) deleteBtn.style.display = id ? 'inline-flex' : 'none';
 
@@ -2736,19 +2794,93 @@ window.toggleActSection = function (id) {
     if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
 };
 
+window.actAddCustomTag = function () {
+    const inp = document.getElementById('act-f-custom-tag');
+    const wrap = document.getElementById('act-f-tag-chips');
+    if (!inp || !wrap || !inp.value.trim()) return;
+    const tag = inp.value.trim();
+    wrap.insertAdjacentHTML('beforeend', _adetMakeEditChip(tag, 'tag-' + Date.now()));
+    inp.value = '';
+};
+
+window.actAddOwnerChip = function(id, name) {
+    const wrap = document.getElementById('act-f-owner-chips');
+    if (!wrap || wrap.querySelector(`[data-id="${id}"]`)) return;
+    wrap.insertAdjacentHTML('beforeend', `<span class="adet-edit-chip" data-id="${id}" data-name="${name.replace(/"/g, '&quot;')}">${name} <span class="remove" onclick="this.parentElement.remove()">×</span></span>`);
+    document.getElementById('act-f-owner-popover').style.display = 'none';
+};
+
+window.actAddAudienceChip = function(id, name) {
+    const wrap = document.getElementById('act-f-audience-chips');
+    if (!wrap || wrap.querySelector(`[data-id="${id}"]`)) return;
+    wrap.insertAdjacentHTML('beforeend', `<span class="adet-edit-chip" data-id="${id}" data-name="${name.replace(/"/g, '&quot;')}">${name} <span class="remove" onclick="this.parentElement.remove()">×</span></span>`);
+    document.getElementById('act-f-audience-popover').style.display = 'none';
+};
+
+window.actGranularityChange = function () {
+    const val = document.getElementById('act-f-date-granularity')?.value || 'date';
+    const d = document.getElementById('act-f-due-date');
+    const w = document.getElementById('act-f-due-week');
+    const m = document.getElementById('act-f-due-month');
+    
+    if (d) d.style.display = val === 'date' ? 'block' : 'none';
+    if (w) w.style.display = val === 'week' ? 'block' : 'none';
+    if (m) m.style.display = val === 'month' ? 'block' : 'none';
+};
+
+window.actOutcomeTypeChanged = function () {
+    const val = document.querySelector('input[name="act-outcome-type"]:checked')?.value || 'text';
+    const textEl = document.getElementById('act-outcome-text-wrap');
+    const pfEl = document.getElementById('act-outcome-posture-wrap');
+    const afEl = document.getElementById('act-outcome-asset-wrap');
+    
+    if (textEl) textEl.style.display = val === 'text' ? 'block' : 'none';
+    if (pfEl) pfEl.style.display = val === 'posture' ? 'block' : 'none';
+    if (afEl) afEl.style.display = val === 'asset' ? 'block' : 'none';
+    
+    if (val === 'posture') {
+        const shSel = document.getElementById('act-f-outcome-stakeholder');
+        if (shSel && shSel.options.length <= 1) {
+            const stakeholders = window.getData('stakeholders') || [];
+            shSel.innerHTML = '<option value="">- Select Stakeholder -</option>' + stakeholders.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            if (window._actPrefillOutcomeStakeholderId) {
+                shSel.value = window._actPrefillOutcomeStakeholderId;
+            }
+        }
+    }
+    if (val === 'asset') {
+        const datalist = document.getElementById('act-asset-datalist');
+        if (datalist && datalist.options.length === 0) {
+            const loadAssets = async () => {
+                if (!window._sb) return;
+                const { data, error } = await window._sb.from('tbl_asset').select('*');
+                if (!error && data) {
+                    datalist.innerHTML = data.map(ast => `<option value="${ast.ass_title || ast.ass_id}"></option>`).join('');
+                }
+            };
+            loadAssets();
+        }
+    }
+};
+
 function _actClearModal() {
-    const fields = ['act-f-title', 'act-f-description', 'act-f-desired-outcome', 'act-f-kpi', 'act-f-due-date', 'act-f-start-date', 'act-f-predicted-length', 'act-f-resource', 'act-f-vc-progress', 'act-f-vc-blockers', 'act-f-other'];
+    const fields = ['act-f-title', 'act-f-description', 'act-f-desired-outcome', 'act-f-outcome-posture', 'act-f-outcome-asset', 'act-f-kpi', 'act-f-due-date', 'act-f-due-week', 'act-f-due-month', 'act-f-due-time', 'act-f-due-text', 'act-f-start-date', 'act-f-predicted-length', 'act-f-resource', 'act-f-vc-progress', 'act-f-vc-blockers', 'act-f-other'];
     fields.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     const sel = document.getElementById('act-f-status');
     if (sel) sel.value = 'Pending';
     const obj = document.getElementById('act-f-objective');
     if (obj) obj.value = '';
+    const gran = document.getElementById('act-f-date-granularity');
+    if (gran) { gran.value = 'date'; if(window.actGranularityChange) window.actGranularityChange(); }
+    const outType = document.querySelector('input[name="act-outcome-type"][value="text"]');
+    if (outType) { outType.checked = true; if(window.actOutcomeTypeChanged) window.actOutcomeTypeChanged(); }
     document.getElementById('act-f-todos').innerHTML = '';
     document.getElementById('act-f-prereqs').innerHTML = '';
     document.getElementById('act-f-audience-chips').innerHTML = '';
     document.getElementById('act-f-owner-chips').innerHTML = '';
     document.querySelectorAll('input[name="act-privacy"]').forEach(r => { r.checked = r.value === 'Public/Official'; });
     document.querySelectorAll('.act-tag-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('act-f-tag-chips').innerHTML = '';
     document.getElementById('act-vc-summary').textContent = '';
     document.getElementById('act-vc-created').textContent = '';
     document.getElementById('act-vc-edited').textContent = '';
@@ -2760,8 +2892,39 @@ function _actFillModal(a) {
     set('act-f-title', a.activity);
     set('act-f-description', a.description);
     set('act-f-desired-outcome', a.desiredOutcome);
+    set('act-f-outcome-posture', a.desiredPosture);
+    set('act-f-outcome-asset', a.desiredOutcomeAsset);
     set('act-f-kpi', a.kpiTarget);
-    set('act-f-due-date', a.timing?.dueDate || '');
+    
+    // Timing handling
+    const gran = a.timing?.granularity || 'date';
+    const granEl = document.getElementById('act-f-date-granularity');
+    if (granEl) { granEl.value = gran; if(window.actGranularityChange) window.actGranularityChange(); }
+    
+    if (a.timing?.dueDate) {
+        try {
+            const d = new Date(a.timing.dueDate);
+            if (!isNaN(d.getTime())) {
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                const hh = String(d.getHours()).padStart(2, '0');
+                const min = String(d.getMinutes()).padStart(2, '0');
+                
+                if (gran === 'month') set('act-f-due-month', `${yyyy}-${mm}`);
+                else if (gran === 'week') {
+                    // Approximate week number for filling
+                    const firstDay = new Date(d.getFullYear(), 0, 1);
+                    const pastDays = (d - firstDay) / 86400000;
+                    const weekNum = Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
+                    set('act-f-due-week', `${yyyy}-W${String(weekNum).padStart(2, '0')}`);
+                } else set('act-f-due-date', `${yyyy}-${mm}-${dd}`);
+                
+                if (hh !== '00' || min !== '00') set('act-f-due-time', `${hh}:${min}`);
+            }
+        } catch(e){}
+    }
+    set('act-f-due-text', a.timing?.dueDateDisplay || '');
     set('act-f-start-date', a.timing?.startDate || '');
     set('act-f-predicted-length', a.timing?.predictedLength || '');
     set('act-f-resource', a.resourceRequirement);
@@ -2774,6 +2937,13 @@ function _actFillModal(a) {
     const objEl = document.getElementById('act-f-objective');
     if (objEl) objEl.value = a.commsObjectiveId || '';
 
+    const outType = a.desiredOutcomeType || 'text';
+    const outRadio = document.querySelector(`input[name="act-outcome-type"][value="${outType}"]`);
+    if (outRadio) { outRadio.checked = true; if(window.actOutcomeTypeChanged) window.actOutcomeTypeChanged(); }
+    
+    // We must wait for stakeholder select to populate before setting it, or set it directly if possible
+    window._actPrefillOutcomeStakeholderId = a.desiredOutcomeStakeholderId;
+
     // Privacy
     document.querySelectorAll('input[name="act-privacy"]').forEach(r => { r.checked = r.value === a.privacy; });
 
@@ -2782,17 +2952,31 @@ function _actFillModal(a) {
         const tag = btn.textContent.trim().replace(/^[^\s]+\s/, '');
         btn.classList.toggle('active', (a.tags || []).includes(tag.trim()));
     });
+    
+    const tagChips = document.getElementById('act-f-tag-chips');
+    if (tagChips) {
+        const presetNames = ['Financial', 'Comms', 'Legal', 'Strategy'];
+        const custom = (a.tags || []).filter(t => !presetNames.includes(t));
+        tagChips.innerHTML = custom.map(t => _adetMakeEditChip(t, 'tag-' + Date.now() + Math.random())).join('');
+    }
 
     // Audience chips
     const audContainer = document.getElementById('act-f-audience-chips');
     if (audContainer) {
-        audContainer.innerHTML = (a.audience || []).map(aud => _actMakeChip(aud, 'audience')).join('');
+        audContainer.innerHTML = (a.audienceIds || []).map((id, i) => {
+            const name = (a.audience && a.audience[i]) ? a.audience[i] : id;
+            return `<span class="adet-edit-chip" data-id="${id}" data-name="${name.replace(/"/g, '&quot;')}">${name} <span class="remove" onclick="this.parentElement.remove()">×</span></span>`;
+        }).join('');
     }
 
     // Owner chips
     const ownContainer = document.getElementById('act-f-owner-chips');
     if (ownContainer) {
-        ownContainer.innerHTML = (a.owner ? a.owner.split('+').map(o => o.trim()) : []).map(o => _actMakeOwnerChip(o)).join('');
+        ownContainer.innerHTML = (a.ownerIds || []).map((id, i) => {
+            const names = a.owner ? a.owner.split('+').map(o=>o.trim()) : [];
+            const name = names[i] || id;
+            return `<span class="adet-edit-chip" data-id="${id}" data-name="${name.replace(/"/g, '&quot;')}">${name} <span class="remove" onclick="this.parentElement.remove()">×</span></span>`;
+        }).join('');
     }
 
     // Todos
@@ -2917,9 +3101,17 @@ window.saveCurrentAction = function () {
     const now = new Date();
     const nowStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }) + ' ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
-    const getTags = () => Array.from(document.querySelectorAll('.act-tag-btn.active')).map(b => b.textContent.trim().replace(/^[^\s]*\s/, ''));
-    const getOwner = () => Array.from(document.querySelectorAll('#act-f-owner-chips > span')).map(s => s.textContent.replace('×', '').trim()).join(' + ');
-    const getAudience = () => Array.from(document.querySelectorAll('#act-f-audience-chips > span')).map(s => s.textContent.replace('×', '').trim());
+    const getTags = () => {
+        const presets = Array.from(document.querySelectorAll('.act-tag-btn.active')).map(b => b.textContent.trim().replace(/^[^\s]*\s/, ''));
+        const custom = Array.from(document.querySelectorAll('#act-f-tag-chips .adet-edit-chip')).map(c => c.textContent.replace('×', '').trim());
+        return [...new Set([...presets, ...custom])];
+    };
+    const getOwnerIds = () => Array.from(document.querySelectorAll('#act-f-owner-chips .adet-edit-chip')).map(c => c.dataset.id.replace('c',''));
+    const getOwner = () => Array.from(document.querySelectorAll('#act-f-owner-chips .adet-edit-chip')).map(c => c.dataset.name).join(' + ');
+    
+    const getAudienceIds = () => Array.from(document.querySelectorAll('#act-f-audience-chips .adet-edit-chip')).map(c => c.dataset.id);
+    const getAudience = () => Array.from(document.querySelectorAll('#act-f-audience-chips .adet-edit-chip')).map(c => c.dataset.name);
+
     const getTodos = () => Array.from(document.querySelectorAll('#act-f-todos > div')).map((row, i) => ({
         id: row.id.replace('todo-row-', '') || ('t' + i),
         completed: row.querySelector('input[type=checkbox]')?.checked || false,
@@ -2927,10 +3119,45 @@ window.saveCurrentAction = function () {
     }));
     const getPrivacy = () => document.querySelector('input[name="act-privacy"]:checked')?.value || 'Public/Official';
 
+    // Granularity & Due Date Extraction
+    const gran = document.getElementById('act-f-date-granularity')?.value || 'date';
+    let finalDueDate = '';
+    
+    let activeInputId = 'act-f-due-date';
+    if (gran === 'week') activeInputId = 'act-f-due-week';
+    if (gran === 'month') activeInputId = 'act-f-due-month';
+    
+    const dateInp = document.getElementById(activeInputId);
+    const timeInp = document.getElementById('act-f-due-time');
+    
+    if (dateInp && dateInp.value) {
+        let val = dateInp.value; 
+        let timeStr = (timeInp && timeInp.value) ? timeInp.value : '00:00';
+        try {
+            if (gran === 'month') {
+                const d = new Date(`${val}-01T${timeStr}:00`);
+                if (!isNaN(d.getTime())) finalDueDate = d.toISOString();
+            } else if (gran === 'week') {
+                const [y, w] = val.split('-W');
+                if (y && w) {
+                    const simpleD = new Date(parseInt(y), 0, 1 + (parseInt(w)-1)*7);
+                    simpleD.setHours(parseInt(timeStr.split(':')[0]||0), parseInt(timeStr.split(':')[1]||0));
+                    finalDueDate = simpleD.toISOString();
+                }
+            } else {
+                const d = new Date(`${val}T${timeStr}:00`);
+                if (!isNaN(d.getTime())) finalDueDate = d.toISOString();
+            }
+        } catch(e) {}
+    }
+    const finalDueDisplay = document.getElementById('act-f-due-text')?.value || '';
+
     const updates = {
         activity: document.getElementById('act-f-title')?.value || 'Untitled',
         description: document.getElementById('act-f-description')?.value || '',
+        ownerIds: getOwnerIds(),
         owner: getOwner() || document.getElementById('act-f-title')?.value,
+        audienceIds: getAudienceIds(),
         audience: getAudience(),
         status: document.getElementById('act-f-status')?.value || 'Pending',
         tags: getTags(),
@@ -2938,9 +3165,15 @@ window.saveCurrentAction = function () {
         complexity: document.getElementById('act-f-complexity')?.value || '3',
         commsObjectiveId: document.getElementById('act-f-objective')?.value || '',
         desiredOutcome: document.getElementById('act-f-desired-outcome')?.value || '',
+        desiredOutcomeType: document.querySelector('input[name="act-outcome-type"]:checked')?.value || 'text',
+        desiredOutcomeStakeholderId: document.getElementById('act-f-outcome-stakeholder')?.value || '',
+        desiredPosture: document.getElementById('act-f-outcome-posture')?.value || '',
+        desiredOutcomeAsset: document.getElementById('act-f-outcome-asset')?.value || '',
         kpiTarget: document.getElementById('act-f-kpi')?.value || '',
         timing: {
-            dueDate: document.getElementById('act-f-due-date')?.value || '',
+            granularity: gran,
+            dueDate: finalDueDate,
+            dueDateDisplay: finalDueDisplay,
             startDate: document.getElementById('act-f-start-date')?.value || '',
             predictedLength: document.getElementById('act-f-predicted-length')?.value || ''
         },
@@ -3266,96 +3499,128 @@ function renderActionDetail() {
     if (progFill) progFill.style.width = pct + '%';
     const todosEl = document.getElementById('adet-todos');
     if (todosEl) {
-        todosEl.innerHTML = todos.length > 0
-            ? todos.map((t, i) => `<div class="adet-todo-item${t.completed ? ' done' : ''}" style="display:flex;align-items:center;gap:0.4rem;">
-                <span class="material-symbols-outlined adet-todo-check" style="color:${t.completed ? 'var(--energy-algae)' : 'var(--text-tertiary)'};cursor:pointer;"
-                    onclick="window._toggleTodo(${i})">
-                    ${t.completed ? 'check_box' : 'check_box_outline_blank'}
-                </span>
-                <span style="text-decoration:${t.completed ? 'line-through' : 'none'};flex:1;">${t.detail || ''}</span>
-                <span id="adet-todo-save-${i}" class="material-symbols-outlined" style="font-size:0.85rem;color:var(--energy-algae);cursor:pointer;display:none;opacity:0.8;" onclick="window._saveTodo(${i})" title="Save">save</span>
-              </div>`).join('')
-            : '<span class="adet-chip-empty" style="padding:0.5rem 0;">No to-do items added.</span>';
+        todosEl.innerHTML = '';
+        window._renderInlineTodos();
     }
 
-    // Todo toggle handler
+    // New Todo Handlers
+    window._renderInlineTodos = function() {
+        const actions = window.getData('actions') || [];
+        const action = actions.find(x => x.id === window.currentActionId);
+        if (!action) return;
+        const tds = action.todos || [];
+        
+        const done = tds.filter(t => t.completed).length;
+        const pct = tds.length > 0 ? Math.round((done / tds.length) * 100) : 0;
+        const progText = document.getElementById('adet-todo-progress-text');
+        if (progText) progText.textContent = tds.length > 0 ? `${done}/${tds.length} complete — ${pct}%` : 'No items';
+        const progFill = document.getElementById('adet-todo-progress-fill');
+        if (progFill) progFill.style.width = pct + '%';
+        
+        const todosEl = document.getElementById('adet-todos');
+        if (todosEl) {
+            todosEl.innerHTML = tds.length > 0
+                ? tds.map((t, i) => `<div class="adet-todo-item${t.completed ? ' done' : ''}" style="display:flex;align-items:center;gap:0.4rem;">
+                    <span class="material-symbols-outlined adet-todo-check" style="color:${t.completed ? 'var(--energy-algae)' : 'var(--text-tertiary)'};cursor:pointer;"
+                        onclick="window._toggleTodo(${i})">
+                        ${t.completed ? 'check_box' : 'check_box_outline_blank'}
+                    </span>
+                    <input type="text" value="${(t.detail || '').replace(/"/g, '&quot;')}" onchange="window._editTodo(${i}, this.value)" style="flex:1; border:none; background:transparent; font-family:inherit; font-size:inherit; color:inherit; text-decoration:${t.completed ? 'line-through' : 'none'}; outline:none; padding:0.2rem;" placeholder="To-do item...">
+                    <div style="display:flex; flex-direction:column; gap:0;">
+                        <span class="material-symbols-outlined" style="font-size:0.9rem; cursor:pointer; color:var(--text-tertiary); line-height:0.8;" onclick="window._moveTodo(${i}, -1)">keyboard_arrow_up</span>
+                        <span class="material-symbols-outlined" style="font-size:0.9rem; cursor:pointer; color:var(--text-tertiary); line-height:0.8;" onclick="window._moveTodo(${i}, 1)">keyboard_arrow_down</span>
+                    </div>
+                  </div>`).join('')
+                : '<span class="adet-chip-empty" style="padding:0.5rem 0;">No to-do items added.</span>';
+        }
+    };
+
+    window._showInlineSave = function() {
+        const btn = document.getElementById('adet-todo-save-btn');
+        if (btn) btn.style.display = 'inline-flex';
+    };
+
     window._toggleTodo = function (index) {
         const actions = window.getData('actions') || [];
         const action = actions.find(x => x.id === window.currentActionId);
         if (!action || !action.todos || !action.todos[index]) return;
         action.todos[index].completed = !action.todos[index].completed;
-        // Show save icon
-        const saveIcon = document.getElementById('adet-todo-save-' + index);
-        if (saveIcon) saveIcon.style.display = 'inline';
-        // Update visual
-        const todoItems = document.querySelectorAll('#adet-todos .adet-todo-item');
-        if (todoItems[index]) {
-            const check = todoItems[index].querySelector('.adet-todo-check');
-            const text = todoItems[index].querySelector('span:nth-child(2)');
-            if (check) {
-                check.textContent = action.todos[index].completed ? 'check_box' : 'check_box_outline_blank';
-                check.style.color = action.todos[index].completed ? 'var(--energy-algae)' : 'var(--text-tertiary)';
-            }
-            if (text) text.style.textDecoration = action.todos[index].completed ? 'line-through' : 'none';
-            todoItems[index].classList.toggle('done', action.todos[index].completed);
-        }
-        // Update progress bar
-        const done = action.todos.filter(t => t.completed).length;
-        const total = action.todos.length;
-        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-        const fill = document.getElementById('adet-todo-progress-fill');
-        const progText = document.getElementById('adet-todo-progress-text');
-        if (fill) fill.style.width = pct + '%';
-        if (progText) progText.textContent = `${done}/${total} completed`;
+        window.updateData('actions', actions); // Save to local cache
+        window._showInlineSave();
+        window._renderInlineTodos();
     };
-    window._saveTodo = function (index) {
+    
+    window._editTodo = function (index, val) {
         const actions = window.getData('actions') || [];
+        const action = actions.find(x => x.id === window.currentActionId);
+        if (!action || !action.todos || !action.todos[index]) return;
+        action.todos[index].detail = val;
         window.updateData('actions', actions);
-        const saveIcon = document.getElementById('adet-todo-save-' + index);
-        if (saveIcon) { saveIcon.textContent = 'check'; setTimeout(() => { saveIcon.style.display = 'none'; saveIcon.textContent = 'save'; }, 1200); }
-        console.log('[Todo] Saved todo', index);
+        window._showInlineSave();
+    };
+    
+    window._moveTodo = function(index, dir) {
+        const actions = window.getData('actions') || [];
+        const action = actions.find(x => x.id === window.currentActionId);
+        if (!action || !action.todos) return;
+        if (index + dir < 0 || index + dir >= action.todos.length) return;
+        
+        const temp = action.todos[index];
+        action.todos[index] = action.todos[index + dir];
+        action.todos[index + dir] = temp;
+        
+        window.updateData('actions', actions);
+        window._showInlineSave();
+        window._renderInlineTodos();
+    };
+
+    window._addInlineTodo = function() {
+        const actions = window.getData('actions') || [];
+        const action = actions.find(x => x.id === window.currentActionId);
+        if (!action) return;
+        if (!action.todos) action.todos = [];
+        action.todos.push({ id: 't' + Date.now(), detail: '', completed: false });
+        window.updateData('actions', actions);
+        window._showInlineSave();
+        window._renderInlineTodos();
+    };
+
+    window._saveInlineTodos = async function () {
+        const actions = window.getData('actions') || [];
+        const action = actions.find(x => x.id === window.currentActionId);
+        if (!action) return;
+        
+        const btn = document.getElementById('adet-todo-save-btn');
+        if (btn) btn.innerHTML = '<span class="material-symbols-outlined spin" style="font-size:0.9rem;">autorenew</span> Saving...';
+        
+        if (window._sb && action.originalId) {
+            await window._sb.from('tbl_action')
+                .update({ ac_todos: action.todos })
+                .eq('ac_original_id', action.originalId)
+                .eq('ac_status_detail', 'Active');
+        }
+        
+        if (btn) {
+            btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:0.9rem;">check</span> Saved!';
+            setTimeout(() => { btn.style.display = 'none'; btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:0.9rem;">save</span> Save'; }, 1500);
+        }
     };
 
     // Show/hide todo section
     // To-Do section always visible (even when empty)
 
     // Progress form handlers
-    window.adetShowProgressForm = function () {
-        const form = document.getElementById('adet-progress-form');
-        const btn = document.getElementById('adet-add-progress-btn');
-        if (form) form.style.display = '';
-        if (btn) btn.style.display = 'none';
-    };
-    window.adetHideProgressForm = function () {
-        const form = document.getElementById('adet-progress-form');
-        const btn = document.getElementById('adet-add-progress-btn');
-        if (form) form.style.display = 'none';
-        if (btn) btn.style.display = '';
-        const input = document.getElementById('adet-progress-input');
-        if (input) input.value = '';
-    };
-    window.adetSaveProgress = async function () {
-        const input = document.getElementById('adet-progress-input');
-        const saveBtn = document.getElementById('adet-progress-save-btn');
-        if (!input || !saveBtn) return;
-        const note = input.value.trim();
-        if (!note) return;
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = '<span class="material-symbols-outlined spin" style="font-size:0.9rem;">autorenew</span> Saving...';
-        try {
-            a.versionControl = a.versionControl || {};
-            a.versionControl.recentProgress = note;
-            if (window._sb) {
-                // For prototype, store in version_control jsonb
-                await window._sb.from('tbl_action').update({ act_version_control: a.versionControl }).eq('act_id', a._dbId);
+    window.adetShowUpdateLogForm = function () {
+        window.currentInteractionId = null;
+        window._prefillStakeholderId = '';
+        window._prefillActionId = window.currentActionId;
+        
+        loadView('interaction_detail');
+        setTimeout(() => {
+            if (typeof window.toggleInteractionEdit === 'function') {
+                window.toggleInteractionEdit();
             }
-            window.adetHideProgressForm();
-            renderActionDetail();
-        } catch (e) {
-            console.error('[ActionDetail] Save progress error:', e);
-            saveBtn.disabled = false;
-            saveBtn.textContent = 'Save';
-        }
+        }, 100);
     };
 
     // ── Version Control ──
@@ -3491,6 +3756,32 @@ function _adetMakeEditTodoRow(id, completed, detail) {
 
 // ── window.openActionDetailEdit ──────────────────────────────────────
 
+window._adetAddOwnerChip = function(id, name) {
+    const chips = document.getElementById('adet-e-owner-chips');
+    if (!chips) return;
+    if (chips.querySelector(`[data-id="${id}"]`)) return; // already added
+    const div = document.createElement('div');
+    div.dataset.id = id;
+    div.dataset.name = name;
+    div.className = 'adet-edit-chip';
+    div.innerHTML = `👤 ${name} <span class="adet-edit-chip-x" onclick="this.closest('.adet-edit-chip').remove()">×</span>`;
+    chips.appendChild(div);
+    document.getElementById('adet-e-owner-popover').style.display = 'none';
+};
+
+window._adetAddAudienceChip = function(id, name) {
+    const chips = document.getElementById('adet-e-audience-chips');
+    if (!chips) return;
+    if (chips.querySelector(`[data-id="${id}"]`)) return; // already added
+    const div = document.createElement('div');
+    div.dataset.id = id;
+    div.dataset.name = name;
+    div.className = 'adet-edit-chip';
+    div.innerHTML = `🏛 ${name} <span class="adet-edit-chip-x" onclick="this.closest('.adet-edit-chip').remove()">×</span>`;
+    chips.appendChild(div);
+    document.getElementById('adet-e-audience-popover').style.display = 'none';
+};
+
 window.openActionDetailEdit = function () {
     const id = window.currentActionId;
     if (!id) return;
@@ -3529,22 +3820,42 @@ window.openActionDetailEdit = function () {
     set('adet-e-title', a.activity);
     set('adet-e-description', a.description);
 
-    // Populate Owners Select
-    const ownerEl = document.getElementById('adet-e-owner');
-    if (ownerEl) {
+    // Populate Owners
+    const ownerList = document.getElementById('adet-e-owner-list');
+    const ownerChips = document.getElementById('adet-e-owner-chips');
+    if (ownerList && ownerChips) {
+        ownerChips.innerHTML = '';
         const contacts = window.getData('contacts') || [];
-        ownerEl.innerHTML = '<option value="">Unassigned</option>' + contacts.map(c => `<option value="${c.id}">${c.name}${c.organisation ? ` (${c.organisation})` : ''}</option>`).join('');
+        ownerList.innerHTML = contacts.map(c => `
+            <div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="sdet-hover-bg" onclick="window._adetAddOwnerChip('${c.id}', '${c.name.replace(/'/g, "\\'")}')">
+                <div class="int-avatar" style="background:var(--energy-algae);">${c.name.substring(0,2).toUpperCase()}</div>
+                <div>${c.name}${c.organisation ? ` <span style="color:var(--text-tertiary); font-size:0.8rem;">(${c.organisation})</span>` : ''}</div>
+            </div>
+        `).join('');
         const oIds = a.ownerIds || [];
-        if (oIds.length > 0) ownerEl.value = oIds[0];
+        oIds.forEach(id => {
+            const c = contacts.find(x => x.id == id);
+            if (c) window._adetAddOwnerChip(c.id, c.name);
+        });
     }
 
-    // Populate Audience Select
-    const audEl = document.getElementById('adet-e-audience');
-    if (audEl) {
+    // Populate Audience
+    const audList = document.getElementById('adet-e-audience-list');
+    const audChips = document.getElementById('adet-e-audience-chips');
+    if (audList && audChips) {
+        audChips.innerHTML = '';
         const stakeholders = window.getData('stakeholders') || [];
-        audEl.innerHTML = '<option value="">None</option>' + stakeholders.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+        audList.innerHTML = stakeholders.map(s => `
+            <div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="sdet-hover-bg" onclick="window._adetAddAudienceChip('${s.id}', '${s.name.replace(/'/g, "\\'")}')">
+                <span class="material-symbols-outlined" style="color:var(--text-secondary); font-size:1.2rem;">account_circle</span>
+                <div>${s.name}</div>
+            </div>
+        `).join('');
         const aIds = a.audienceIds || [];
-        if (aIds.length > 0) audEl.value = aIds[0];
+        aIds.forEach(id => {
+            const s = stakeholders.find(x => x.id == id);
+            if (s) window._adetAddAudienceChip(s.id, s.name);
+        });
     }
 
     // Objective
@@ -3582,16 +3893,44 @@ window.openActionDetailEdit = function () {
     set('adet-e-outcome-asset', a.desiredOutcomeAsset);
     set('adet-e-kpi', a.successCriteria || a.kpiTarget);
 
-    // Due date (Exact and Vague)
+    // Due date Granularity & Time
+    const gran = a.timing?.granularity || 'date';
+    const granSel = document.getElementById('adet-e-date-granularity');
+    if (granSel) {
+        granSel.value = ['date','week','month'].includes(gran) ? gran : 'date';
+    }
+    window.adetGranularityChange();
+
     if (a.timing?.dueDate) {
         const d = new Date(a.timing.dueDate);
         if (!isNaN(d.getTime())) {
-            // format as YYYY-MM-DDTHH:mm
             const iso = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString();
-            set('adet-e-due-date', iso.substring(0, 16));
+            if (gran === 'month') {
+                set('adet-e-due-month', iso.substring(0, 7)); // YYYY-MM
+            } else if (gran === 'week') {
+                // Approximate week mapping: use ISO week? Standard <input type="week"> expects 2026-W12
+                // For simplicity, we just set the exact date input as fallback if it's complex, or calculate it.
+                // Let's just set the date to the exact date picker and if they want to edit week they can select week.
+                // To accurately parse to YYYY-Www we'd need a helper, but let's do a simple fallback:
+                set('adet-e-due-date', iso.substring(0, 10)); // YYYY-MM-DD
+                // To support native week, we do our best or fallback
+                try {
+                    const tempD = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+                    tempD.setUTCDate(tempD.getUTCDate() + 4 - (tempD.getUTCDay()||7));
+                    const yearStart = new Date(Date.UTC(tempD.getUTCFullYear(),0,1));
+                    const weekNo = Math.ceil(( ( (tempD - yearStart) / 86400000) + 1)/7);
+                    set('adet-e-due-week', `${tempD.getUTCFullYear()}-W${weekNo.toString().padStart(2, '0')}`);
+                } catch(e) {}
+            } else {
+                set('adet-e-due-date', iso.substring(0, 10)); // YYYY-MM-DD
+            }
+            set('adet-e-due-time', iso.substring(11, 16)); // HH:mm
         }
     } else {
         set('adet-e-due-date', '');
+        set('adet-e-due-week', '');
+        set('adet-e-due-month', '');
+        set('adet-e-due-time', '');
     }
     set('adet-e-due-text', a.timing?.dueDateDisplay || '');
 
@@ -3674,7 +4013,7 @@ function _adetRefreshStars() {
 window.adetTogglePresetTag = function (btn, tag) { btn.classList.toggle('active'); };
 
 window.adetAddCustomTag = function () {
-    const inp = document.getElementById('adet-e-tag-input');
+    const inp = document.getElementById('adet-e-custom-tag');
     if (!inp || !inp.value.trim()) return;
     const tag = inp.value.trim();
     const chips = document.getElementById('adet-e-tag-chips');
@@ -3735,10 +4074,37 @@ window.adetAddTodo = function () {
 
 window.adetOutcomeTypeChanged = function () {
     const val = document.querySelector('input[name="adet-outcome-type"]:checked')?.value || 'text';
-    const pfEl = document.getElementById('adet-outcome-posture-fields');
-    const afEl = document.getElementById('adet-outcome-asset-fields');
-    if (pfEl) pfEl.style.display = val === 'stakeholder_posture' ? '' : 'none';
-    if (afEl) afEl.style.display = val === 'asset' ? '' : 'none';
+    const textEl = document.getElementById('adet-e-outcome-text-wrap');
+    const pfEl = document.getElementById('adet-e-outcome-posture-wrap');
+    const afEl = document.getElementById('adet-e-outcome-asset-wrap');
+    
+    if (textEl) textEl.style.display = val === 'text' ? 'block' : 'none';
+    if (pfEl) pfEl.style.display = val === 'posture' ? 'block' : 'none';
+    if (afEl) afEl.style.display = val === 'asset' ? 'block' : 'none';
+    
+    // If posture is chosen and no stakeholders loaded yet, populate it:
+    if (val === 'posture') {
+        const shSel = document.getElementById('adet-e-outcome-stakeholder');
+        if (shSel && shSel.options.length <= 1) {
+            const stakeholders = window.getData('stakeholders') || [];
+            shSel.innerHTML = '<option value="">- Select Stakeholder -</option>' + stakeholders.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            if (window._adetOriginal?.desiredOutcomeStakeholderId) shSel.value = window._adetOriginal.desiredOutcomeStakeholderId;
+        }
+    }
+    // If asset is chosen and datalist is empty, populate it:
+    if (val === 'asset') {
+        const datalist = document.getElementById('adet-asset-datalist');
+        if (datalist && datalist.options.length === 0) {
+            const loadAssets = async () => {
+                if (!window._sb) return;
+                const { data, error } = await window._sb.from('tbl_asset').select('*');
+                if (!error && data) {
+                    datalist.innerHTML = data.map(ast => `<option value="${ast.ass_title || ast.ass_id}"></option>`).join('');
+                }
+            };
+            loadAssets();
+        }
+    }
 };
 
 // ── Privacy ──────────────────────────────────────────────────────────
@@ -3840,25 +4206,46 @@ window.adetSave = async function () {
         .map(c => c.textContent.replace('×', '').trim());
     const allTags = [...new Set([...activePre, ...customTags])];
 
-    // Collect IDs from Single-Selects
-    const ownerEl = document.getElementById('adet-e-owner');
-    const ownerIds = ownerEl && ownerEl.value ? [parseInt(ownerEl.value)] : [];
-    
-    const audEl = document.getElementById('adet-e-audience');
-    const audienceIds = audEl && audEl.value ? [audEl.value] : [];
-    
-    // Map strings for immediate local rendering
-    const owner = ownerEl && ownerEl.value && ownerEl.selectedIndex > 0 ? ownerEl.options[ownerEl.selectedIndex].text.replace(/ \(.+\)$/, '') : '';
-    const audience = audEl && audEl.value && audEl.selectedIndex > 0 ? [audEl.options[audEl.selectedIndex].text] : [];
+    // Collect IDs from Chips
+    const ownerIds = Array.from(document.querySelectorAll('#adet-e-owner-chips .adet-edit-chip')).map(c => parseInt(c.dataset.id));
+    const owner = Array.from(document.querySelectorAll('#adet-e-owner-chips .adet-edit-chip')).map(c => c.dataset.name).join(' + ');
 
-    // Due Date Extraction
-    const dateInp = document.getElementById('adet-e-due-date');
+    const audienceIds = Array.from(document.querySelectorAll('#adet-e-audience-chips .adet-edit-chip')).map(c => c.dataset.id);
+    const audience = Array.from(document.querySelectorAll('#adet-e-audience-chips .adet-edit-chip')).map(c => c.dataset.name);
+
+    // Granularity & Due Date Extraction
+    const gran = document.getElementById('adet-e-date-granularity')?.value || 'date';
     let finalDueDate = '';
+    
+    let activeInputId = 'adet-e-due-date';
+    if (gran === 'week') activeInputId = 'adet-e-due-week';
+    if (gran === 'month') activeInputId = 'adet-e-due-month';
+    
+    const dateInp = document.getElementById(activeInputId);
+    const timeInp = document.getElementById('adet-e-due-time');
+    
     if (dateInp && dateInp.value) {
-        const d = new Date(dateInp.value);
-        if (!isNaN(d.getTime())) {
-            finalDueDate = d.toISOString();
-        }
+        let val = dateInp.value; // YYYY-MM-DD or YYYY-MM or YYYY-Www
+        let timeStr = (timeInp && timeInp.value) ? timeInp.value : '00:00';
+        
+        try {
+            if (gran === 'month') {
+                const d = new Date(`${val}-01T${timeStr}:00`);
+                if (!isNaN(d.getTime())) finalDueDate = d.toISOString();
+            } else if (gran === 'week') {
+                // simple week to date parser (fallback to today if invalid)
+                const [y, w] = val.split('-W');
+                if (y && w) {
+                    const simpleD = new Date(parseInt(y), 0, 1 + (parseInt(w)-1)*7);
+                    // Add time
+                    simpleD.setHours(parseInt(timeStr.split(':')[0]||0), parseInt(timeStr.split(':')[1]||0));
+                    finalDueDate = simpleD.toISOString();
+                }
+            } else {
+                const d = new Date(`${val}T${timeStr}:00`);
+                if (!isNaN(d.getTime())) finalDueDate = d.toISOString();
+            }
+        } catch(e) {}
     }
     
     const textInp = document.getElementById('adet-e-due-text');
@@ -3904,7 +4291,7 @@ window.adetSave = async function () {
         desiredOutcomeStakeholderId: document.getElementById('adet-e-outcome-stakeholder')?.value || '',
         desiredPosture: document.getElementById('adet-e-outcome-posture')?.value || '',
         desiredOutcomeAsset: document.getElementById('adet-e-outcome-asset')?.value || '',
-        successCriteria: document.getElementById('adet-e-kpi')?.value || '',
+        successCriteria: orig.successCriteria || '',
         kpiTarget: document.getElementById('adet-e-kpi')?.value || '',
         timing: {
             granularity: gran,
@@ -3947,6 +4334,13 @@ window.adetSave = async function () {
     // Insert DB call
     if (window.updateActionDB) {
         await window.updateActionDB(actions[idx], window.isAddingAction);
+        if (typeof fetchActions === 'function' && window._sb) {
+            const fresh = await fetchActions();
+            if (fresh) {
+                _sbCache.actions = fresh;
+                window.updateData('actions', fresh);
+            }
+        }
     }
 
     if (saveBtn) {

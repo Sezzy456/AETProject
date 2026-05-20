@@ -174,21 +174,31 @@
                     <span class="material-symbols-outlined" style="position:absolute;right:0.5rem;bottom:0.5rem;font-size:0.9rem;color:var(--text-tertiary);">edit</span>
                 </div>
 
-                <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
-                    <div style="flex:1; min-width:120px;">
+                <div style="display:flex; gap:1rem; align-items:flex-start; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:200px;">
                         <label style="display:block; font-size:0.78rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Audience:</label>
-                        <button onclick="window.addAudienceChip()" class="btn-secondary" style="font-size:0.75rem; padding:0.2rem 0.6rem; display:inline-flex; align-items:center; gap:0.25rem;">
-                            <span class="material-symbols-outlined" style="font-size:0.9rem;">add</span>
-                        </button>
-                        <div id="act-f-audience-chips" style="display:inline-flex; gap:0.4rem; flex-wrap:wrap; margin-left:0.5rem;"></div>
+                        <div style="position:relative;">
+                            <div style="display:flex; align-items:center; gap:0.5rem;">
+                                <button type="button" style="width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border-subtle); background: #f3f4f6; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink:0;" onclick="const p = document.getElementById('act-f-audience-popover'); p.style.display = p.style.display==='none'?'block':'none'; event.stopPropagation();">+</button>
+                                <div id="act-f-audience-chips" style="display: flex; gap: 0.5rem; flex-wrap: wrap;"></div>
+                            </div>
+                            <div id="act-f-audience-popover" class="adet-card" style="display:none; position:absolute; top:120%; left:0; z-index:100; width:250px; padding:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.15); background:#fff;" onclick="event.stopPropagation()">
+                                <div style="font-weight:600; margin-bottom:0.5rem; font-size:0.9rem;">Add Audience</div>
+                                <div style="display:flex; flex-direction:column; gap:0.5rem; max-height:200px; overflow-y:auto;" id="act-f-audience-list"></div>
+                            </div>
+                        </div>
                     </div>
-                    <div style="flex:1; min-width:160px;">
+                    <div style="flex:1; min-width:200px;">
                         <label style="display:block; font-size:0.78rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Owner(s):</label>
-                        <div style="display:flex; align-items:center; gap:0.4rem;">
-                            <button onclick="window.addOwnerChip()" class="btn-secondary" style="font-size:0.75rem; padding:0.2rem 0.6rem; display:inline-flex; align-items:center; gap:0.25rem;">
-                                <span class="material-symbols-outlined" style="font-size:0.9rem;">add</span>
-                            </button>
-                            <div id="act-f-owner-chips" style="display:flex; gap:0.4rem; flex-wrap:wrap;"></div>
+                        <div style="position:relative;">
+                            <div style="display:flex; align-items:center; gap:0.5rem;">
+                                <button type="button" style="width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border-subtle); background: #f3f4f6; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink:0;" onclick="const p = document.getElementById('act-f-owner-popover'); p.style.display = p.style.display==='none'?'block':'none'; event.stopPropagation();">+</button>
+                                <div id="act-f-owner-chips" style="display: flex; gap: 0.5rem; flex-wrap: wrap;"></div>
+                            </div>
+                            <div id="act-f-owner-popover" class="adet-card" style="display:none; position:absolute; top:120%; left:0; z-index:100; width:250px; padding:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.15); background:#fff;" onclick="event.stopPropagation()">
+                                <div style="font-weight:600; margin-bottom:0.5rem; font-size:0.9rem;">Add Owner</div>
+                                <div style="display:flex; flex-direction:column; gap:0.5rem; max-height:200px; overflow-y:auto;" id="act-f-owner-list"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -222,11 +232,17 @@
                 </div>
                 <div id="act-advanced-status" style="display:none; margin-bottom:0.75rem; padding:0.75rem; background:var(--bg-app); border-radius:6px; border:1px solid var(--border-subtle);">
                     <label style="font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem; display:block;">Tags:</label>
-                    <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+                    <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:0.4rem;">
                         <button onclick="window.toggleTag(this,'Financial')" class="act-tag-btn" style="font-size:0.72rem; padding:0.2rem 0.6rem; border-radius:100px; border:1px solid var(--border-subtle); background:var(--bg-app); cursor:pointer; color:var(--text-secondary);">💰 Financial</button>
                         <button onclick="window.toggleTag(this,'Comms')" class="act-tag-btn" style="font-size:0.72rem; padding:0.2rem 0.6rem; border-radius:100px; border:1px solid var(--border-subtle); background:var(--bg-app); cursor:pointer; color:var(--text-secondary);">📡 Comms</button>
                         <button onclick="window.toggleTag(this,'Legal')" class="act-tag-btn" style="font-size:0.72rem; padding:0.2rem 0.6rem; border-radius:100px; border:1px solid var(--border-subtle); background:var(--bg-app); cursor:pointer; color:var(--text-secondary);">⚖️ Legal</button>
+                        <button onclick="window.toggleTag(this,'Strategy')" class="act-tag-btn" style="font-size:0.72rem; padding:0.2rem 0.6rem; border-radius:100px; border:1px solid var(--border-subtle); background:var(--bg-app); cursor:pointer; color:var(--text-secondary);">🎯 Strategy</button>
                     </div>
+                    <div style="display:flex; gap:0.4rem; margin-bottom:0.75rem;">
+                        <input type="text" id="act-f-custom-tag" placeholder="Custom tag..." style="flex:1; border:1px solid var(--border-subtle); border-radius:4px; padding:0.3rem 0.5rem; font-size:0.75rem; font-family:inherit;">
+                        <button type="button" onclick="window.actAddCustomTag()" class="btn-secondary" style="padding:0.3rem 0.6rem; font-size:0.75rem;">Add</button>
+                    </div>
+                    <div id="act-f-tag-chips" style="display:flex; gap:0.3rem; flex-wrap:wrap; margin-bottom:0.75rem;"></div>
                     <div style="display:flex; gap:1rem; flex-wrap:wrap;">
                         <div style="flex:1; min-width:120px;">
                             <label style="font-size:0.75rem; color:var(--text-tertiary); display:block; margin-bottom:0.2rem;">Priority: current focus</label>
@@ -250,25 +266,32 @@
                         Desired Outcome: <span class="material-symbols-outlined" style="font-size:1rem; margin-left:auto;">chevron_right</span>
                     </div>
                     <div id="act-desired-outcome" style="display:none; padding:0.75rem; border-top:1px solid var(--border-subtle);">
-                        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
-                            <div style="flex:1; min-width:160px;">
-                                <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Desired Outcome:</label>
-                                <div style="position:relative;">
-                                    <input type="text" id="act-f-desired-outcome" style="width:100%; padding:0.4rem 1.8rem 0.4rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-primary); border-radius:4px; font-size:0.8rem;">
-                                    <span class="material-symbols-outlined" style="position:absolute;right:0.4rem;top:50%;transform:translateY(-50%);font-size:0.8rem;color:var(--text-tertiary);">edit</span>
-                                </div>
-                            </div>
-                            <div style="flex:1; min-width:160px;">
-                                <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">KPI/Target / Success Metric:</label>
-                                <div style="position:relative;">
-                                    <input type="text" id="act-f-kpi" placeholder='* (e.g., "Mayor interest +10%")' style="width:100%; padding:0.4rem 1.8rem 0.4rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-primary); border-radius:4px; font-size:0.8rem;">
-                                    <span class="material-symbols-outlined" style="position:absolute;right:0.4rem;top:50%;transform:translateY(-50%);font-size:0.8rem;color:var(--text-tertiary);">edit</span>
-                                </div>
+                        <div style="margin-bottom:0.75rem; font-size:0.8rem;">
+                            <label style="font-weight:600; margin-bottom:0.25rem; display:block; color:var(--text-secondary);">Outcome Type:</label>
+                            <div style="display:flex; gap:1rem;">
+                                <label><input type="radio" name="act-outcome-type" value="text" onchange="window.actOutcomeTypeChanged()" checked> Text</label>
+                                <label><input type="radio" name="act-outcome-type" value="posture" onchange="window.actOutcomeTypeChanged()"> Posture Shift</label>
+                                <label><input type="radio" name="act-outcome-type" value="asset" onchange="window.actOutcomeTypeChanged()"> Asset</label>
                             </div>
                         </div>
-                        <div style="margin-top:0.5rem; display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; color:var(--text-tertiary);">
-                            Asset(s): <button class="btn-secondary" style="font-size:0.7rem; padding:0.15rem 0.5rem; display:inline-flex; align-items:center;"><span class="material-symbols-outlined" style="font-size:0.85rem;">add</span></button>
-                            <span style="margin-left:0.75rem;">Stakeholder Posture:</span> <button class="btn-secondary" style="font-size:0.7rem; padding:0.15rem 0.5rem; display:inline-flex; align-items:center;"><span class="material-symbols-outlined" style="font-size:0.85rem;">add</span></button>
+
+                        <div id="act-outcome-text-wrap" style="margin-bottom:0.75rem;">
+                            <textarea id="act-f-desired-outcome" rows="2" placeholder="Describe the outcome..." style="width:100%; padding:0.4rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-primary); border-radius:4px; font-size:0.8rem;"></textarea>
+                        </div>
+                        
+                        <div id="act-outcome-posture-wrap" style="display:none; margin-bottom:0.75rem;">
+                            <select id="act-f-outcome-stakeholder" style="width:100%; padding:0.4rem; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-primary); border-radius:4px; font-size:0.8rem; margin-bottom:0.5rem;"></select>
+                            <input type="text" id="act-f-outcome-posture" placeholder="Desired Posture (e.g. Supporter)" style="width:100%; padding:0.4rem; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-primary); border-radius:4px; font-size:0.8rem;">
+                        </div>
+                        
+                        <div id="act-outcome-asset-wrap" style="display:none; margin-bottom:0.75rem;">
+                            <input list="act-asset-datalist" id="act-f-outcome-asset" placeholder="Select or describe an asset..." style="width:100%; padding:0.4rem; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-primary); border-radius:4px; font-size:0.8rem;">
+                            <datalist id="act-asset-datalist"></datalist>
+                        </div>
+
+                        <div style="margin-bottom:0.5rem;">
+                            <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">KPI/Target / Success Metric:</label>
+                            <input type="text" id="act-f-kpi" placeholder='* (e.g., "Mayor interest +10%")' style="width:100%; padding:0.4rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-surface); color:var(--text-primary); border-radius:4px; font-size:0.8rem;">
                         </div>
                     </div>
                 </div>
@@ -286,13 +309,29 @@
                 </div>
 
                 <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:0.5rem;">
-                    <div style="flex:1; min-width:150px;">
-                        <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Due:</label>
-                        <div style="position:relative;">
-                            <input type="date" id="act-f-due-date" style="width:100%; padding:0.4rem 2rem 0.4rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
-                            <span class="material-symbols-outlined" style="position:absolute;right:0.4rem;top:50%;transform:translateY(-50%);font-size:0.85rem;color:var(--text-tertiary); pointer-events:none;">expand_more</span>
+                    <div style="flex:1; min-width:250px;">
+                        <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Target Date & Granularity:</label>
+                        <div style="display:flex; gap:0.5rem; position:relative;">
+                            <select id="act-f-date-granularity" onchange="window.actGranularityChange()" style="border:1px solid var(--border-subtle); border-radius:6px; padding:0.4rem; background:var(--bg-app); font-size:0.8rem;">
+                                <option value="date">Exact Date</option>
+                                <option value="week">Week</option>
+                                <option value="month">Month</option>
+                            </select>
+                            <input type="date" id="act-f-due-date" style="flex:1; padding:0.4rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                            <input type="week" id="act-f-due-week" style="display:none; flex:1; padding:0.4rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                            <input type="month" id="act-f-due-month" style="display:none; flex:1; padding:0.4rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
                         </div>
                     </div>
+                    <div style="flex:1; min-width:120px;">
+                        <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Specific Time (Opt):</label>
+                        <input type="time" id="act-f-due-time" style="width:100%; padding:0.4rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                    </div>
+                </div>
+                
+                <div style="margin-bottom:0.75rem;">
+                    <label style="display:block; font-size:0.75rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Vague / Textual Date (Optional):</label>
+                    <input type="text" id="act-f-due-text" placeholder="e.g. End of Q3 2026" style="width:100%; padding:0.4rem 0.5rem; border:1px solid var(--border-subtle); background:var(--bg-app); color:var(--text-primary); border-radius:6px; font-size:0.8rem;">
+                </div>
                     <div style="flex:1; min-width:150px; position:relative;">
                         <div style="position:absolute; right:0; top:0; font-size:0.72rem; color:var(--text-tertiary);">
                             <span class="material-symbols-outlined" style="font-size:0.85rem; vertical-align:middle;">info</span> Predicted Length of Task: (for Gantt chart)
