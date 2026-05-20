@@ -3790,6 +3790,27 @@ window.openActionDetailEdit = function () {
     if (!a) return;
     window._adetOriginal = JSON.parse(JSON.stringify(a));
 
+    // Populate popovers
+    const oList = document.getElementById('adet-e-owner-list');
+    if (oList) {
+        const contacts = window.getData('contacts') || [];
+        oList.innerHTML = contacts.map(c => `<div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="sdet-hover-bg" onclick="window._adetAddOwnerChip('${c.id}', '${c.name.replace(/'/g, "\\'")}')"><div class="avatar" style="width:24px;height:24px;font-size:0.7rem;">${c.name.charAt(0)}</div><div style="font-size:0.8rem;">${c.name}</div></div>`).join('');
+    }
+    const aList = document.getElementById('adet-e-audience-list');
+    if (aList) {
+        const stakeholders = window.getData('stakeholders') || [];
+        aList.innerHTML = '<div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="sdet-hover-bg" onclick="document.getElementById(\'adet-e-audience-chips\').innerHTML=\'\'; document.getElementById(\'adet-e-audience-popover\').style.display=\'none\';"><div style="font-size:0.8rem; font-style:italic;">None / - Select -</div></div>' + 
+            stakeholders.map(c => `<div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="sdet-hover-bg" onclick="window._adetAddAudienceChip('${c.id}', '${c.name.replace(/'/g, "\\'")}')"><div style="font-size:0.8rem;">${c.name}</div></div>`).join('');
+    }
+
+    _adetPopulateStakeholderSelect();
+    
+    const assetDatalist = document.getElementById('adet-asset-datalist');
+    if (assetDatalist) {
+        const assets = window._sbCache ? window._sbCache.assets || [] : [];
+        assetDatalist.innerHTML = assets.map(a => `<option value="${a.as_description}">`).join('');
+    }
+
     // Update header button to Done + add Cancel
     const editBtn = document.querySelector('[onclick="window.openActionDetailEdit()"]');
     if (editBtn) {
@@ -3895,11 +3916,13 @@ window.openActionDetailEdit = function () {
 
     // Due date Granularity & Time
     const gran = a.timing?.granularity || 'date';
-    const granSel = document.getElementById('adet-e-date-granularity');
-    if (granSel) {
-        granSel.value = ['date','week','month'].includes(gran) ? gran : 'date';
+    if (window.adetSetGranularity) {
+        window.adetSetGranularity(['date','week','month'].includes(gran) ? gran : 'date');
+    } else {
+        const granInp = document.getElementById('adet-e-date-granularity');
+        if (granInp) granInp.value = gran;
+        if (window.adetGranularityChange) window.adetGranularityChange();
     }
-    window.adetGranularityChange();
 
     if (a.timing?.dueDate) {
         const d = new Date(a.timing.dueDate);
@@ -4123,6 +4146,19 @@ window.adetAddCustomPerson = function (role) {
     if (el) el.insertAdjacentHTML('beforeend', _adetMakeEditChip(name.trim(), 'cust-' + Date.now()));
 };
 
+window.adetAddTodo = function () {
+    const el = document.getElementById('adet-e-todos');
+    if (el) el.insertAdjacentHTML('beforeend', _adetMakeEditTodoRow('new-' + Date.now(), false, ''));
+};
+
+window.adetSetGranularity = function(gran) {
+    document.getElementById('adet-e-date-granularity').value = gran;
+    document.querySelectorAll('#adet-e-gran-seg .adet-seg-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.gran === gran);
+    });
+    window.adetGranularityChange();
+};
+
 // ── Accordion helper ─────────────────────────────────────────────────
 
 window.adetToggleSection = function (id) {
@@ -4322,12 +4358,13 @@ window.adetSave = async function () {
         }
     };
 
-    const saveBtn = document.querySelector('[onclick="window.adetSave()"]');
-    const originalText = saveBtn ? saveBtn.innerHTML : 'Save';
-    if (saveBtn) {
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = '<span class="material-symbols-outlined spin" style="font-size:0.9rem;">autorenew</span> Saving...';
-    }
+    const saveBtns = document.querySelectorAll('[onclick="window.adetSave()"]');
+    const originalTexts = [];
+    saveBtns.forEach((btn, i) => {
+        originalTexts[i] = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined spin" style="font-size:0.9rem;">autorenew</span> Saving...';
+    });
 
     window.updateData('actions', actions);
 
@@ -4343,13 +4380,17 @@ window.adetSave = async function () {
         }
     }
 
-    if (saveBtn) {
-        saveBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Saved!';
-        saveBtn.style.background = 'var(--energy-algae)';
+    if (saveBtns.length > 0) {
+        saveBtns.forEach(btn => {
+            btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Saved!';
+            btn.style.background = 'var(--energy-algae)';
+        });
         setTimeout(() => {
-            saveBtn.innerHTML = originalText;
-            saveBtn.style.background = '';
-            saveBtn.disabled = false;
+            saveBtns.forEach((btn, i) => {
+                btn.innerHTML = originalTexts[i];
+                btn.style.background = '';
+                btn.disabled = false;
+            });
             window.isAddingAction = false;
             window.closeActionDetailEdit();
             renderActionDetail();
