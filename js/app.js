@@ -5821,9 +5821,9 @@ window.showToast = function (message) {
 //  CONTACTS
 // ══════════════════════════════════════════════════════════════════════
 
-window.renderContacts = function () {
+function renderContacts() {
     window.filterContacts();
-};
+}
 
 window.filterContacts = function () {
     const listEl = document.getElementById('contact-list');
