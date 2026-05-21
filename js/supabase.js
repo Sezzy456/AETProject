@@ -93,7 +93,8 @@ async function fetchContacts() {
             name: `${c.co_first_name} ${c.co_last_name}`.trim(),
             organisation: c.co_organisation || '',
             email: c.co_email || '',
-            active: c.co_active
+            active: c.co_active,
+            color: c.co_avatar_colour
         }));
     } catch (e) { console.error('[Supabase] fetchContacts error:', e); return null; }
 }

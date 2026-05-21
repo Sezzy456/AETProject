@@ -2,8 +2,10 @@
     <div style="display:flex; gap:1rem; align-items:center;">
         <h2 style="margin:0;">Contacts</h2>
     </div>
-    <button class="btn-secondary" onclick="loadView('stakeholders'); history.pushState(null, '', '#stakeholders')">Back
-        to Stakeholders</button>
+    <div style="display:flex; gap:0.5rem; align-items:center;">
+        <button class="btn-primary" style="border:none; color:white;" onclick="window.viewContactEdit(null)">+ Add Contact</button>
+        <button class="btn-secondary" onclick="loadView('stakeholders'); history.pushState(null, '', '#stakeholders')">Back to Stakeholders</button>
+    </div>
 </header>
 
 <div class="spine-section"
@@ -23,4 +25,46 @@
 
 <div id="contact-list" style="display:flex; flex-direction:column; gap:1rem; padding:1rem 0;">
     <!-- Populated by JS -->
+</div>
+
+<!-- Edit Contact Modal -->
+<div id="contact-edit-modal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; align-items:center; justify-content:center; padding:1rem;">
+    <div style="background:var(--bg-app); border-radius:12px; width:100%; max-width:500px; max-height:90vh; overflow-y:auto; box-shadow:0 12px 32px rgba(0,0,0,0.2);">
+        <header style="padding:1.5rem; border-bottom:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0;" id="contact-modal-title">Edit Contact</h3>
+            <button class="btn-secondary" style="border:none; background:none; padding:0.5rem;" onclick="document.getElementById('contact-edit-modal').style.display='none'">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </header>
+        <div style="padding:1.5rem; display:flex; flex-direction:column; gap:1.25rem;">
+            <div class="form-group">
+                <label style="font-size:0.85rem; font-weight:600; color:var(--text-secondary); margin-bottom:0.4rem; display:block;">First Name *</label>
+                <input type="text" id="ce-first-name" class="input-field" style="width:100%;" required>
+            </div>
+            <div class="form-group">
+                <label style="font-size:0.85rem; font-weight:600; color:var(--text-secondary); margin-bottom:0.4rem; display:block;">Last Name *</label>
+                <input type="text" id="ce-last-name" class="input-field" style="width:100%;" required>
+            </div>
+            <div class="form-group">
+                <label style="font-size:0.85rem; font-weight:600; color:var(--text-secondary); margin-bottom:0.4rem; display:block;">Organisation</label>
+                <input type="text" id="ce-organisation" class="input-field" style="width:100%;">
+            </div>
+            <div class="form-group">
+                <label style="font-size:0.85rem; font-weight:600; color:var(--text-secondary); margin-bottom:0.4rem; display:block;">Email</label>
+                <input type="email" id="ce-email" class="input-field" style="width:100%;">
+            </div>
+            <div class="form-group">
+                <label style="font-size:0.85rem; font-weight:600; color:var(--text-secondary); margin-bottom:0.4rem; display:block;">Avatar Color (HEX/HTML)</label>
+                <input type="text" id="ce-color" class="input-field" style="width:100%;" placeholder="#10b981">
+            </div>
+            <div class="form-group" style="display:flex; align-items:center; gap:0.5rem;">
+                <input type="checkbox" id="ce-active" checked>
+                <label for="ce-active" style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">Active Contact</label>
+            </div>
+        </div>
+        <footer style="padding:1.5rem; border-top:1px solid var(--border-subtle); display:flex; justify-content:flex-end; gap:0.75rem;">
+            <button class="btn-secondary" onclick="document.getElementById('contact-edit-modal').style.display='none'">Cancel</button>
+            <button class="btn-primary" onclick="window.saveContactEdit()">Save Contact</button>
+        </footer>
+    </div>
 </div>

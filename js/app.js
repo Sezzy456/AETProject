@@ -5864,16 +5864,19 @@ window.filterContacts = function () {
         let initials = parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : (parts[0] ? parts[0].substring(0, 2) : '?');
         initials = initials.toUpperCase();
         const hue = (c.name.length * (c.name.charCodeAt(0) || 1) * 17) % 360;
-        const color = `hsl(${hue}, 65%, 45%)`;
+        const color = c.color || `hsl(${hue}, 65%, 45%)`;
         
         // Contacts are filtered by eq('co_active', true) in supabase, so they are always active if they made it here, 
         // but we'll check c.active !== false just in case.
         const isActive = c.active !== false;
 
         return `
-        <div class="adet-card" style="padding:1.5rem; display:flex; flex-direction:column; justify-content:space-between; transition:transform 0.2s, box-shadow 0.2s; cursor:pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.05)';">
+        <div class="adet-card" style="padding:1.5rem; display:flex; flex-direction:column; justify-content:space-between; transition:transform 0.2s, box-shadow 0.2s; position:relative;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.05)';">
+            <button class="btn-secondary" style="position:absolute; top:1.5rem; right:1.5rem; border:none; background:rgba(0,0,0,0.03); padding:0.4rem; border-radius:8px;" onclick="window.viewContactEdit('${c.id}')">
+                <span class="material-symbols-outlined" style="font-size:1.1rem; color:var(--text-secondary);">edit</span>
+            </button>
             <div>
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem; padding-right:2.5rem;">
                     <div style="width:48px; height:48px; border-radius:50%; background:${color}; color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:600; flex-shrink:0;">
                         ${initials}
                     </div>
@@ -5897,5 +5900,96 @@ window.filterContacts = function () {
 
     if (filtered.length === 0) {
         listEl.innerHTML = `<div style="grid-column:1/-1; padding:3rem; text-align:center; color:var(--text-tertiary); background:var(--bg-app); border:1px dashed var(--border-subtle); border-radius:12px;">No contacts found</div>`;
+    }
+};
+
+window.viewContactEdit = function(contactId) {
+    window._currentEditContactId = contactId;
+    const modal = document.getElementById('contact-edit-modal');
+    if (!modal) return;
+    
+    document.getElementById('contact-modal-title').innerText = contactId ? 'Edit Contact' : 'Add Contact';
+    
+    if (contactId) {
+        const contacts = window.getData('contacts') || [];
+        const contact = contacts.find(c => c.id == contactId); // handle int/string
+        if (contact) {
+            // we split the name we compiled in supabase.js back out roughly, 
+            // but it's better if we fetch original co_first_name.
+            // Since we didn't map co_first_name separately, let's just split name.
+            const parts = contact.name.split(' ');
+            document.getElementById('ce-first-name').value = parts[0] || '';
+            document.getElementById('ce-last-name').value = parts.slice(1).join(' ') || '';
+            document.getElementById('ce-organisation').value = contact.organisation || '';
+            document.getElementById('ce-email').value = contact.email || '';
+            document.getElementById('ce-color').value = contact.color || '';
+            document.getElementById('ce-active').checked = contact.active !== false;
+        }
+    } else {
+        document.getElementById('ce-first-name').value = '';
+        document.getElementById('ce-last-name').value = '';
+        document.getElementById('ce-organisation').value = '';
+        document.getElementById('ce-email').value = '';
+        document.getElementById('ce-color').value = '';
+        document.getElementById('ce-active').checked = true;
+    }
+    
+    modal.style.display = 'flex';
+};
+
+window.saveContactEdit = async function() {
+    const btn = document.querySelector('#contact-edit-modal .btn-primary');
+    if (btn) btn.innerHTML = 'Saving...';
+    
+    const id = window._currentEditContactId;
+    const newData = {
+        co_first_name: document.getElementById('ce-first-name').value.trim(),
+        co_last_name: document.getElementById('ce-last-name').value.trim(),
+        co_organisation: document.getElementById('ce-organisation').value.trim(),
+        co_email: document.getElementById('ce-email').value.trim(),
+        co_avatar_colour: document.getElementById('ce-color').value.trim(),
+        co_active: document.getElementById('ce-active').checked
+    };
+    
+    if (!newData.co_first_name || !newData.co_last_name) {
+        alert('First and Last name are required.');
+        if (btn) btn.innerHTML = 'Save Contact';
+        return;
+    }
+    
+    try {
+        if (id) {
+            // Update
+            const { error } = await window._sb.from('tbl_contact').update(newData).eq('co_id', id);
+            if (error) throw error;
+            window.showToast('Contact updated successfully');
+        } else {
+            // Insert
+            const { error } = await window._sb.from('tbl_contact').insert([newData]);
+            if (error) throw error;
+            window.showToast('Contact added successfully');
+        }
+        
+        document.getElementById('contact-edit-modal').style.display = 'none';
+        
+        // Refresh cache and re-render
+        if (window._fetchDataCache && window._fetchDataCache['contacts']) {
+            delete window._fetchDataCache['contacts'];
+        }
+        
+        // Re-run the global refresh (this calls fetchContacts in supabase.js)
+        if (window.refreshAllData) {
+            await window.refreshAllData();
+        } else if (window._fetchDataCache) {
+            // fallback if no global refresh
+            // just reload the view
+            loadView('contacts');
+        }
+        
+    } catch (err) {
+        console.error(err);
+        alert('Failed to save contact: ' + err.message);
+    } finally {
+        if (btn) btn.innerHTML = 'Save Contact';
     }
 };
