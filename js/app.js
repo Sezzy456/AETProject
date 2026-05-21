@@ -541,7 +541,13 @@ function renderStakeholders() {
 }
 
 window.filterStakeholders = function () {
-    let stakeholders = window.getData('stakeholders') || [];
+    const rawData = window.getData('stakeholders');
+    if (!rawData) {
+        const container = document.getElementById('stakeholder-list');
+        if (container) container.innerHTML = `<div style="padding:3rem;text-align:center;color:var(--text-tertiary);"><span class="material-symbols-outlined" style="font-size:2rem;margin-bottom:1rem;display:block;">hourglass_empty</span>Loading stakeholders...</div>`;
+        return;
+    }
+    let stakeholders = rawData;
     const search = (document.getElementById('stakeholder-search')?.value || '').toLowerCase();
     const statusF = window.getMultiSelectValues('stakeholder-filter-status');
     const roleF = window.getMultiSelectValues('stakeholder-filter-role');
@@ -1210,7 +1216,13 @@ function renderInteractions() {
 }
 
 window.filterInteractions = function () {
-    let interactions = window.getData('interactions') || [];
+    const rawData = window.getData('interactions');
+    if (!rawData) {
+        const container = document.getElementById('interactions-list');
+        if (container) container.innerHTML = `<div style="padding:3rem;text-align:center;color:var(--text-tertiary);"><span class="material-symbols-outlined" style="font-size:2rem;margin-bottom:1rem;display:block;">hourglass_empty</span>Loading update log...</div>`;
+        return;
+    }
+    let interactions = rawData;
     const search = (document.getElementById('interactions-search')?.value || '').toLowerCase();
     const sortMode = document.getElementById('interactions-sort')?.value || 'date';
     const sortDir = document.getElementById('interactions-sort-dir')?.dataset.dir || 'desc';
@@ -2377,7 +2389,17 @@ window.filterActions = function () {
     const sortMode = document.getElementById('act-sort-select')?.value || 'due';
     const sortDir = document.getElementById('act-sort-dir')?.dataset.dir || 'asc';
 
-    let actions = window.getData('actions') || [];
+    const rawData = window.getData('actions');
+    if (!rawData) {
+        const listC = document.getElementById('act-list-container');
+        if (listC) listC.innerHTML = `<div style="padding:3rem;text-align:center;color:var(--text-tertiary);"><span class="material-symbols-outlined" style="font-size:2rem;margin-bottom:1rem;display:block;">hourglass_empty</span>Loading actions...</div>`;
+        const kanbanC = document.getElementById('act-kanban-container');
+        if (kanbanC) kanbanC.innerHTML = `<div style="padding:3rem;text-align:center;color:var(--text-tertiary);grid-column: 1 / -1;"><span class="material-symbols-outlined" style="font-size:2rem;margin-bottom:1rem;display:block;">hourglass_empty</span>Loading actions...</div>`;
+        const ganttC = document.getElementById('act-gantt-container');
+        if (ganttC) ganttC.innerHTML = `<div style="padding:3rem;text-align:center;color:var(--text-tertiary);"><span class="material-symbols-outlined" style="font-size:2rem;margin-bottom:1rem;display:block;">hourglass_empty</span>Loading actions...</div>`;
+        return;
+    }
+    let actions = rawData;
 
     // Filter out invalid statuses created by AI agent previously
     const validStatuses = ['Planned', 'Pending', 'In Progress', 'Completed'];
@@ -3583,14 +3605,22 @@ function renderActionDetail() {
         if (btn) btn.innerHTML = '<span class="material-symbols-outlined spin" style="font-size:0.9rem;">autorenew</span> Saving...';
         
         if (window._sb && action.originalId) {
-            await window._sb.from('tbl_action')
+            const { error } = await window._sb.from('tbl_action')
                 .update({ ac_todos: action.todos })
                 .eq('ac_original_id', action.originalId)
                 .eq('ac_active', true);
+            if (error) {
+                console.error('Todo save error:', error);
+                alert('Failed to save to-dos: ' + error.message);
+                if (btn) btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:0.9rem;">error</span> Error';
+                return;
+            }
+        } else {
+            console.warn('No Supabase connection or originalId missing');
         }
         if (btn) {
             btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:0.9rem;">check</span> Saved!';
-            setTimeout(() => { btn.style.display = 'none'; btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:0.9rem;">save</span> Save'; }, 1500);
+            setTimeout(() => { if (btn) { btn.style.display = 'none'; btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:0.9rem;">save</span> Save'; } }, 1500);
         }
     };
     
@@ -3775,12 +3805,13 @@ window._adetAddAudienceChip = function(id, name) {
 };
 
 window.openActionDetailEdit = function () {
-    const id = window.currentActionId;
-    if (!id) return;
-    const actions = window.getData('actions') || [];
-    const a = actions.find(x => x.id === id);
-    if (!a) return;
-    window._adetOriginal = JSON.parse(JSON.stringify(a));
+    try {
+        const id = window.currentActionId;
+        if (!id) return;
+        const actions = window.getData('actions') || [];
+        const a = actions.find(x => x.id === id);
+        if (!a) return;
+        window._adetOriginal = JSON.parse(JSON.stringify(a));
 
     // Populate popovers
     const oList = document.getElementById('adet-e-owner-list');
@@ -3981,6 +4012,14 @@ window.openActionDetailEdit = function () {
     const editMode = document.getElementById('adet-edit-mode');
     if (viewMode) viewMode.style.display = 'none';
     if (editMode) editMode.style.display = 'block';
+    
+    const saveBar = document.getElementById('adet-floating-save-bar');
+    if (saveBar) saveBar.style.display = 'flex';
+    
+    } catch (e) {
+        console.error('Error opening edit mode:', e);
+        alert('Error opening edit mode: ' + e.message);
+    }
 };
 
 // ── Status & Complexity helpers ──────────────────────────────────────
