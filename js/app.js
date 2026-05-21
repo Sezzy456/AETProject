@@ -3725,13 +3725,10 @@ function renderActionDetail() {
         if (vMode) vMode.style.display = '';
         if (eMode) eMode.style.display = 'none';
 
-        const btnEdit = document.querySelector('button[onclick="window.adetSave()"]');
+        const btnEdit = document.getElementById('adet-header-edit-btn');
         if (btnEdit) {
             btnEdit.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
             btnEdit.setAttribute('onclick', 'window.openActionDetailEdit()');
-        } else {
-            const staticEditBtn = document.querySelector('button[onclick="window.openActionDetailEdit()"]');
-            if (staticEditBtn) staticEditBtn.style.display = '';
         }
 
         const btnCancel = document.getElementById('adet-header-cancel-btn');

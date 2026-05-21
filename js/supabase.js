@@ -557,11 +557,16 @@ window.updateActionDB = async function(uiData, isNew) {
             const toAddO = newOIds.filter(id => !existingOIds.includes(id));
             
             if (toRemoveO.length > 0) {
-                await _sb.from('tbl_action_owner').update({ ao_active: false, ao_modified: new Date().toISOString(), ao_modified_by: 1 }).eq('ao_action_original_id', actionOrigId).in('ao_user_id', toRemoveO).eq('ao_active', true);
+                const { error: updErr } = await _sb.from('tbl_action_owner').update({ ao_active: false, ao_modified: new Date().toISOString(), ao_modified_by: 1 }).eq('ao_action_original_id', actionOrigId).in('ao_user_id', toRemoveO).eq('ao_active', true);
+                if (updErr) console.error('[Supabase] Error removing owners:', updErr);
             }
             if (toAddO.length > 0) {
                 const rows = toAddO.map(cId => ({ ao_action_original_id: actionOrigId, ao_user_id: parseInt(cId), ao_active: true, ao_created: new Date().toISOString(), ao_created_by: 1, ao_modified: new Date().toISOString(), ao_modified_by: 1 }));
-                await _sb.from('tbl_action_owner').insert(rows);
+                const { error: insErr } = await _sb.from('tbl_action_owner').insert(rows);
+                if (insErr) {
+                    console.error('[Supabase] Error inserting owners:', insErr);
+                    alert(`Failed to save Action Owner: ${insErr.message || JSON.stringify(insErr)}. Does the user ID exist in tbl_user?`);
+                }
             }
         }
 
