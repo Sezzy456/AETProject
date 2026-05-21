@@ -20,48 +20,48 @@ function relativeDate(dateStr, isCompleted = false) {
     if (!dateStr) return { text: '—', color: 'var(--text-tertiary)', isOverdue: false };
     const d = new Date(dateStr.length <= 10 ? dateStr + 'T00:00:00' : dateStr);
     if (isNaN(d.getTime())) return { text: dateStr, color: 'var(--text-tertiary)', isOverdue: false };
-    const now = new Date(); now.setHours(0,0,0,0);
+    const now = new Date(); now.setHours(0, 0, 0, 0);
     const diff = Math.round((d - now) / (1000 * 60 * 60 * 24));
     if (diff < 0) {
         if (isCompleted) return { text: '', color: 'inherit', isOverdue: false };
         const absDiff = Math.abs(diff);
-        if (absDiff >= 365) return { text: `overdue by ${Math.floor(absDiff/365)} year${Math.floor(absDiff/365)>1?'s':''}`, color: '#ef4444', isOverdue: true };
-        if (absDiff >= 31) return { text: `overdue by ${Math.floor(absDiff/30)} month${Math.floor(absDiff/30)>1?'s':''}`, color: '#ef4444', isOverdue: true };
-        return { text: `overdue by ${absDiff} day${absDiff>1?'s':''}`, color: '#ef4444', isOverdue: true };
+        if (absDiff >= 365) return { text: `overdue by ${Math.floor(absDiff / 365)} year${Math.floor(absDiff / 365) > 1 ? 's' : ''}`, color: '#ef4444', isOverdue: true };
+        if (absDiff >= 31) return { text: `overdue by ${Math.floor(absDiff / 30)} month${Math.floor(absDiff / 30) > 1 ? 's' : ''}`, color: '#ef4444', isOverdue: true };
+        return { text: `overdue by ${absDiff} day${absDiff > 1 ? 's' : ''}`, color: '#ef4444', isOverdue: true };
     }
     if (isCompleted) return { text: '', color: 'inherit', isOverdue: false };
     if (diff === 0) return { text: 'due today', color: '#ef4444', isOverdue: false };
-    if (diff <= 7) return { text: `due in ${diff} day${diff>1?'s':''}`, color: '#f97316', isOverdue: false };
-    if (diff <= 14) return { text: `due in ${diff} day${diff>1?'s':''}`, color: '#eab308', isOverdue: false };
+    if (diff <= 7) return { text: `due in ${diff} day${diff > 1 ? 's' : ''}`, color: '#f97316', isOverdue: false };
+    if (diff <= 14) return { text: `due in ${diff} day${diff > 1 ? 's' : ''}`, color: '#eab308', isOverdue: false };
     if (diff <= 31) return { text: `due in ${diff} days`, color: 'var(--text-tertiary)', isOverdue: false };
-    if (diff < 365) return { text: `due in ${Math.floor(diff/30)} month${Math.floor(diff/30)>1?'s':''}`, color: 'var(--text-tertiary)', isOverdue: false };
-    return { text: `due in ${Math.floor(diff/365)} year${Math.floor(diff/365)>1?'s':''}`, color: 'var(--text-tertiary)', isOverdue: false };
+    if (diff < 365) return { text: `due in ${Math.floor(diff / 30)} month${Math.floor(diff / 30) > 1 ? 's' : ''}`, color: 'var(--text-tertiary)', isOverdue: false };
+    return { text: `due in ${Math.floor(diff / 365)} year${Math.floor(diff / 365) > 1 ? 's' : ''}`, color: 'var(--text-tertiary)', isOverdue: false };
 }
 
 function relativePastDate(dateStr) {
     if (!dateStr) return '';
     const d = new Date(dateStr.length <= 10 ? dateStr + 'T00:00:00' : dateStr);
     if (isNaN(d.getTime())) return '';
-    
+
     const now = new Date();
     if (d.toDateString() === now.toDateString()) {
         const minDiff = Math.round((d - now) / (1000 * 60));
-        if (minDiff > 60) return `in ${Math.round(minDiff/60)} hours`;
+        if (minDiff > 60) return `in ${Math.round(minDiff / 60)} hours`;
         if (minDiff > 0) return `in ${minDiff} min`;
-        if (minDiff < -60) return `${Math.round(Math.abs(minDiff)/60)} hours ago`;
+        if (minDiff < -60) return `${Math.round(Math.abs(minDiff) / 60)} hours ago`;
         if (minDiff < 0) return `${Math.abs(minDiff)} min ago`;
         return 'today';
     }
-    
-    const nowZero = new Date(now); nowZero.setHours(0,0,0,0);
-    const dZero = new Date(d); dZero.setHours(0,0,0,0);
+
+    const nowZero = new Date(now); nowZero.setHours(0, 0, 0, 0);
+    const dZero = new Date(d); dZero.setHours(0, 0, 0, 0);
     const diff = Math.round((nowZero - dZero) / (1000 * 60 * 60 * 24));
-    
+
     if (diff < 0) {
         const absDiff = Math.abs(diff);
-        if (absDiff >= 365) return `in ${Math.floor(absDiff/365)} year${Math.floor(absDiff/365)>1?'s':''}`;
-        if (absDiff >= 31) return `in ${Math.floor(absDiff/30)} month${Math.floor(absDiff/30)>1?'s':''}`;
-        return `in ${absDiff} day${absDiff>1?'s':''}`;
+        if (absDiff >= 365) return `in ${Math.floor(absDiff / 365)} year${Math.floor(absDiff / 365) > 1 ? 's' : ''}`;
+        if (absDiff >= 31) return `in ${Math.floor(absDiff / 30)} month${Math.floor(absDiff / 30) > 1 ? 's' : ''}`;
+        return `in ${absDiff} day${absDiff > 1 ? 's' : ''}`;
     }
     if (diff === 1) return 'yesterday';
     if (diff < 7) return `${diff} days ago`;
@@ -82,7 +82,7 @@ function relativePastDate(dateStr) {
 // modifiedCol: e.g. 'ac_modified'
 // oldId: the current row's PK (e.g. ac_id value)
 // newData: object of column values for the new row (excluding PK and active flag)
-window.versionedSave = async function(tableName, idCol, activeCol, originalIdCol, modifiedCol, oldId, newData) {
+window.versionedSave = async function (tableName, idCol, activeCol, originalIdCol, modifiedCol, oldId, newData) {
     if (!window._sb) { console.warn('[versionedSave] No Supabase client'); return null; }
     try {
         // 1. Deactivate old row
@@ -96,7 +96,7 @@ window.versionedSave = async function(tableName, idCol, activeCol, originalIdCol
     } catch (e) {
         console.error(`[versionedSave] Error saving to ${tableName}:`, e);
         // Try to reactivate old row on failure
-        try { await window._sb.from(tableName).update({ [activeCol]: true }).eq(idCol, oldId); } catch (_) {}
+        try { await window._sb.from(tableName).update({ [activeCol]: true }).eq(idCol, oldId); } catch (_) { }
         throw e;
     }
 };
@@ -662,7 +662,7 @@ window.filterStakeholders = function () {
 window.clearStakeholdersFilters = function () {
     const search = document.getElementById('stakeholder-search');
     if (search) search.value = '';
-    
+
     ['stakeholder-filter-status', 'stakeholder-filter-role'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -957,27 +957,27 @@ function renderStakeholderDetail() {
     }
 }
 
-window.viewStakeholderEdit = function(id = null) {
+window.viewStakeholderEdit = function (id = null) {
     window.currentStakeholderId = id;
     window._stakeholderOpenInEditMode = true;
     loadView('stakeholder_detail');
     history.pushState(null, '', '#stakeholder_detail');
 };
 
-window.cancelStakeholderEdit = function() {
+window.cancelStakeholderEdit = function () {
     const editMode = document.getElementById('sdet-edit-mode');
     if (!editMode) return;
-    
+
     if (!window.currentStakeholderId) {
         loadView('stakeholders');
         history.pushState(null, '', '#stakeholders');
         return;
     }
-    
+
     const viewMode = document.getElementById('sdet-view-mode');
     const editBtn = document.getElementById('sdet-edit-toggle-btn');
     const cancelBtn = document.getElementById('sdet-cancel-btn');
-    
+
     if (viewMode) viewMode.style.display = 'block';
     if (editMode) editMode.style.display = 'none';
     if (editBtn) editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
@@ -998,12 +998,12 @@ window.toggleStakeholderEdit = function () {
         if (window.saveStakeholder) window.saveStakeholder();
     } else {
         const id = window.currentStakeholderId;
-        const set = (elId, v) => { const el = document.getElementById(elId); if(el) el.value = v || ''; };
+        const set = (elId, v) => { const el = document.getElementById(elId); if (el) el.value = v || ''; };
         const nameRow = document.getElementById('sdet-e-name-row');
         const roleRow = document.getElementById('sdet-e-role-row');
         if (nameRow) nameRow.style.display = 'flex';
         if (roleRow) roleRow.style.display = 'flex';
-        
+
         ['sdet-e-name', 'sdet-e-role', 'sdet-e-narrativeHook', 'sdet-e-audience-message', 'sdet-e-values', 'sdet-e-authority', 'sdet-e-posture-current', 'sdet-e-posture-desired', 'sdet-e-posture-next', 'sdet-e-posture-target', 'sdet-e-barriers', 'sdet-e-engagement-approach', 'sdet-e-tactics', 'sdet-e-rel-internal', 'sdet-e-rel-external', 'sdet-e-contact-pref', 'sdet-e-contact-tone', 'sdet-e-contact-pitch'].forEach(eid => set(eid, ''));
         set('sdet-e-status', 'Operational');
         set('sdet-e-influence', '5');
@@ -1030,7 +1030,7 @@ window.toggleStakeholderEdit = function () {
                 if (infDisp) infDisp.innerText = s.powerDynamics?.influence || '5';
                 const intDisp = document.getElementById('sdet-e-int-display');
                 if (intDisp) intDisp.innerText = s.powerDynamics?.interest || '5';
-                
+
                 set('sdet-e-posture-current', s.postureJourney?.current || '');
                 set('sdet-e-posture-desired', s.postureJourney?.desired || '');
                 set('sdet-e-posture-next', s.postureJourney?.nextStep || '');
@@ -1056,7 +1056,7 @@ window.saveStakeholder = function () {
     let id = window.currentStakeholderId;
     const stakeholders = window.getData('stakeholders') || [];
     const get = (elId) => { const el = document.getElementById(elId); return el ? el.value : ''; };
-    
+
     let s;
     if (!id) {
         id = 'stk-' + Date.now();
@@ -1072,14 +1072,14 @@ window.saveStakeholder = function () {
     s.role = get('sdet-e-role').trim() || s.role || '';
     s.narrativeHook = get('sdet-e-narrativeHook');
     s.audienceMessage = get('sdet-e-audience-message');
-    
+
     if (!s.powerDynamics) s.powerDynamics = {};
     s.powerDynamics.values = get('sdet-e-values').split(',').map(v => v.trim()).filter(Boolean);
     s.powerDynamics.influence = parseInt(get('sdet-e-influence'), 10) || 5;
     s.powerDynamics.interest = parseInt(get('sdet-e-interest'), 10) || 5;
     s.powerDynamics.authority = get('sdet-e-authority');
     s.decisionAuthority = s.powerDynamics.authority; // Keep for compatibility if needed
-    
+
     const newStatus = get('sdet-e-status');
     if (newStatus && newStatus !== s.status) {
         if (!s.statusHistory) s.statusHistory = [];
@@ -1087,7 +1087,7 @@ window.saveStakeholder = function () {
         s.statusHistory.push({ date: dateStr, status: newStatus, notes: 'Status updated via profile edit.' });
         s.status = newStatus;
     }
-    
+
     if (!s.postureJourney) s.postureJourney = {};
     s.postureJourney.current = get('sdet-e-posture-current');
     s.postureJourney.desired = get('sdet-e-posture-desired');
@@ -1289,7 +1289,7 @@ function _renderInteractionsList(interactions) {
         let isUpcoming = false;
         let color = 'var(--text-tertiary)';
         let fw = '400';
-        
+
         if (rawDateStr) {
             const d = new Date(rawDateStr);
             const now = new Date();
@@ -1298,14 +1298,14 @@ function _renderInteractionsList(interactions) {
                 color = '#ef4444'; // upcoming
                 fw = '600';
             } else {
-                const diffDays = Math.round((now.setHours(0,0,0,0) - new Date(d).setHours(0,0,0,0)) / (1000 * 60 * 60 * 24));
+                const diffDays = Math.round((now.setHours(0, 0, 0, 0) - new Date(d).setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24));
                 if (diffDays <= 14) {
                     color = '#10b981'; // recent
                     fw = '600';
                 }
             }
         }
-        
+
         let statusBadge = `<span style="color:${color}; font-weight:${fw}; font-size:0.8rem;">${pastRelative || (isUpcoming ? 'Upcoming' : 'Completed')}</span>`;
 
         const agendaHtml = (a.topics || []).map(t => `<span style="font-size:0.68rem; padding:0.1rem 0.45rem; border-radius:100px; background:rgba(99,102,241,0.1); color:#6366f1; border:1px solid rgba(99,102,241,0.2);">${t}</span>`).join('');
@@ -1318,7 +1318,7 @@ function _renderInteractionsList(interactions) {
         if (isUpcoming) card.style.borderLeft = '3px solid #ef4444';
 
         card.onclick = () => window.viewInteraction(a.id);
-        
+
         card.onmouseover = () => {
             card.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
             card.style.transform = 'translateY(-1px)';
@@ -1334,7 +1334,7 @@ function _renderInteractionsList(interactions) {
         let linkedStakeholderName = a.stakeholder || '';
         let linkedObjectiveName = '';
         let linkedActionName = '';
-        
+
         if (a.linkedStakeholderId) {
             const stas = window.getData('stakeholders') || [];
             const st = stas.find(s => s.id === a.linkedStakeholderId);
@@ -1386,7 +1386,7 @@ function renderInteractionDetail() {
                 window.toggleInteractionEdit();
             }
         }, 50);
-        
+
         if (!id) {
             const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
             const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
@@ -1397,7 +1397,7 @@ function renderInteractionDetail() {
             setHtml('detail-int-attendees', '');
             const agContainer = document.getElementById('detail-int-agenda-view-container');
             if (agContainer) agContainer.innerHTML = '';
-            
+
             ['detail-int-link-stakeholder', 'detail-int-link-objective', 'detail-int-link-action'].forEach(linkId => {
                 const el = document.getElementById(linkId);
                 if (el) el.style.display = 'none';
@@ -1424,7 +1424,7 @@ function renderInteractionDetail() {
         const d = new Date(interaction.rawDate || '');
         statusVal = (d > new Date()) ? 'Upcoming' : 'Completed';
     }
-    
+
     if (statusVal === 'Upcoming') {
         statusEl.innerHTML = 'Upcoming';
         statusEl.style.color = '#ef4444';
@@ -1434,10 +1434,10 @@ function renderInteractionDetail() {
         let word = 'Neutral';
         if (score >= 7) { color = '#22c55e'; word = 'Positive'; }
         else if (score <= 3) { color = '#ef4444'; word = 'Negative'; }
-        
+
         let intType = interaction.type || 'Other';
         if (intType === 'Upcoming' || intType === 'Recent') intType = 'Other';
-        
+
         statusEl.innerHTML = `Completed <div style="display:inline-flex; align-items:center; gap:0.4rem; margin-left:1rem; padding:0.2rem 0.6rem; border-radius:100px; background:rgba(0,0,0,0.05); color:var(--text-secondary); font-size:0.8rem; font-weight:600;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${color};"></span> Outcome: ${word} (${score}/10)</div> <span style="color:var(--text-secondary); font-size:0.9rem; margin-left:0.5rem;">• ${intType}</span>`;
         statusEl.style.color = '#22c55e';
     }
@@ -1445,7 +1445,7 @@ function renderInteractionDetail() {
     let linkedStakeholderName = '';
     let linkedObjectiveName = '';
     let linkedActionName = '';
-    
+
     if (interaction.linkedStakeholderId) {
         const stas = window.getData('stakeholders') || [];
         const st = stas.find(s => s.id === interaction.linkedStakeholderId);
@@ -1503,7 +1503,7 @@ function renderInteractionDetail() {
         const items = interaction.agendaItems || [];
         const spine = window.getData('spine') || {};
         const actions = window.getData('actions') || [];
-        
+
         if (items.length === 0) {
             agendaContainer.innerHTML = `<div style="font-size: 0.9rem; color: var(--text-tertiary); font-style: italic;">No agenda items</div>`;
         } else {
@@ -1540,19 +1540,19 @@ function renderInteractionDetail() {
 
 }
 
-window.updateInteractionStatus = function() {
+window.updateInteractionStatus = function () {
     const dateInput = document.getElementById('edit-int-date');
     const statusDisplay = document.getElementById('edit-int-status-display');
     const outcomeWrapper = document.getElementById('edit-int-outcome-wrapper');
     const completedCb = document.getElementById('edit-int-completed-cb');
     const completedLabel = document.getElementById('edit-int-completed-label');
     if (!dateInput || !statusDisplay) return;
-    
+
     const d = new Date(dateInput.value);
     const now = new Date();
-    
+
     let isCompleted = false;
-    
+
     if (!dateInput.value) {
         isCompleted = false;
         if (completedLabel) completedLabel.style.display = 'none';
@@ -1584,20 +1584,20 @@ window.updateInteractionStatus = function() {
 
 window._currentOutcomeScore = null;
 
-window.updateIntOutcome = function(val, fromLoad = false) {
+window.updateIntOutcome = function (val, fromLoad = false) {
     window._currentOutcomeScore = val;
     const sVal = document.getElementById('edit-int-outcome-val');
     const sValBtn = document.getElementById('edit-int-outcome-val-btn');
     const sBtn = document.getElementById('edit-int-outcome-btn');
     const slider = document.getElementById('edit-int-outcome-slider');
-    
+
     if (sVal) sVal.innerText = val;
     if (sValBtn) {
         sValBtn.innerText = val;
         sValBtn.style.background = val >= 7 ? '#22c55e' : (val >= 4 ? '#eab308' : '#ef4444');
     }
     if (sBtn) sBtn.style.background = val >= 7 ? '#22c55e' : (val >= 4 ? '#eab308' : '#ef4444');
-    
+
     if (slider) {
         slider.style.filter = 'none';
         slider.style.opacity = '1';
@@ -1605,20 +1605,20 @@ window.updateIntOutcome = function(val, fromLoad = false) {
     }
 };
 
-window.clearIntOutcome = function(fromLoad = false) {
+window.clearIntOutcome = function (fromLoad = false) {
     window._currentOutcomeScore = null;
     const sVal = document.getElementById('edit-int-outcome-val');
     const sValBtn = document.getElementById('edit-int-outcome-val-btn');
     const sBtn = document.getElementById('edit-int-outcome-btn');
     const slider = document.getElementById('edit-int-outcome-slider');
-    
+
     if (sVal) sVal.innerText = '—';
     if (sValBtn) {
         sValBtn.innerText = '—';
         sValBtn.style.background = '#94a3b8';
     }
     if (sBtn) sBtn.style.background = '#fff';
-    
+
     if (slider) {
         slider.style.filter = 'grayscale(100%)';
         slider.style.opacity = '0.6';
@@ -1638,7 +1638,7 @@ window.saveInteraction = function () {
     const outcomeNotes = document.getElementById('edit-int-outcome-notes')?.value || '';
     const statusEl = document.getElementById('edit-int-status-display');
     const status = statusEl ? statusEl.innerText : 'Completed';
-    
+
     const linkedStakeholderId = document.getElementById('edit-int-link-stakeholder')?.value || '';
     const linkedObjectiveId = document.getElementById('edit-int-link-objective')?.value || '';
     const linkedActionId = document.getElementById('edit-int-link-action')?.value || '';
@@ -1693,17 +1693,17 @@ window.saveInteraction = function () {
 
     window.updateData('interactions', interactions);
     renderInteractionDetail();
-    
+
     // We do NOT showToast or cancelEdit here. supabase.js intercepts saveInteraction and will do it after the async save completes.
 };
 
 window.archiveInteraction = function () {
     if (!window.currentInteractionId) return;
-    
+
     let interactions = window.getData('interactions') || [];
     interactions = interactions.filter(i => i.id != window.currentInteractionId);
     window.updateData('interactions', interactions);
-    
+
     const toast = document.getElementById('global-toast');
     if (toast) {
         toast.innerText = 'Update log archived';
@@ -1711,23 +1711,23 @@ window.archiveInteraction = function () {
         toast.style.opacity = '1';
         setTimeout(() => { toast.style.opacity = '0'; }, 2000);
     }
-    
+
     window.currentInteractionId = null;
     loadView('interactions');
     history.pushState(null, '', '#interactions');
 };
 
-window.toggleActionPullup = function() {
+window.toggleActionPullup = function () {
     const pu = document.getElementById('action-pullup-overlay');
     if (pu) {
         pu.style.display = pu.style.display === 'none' ? 'block' : 'none';
     }
 };
 
-window.savePullupAction = function() {
+window.savePullupAction = function () {
     const title = document.getElementById('pu-title').value;
     const desc = document.getElementById('pu-desc').value;
-    
+
     const newAction = {
         id: "act-" + Date.now(),
         activity: title,
@@ -1741,7 +1741,7 @@ window.savePullupAction = function() {
         timing: { dueDate: "2026-02-27", startDate: "", predictedLength: "" },
         versionControl: { currentVersion: "Just now", recentProgress: "Task created from Interaction" }
     };
-    
+
     if (window.addData) {
         window.addData('actions', newAction);
     } else {
@@ -1749,35 +1749,35 @@ window.savePullupAction = function() {
         actions.push(newAction);
         window.updateData('actions', actions);
     }
-    
+
     toggleActionPullup();
-    
+
     const quickEditBtn = document.querySelector('[onclick="toggleActionPullup()"] span:last-child')?.previousElementSibling;
     if (quickEditBtn && quickEditBtn.textContent.includes('not edited')) {
         quickEditBtn.textContent = '(1 detail entered)';
         quickEditBtn.style.color = '#10b981';
     }
-    
+
     alert('Action added to Actions list successfully.');
 };
 
 window._currentAgendaItems = [];
 
-window.renderAgendaItems = function() {
+window.renderAgendaItems = function () {
     const container = document.getElementById('edit-int-agenda-container');
     if (!container) return;
-    
+
     if (!document.getElementById('agenda-styles-injected')) {
         document.head.insertAdjacentHTML('beforeend', '<style id="agenda-styles-injected">details[open] > summary .agenda-expand-icon { transform: rotate(0deg) !important; } details > summary::-webkit-details-marker { display: none; }</style>');
     }
-    
+
     const spine = window.getData('spine') || {};
     const objectives = spine.objectives || [];
     const actions = window.getData('actions') || [];
-    
+
     container.innerHTML = window._currentAgendaItems.map((item, index) => {
         const isActionLinked = item.linkType === 'action' && item.linked_action_original_id;
-        
+
         return `
         <div style="flex: 1; border: 1px solid var(--border-subtle); border-radius: 8px; position: relative; margin-bottom: 0.5rem; background:#fff;">
             <div style="padding: 1rem 1.5rem;">
@@ -1864,24 +1864,24 @@ window.renderAgendaItems = function() {
     }).join('');
 };
 
-window.addAgendaItem = function() {
+window.addAgendaItem = function () {
     window._currentAgendaItems.push({ id: Date.now() + Math.random(), linkType: '', details: '' });
     window.renderAgendaItems();
 };
 
-window.removeAgendaItem = function(id) {
+window.removeAgendaItem = function (id) {
     window._currentAgendaItems = window._currentAgendaItems.filter(i => i.id !== id);
     window.renderAgendaItems();
 };
 
-window.updateAgendaItem = function(id, field, value) {
+window.updateAgendaItem = function (id, field, value) {
     const item = window._currentAgendaItems.find(i => i.id === id);
     if (item) {
         item[field] = value;
     }
 };
 
-window.toggleQuickActionEdit = function(id, event) {
+window.toggleQuickActionEdit = function (id, event) {
     if (event) {
         event.preventDefault();
         event.stopPropagation();
@@ -1894,19 +1894,19 @@ window.toggleQuickActionEdit = function(id, event) {
 
 window._currentAttendeeIds = [];
 
-window.addInteractionAttendee = function(id, name) {
+window.addInteractionAttendee = function (id, name) {
     if (!window._currentAttendeeIds.some(a => a.id === id)) {
         window._currentAttendeeIds.push({ id, name });
         window.renderInteractionAttendees();
     }
 };
 
-window.removeInteractionAttendee = function(id) {
+window.removeInteractionAttendee = function (id) {
     window._currentAttendeeIds = window._currentAttendeeIds.filter(a => a.id !== id);
     window.renderInteractionAttendees();
 };
 
-window.renderInteractionAttendees = function() {
+window.renderInteractionAttendees = function () {
     const list = document.getElementById('edit-int-attendees-list');
     if (!list) return;
     list.innerHTML = window._currentAttendeeIds.map(a => `
@@ -1917,7 +1917,7 @@ window.renderInteractionAttendees = function() {
     `).join('');
 };
 
-window.toggleInteractionEdit = function() {
+window.toggleInteractionEdit = function () {
     const viewMode = document.getElementById('int-view-mode');
     const editMode = document.getElementById('int-edit-mode');
     const editBtn = document.getElementById('int-edit-toggle-btn');
@@ -1925,36 +1925,36 @@ window.toggleInteractionEdit = function() {
     const titleView = document.getElementById('detail-int-title');
     const subtitleView = document.getElementById('detail-int-subtitle-view');
     const subtitleEdit = document.getElementById('detail-int-subtitle-edit');
-    
+
     if (!viewMode || !editMode) return;
-    
+
     const isEditing = editMode.style.display !== 'none';
-    
+
     if (isEditing) {
         if (window.saveInteraction) window.saveInteraction();
         return; // supabase.js interceptor will call cancelInteractionEdit on success
     } else {
         window._intOriginalSnapshot = null;
         const id = window.currentInteractionId;
-        
+
         // Populate linking dropdowns
         const interactions = window.getData('interactions') || [];
         const interaction = id ? interactions.find(i => i.id == id) : null;
-        
+
         const stas = window.getData('stakeholders') || [];
         const spine = window.getData('spine') || { objectives: [] };
         const acts = window.getData('actions') || [];
-        
+
         const linkStId = interaction ? interaction.linkedStakeholderId : (window._prefillStakeholderId || '');
         const linkObId = interaction ? interaction.linkedObjectiveId : '';
         const linkAcId = interaction ? interaction.linkedActionId : (window._prefillActionId || '');
 
         const editSt = document.getElementById('edit-int-link-stakeholder');
         if (editSt) editSt.innerHTML = '<option value="">None</option>' + stas.map(s => `<option value="${s.id}" ${linkStId === s.id ? 'selected' : ''}>${s.name}</option>`).join('');
-        
+
         const editOb = document.getElementById('edit-int-link-objective');
         if (editOb) editOb.innerHTML = '<option value="">None</option>' + (spine.objectives || []).map(o => `<option value="${o.id.replace('obj', '')}" ${String(linkObId) === String(o.id.replace('obj', '')) ? 'selected' : ''}>${o.text}</option>`).join('');
-        
+
         const editAc = document.getElementById('edit-int-link-action');
         if (editAc) editAc.innerHTML = '<option value="">None</option>' + acts.map(a => `<option value="${a.id}" ${String(linkAcId) === String(a.id) ? 'selected' : ''}>${a.activity}</option>`).join('');
 
@@ -1974,7 +1974,7 @@ window.toggleInteractionEdit = function() {
                     document.getElementById('edit-int-type-group').querySelectorAll('.update-type-btn').forEach(btn => btn.classList.remove('active'));
                     let intTypeForBtn = interaction.type;
                     if (intTypeForBtn === 'Upcoming' || intTypeForBtn === 'Recent') intTypeForBtn = 'Other';
-                    
+
                     if (intTypeForBtn) {
                         const savedTypes = intTypeForBtn.split(',').map(t => t.trim());
                         if (savedTypes.length > 0) {
@@ -1994,12 +1994,12 @@ window.toggleInteractionEdit = function() {
                 const outcomeValBtn = document.getElementById('edit-int-outcome-val-btn');
                 const outcomeBtn = document.getElementById('edit-int-outcome-btn');
                 const outcomeNotes = document.getElementById('edit-int-outcome-notes');
-                
+
                 const completedCb = document.getElementById('edit-int-completed-cb');
                 if (completedCb) {
                     completedCb.checked = (interaction.status === 'Completed');
                 }
-                
+
                 if (window.updateInteractionStatus) {
                     window.updateInteractionStatus();
                 }
@@ -2018,11 +2018,11 @@ window.toggleInteractionEdit = function() {
                     outcomeNotes.value = interaction.outcomeNotes || '';
                 }
                 if (outcomeNotes) outcomeNotes.value = interaction.outcomeNotes || '';
-                
+
                 // Populate agenda
                 window._currentAgendaItems = interaction.agendaItems || [];
                 window.renderAgendaItems();
-                
+
                 window._currentAttendeeIds = [];
                 if (interaction.attendeeIds && interaction.attendees) {
                     window._currentAttendeeIds = interaction.attendeeIds.map((id, idx) => ({
@@ -2031,7 +2031,7 @@ window.toggleInteractionEdit = function() {
                     }));
                 }
                 window.renderInteractionAttendees();
-                
+
                 const followInput = document.getElementById('edit-int-followup');
                 const followDate = document.getElementById('edit-int-followup-date');
                 if (interaction.followUpDate) {
@@ -2060,7 +2060,7 @@ window.toggleInteractionEdit = function() {
             const archiveBtn = document.getElementById('int-archive-btn');
             if (archiveBtn) archiveBtn.style.display = 'none';
         }
-        
+
         // Populate attendees dummy list for the popover
         const attendeesMockList = document.getElementById('edit-int-attendees-mock-list');
         if (attendeesMockList) {
@@ -2068,7 +2068,7 @@ window.toggleInteractionEdit = function() {
             if (contacts.length > 0) {
                 attendeesMockList.innerHTML = contacts.slice(0, 5).map(c => `
                     <div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="mock-contact-item" onmouseover="this.style.background='var(--bg-app)'" onmouseout="this.style.background='transparent'" onclick="window.addInteractionAttendee('${c.id}', '${c.name.replace(/'/g, "\\'")}'); document.getElementById('edit-int-attendees-popover').style.display='none';">
-                        <div style="width:24px; height:24px; border-radius:50%; background:#3b82f6; color:white; display:flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:bold;">${(c.name || 'U').substring(0,2).toUpperCase()}</div>
+                        <div style="width:24px; height:24px; border-radius:50%; background:#3b82f6; color:white; display:flex; align-items:center; justify-content:center; font-size:0.6rem; font-weight:bold;">${(c.name || 'U').substring(0, 2).toUpperCase()}</div>
                         <div style="font-size:0.85rem; color:var(--text-primary); font-weight:500;">${c.name}</div>
                     </div>
                 `).join('');
@@ -2076,7 +2076,7 @@ window.toggleInteractionEdit = function() {
                 attendeesMockList.innerHTML = '<div style="font-size:0.8rem; color:var(--text-tertiary);">No contacts found</div>';
             }
         }
-        
+
         viewMode.style.display = 'none';
         editMode.style.display = 'block';
         editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done';
@@ -2086,14 +2086,14 @@ window.toggleInteractionEdit = function() {
     }
 };
 
-window.cancelInteractionEdit = function() {
+window.cancelInteractionEdit = function () {
     const viewMode = document.getElementById('int-view-mode');
     const editMode = document.getElementById('int-edit-mode');
     const editBtn = document.getElementById('int-edit-toggle-btn');
     const cancelBtn = document.getElementById('int-cancel-btn');
     const subtitleView = document.getElementById('detail-int-subtitle-view');
     const subtitleEdit = document.getElementById('detail-int-subtitle-edit');
-    
+
     if (window._intOriginalSnapshot && window.currentInteractionId) {
         const interactions = window.getData('interactions') || [];
         const idx = interactions.findIndex(i => i.id == window.currentInteractionId);
@@ -2102,14 +2102,14 @@ window.cancelInteractionEdit = function() {
             window.updateData('interactions', interactions);
         }
     }
-    
+
     if (viewMode) viewMode.style.display = 'block';
     if (editMode) editMode.style.display = 'none';
     if (editBtn) editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
     if (cancelBtn) cancelBtn.style.display = 'none';
     if (subtitleView) subtitleView.style.display = 'flex';
     if (subtitleEdit) subtitleEdit.style.display = 'none';
-    
+
     if (typeof renderInteractionDetail === 'function') renderInteractionDetail();
 };
 
@@ -2117,11 +2117,11 @@ window._intMediaRecorder = null;
 window._intRecordingTimer = null;
 window._intRecordingSeconds = 0;
 
-window.toggleIntRecording = function() {
+window.toggleIntRecording = function () {
     const btn = document.getElementById('int-record-btn');
     const indicator = document.getElementById('int-recording-indicator');
     const timeEl = document.getElementById('int-recording-time');
-    
+
     if (window._intMediaRecorder && window._intMediaRecorder.state === 'recording') {
         window._intMediaRecorder.stop();
         clearInterval(window._intRecordingTimer);
@@ -2132,7 +2132,7 @@ window.toggleIntRecording = function() {
         if (indicator) indicator.style.display = 'none';
         return;
     }
-    
+
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
         const recorder = new MediaRecorder(stream);
         const chunks = [];
@@ -2232,7 +2232,7 @@ function _actPopulateObjectiveDropdown() {
 }
 
 // ---- UNIFIED FILTER ENGINE ----
-window.setupMultiSelectFilters = function() {
+window.setupMultiSelectFilters = function () {
     // 1. Traditional single-dropdown pills
     document.querySelectorAll('.custom-filter-pill').forEach(pill => {
         if (pill.dataset.setupDone === 'true') return;
@@ -2241,7 +2241,7 @@ window.setupMultiSelectFilters = function() {
         const trigger = pill.querySelector('.filter-trigger');
         const dropdown = pill.querySelector('.filter-dropdown');
         if (!trigger || !dropdown) return;
-        
+
         const checkboxes = dropdown.querySelectorAll('input[type="checkbox"]');
         const labelBase = trigger.dataset.labelBase || 'Filter';
         const defaultLabel = trigger.dataset.defaultLabel || 'All';
@@ -2260,7 +2260,7 @@ window.setupMultiSelectFilters = function() {
         setupCheckboxGroupLogic(checkboxes, () => {
             const checkedCbs = Array.from(checkboxes).filter(c => c.checked);
             const finalChecked = checkedCbs.map(c => c.value);
-            
+
             if (finalChecked.length === 0 || (finalChecked.length === 1 && finalChecked[0] === "")) {
                 trigger.innerHTML = `${labelBase}: ${defaultLabel} <span class="material-symbols-outlined" style="font-size:1.1rem;">expand_more</span>`;
                 trigger.style.background = 'var(--bg-surface)';
@@ -2275,11 +2275,11 @@ window.setupMultiSelectFilters = function() {
                 trigger.style.background = 'var(--energy-algae)';
                 trigger.style.color = '#000';
             }
-            
+
             const onChangeFn = pill.dataset.onChange;
             if (onChangeFn && window[onChangeFn]) window[onChangeFn]();
         });
-        
+
         dropdown.addEventListener('click', (e) => e.stopPropagation());
     });
 
@@ -2287,7 +2287,7 @@ window.setupMultiSelectFilters = function() {
     document.querySelectorAll('.mega-menu-group').forEach(group => {
         if (group.dataset.setupDone === 'true') return;
         group.dataset.setupDone = 'true';
-        
+
         const checkboxes = group.querySelectorAll('input[type="checkbox"]');
         setupCheckboxGroupLogic(checkboxes, () => {
             updateMegaMenuTrigger(group);
@@ -2324,16 +2324,16 @@ function updateMegaMenuTrigger(groupElement) {
     // Find the closest mega-menu
     const megaMenu = groupElement.closest('.mega-menu-dropdown');
     if (!megaMenu) return;
-    
+
     // Find trigger
     const triggerId = megaMenu.id.replace('-menu', '-trigger');
     const trigger = document.getElementById(triggerId);
     if (!trigger) return;
-    
+
     // Count total active filters (excluding 'All')
     const activeFilters = megaMenu.querySelectorAll('input[type="checkbox"]:checked:not([value=""])').length;
     const countBadge = trigger.querySelector('span[id$="-filter-count"]');
-    
+
     if (activeFilters > 0) {
         if (countBadge) {
             countBadge.style.display = 'inline-block';
@@ -2348,32 +2348,32 @@ function updateMegaMenuTrigger(groupElement) {
     }
 }
 
-window.toggleMegaMenu = function(menuId) {
+window.toggleMegaMenu = function (menuId) {
     const menu = document.getElementById(menuId);
     const trigger = document.getElementById(menuId.replace('-menu', '-trigger'));
     if (!menu || !trigger) return;
 
     event.stopPropagation();
     const wasOpen = menu.style.display === 'block';
-    
+
     document.querySelectorAll('.filter-dropdown, .mega-menu-dropdown').forEach(d => d.style.display = 'none');
     document.querySelectorAll('[id$="-mega-trigger"]').forEach(t => t.classList.remove('active'));
-    
+
     if (!wasOpen) {
         menu.style.display = 'block';
         trigger.classList.add('active');
     }
 };
 
-window.getMultiSelectValues = function(containerId) {
+window.getMultiSelectValues = function (containerId) {
     const container = document.getElementById(containerId);
     if (!container) return [];
     return Array.from(container.querySelectorAll('input[type="checkbox"]:checked'))
-                .map(cb => cb.value)
-                .filter(v => v !== "");
+        .map(cb => cb.value)
+        .filter(v => v !== "");
 };
 
-window.toggleSortDirection = function(btnId, onChangeFn) {
+window.toggleSortDirection = function (btnId, onChangeFn) {
     const btn = document.getElementById(btnId);
     if (!btn) return;
     const isAsc = btn.dataset.dir === 'asc';
@@ -2434,7 +2434,7 @@ window.filterActions = function () {
 
     // Due date filter
     if (dueF.length > 0) {
-        const now = new Date(); now.setHours(0,0,0,0);
+        const now = new Date(); now.setHours(0, 0, 0, 0);
         actions = actions.filter(a => {
             if (!a.timing?.dueDate) {
                 return dueF.includes('none');
@@ -2622,7 +2622,7 @@ function _actRenderKanban(actions) {
                 ondragend="this.style.opacity='1'"
                 onclick="window.viewAction('${a.id}')"
                 style="cursor:grab;${col === 'Completed' ? 'border-left:3px solid #34d399;' : ''}${isOverdue ? 'border-left:3px solid #ef4444;border-color:#ef4444;background:rgba(239,68,68,0.03);' : ''}">
-                <div style="font-size:0.72rem; color:${rel.color}; font-weight:${isOverdue?'600':'400'}; margin-bottom:0.3rem;">${rel.text}</div>
+                <div style="font-size:0.72rem; color:${rel.color}; font-weight:${isOverdue ? '600' : '400'}; margin-bottom:0.3rem;">${rel.text}</div>
                 ${col === 'Completed' ? `<div style="font-size:0.7rem;color:#059669;font-weight:600;margin-bottom:0.2rem;">completed: ${formatDate(a.versionControl?.dateCompleted) || dueStr}</div>` : ''}
                 <div style="font-weight:700; font-size:0.88rem; color:var(--text-primary); margin-bottom:0.4rem; line-height:1.3;">${a.activity}</div>
                 <div style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:0.4rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${a.description || ''}</div>
@@ -2657,7 +2657,7 @@ window._kanbanDrop = async function (actionId, newStatus) {
     console.log('[Kanban] Moving', action.activity, 'from', action.status, 'to', newStatus);
     action.status = newStatus;
     window.updateData('actions', actions);
-    
+
     if (window._sb) {
         try {
             await window._sb.from('tbl_action').update({ act_status: newStatus }).eq('act_id', actionId);
@@ -2666,7 +2666,7 @@ window._kanbanDrop = async function (actionId, newStatus) {
             console.error('[Kanban] Failed to save status to DB:', e);
         }
     }
-    
+
     // Re-render kanban
     const filtered = window._lastFilteredActions || actions;
     _actRenderKanban(filtered);
@@ -2789,7 +2789,7 @@ window.openActionModal = function (id) {
     const aList = document.getElementById('act-f-audience-list');
     if (aList) {
         const stakeholders = window.getData('stakeholders') || [];
-        aList.innerHTML = '<div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="sdet-hover-bg" onclick="document.getElementById(\'act-f-audience-chips\').innerHTML=\'\'; document.getElementById(\'act-f-audience-popover\').style.display=\'none\';"><div style="font-size:0.8rem; font-style:italic;">None / - Select -</div></div>' + 
+        aList.innerHTML = '<div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="sdet-hover-bg" onclick="document.getElementById(\'act-f-audience-chips\').innerHTML=\'\'; document.getElementById(\'act-f-audience-popover\').style.display=\'none\';"><div style="font-size:0.8rem; font-style:italic;">None / - Select -</div></div>' +
             stakeholders.map(c => `<div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="sdet-hover-bg" onclick="window.actAddAudienceChip('${c.id}', '${c.name.replace(/'/g, "\\'")}')"><div style="font-size:0.8rem;">${c.name}</div></div>`).join('');
     }
 
@@ -2828,14 +2828,14 @@ window.actAddCustomTag = function () {
     inp.value = '';
 };
 
-window.actAddOwnerChip = function(id, name) {
+window.actAddOwnerChip = function (id, name) {
     const wrap = document.getElementById('act-f-owner-chips');
     if (!wrap || wrap.querySelector(`[data-id="${id}"]`)) return;
     wrap.insertAdjacentHTML('beforeend', `<span class="adet-edit-chip" data-id="${id}" data-name="${name.replace(/"/g, '&quot;')}">${name} <span class="remove" onclick="this.parentElement.remove()">×</span></span>`);
     document.getElementById('act-f-owner-popover').style.display = 'none';
 };
 
-window.actAddAudienceChip = function(id, name) {
+window.actAddAudienceChip = function (id, name) {
     const wrap = document.getElementById('act-f-audience-chips');
     if (!wrap || wrap.querySelector(`[data-id="${id}"]`)) return;
     wrap.insertAdjacentHTML('beforeend', `<span class="adet-edit-chip" data-id="${id}" data-name="${name.replace(/"/g, '&quot;')}">${name} <span class="remove" onclick="this.parentElement.remove()">×</span></span>`);
@@ -2847,7 +2847,7 @@ window.actGranularityChange = function () {
     const d = document.getElementById('act-f-due-date');
     const w = document.getElementById('act-f-due-week');
     const m = document.getElementById('act-f-due-month');
-    
+
     if (d) d.style.display = val === 'date' ? 'block' : 'none';
     if (w) w.style.display = val === 'week' ? 'block' : 'none';
     if (m) m.style.display = val === 'month' ? 'block' : 'none';
@@ -2858,11 +2858,11 @@ window.actOutcomeTypeChanged = function () {
     const textEl = document.getElementById('act-outcome-text-wrap');
     const pfEl = document.getElementById('act-outcome-posture-wrap');
     const afEl = document.getElementById('act-outcome-asset-wrap');
-    
+
     if (textEl) textEl.style.display = val === 'text' ? 'block' : 'none';
     if (pfEl) pfEl.style.display = val === 'posture' ? 'block' : 'none';
     if (afEl) afEl.style.display = val === 'asset' ? 'block' : 'none';
-    
+
     if (val === 'posture') {
         const shSel = document.getElementById('act-f-outcome-stakeholder');
         if (shSel && shSel.options.length <= 1) {
@@ -2896,9 +2896,9 @@ function _actClearModal() {
     const obj = document.getElementById('act-f-objective');
     if (obj) obj.value = '';
     const gran = document.getElementById('act-f-date-granularity');
-    if (gran) { gran.value = 'date'; if(window.actGranularityChange) window.actGranularityChange(); }
+    if (gran) { gran.value = 'date'; if (window.actGranularityChange) window.actGranularityChange(); }
     const outType = document.querySelector('input[name="act-outcome-type"][value="text"]');
-    if (outType) { outType.checked = true; if(window.actOutcomeTypeChanged) window.actOutcomeTypeChanged(); }
+    if (outType) { outType.checked = true; if (window.actOutcomeTypeChanged) window.actOutcomeTypeChanged(); }
     document.getElementById('act-f-todos').innerHTML = '';
     document.getElementById('act-f-prereqs').innerHTML = '';
     document.getElementById('act-f-audience-chips').innerHTML = '';
@@ -2920,12 +2920,12 @@ function _actFillModal(a) {
     set('act-f-outcome-posture', a.desiredPosture);
     set('act-f-outcome-asset', a.desiredOutcomeAsset);
     set('act-f-kpi', a.kpiTarget);
-    
+
     // Timing handling
     const gran = a.timing?.granularity || 'date';
     const granEl = document.getElementById('act-f-date-granularity');
-    if (granEl) { granEl.value = gran; if(window.actGranularityChange) window.actGranularityChange(); }
-    
+    if (granEl) { granEl.value = gran; if (window.actGranularityChange) window.actGranularityChange(); }
+
     if (a.timing?.dueDate) {
         try {
             const d = new Date(a.timing.dueDate);
@@ -2935,7 +2935,7 @@ function _actFillModal(a) {
                 const dd = String(d.getDate()).padStart(2, '0');
                 const hh = String(d.getHours()).padStart(2, '0');
                 const min = String(d.getMinutes()).padStart(2, '0');
-                
+
                 if (gran === 'month') set('act-f-due-month', `${yyyy}-${mm}`);
                 else if (gran === 'week') {
                     // Approximate week number for filling
@@ -2944,10 +2944,10 @@ function _actFillModal(a) {
                     const weekNum = Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
                     set('act-f-due-week', `${yyyy}-W${String(weekNum).padStart(2, '0')}`);
                 } else set('act-f-due-date', `${yyyy}-${mm}-${dd}`);
-                
+
                 if (hh !== '00' || min !== '00') set('act-f-due-time', `${hh}:${min}`);
             }
-        } catch(e){}
+        } catch (e) { }
     }
     set('act-f-due-text', a.timing?.dueDateDisplay || '');
     set('act-f-start-date', a.timing?.startDate || '');
@@ -2964,8 +2964,8 @@ function _actFillModal(a) {
 
     const outType = a.desiredOutcomeType || 'text';
     const outRadio = document.querySelector(`input[name="act-outcome-type"][value="${outType}"]`);
-    if (outRadio) { outRadio.checked = true; if(window.actOutcomeTypeChanged) window.actOutcomeTypeChanged(); }
-    
+    if (outRadio) { outRadio.checked = true; if (window.actOutcomeTypeChanged) window.actOutcomeTypeChanged(); }
+
     // We must wait for stakeholder select to populate before setting it, or set it directly if possible
     window._actPrefillOutcomeStakeholderId = a.desiredOutcomeStakeholderId;
 
@@ -2977,7 +2977,7 @@ function _actFillModal(a) {
         const tag = btn.textContent.trim().replace(/^[^\s]+\s/, '');
         btn.classList.toggle('active', (a.tags || []).includes(tag.trim()));
     });
-    
+
     const tagChips = document.getElementById('act-f-tag-chips');
     if (tagChips) {
         const presetNames = ['Financial', 'Comms', 'Legal', 'Strategy'];
@@ -2998,7 +2998,7 @@ function _actFillModal(a) {
     const ownContainer = document.getElementById('act-f-owner-chips');
     if (ownContainer) {
         ownContainer.innerHTML = (a.ownerIds || []).map((id, i) => {
-            const names = a.owner ? a.owner.split('+').map(o=>o.trim()) : [];
+            const names = a.owner ? a.owner.split('+').map(o => o.trim()) : [];
             const name = names[i] || id;
             return `<span class="adet-edit-chip" data-id="${id}" data-name="${name.replace(/"/g, '&quot;')}">${name} <span class="remove" onclick="this.parentElement.remove()">×</span></span>`;
         }).join('');
@@ -3131,9 +3131,9 @@ window.saveCurrentAction = function () {
         const custom = Array.from(document.querySelectorAll('#act-f-tag-chips .adet-edit-chip')).map(c => c.textContent.replace('×', '').trim());
         return [...new Set([...presets, ...custom])];
     };
-    const getOwnerIds = () => Array.from(document.querySelectorAll('#act-f-owner-chips .adet-edit-chip')).map(c => c.dataset.id.replace('c',''));
+    const getOwnerIds = () => Array.from(document.querySelectorAll('#act-f-owner-chips .adet-edit-chip')).map(c => c.dataset.id.replace('c', ''));
     const getOwner = () => Array.from(document.querySelectorAll('#act-f-owner-chips .adet-edit-chip')).map(c => c.dataset.name).join(' + ');
-    
+
     const getAudienceIds = () => Array.from(document.querySelectorAll('#act-f-audience-chips .adet-edit-chip')).map(c => c.dataset.id);
     const getAudience = () => Array.from(document.querySelectorAll('#act-f-audience-chips .adet-edit-chip')).map(c => c.dataset.name);
 
@@ -3147,16 +3147,16 @@ window.saveCurrentAction = function () {
     // Granularity & Due Date Extraction
     const gran = document.getElementById('act-f-date-granularity')?.value || 'date';
     let finalDueDate = '';
-    
+
     let activeInputId = 'act-f-due-date';
     if (gran === 'week') activeInputId = 'act-f-due-week';
     if (gran === 'month') activeInputId = 'act-f-due-month';
-    
+
     const dateInp = document.getElementById(activeInputId);
     const timeInp = document.getElementById('act-f-due-time');
-    
+
     if (dateInp && dateInp.value) {
-        let val = dateInp.value; 
+        let val = dateInp.value;
         let timeStr = (timeInp && timeInp.value) ? timeInp.value : '00:00';
         try {
             if (gran === 'month') {
@@ -3165,15 +3165,15 @@ window.saveCurrentAction = function () {
             } else if (gran === 'week') {
                 const [y, w] = val.split('-W');
                 if (y && w) {
-                    const simpleD = new Date(parseInt(y), 0, 1 + (parseInt(w)-1)*7);
-                    simpleD.setHours(parseInt(timeStr.split(':')[0]||0), parseInt(timeStr.split(':')[1]||0));
+                    const simpleD = new Date(parseInt(y), 0, 1 + (parseInt(w) - 1) * 7);
+                    simpleD.setHours(parseInt(timeStr.split(':')[0] || 0), parseInt(timeStr.split(':')[1] || 0));
                     finalDueDate = simpleD.toISOString();
                 }
             } else {
                 const d = new Date(`${val}T${timeStr}:00`);
                 if (!isNaN(d.getTime())) finalDueDate = d.toISOString();
             }
-        } catch(e) {}
+        } catch (e) { }
     }
     const finalDueDisplay = document.getElementById('act-f-due-text')?.value || '';
 
@@ -3337,7 +3337,7 @@ function renderActionDetail() {
     const ownEl = document.getElementById('adet-owner-chips');
     const ownerCircle = document.getElementById('adet-owner-circle');
     const owners = a.owner ? a.owner.split('+').map(o => o.trim()).filter(Boolean) : [];
-    
+
     // Populate owner name badge
     const ownerBadge = document.getElementById('adet-owner-badge');
     const ownerNameEl = document.getElementById('adet-owner-name');
@@ -3456,7 +3456,7 @@ function renderActionDetail() {
         // Note: relativeDate is a helper, but we might just use the vague text if provided
         const vagueText = a.timing?.dueDateDisplay;
         const rel = window.relativeDate ? window.relativeDate(a.timing?.dueDate, isCompleted) : { text: '', color: '' };
-        
+
         if (vagueText) {
             dueDetailEl.textContent = vagueText;
             dueDetailEl.style.color = 'var(--text-secondary)';
@@ -3518,19 +3518,19 @@ function renderActionDetail() {
     // Handlers and renderer defined below
 
     // New Todo Handlers
-    window._renderInlineTodos = function() {
+    window._renderInlineTodos = function () {
         const actions = window.getData('actions') || [];
         const action = actions.find(x => x.id === window.currentActionId);
         if (!action) return;
         const tds = action.todos || [];
-        
+
         const done = tds.filter(t => t.completed).length;
         const pct = tds.length > 0 ? Math.round((done / tds.length) * 100) : 0;
         const progText = document.getElementById('adet-todo-progress-text');
         if (progText) progText.textContent = tds.length > 0 ? `${done}/${tds.length} complete — ${pct}%` : 'No items';
         const progFill = document.getElementById('adet-todo-progress-fill');
         if (progFill) progFill.style.width = pct + '%';
-        
+
         const todosEl = document.getElementById('adet-todos');
         if (todosEl) {
             todosEl.innerHTML = tds.length > 0
@@ -3549,7 +3549,7 @@ function renderActionDetail() {
         }
     };
 
-    window._showInlineSave = function() {
+    window._showInlineSave = function () {
         const btn = document.getElementById('adet-todo-save-btn');
         if (btn) btn.style.display = 'inline-flex';
     };
@@ -3563,7 +3563,7 @@ function renderActionDetail() {
         window._showInlineSave();
         window._renderInlineTodos();
     };
-    
+
     window._editTodo = function (index, val) {
         const actions = window.getData('actions') || [];
         const action = actions.find(x => x.id === window.currentActionId);
@@ -3572,23 +3572,23 @@ function renderActionDetail() {
         window.updateData('actions', actions);
         window._showInlineSave();
     };
-    
-    window._moveTodo = function(index, dir) {
+
+    window._moveTodo = function (index, dir) {
         const actions = window.getData('actions') || [];
         const action = actions.find(x => x.id === window.currentActionId);
         if (!action || !action.todos) return;
         if (index + dir < 0 || index + dir >= action.todos.length) return;
-        
+
         const temp = action.todos[index];
         action.todos[index] = action.todos[index + dir];
         action.todos[index + dir] = temp;
-        
+
         window.updateData('actions', actions);
         window._showInlineSave();
         window._renderInlineTodos();
     };
 
-    window._addInlineTodo = function() {
+    window._addInlineTodo = function () {
         const actions = window.getData('actions') || [];
         const action = actions.find(x => x.id === window.currentActionId);
         if (!action) return;
@@ -3603,10 +3603,10 @@ function renderActionDetail() {
         const actions = window.getData('actions') || [];
         const action = actions.find(x => x.id === window.currentActionId);
         if (!action) return;
-        
+
         const btn = document.getElementById('adet-todo-save-btn');
         if (btn) btn.innerHTML = '<span class="material-symbols-outlined spin" style="font-size:0.9rem;">autorenew</span> Saving...';
-        
+
         if (window._sb && action.originalId) {
             const { error } = await window._sb.from('tbl_action')
                 .update({ ac_todos: action.todos })
@@ -3626,7 +3626,7 @@ function renderActionDetail() {
             setTimeout(() => { if (btn) { btn.style.display = 'none'; btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:0.9rem;">save</span> Save'; } }, 1500);
         }
     };
-    
+
     // Initial render call
     window._renderInlineTodos();
 
@@ -3639,7 +3639,7 @@ function renderActionDetail() {
         window.currentInteractionId = null;
         window._prefillStakeholderId = '';
         window._prefillActionId = window.currentActionId;
-        
+
         loadView('interaction_detail');
         setTimeout(() => {
             if (typeof window.toggleInteractionEdit === 'function') {
@@ -3780,14 +3780,14 @@ function _adetMakeEditTodoRow(id, completed, detail) {
     </div>`;
 }
 
-window.adetMoveTodoUp = function(id) {
+window.adetMoveTodoUp = function (id) {
     const row = document.getElementById('adet-todo-e-' + id);
     if (row && row.previousElementSibling && row.previousElementSibling.classList.contains('adet-todo-row')) {
         row.parentNode.insertBefore(row, row.previousElementSibling);
     }
 };
 
-window.adetMoveTodoDown = function(id) {
+window.adetMoveTodoDown = function (id) {
     const row = document.getElementById('adet-todo-e-' + id);
     if (row && row.nextElementSibling && row.nextElementSibling.classList.contains('adet-todo-row')) {
         row.parentNode.insertBefore(row.nextElementSibling, row);
@@ -3796,7 +3796,7 @@ window.adetMoveTodoDown = function(id) {
 
 // ── window.openActionDetailEdit ──────────────────────────────────────
 
-window._adetAddOwnerChip = function(id, name) {
+window._adetAddOwnerChip = function (id, name) {
     const chips = document.getElementById('adet-e-owner-chips');
     if (!chips) return;
     if (chips.querySelector(`[data-id="${id}"]`)) return; // already added
@@ -3809,7 +3809,7 @@ window._adetAddOwnerChip = function(id, name) {
     document.getElementById('adet-e-owner-popover').style.display = 'none';
 };
 
-window._adetAddAudienceChip = function(id, name) {
+window._adetAddAudienceChip = function (id, name) {
     const chips = document.getElementById('adet-e-audience-chips');
     if (!chips) return;
     if (chips.querySelector(`[data-id="${id}"]`)) return; // already added
@@ -3831,216 +3831,216 @@ window.openActionDetailEdit = function () {
         if (!a) return;
         window._adetOriginal = JSON.parse(JSON.stringify(a));
 
-    // Populate popovers
-    const oList = document.getElementById('adet-e-owner-list');
-    if (oList) {
-        const contacts = window.getData('contacts') || [];
-        oList.innerHTML = contacts.map(c => `<div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="sdet-hover-bg" onclick="window._adetAddOwnerChip('${c.id}', '${c.name.replace(/'/g, "\\'")}')"><div class="avatar" style="width:24px;height:24px;font-size:0.7rem;">${c.name.charAt(0)}</div><div style="font-size:0.8rem;">${c.name}</div></div>`).join('');
-    }
-    const aList = document.getElementById('adet-e-audience-list');
-    if (aList) {
-        const stakeholders = window.getData('stakeholders') || [];
-        aList.innerHTML = '<div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="sdet-hover-bg" onclick="document.getElementById(\'adet-e-audience-chips\').innerHTML=\'\'; document.getElementById(\'adet-e-audience-popover\').style.display=\'none\';"><div style="font-size:0.8rem; font-style:italic;">None / - Select -</div></div>' + 
-            stakeholders.map(c => `<div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="sdet-hover-bg" onclick="window._adetAddAudienceChip('${c.id}', '${c.name.replace(/'/g, "\\'")}')"><div style="font-size:0.8rem;">${c.name}</div></div>`).join('');
-    }
-
-    _adetPopulateStakeholderSelect();
-    
-
-    // Update header button to Done + add Cancel
-    const editBtn = document.getElementById('adet-header-edit-btn');
-    if (editBtn) {
-        editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done';
-        editBtn.setAttribute('onclick', 'window.adetSave()');
-        // Add Cancel button if not already present
-        if (!document.getElementById('adet-header-cancel-btn')) {
-            const cancelBtn = document.createElement('button');
-            cancelBtn.id = 'adet-header-cancel-btn';
-            cancelBtn.className = 'btn-secondary';
-            cancelBtn.style.cssText = 'display:inline-flex;align-items:center;gap:0.4rem;';
-            cancelBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">close</span> Cancel';
-            cancelBtn.onclick = function() { window.adetCancelEdit(); };
-            editBtn.parentNode.insertBefore(cancelBtn, editBtn);
+        // Populate popovers
+        const oList = document.getElementById('adet-e-owner-list');
+        if (oList) {
+            const contacts = window.getData('contacts') || [];
+            oList.innerHTML = contacts.map(c => `<div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="sdet-hover-bg" onclick="window._adetAddOwnerChip('${c.id}', '${c.name.replace(/'/g, "\\'")}')"><div class="avatar" style="width:24px;height:24px;font-size:0.7rem;">${c.name.charAt(0)}</div><div style="font-size:0.8rem;">${c.name}</div></div>`).join('');
         }
-    }
-
-    _adetPopulateObjectiveSelect();
-    _adetPopulateStakeholderSelect();
-
-    const set = (elId, v) => { const el = document.getElementById(elId); if (el) el.value = v || ''; };
-
-    // Modal title
-    const mt = document.getElementById('adet-modal-title-display');
-    if (mt) mt.textContent = a.activity;
-
-    // Definition
-    set('adet-e-title', a.activity);
-    set('adet-e-description', a.description);
-
-    const ownerChips = document.getElementById('adet-e-owner-chips');
-    if (ownerChips) {
-        ownerChips.innerHTML = '';
-        const contacts = window.getData('contacts') || [];
-        const oIds = a.ownerIds || [];
-        oIds.forEach(id => {
-            const c = contacts.find(x => x.id == id) || { id, name: 'Unknown' };
-            window._adetAddOwnerChip(c.id, c.name);
-        });
-    }
-
-    // Populate Audience
-    const audChips = document.getElementById('adet-e-audience-chips');
-    if (audChips) {
-        audChips.innerHTML = '';
-        const stakeholders = window.getData('stakeholders') || [];
-        const aIds = a.audienceIds || [];
-        aIds.forEach(id => {
-            const s = stakeholders.find(x => x.id == id) || { id, name: 'Unknown' };
-            window._adetAddAudienceChip(s.id, s.name);
-        });
-    }
-
-    // Objective
-    set('adet-e-objective', a.commsObjectiveId);
-
-    // Status segmented control
-    document.querySelectorAll('#adet-e-status-seg .adet-seg-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.status === a.status);
-    });
-
-    set('adet-e-adv-status', a.advancedStatus);
-    set('adet-e-priority', a.priority || 'Medium');
-    window._adetComplexity = parseInt(a.complexity || 3);
-    _adetRefreshStars();
-
-    // Tags — preset buttons
-    const arrTags = Array.isArray(a.tags) ? a.tags : (typeof a.tags === 'string' ? a.tags.split(',').map(x=>x.trim()) : []);
-    document.querySelectorAll('.adet-tag-preset-btn').forEach(btn => {
-        const tag = btn.textContent.trim().replace(/^[^\s]+\s/, '').trim();
-        btn.classList.toggle('active', arrTags.some(t => t.trim() === tag));
-    });
-    // Custom tags (non-preset)
-    const presets = ['Comms', 'Financial', 'Legal', 'Strategy'];
-    const customTags = arrTags.filter(t => !presets.includes(t.trim()));
-    const tagChipsEl = document.getElementById('adet-e-tag-chips');
-    if (tagChipsEl) tagChipsEl.innerHTML = customTags.map((t, i) => _adetMakeEditChip(t, 'ctag-' + i)).join('');
-
-    // Desired Outcome type
-    const typeVal = a.desiredOutcomeType || 'text';
-    const typeSel = document.getElementById('adet-outcome-type-select');
-    if (typeSel) typeSel.value = typeVal;
-    window.adetOutcomeTypeChanged();
-    set('adet-e-outcome', a.desiredOutcome);
-    const sh = document.getElementById('adet-e-outcome-stakeholder');
-    if (sh) sh.value = a.desiredOutcomeStakeholderId || '';
-    set('adet-e-outcome-posture', a.desiredPosture);
-    set('adet-e-outcome-asset', a.desiredOutcomeAsset);
-    set('adet-e-kpi', a.successCriteria || a.kpiTarget);
-
-    // Due date Granularity & Time
-    const gran = a.timing?.granularity || 'date';
-    if (window.adetSetGranularity) {
-        window.adetSetGranularity(['date','week','month'].includes(gran) ? gran : 'date');
-    } else {
-        const granInp = document.getElementById('adet-e-date-granularity');
-        if (granInp) granInp.value = gran;
-        if (window.adetGranularityChange) window.adetGranularityChange();
-    }
-
-    if (a.timing?.dueDate) {
-        let datePart = a.timing.dueDate;
-        let timePart = '';
-        if (a.timing.dueDate.includes('T')) {
-            const parts = a.timing.dueDate.split('T');
-            datePart = parts[0];
-            timePart = parts[1].substring(0, 5); // HH:mm
-            // If the time is explicitly exactly "00:00", we assume it was cleared.
-            if (timePart === '00:00') timePart = '';
-        } else if (a.timing.dueDate.includes(' ')) {
-            const parts = a.timing.dueDate.split(' ');
-            datePart = parts[0];
-            timePart = parts[1].substring(0, 5);
-            if (timePart === '00:00') timePart = '';
+        const aList = document.getElementById('adet-e-audience-list');
+        if (aList) {
+            const stakeholders = window.getData('stakeholders') || [];
+            aList.innerHTML = '<div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="sdet-hover-bg" onclick="document.getElementById(\'adet-e-audience-chips\').innerHTML=\'\'; document.getElementById(\'adet-e-audience-popover\').style.display=\'none\';"><div style="font-size:0.8rem; font-style:italic;">None / - Select -</div></div>' +
+                stakeholders.map(c => `<div style="display:flex; align-items:center; gap:0.5rem; padding:0.5rem; border-radius:4px; cursor:pointer;" class="sdet-hover-bg" onclick="window._adetAddAudienceChip('${c.id}', '${c.name.replace(/'/g, "\\'")}')"><div style="font-size:0.8rem;">${c.name}</div></div>`).join('');
         }
 
-        if (gran === 'month') {
-            set('adet-e-due-month', datePart.substring(0, 7)); // YYYY-MM
-        } else if (gran === 'week') {
-            set('adet-e-due-date', datePart); // YYYY-MM-DD
-            try {
-                const d = new Date(datePart);
-                const tempD = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-                tempD.setUTCDate(tempD.getUTCDate() + 4 - (tempD.getUTCDay()||7));
-                const yearStart = new Date(Date.UTC(tempD.getUTCFullYear(),0,1));
-                const weekNo = Math.ceil(( ( (tempD - yearStart) / 86400000) + 1)/7);
-                set('adet-e-due-week', `${tempD.getUTCFullYear()}-W${weekNo.toString().padStart(2, '0')}`);
-            } catch(e) {}
+        _adetPopulateStakeholderSelect();
+
+
+        // Update header button to Done + add Cancel
+        const editBtn = document.getElementById('adet-header-edit-btn');
+        if (editBtn) {
+            editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done';
+            editBtn.setAttribute('onclick', 'window.adetSave()');
+            // Add Cancel button if not already present
+            if (!document.getElementById('adet-header-cancel-btn')) {
+                const cancelBtn = document.createElement('button');
+                cancelBtn.id = 'adet-header-cancel-btn';
+                cancelBtn.className = 'btn-secondary';
+                cancelBtn.style.cssText = 'display:inline-flex;align-items:center;gap:0.4rem;';
+                cancelBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">close</span> Cancel';
+                cancelBtn.onclick = function () { window.adetCancelEdit(); };
+                editBtn.parentNode.insertBefore(cancelBtn, editBtn);
+            }
+        }
+
+        _adetPopulateObjectiveSelect();
+        _adetPopulateStakeholderSelect();
+
+        const set = (elId, v) => { const el = document.getElementById(elId); if (el) el.value = v || ''; };
+
+        // Modal title
+        const mt = document.getElementById('adet-modal-title-display');
+        if (mt) mt.textContent = a.activity;
+
+        // Definition
+        set('adet-e-title', a.activity);
+        set('adet-e-description', a.description);
+
+        const ownerChips = document.getElementById('adet-e-owner-chips');
+        if (ownerChips) {
+            ownerChips.innerHTML = '';
+            const contacts = window.getData('contacts') || [];
+            const oIds = a.ownerIds || [];
+            oIds.forEach(id => {
+                const c = contacts.find(x => x.id == id) || { id, name: 'Unknown' };
+                window._adetAddOwnerChip(c.id, c.name);
+            });
+        }
+
+        // Populate Audience
+        const audChips = document.getElementById('adet-e-audience-chips');
+        if (audChips) {
+            audChips.innerHTML = '';
+            const stakeholders = window.getData('stakeholders') || [];
+            const aIds = a.audienceIds || [];
+            aIds.forEach(id => {
+                const s = stakeholders.find(x => x.id == id) || { id, name: 'Unknown' };
+                window._adetAddAudienceChip(s.id, s.name);
+            });
+        }
+
+        // Objective
+        set('adet-e-objective', a.commsObjectiveId);
+
+        // Status segmented control
+        document.querySelectorAll('#adet-e-status-seg .adet-seg-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.status === a.status);
+        });
+
+        set('adet-e-adv-status', a.advancedStatus);
+        set('adet-e-priority', a.priority || 'Medium');
+        window._adetComplexity = parseInt(a.complexity || 3);
+        _adetRefreshStars();
+
+        // Tags — preset buttons
+        const arrTags = Array.isArray(a.tags) ? a.tags : (typeof a.tags === 'string' ? a.tags.split(',').map(x => x.trim()) : []);
+        document.querySelectorAll('.adet-tag-preset-btn').forEach(btn => {
+            const tag = btn.textContent.trim().replace(/^[^\s]+\s/, '').trim();
+            btn.classList.toggle('active', arrTags.some(t => t.trim() === tag));
+        });
+        // Custom tags (non-preset)
+        const presets = ['Comms', 'Financial', 'Legal', 'Strategy'];
+        const customTags = arrTags.filter(t => !presets.includes(t.trim()));
+        const tagChipsEl = document.getElementById('adet-e-tag-chips');
+        if (tagChipsEl) tagChipsEl.innerHTML = customTags.map((t, i) => _adetMakeEditChip(t, 'ctag-' + i)).join('');
+
+        // Desired Outcome type
+        const typeVal = a.desiredOutcomeType || 'text';
+        const typeSel = document.getElementById('adet-outcome-type-select');
+        if (typeSel) typeSel.value = typeVal;
+        window.adetOutcomeTypeChanged();
+        set('adet-e-outcome', a.desiredOutcome);
+        const sh = document.getElementById('adet-e-outcome-stakeholder');
+        if (sh) sh.value = a.desiredOutcomeStakeholderId || '';
+        set('adet-e-outcome-posture', a.desiredPosture);
+        set('adet-e-outcome-asset', a.desiredOutcomeAsset);
+        set('adet-e-kpi', a.successCriteria || a.kpiTarget);
+
+        // Due date Granularity & Time
+        const gran = a.timing?.granularity || 'date';
+        if (window.adetSetGranularity) {
+            window.adetSetGranularity(['date', 'week', 'month'].includes(gran) ? gran : 'date');
         } else {
-            set('adet-e-due-date', datePart); // YYYY-MM-DD
+            const granInp = document.getElementById('adet-e-date-granularity');
+            if (granInp) granInp.value = gran;
+            if (window.adetGranularityChange) window.adetGranularityChange();
         }
-        set('adet-e-due-time', timePart); // HH:mm
-    } else {
-        set('adet-e-due-date', '');
-        set('adet-e-due-week', '');
-        set('adet-e-due-month', '');
-        set('adet-e-due-time', '');
-    }
-    set('adet-e-due-text', a.timing?.dueDateDisplay || '');
 
-    set('adet-e-due-detail', a.timing?.dueDetail);
-    set('adet-e-start', a.timing?.startDate);
-    set('adet-e-length', a.timing?.predictedLength);
+        if (a.timing?.dueDate) {
+            let datePart = a.timing.dueDate;
+            let timePart = '';
+            if (a.timing.dueDate.includes('T')) {
+                const parts = a.timing.dueDate.split('T');
+                datePart = parts[0];
+                timePart = parts[1].substring(0, 5); // HH:mm
+                // If the time is explicitly exactly "00:00", we assume it was cleared.
+                if (timePart === '00:00') timePart = '';
+            } else if (a.timing.dueDate.includes(' ')) {
+                const parts = a.timing.dueDate.split(' ');
+                datePart = parts[0];
+                timePart = parts[1].substring(0, 5);
+                if (timePart === '00:00') timePart = '';
+            }
 
-    // Predecessor chips
-    const predEl = document.getElementById('adet-e-predecessor-chips');
-    if (predEl) {
-        const allActs = window.getData('actions') || [];
-        const preds = a.timing?.predecessorActions || [];
-        predEl.innerHTML = preds.map((pid, i) => {
-            const pa = allActs.find(x => x.id === pid);
-            return _adetMakeEditChip((pa?.activity || pid), 'pred-chip-' + i);
-        }).join('');
-        predEl.dataset.preds = JSON.stringify(preds);
-    }
+            if (gran === 'month') {
+                set('adet-e-due-month', datePart.substring(0, 7)); // YYYY-MM
+            } else if (gran === 'week') {
+                set('adet-e-due-date', datePart); // YYYY-MM-DD
+                try {
+                    const d = new Date(datePart);
+                    const tempD = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+                    tempD.setUTCDate(tempD.getUTCDate() + 4 - (tempD.getUTCDay() || 7));
+                    const yearStart = new Date(Date.UTC(tempD.getUTCFullYear(), 0, 1));
+                    const weekNo = Math.ceil((((tempD - yearStart) / 86400000) + 1) / 7);
+                    set('adet-e-due-week', `${tempD.getUTCFullYear()}-W${weekNo.toString().padStart(2, '0')}`);
+                } catch (e) { }
+            } else {
+                set('adet-e-due-date', datePart); // YYYY-MM-DD
+            }
+            set('adet-e-due-time', timePart); // HH:mm
+        } else {
+            set('adet-e-due-date', '');
+            set('adet-e-due-week', '');
+            set('adet-e-due-month', '');
+            set('adet-e-due-time', '');
+        }
+        set('adet-e-due-text', a.timing?.dueDateDisplay || '');
 
-    set('adet-e-resource', a.resourceRequirement);
+        set('adet-e-due-detail', a.timing?.dueDetail);
+        set('adet-e-start', a.timing?.startDate);
+        set('adet-e-length', a.timing?.predictedLength);
 
-    // Todos
-    const todosEl = document.getElementById('adet-e-todos');
-    if (todosEl) todosEl.innerHTML = (a.todos || []).map(t => _adetMakeEditTodoRow(t.id, t.completed, t.detail)).join('');
+        // Predecessor chips
+        const predEl = document.getElementById('adet-e-predecessor-chips');
+        if (predEl) {
+            const allActs = window.getData('actions') || [];
+            const preds = a.timing?.predecessorActions || [];
+            predEl.innerHTML = preds.map((pid, i) => {
+                const pa = allActs.find(x => x.id === pid);
+                return _adetMakeEditChip((pa?.activity || pid), 'pred-chip-' + i);
+            }).join('');
+            predEl.dataset.preds = JSON.stringify(preds);
+        }
 
-    // VC
-    const vc = a.versionControl || {};
-    const vcMeta = document.getElementById('adet-e-vc-meta');
-    if (vcMeta) vcMeta.innerHTML = `Version <strong>${vc.currentVersion || '—'}</strong> · Created <strong>${vc.taskCreated || '—'}</strong> · By <strong>${vc.whoEdited || '—'}</strong>`;
-    set('adet-e-progress', vc.recentProgress);
-    set('adet-e-blockers', vc.currentBlockers);
-    const compCheck = document.getElementById('adet-e-completed-check');
-    if (compCheck) compCheck.checked = !!vc.dateCompleted;
-    set('adet-e-completed-date', vc.dateCompleted);
+        set('adet-e-resource', a.resourceRequirement);
 
-    // Other
-    set('adet-e-other', a.other);
+        // Todos
+        const todosEl = document.getElementById('adet-e-todos');
+        if (todosEl) todosEl.innerHTML = (a.todos || []).map(t => _adetMakeEditTodoRow(t.id, t.completed, t.detail)).join('');
 
-    // Privacy
-    const privLevel = _adetGetPrivacyLevel(a);
-    document.querySelectorAll('input[name="adet-e-priv"]').forEach(r => { r.checked = r.value === privLevel; });
-    window.adetPrivacyChanged();
-    if (privLevel === 'custom' && typeof a.privacy === 'object') {
-        const viewEl = document.getElementById('adet-e-custom-viewers');
-        const editEl = document.getElementById('adet-e-custom-editors');
-        if (viewEl) viewEl.innerHTML = (a.privacy.customViewers || []).map((p, i) => _adetMakeEditChip(p, 'cv-' + i)).join('');
-        if (editEl) editEl.innerHTML = (a.privacy.customEditors || []).map((p, i) => _adetMakeEditChip(p, 'ce-' + i)).join('');
-    }
+        // VC
+        const vc = a.versionControl || {};
+        const vcMeta = document.getElementById('adet-e-vc-meta');
+        if (vcMeta) vcMeta.innerHTML = `Version <strong>${vc.currentVersion || '—'}</strong> · Created <strong>${vc.taskCreated || '—'}</strong> · By <strong>${vc.whoEdited || '—'}</strong>`;
+        set('adet-e-progress', vc.recentProgress);
+        set('adet-e-blockers', vc.currentBlockers);
+        const compCheck = document.getElementById('adet-e-completed-check');
+        if (compCheck) compCheck.checked = !!vc.dateCompleted;
+        set('adet-e-completed-date', vc.dateCompleted);
 
-    const viewMode = document.getElementById('adet-view-mode');
-    const editMode = document.getElementById('adet-edit-mode');
-    if (viewMode) viewMode.style.display = 'none';
-    if (editMode) editMode.style.display = 'block';
-    
-    const saveBar = document.getElementById('adet-floating-save-bar');
-    if (saveBar) saveBar.style.display = 'flex';
-    
+        // Other
+        set('adet-e-other', a.other);
+
+        // Privacy
+        const privLevel = _adetGetPrivacyLevel(a);
+        document.querySelectorAll('input[name="adet-e-priv"]').forEach(r => { r.checked = r.value === privLevel; });
+        window.adetPrivacyChanged();
+        if (privLevel === 'custom' && typeof a.privacy === 'object') {
+            const viewEl = document.getElementById('adet-e-custom-viewers');
+            const editEl = document.getElementById('adet-e-custom-editors');
+            if (viewEl) viewEl.innerHTML = (a.privacy.customViewers || []).map((p, i) => _adetMakeEditChip(p, 'cv-' + i)).join('');
+            if (editEl) editEl.innerHTML = (a.privacy.customEditors || []).map((p, i) => _adetMakeEditChip(p, 'ce-' + i)).join('');
+        }
+
+        const viewMode = document.getElementById('adet-view-mode');
+        const editMode = document.getElementById('adet-edit-mode');
+        if (viewMode) viewMode.style.display = 'none';
+        if (editMode) editMode.style.display = 'block';
+
+        const saveBar = document.getElementById('adet-floating-save-bar');
+        if (saveBar) saveBar.style.display = 'flex';
+
     } catch (e) {
         console.error('Error opening edit mode:', e);
         alert('Error opening edit mode: ' + e.message);
@@ -4141,11 +4141,11 @@ window.adetOutcomeTypeChanged = function () {
     const textEl = document.getElementById('adet-e-outcome-text-wrap');
     const pfEl = document.getElementById('adet-e-outcome-posture-wrap');
     const afEl = document.getElementById('adet-e-outcome-asset-wrap');
-    
+
     if (textEl) textEl.style.display = val === 'text' ? 'block' : 'none';
     if (pfEl) pfEl.style.display = val === 'posture' ? 'block' : 'none';
     if (afEl) afEl.style.display = val === 'asset' ? 'block' : 'none';
-    
+
     // If posture is chosen and no stakeholders loaded yet, populate it:
     if (val === 'posture') {
         const shSel = document.getElementById('adet-e-outcome-stakeholder');
@@ -4193,7 +4193,7 @@ window.adetAddTodo = function () {
     if (el) el.insertAdjacentHTML('beforeend', _adetMakeEditTodoRow('new-' + Date.now(), false, ''));
 };
 
-window.adetSetGranularity = function(gran) {
+window.adetSetGranularity = function (gran) {
     document.getElementById('adet-e-date-granularity').value = gran;
     document.querySelectorAll('#adet-e-gran-seg .adet-seg-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.gran === gran);
@@ -4201,14 +4201,14 @@ window.adetSetGranularity = function(gran) {
     window.adetGranularityChange();
 };
 
-window.adetGranularityChange = function() {
+window.adetGranularityChange = function () {
     const gran = document.getElementById('adet-e-date-granularity').value;
     const d = document.getElementById('adet-e-due-date');
     const w = document.getElementById('adet-e-due-week');
     const m = document.getElementById('adet-e-due-month');
-    if(d) d.style.display = (gran === 'date') ? 'block' : 'none';
-    if(w) w.style.display = (gran === 'week') ? 'block' : 'none';
-    if(m) m.style.display = (gran === 'month') ? 'block' : 'none';
+    if (d) d.style.display = (gran === 'date') ? 'block' : 'none';
+    if (w) w.style.display = (gran === 'week') ? 'block' : 'none';
+    if (m) m.style.display = (gran === 'month') ? 'block' : 'none';
 };
 
 // ── Accordion helper ─────────────────────────────────────────────────
@@ -4242,11 +4242,11 @@ window.closeActionDetailEdit = function () {
     // Remove Cancel button
     const cancelBtn = document.getElementById('adet-header-cancel-btn');
     if (cancelBtn) cancelBtn.remove();
-    
+
     // Hide floating save bar
     const saveBar = document.getElementById('adet-floating-save-bar');
     if (saveBar) saveBar.style.display = 'none';
-    
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
@@ -4304,18 +4304,18 @@ window.adetSave = async function () {
     // Granularity & Due Date Extraction
     const gran = document.getElementById('adet-e-date-granularity')?.value || 'date';
     let finalDueDate = '';
-    
+
     let activeInputId = 'adet-e-due-date';
     if (gran === 'week') activeInputId = 'adet-e-due-week';
     if (gran === 'month') activeInputId = 'adet-e-due-month';
-    
+
     const dateInp = document.getElementById(activeInputId);
     const timeInp = document.getElementById('adet-e-due-time');
-    
+
     if (dateInp && dateInp.value) {
         let val = dateInp.value; // YYYY-MM-DD or YYYY-MM or YYYY-Www
         let timeStr = (timeInp && timeInp.value) ? timeInp.value : '00:00';
-        
+
         try {
             if (gran === 'month') {
                 finalDueDate = `${val}-01T${timeStr}:00`;
@@ -4323,17 +4323,17 @@ window.adetSave = async function () {
                 // simple week to date parser (fallback to today if invalid)
                 const [y, w] = val.split('-W');
                 if (y && w) {
-                    const simpleD = new Date(parseInt(y), 0, 1 + (parseInt(w)-1)*7);
-                    const m = String(simpleD.getMonth()+1).padStart(2, '0');
+                    const simpleD = new Date(parseInt(y), 0, 1 + (parseInt(w) - 1) * 7);
+                    const m = String(simpleD.getMonth() + 1).padStart(2, '0');
                     const d = String(simpleD.getDate()).padStart(2, '0');
                     finalDueDate = `${simpleD.getFullYear()}-${m}-${d}T${timeStr}:00`;
                 }
             } else {
                 finalDueDate = `${val}T${timeStr}:00`;
             }
-        } catch(e) {}
+        } catch (e) { }
     }
-    
+
     const textInp = document.getElementById('adet-e-due-text');
     const finalDueDisplay = textInp ? textInp.value : '';
 
@@ -4381,7 +4381,7 @@ window.adetSave = async function () {
         kpiTarget: document.getElementById('adet-e-kpi')?.value || '',
         timing: {
             granularity: gran,
-            dueDate: finalDueDate, 
+            dueDate: finalDueDate,
             dueDateDisplay: finalDueDisplay,
             dueDetail: document.getElementById('adet-e-due-detail')?.value || '',
             startDate: document.getElementById('adet-e-start')?.value || '',
@@ -4547,7 +4547,7 @@ window._approvePendingAction = async function (actionId) {
     if (!action) return;
     action.status = 'Planned';
     window.updateData('actions', actions);
-    
+
     if (window._sb) {
         try {
             await window._sb.from('tbl_action').update({ act_status: 'Planned' }).eq('act_id', actionId);
@@ -4556,7 +4556,7 @@ window._approvePendingAction = async function (actionId) {
             console.error('[Approvals] Failed to save approval to DB:', e);
         }
     }
-    
+
     console.log('[Approvals] Approved action', action.activity, '→ Planned');
     window._renderPendingActions();
 };
@@ -4607,7 +4607,7 @@ function _renderSingleContentCardHtml(c, allCards, dataKey, containerId, context
 
     // Render this card's primary content
     const cardContent = window._renderCardTypeContent(c, contextData);
-    
+
     // Render nested children recursively
     const children = allCards.filter(child => child.cc_parent_card_id === c.cc_id);
     let childrenHtml = '';
@@ -4638,7 +4638,7 @@ async function renderStrategySpine() {
 window._renderCardTypeContent = function (card, spine) {
     const type = card.cc_card_type || 'card';
     let filter = {};
-    try { if (card.cc_content && card.cc_content.startsWith('{')) filter = JSON.parse(card.cc_content); } catch(e) {}
+    try { if (card.cc_content && card.cc_content.startsWith('{')) filter = JSON.parse(card.cc_content); } catch (e) { }
 
     switch (type) {
         case 'objectives_link': {
@@ -4670,9 +4670,9 @@ window._renderCardTypeContent = function (card, spine) {
         case 'stakeholder_summary': {
             const stakeholders = window.getData('stakeholders') || [];
             const total = stakeholders.length;
-            const healthy = stakeholders.filter(s => ['Active','Stable','Operational'].includes(s.status)).length;
-            const neutral = stakeholders.filter(s => ['Monitor','Dormant'].includes(s.status)).length;
-            const atRisk = stakeholders.filter(s => ['Needs Attention','Critical/At Risk','Strained','Friction Points'].includes(s.status)).length;
+            const healthy = stakeholders.filter(s => ['Active', 'Stable', 'Operational'].includes(s.status)).length;
+            const neutral = stakeholders.filter(s => ['Monitor', 'Dormant'].includes(s.status)).length;
+            const atRisk = stakeholders.filter(s => ['Needs Attention', 'Critical/At Risk', 'Strained', 'Friction Points'].includes(s.status)).length;
             return `<h4 style="margin:0 0 0.75rem 0;color:var(--text-tertiary);">${card.cc_title || 'Stakeholders'}</h4>
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <div><div style="font-size:2.5rem;font-weight:700;">${total}</div><div style="font-size:0.75rem;color:var(--text-tertiary);">Total</div></div>
@@ -4686,8 +4686,8 @@ window._renderCardTypeContent = function (card, spine) {
             let filtered = [...actions];
             const isDone = a => /^complete[d]?$/i.test(a.status || '');
             if (filter.status) filtered = filtered.filter(a => a.status === filter.status);
-            if (filter.filter === 'overdue') { const now = new Date(); filtered = filtered.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate+'T00:00:00') < now && !isDone(a)); }
-            if (filter.filter === 'upcoming') { const now = new Date(); filtered = filtered.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate+'T00:00:00') >= now && !isDone(a)); }
+            if (filter.filter === 'overdue') { const now = new Date(); filtered = filtered.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate + 'T00:00:00') < now && !isDone(a)); }
+            if (filter.filter === 'upcoming') { const now = new Date(); filtered = filtered.filter(a => a.timing?.dueDate && new Date(a.timing.dueDate + 'T00:00:00') >= now && !isDone(a)); }
             if (filter.id) filtered = filtered.filter(a => a.id === filter.id);
             const limit = type === 'action_single' ? 1 : (filter.limit || 3);
             filtered.sort((a, b) => (a.timing?.dueDate || '9999').localeCompare(b.timing?.dueDate || '9999'));
@@ -4711,8 +4711,8 @@ window._renderCardTypeContent = function (card, spine) {
         case 'action_summary': {
             const actions = window.getData('actions') || [];
             const total = actions.length;
-            const active = actions.filter(a => ['In Progress','Planned'].includes(a.status)).length;
-            const overdue = actions.filter(a => { if (/^complete[d]?$/i.test(a.status)) return false; if (!a.timing?.dueDate) return false; return new Date(a.timing.dueDate+'T00:00:00') < new Date(); }).length;
+            const active = actions.filter(a => ['In Progress', 'Planned'].includes(a.status)).length;
+            const overdue = actions.filter(a => { if (/^complete[d]?$/i.test(a.status)) return false; if (!a.timing?.dueDate) return false; return new Date(a.timing.dueDate + 'T00:00:00') < new Date(); }).length;
             return `<h4 style="margin:0 0 0.75rem 0;color:var(--text-tertiary);">${card.cc_title || 'Actions'}</h4>
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <div><div style="font-size:2.5rem;font-weight:700;">${total}</div><div style="font-size:0.75rem;color:var(--text-tertiary);">Total</div></div>
@@ -4733,7 +4733,7 @@ window._renderCardTypeContent = function (card, spine) {
             return `<h4 style="margin:0 0 0.75rem 0;color:var(--text-tertiary);">${card.cc_title || 'Updates'}</h4>` +
                 items.map(i => {
                     return `<div style="padding:0.6rem;border:1px solid var(--border-subtle);border-radius:6px;margin-bottom:0.4rem;cursor:pointer;" onclick="window.currentInteractionId='${i.id}';loadView('interaction_detail');history.pushState(null,'','#interaction_detail')" onmouseover="if(!document.querySelector('.ce-dragging')) this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
-                        <div style="font-size:0.72rem;color:${i.type==='Upcoming'?'var(--energy-alert)':'var(--text-tertiary)'};font-weight:600;margin-bottom:0.2rem;">${i.rawDate || ''} — ${i.type || ''}</div>
+                        <div style="font-size:0.72rem;color:${i.type === 'Upcoming' ? 'var(--energy-alert)' : 'var(--text-tertiary)'};font-weight:600;margin-bottom:0.2rem;">${i.rawDate || ''} — ${i.type || ''}</div>
                         <div style="font-weight:600;font-size:0.88rem;">${i.title}</div>
                     </div>`;
                 }).join('');
@@ -4763,12 +4763,12 @@ window._renderCardTypeContent = function (card, spine) {
             // Generic card
             if (card.cc_is_collapsible) {
                 return `<details class="ce-card-collapsible" data-card-id="${card.cc_id}">
-                    <summary class="ce-card-title" data-card-id="${card.cc_id}" style="margin:0; font-weight:600; cursor:pointer; color:var(--text-primary);">${card.cc_title||''}</summary>
-                    <div class="ce-card-content" data-card-id="${card.cc_id}" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap; margin-top:0.75rem;">${card.cc_content||''}</div>
+                    <summary class="ce-card-title" data-card-id="${card.cc_id}" style="margin:0; font-weight:600; cursor:pointer; color:var(--text-primary);">${card.cc_title || ''}</summary>
+                    <div class="ce-card-content" data-card-id="${card.cc_id}" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap; margin-top:0.75rem;">${card.cc_content || ''}</div>
                 </details>`;
             } else {
-                return `<h4 class="ce-card-title" data-card-id="${card.cc_id}" style="margin:0 0 0.75rem 0;">${card.cc_title||''}</h4>
-                    <div class="ce-card-content" data-card-id="${card.cc_id}" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap;">${card.cc_content||''}</div>`;
+                return `<h4 class="ce-card-title" data-card-id="${card.cc_id}" style="margin:0 0 0.75rem 0;">${card.cc_title || ''}</h4>
+                    <div class="ce-card-content" data-card-id="${card.cc_id}" style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;white-space:pre-wrap;">${card.cc_content || ''}</div>`;
             }
         }
     }
@@ -4802,14 +4802,14 @@ function renderContentCards(dataKey, containerId) {
             html += `<div class="ce-section-row" data-card-id="${sc.cc_id}" draggable="false" style="display:flex;justify-content:space-between;align-items:center;margin:2rem 0 1rem;">
                 <div style="display:flex;align-items:center;gap:0.25rem;flex:1;">
                     <span class="ce-drag-grip" data-grip-id="${sc.cc_id}" title="Drag to reorder" style="display:${isAppEditMode ? 'inline-block' : 'none'};">⠿</span>
-                    <h3 class="ce-section-title" data-card-id="${sc.cc_id}" style="color:var(--text-tertiary);margin:0;">${sc.cc_title||''}</h3>
+                    <h3 class="ce-section-title" data-card-id="${sc.cc_id}" style="color:var(--text-tertiary);margin:0;">${sc.cc_title || ''}</h3>
                 </div>
                 <div class="ce-edit-ctrl" style="display:none;gap:0.5rem;align-items:center;">
                     <select class="ce-width-select" data-card-id="${sc.cc_id}" style="display:none;font-size:0.75rem;padding:0.15rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);">
-                        <option value="full"${sc.cc_width==='full'?' selected':''}>Full</option>
-                        <option value="half"${sc.cc_width==='half'?' selected':''}>Half</option>
-                        <option value="third"${sc.cc_width==='third'?' selected':''}>Third</option>
-                        <option value="quarter"${sc.cc_width==='quarter'?' selected':''}>Quarter</option>
+                        <option value="full"${sc.cc_width === 'full' ? ' selected' : ''}>Full</option>
+                        <option value="half"${sc.cc_width === 'half' ? ' selected' : ''}>Half</option>
+                        <option value="third"${sc.cc_width === 'third' ? ' selected' : ''}>Third</option>
+                        <option value="quarter"${sc.cc_width === 'quarter' ? ' selected' : ''}>Quarter</option>
                     </select>
                     <button onclick="window.ceMoveCard(${sc.cc_id},-1,'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;" title="Move up"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_upward</span></button>
                     <button onclick="window.ceMoveCard(${sc.cc_id},1,'${dataKey}','${containerId}')" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;" title="Move down"><span class="material-symbols-outlined" style="font-size:1rem;">arrow_downward</span></button>
@@ -4820,8 +4820,8 @@ function renderContentCards(dataKey, containerId) {
 
         // Render content cards in this section
         const gridCols = section.width === 'half' ? 'repeat(2,1fr)' :
-                         section.width === 'third' ? 'repeat(3,1fr)' :
-                         section.width === 'quarter' ? 'repeat(4,1fr)' : '1fr';
+            section.width === 'third' ? 'repeat(3,1fr)' :
+                section.width === 'quarter' ? 'repeat(4,1fr)' : '1fr';
         if (section.cards.length > 0) {
             html += `<div style="display:grid;grid-template-columns:${gridCols};gap:1.5rem;margin-bottom:1.5rem;">`;
             section.cards.forEach(c => {
@@ -4850,8 +4850,8 @@ function renderSpineObjectives(objectives, wrapInCard = true) {
                 <span class="spine-obj-text" data-obj-id="${o.id}">${o.text}</span>
             </div>
             <div class="ce-edit-ctrl" style="display:none;gap:0.25rem;align-items:center;">
-                <button onclick="window.spineMoveObj('${o.id}',-1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);opacity:${idx===0?'0.2':'1'};" ${idx===0?'disabled':''}><span class="material-symbols-outlined" style="font-size:1.1rem;">arrow_upward</span></button>
-                <button onclick="window.spineMoveObj('${o.id}',1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);opacity:${idx===objectives.length-1?'0.2':'1'};" ${idx===objectives.length-1?'disabled':''}><span class="material-symbols-outlined" style="font-size:1.1rem;">arrow_downward</span></button>
+                <button onclick="window.spineMoveObj('${o.id}',-1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);opacity:${idx === 0 ? '0.2' : '1'};" ${idx === 0 ? 'disabled' : ''}><span class="material-symbols-outlined" style="font-size:1.1rem;">arrow_upward</span></button>
+                <button onclick="window.spineMoveObj('${o.id}',1)" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);opacity:${idx === objectives.length - 1 ? '0.2' : '1'};" ${idx === objectives.length - 1 ? 'disabled' : ''}><span class="material-symbols-outlined" style="font-size:1.1rem;">arrow_downward</span></button>
                 <button onclick="window.spineDeleteObj('${o.id}')" style="background:none;border:none;cursor:pointer;color:var(--energy-alert);"><span class="material-symbols-outlined" style="font-size:1.1rem;">delete</span></button>
             </div>
         </li>`;
@@ -4865,7 +4865,7 @@ function renderSpineObjectives(objectives, wrapInCard = true) {
 function setupContentEditToggle(dataKey, containerId, btnId) {
     const old = document.getElementById(btnId);
     if (!old) return;
-    
+
     // Ensure button is reset to default visually if we're not in edit mode
     if (!isAppEditMode) {
         old.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
@@ -4873,7 +4873,7 @@ function setupContentEditToggle(dataKey, containerId, btnId) {
         old.style.background = '';
         old.style.color = '';
     }
-    
+
     const editToggle = old.cloneNode(true);
     old.parentNode.replaceChild(editToggle, old);
 
@@ -4893,7 +4893,7 @@ function setupContentEditToggle(dataKey, containerId, btnId) {
             // Re-fetch and re-render (discard local changes)
             if (dataKey === 'messaging') _msgCards = await window.fetchContentCards(2);
             else _spineCards = await window.fetchContentCards(1);
-            renderContentCards(dataKey, containerId); 
+            renderContentCards(dataKey, containerId);
             setupContentEditToggle(dataKey, containerId, btnId);
         });
     }
@@ -5065,7 +5065,7 @@ async function persistContentEdits(dataKey, containerId, btnId) {
     // Refresh spine cache and re-render
     if (dataKey === 'messaging') _msgCards = await window.fetchContentCards(2);
     else _spineCards = await window.fetchContentCards(1);
-    
+
     // Also refresh spine data for objectives
     if (dataKey === 'spine') await window.getData('spine');
     renderContentCards(dataKey, containerId);
@@ -5082,7 +5082,7 @@ window.ceChangeCardEntity = function (ccId, entity, dataKey) {
         const needsFormat = ['action', 'interaction', 'stakeholder'].includes(entity);
         if (needsFormat) finalType = `${entity}_view`;
         card.cc_card_type = finalType;
-        
+
         // Update DOM for format dropdown
         const sel = document.querySelector(`.ce-entity-select[data-card-id="${ccId}"]`);
         if (sel) {
@@ -5093,8 +5093,8 @@ window.ceChangeCardEntity = function (ccId, entity, dataKey) {
                     formatSel.className = 'ce-format-select';
                     formatSel.dataset.cardId = ccId;
                     formatSel.style.cssText = "font-size:0.72rem;padding:0.15rem 0.3rem;border-radius:4px;background:var(--bg-app);border:1px solid var(--border-subtle);color:var(--text-primary);max-width:110px;";
-                    formatSel.onchange = function() { window.ceChangeCardFormat(ccId, this.value, entity, dataKey); };
-                    
+                    formatSel.onchange = function () { window.ceChangeCardFormat(ccId, this.value, entity, dataKey); };
+
                     const formatOptions = [
                         { value: 'view', label: 'List (Top 3)' },
                         { value: 'summary', label: 'Summary Stats' },
@@ -5143,15 +5143,15 @@ window.ceMoveCard = function (ccId, direction, dataKey, containerId) {
 window.ceDeleteCard = async function (ccId, dataKey, containerId) {
     if (!confirm('Remove this card?')) return;
     if (window.softDeleteContentCard) await window.softDeleteContentCard(ccId);
-    
+
     if (dataKey === 'messaging') _msgCards = (_msgCards || []).filter(c => c.cc_id !== ccId);
     else _spineCards = (_spineCards || []).filter(c => c.cc_id !== ccId);
 
     // Also update spine cache for pillars
     const spine = window.getData('spine');
     if (spine && dataKey === 'spine') { spine.pillars = spine.pillars.filter(p => p.id !== 'p' + ccId); window.updateData('spine', spine); }
-    
-    renderContentCards(dataKey, containerId); 
+
+    renderContentCards(dataKey, containerId);
     setupContentEditToggle(dataKey, containerId, containerId.replace('cards-container', 'edit-toggle'));
     if (isAppEditMode) { isAppEditMode = false; document.getElementById(containerId.replace('cards-container', 'edit-toggle'))?.click(); }
 };
@@ -5162,11 +5162,11 @@ window.ceAddSection = async function (dataKey, containerId) {
     if (window.insertContentCard) {
         const pageId = dataKey === 'messaging' ? 2 : 1;
         const card = await window.insertContentCard({ cc_page_id: pageId, cc_card_type: 'section', cc_title: 'New Section', cc_width: 'full', cc_order: maxOrder + 1 });
-        if (card) { 
-            if (dataKey === 'messaging') _msgCards.push(card); else _spineCards.push(card); 
-            renderContentCards(dataKey, containerId); 
-            setupContentEditToggle(dataKey, containerId, containerId.replace('cards-container', 'edit-toggle')); 
-            if (isAppEditMode) { isAppEditMode = false; document.getElementById(containerId.replace('cards-container', 'edit-toggle'))?.click(); } 
+        if (card) {
+            if (dataKey === 'messaging') _msgCards.push(card); else _spineCards.push(card);
+            renderContentCards(dataKey, containerId);
+            setupContentEditToggle(dataKey, containerId, containerId.replace('cards-container', 'edit-toggle'));
+            if (isAppEditMode) { isAppEditMode = false; document.getElementById(containerId.replace('cards-container', 'edit-toggle'))?.click(); }
         }
     }
 };
@@ -5177,11 +5177,11 @@ window.ceAddCard = async function (dataKey, containerId) {
     if (window.insertContentCard) {
         const pageId = dataKey === 'messaging' ? 2 : 1;
         const card = await window.insertContentCard({ cc_page_id: pageId, cc_card_type: 'card', cc_title: 'New Card', cc_content: '', cc_width: 'full', cc_order: maxOrder + 1 });
-        if (card) { 
-            if (dataKey === 'messaging') _msgCards.push(card); else _spineCards.push(card); 
-            renderContentCards(dataKey, containerId); 
-            setupContentEditToggle(dataKey, containerId, containerId.replace('cards-container', 'edit-toggle')); 
-            if (isAppEditMode) { isAppEditMode = false; document.getElementById(containerId.replace('cards-container', 'edit-toggle'))?.click(); } 
+        if (card) {
+            if (dataKey === 'messaging') _msgCards.push(card); else _spineCards.push(card);
+            renderContentCards(dataKey, containerId);
+            setupContentEditToggle(dataKey, containerId, containerId.replace('cards-container', 'edit-toggle'));
+            if (isAppEditMode) { isAppEditMode = false; document.getElementById(containerId.replace('cards-container', 'edit-toggle'))?.click(); }
         }
     }
 };
@@ -5191,10 +5191,10 @@ window.spineMoveObj = function (id, dir) {
     if (!spine) return;
     const idx = spine.objectives.findIndex(o => o.id === id);
     if (idx === -1) return;
-    if (dir === -1 && idx > 0) { [spine.objectives[idx], spine.objectives[idx-1]] = [spine.objectives[idx-1], spine.objectives[idx]]; }
-    else if (dir === 1 && idx < spine.objectives.length - 1) { [spine.objectives[idx], spine.objectives[idx+1]] = [spine.objectives[idx+1], spine.objectives[idx]]; }
+    if (dir === -1 && idx > 0) { [spine.objectives[idx], spine.objectives[idx - 1]] = [spine.objectives[idx - 1], spine.objectives[idx]]; }
+    else if (dir === 1 && idx < spine.objectives.length - 1) { [spine.objectives[idx], spine.objectives[idx + 1]] = [spine.objectives[idx + 1], spine.objectives[idx]]; }
     window.updateData('spine', spine);
-    renderContentCards('spine', 'strategy-cards-container'); 
+    renderContentCards('spine', 'strategy-cards-container');
     setupContentEditToggle('spine', 'strategy-cards-container', 'ce-edit-toggle');
     if (isAppEditMode) { isAppEditMode = false; document.getElementById('ce-edit-toggle')?.click(); }
 };
@@ -5207,7 +5207,7 @@ window.spineDeleteObj = async function (id) {
     const soId = parseInt(id.replace('obj', ''));
     if (soId && window.softDeleteStrategyObjective) await window.softDeleteStrategyObjective(soId);
     window.updateData('spine', spine);
-    renderContentCards('spine', 'strategy-cards-container'); 
+    renderContentCards('spine', 'strategy-cards-container');
     setupContentEditToggle('spine', 'strategy-cards-container', 'ce-edit-toggle');
     if (isAppEditMode) { isAppEditMode = false; document.getElementById('ce-edit-toggle')?.click(); }
 };
@@ -5221,7 +5221,7 @@ window.spineAddObj = async function () {
         if (row) { spine.objectives.push({ id: 'obj' + row.so_id, text: 'New Objective' }); }
     } else { spine.objectives.push({ id: 'obj' + Date.now(), text: 'New Objective' }); }
     window.updateData('spine', spine);
-    renderContentCards('spine', 'strategy-cards-container'); 
+    renderContentCards('spine', 'strategy-cards-container');
     setupContentEditToggle('spine', 'strategy-cards-container', 'ce-edit-toggle');
     if (isAppEditMode) { isAppEditMode = false; document.getElementById('ce-edit-toggle')?.click(); }
 };
@@ -5306,7 +5306,7 @@ window._initSpineDragDrop = function (dataKey, containerId) {
         const allEls = getAllCardEls();
         let hoverEl = null;
         let isInside = false;
-        
+
         for (const el of allEls) {
             if (el === dragEl) continue;
             const rect = el.getBoundingClientRect();
@@ -5327,7 +5327,7 @@ window._initSpineDragDrop = function (dataKey, containerId) {
                 const clampedX = Math.max(rect.left, Math.min(e.clientX, rect.right));
                 const clampedY = Math.max(rect.top, Math.min(e.clientY, rect.bottom));
                 const dist = Math.sqrt(Math.pow(e.clientX - clampedX, 2) + Math.pow(e.clientY - clampedY, 2));
-                
+
                 if (dist < minDist && dist < 60) { // 60px snap radius for gaps
                     minDist = dist;
                     hoverEl = el;
@@ -5343,9 +5343,9 @@ window._initSpineDragDrop = function (dataKey, containerId) {
             if (horizontal) {
                 // Horizontal grid: use left/right/center zones
                 const relX = (e.clientX - rect.left) / rect.width;
-                if (relX < 0.3 || (!isInside && e.clientX < rect.left + rect.width/2)) {
+                if (relX < 0.3 || (!isInside && e.clientX < rect.left + rect.width / 2)) {
                     hoverEl.classList.add('spine-drop-left');
-                } else if (relX > 0.7 || (!isInside && e.clientX >= rect.left + rect.width/2)) {
+                } else if (relX > 0.7 || (!isInside && e.clientX >= rect.left + rect.width / 2)) {
                     hoverEl.classList.add('spine-drop-right');
                 } else if (!isSection && isInside) {
                     hoverEl.classList.add('spine-drop-nest');
@@ -5355,9 +5355,9 @@ window._initSpineDragDrop = function (dataKey, containerId) {
             } else {
                 // Vertical layout: use top/bottom/center zones
                 const relY = (e.clientY - rect.top) / rect.height;
-                if (relY < 0.3 || (!isInside && e.clientY < rect.top + rect.height/2)) {
+                if (relY < 0.3 || (!isInside && e.clientY < rect.top + rect.height / 2)) {
                     hoverEl.classList.add('spine-drop-above');
-                } else if (relY > 0.7 || (!isInside && e.clientY >= rect.top + rect.height/2)) {
+                } else if (relY > 0.7 || (!isInside && e.clientY >= rect.top + rect.height / 2)) {
                     hoverEl.classList.add('spine-drop-below');
                 } else if (!isSection && isInside) {
                     hoverEl.classList.add('spine-drop-nest');
@@ -5503,13 +5503,13 @@ function renderMessagingFromMock() {
     fakeCards.push({ cc_id: 900 + order, cc_card_type: 'section', cc_title: 'Key Audience Specific Messages', cc_order: order++ });
     (kb.audienceMessages || []).forEach(a => {
         const sh = stakeholders.find(s => s.name === a.title);
-        fakeCards.push({ 
-            cc_id: 900 + order, 
-            cc_card_type: 'audience_message', 
-            cc_title: a.title, 
-            cc_content: a.text, 
+        fakeCards.push({
+            cc_id: 900 + order,
+            cc_card_type: 'audience_message',
+            cc_title: a.title,
+            cc_content: a.text,
             cc_linked_entity_id: sh ? sh.id : null,
-            cc_order: order++ 
+            cc_order: order++
         });
     });
     _msgCards = fakeCards;
@@ -5533,7 +5533,7 @@ window._pendingApprovals = [];
 window._approvalEditMode = false;
 window.currentApprovalId = null;
 
-window.renderApprovals = window._doRenderApprovals = async function() {
+window.renderApprovals = window._doRenderApprovals = async function () {
     const container = document.getElementById('approvals-list-container');
     if (!container) return;
 
@@ -5552,10 +5552,10 @@ window.renderApprovals = window._doRenderApprovals = async function() {
     }
 };
 
-window.renderApprovalsList = function() {
+window.renderApprovalsList = function () {
     const container = document.getElementById('approvals-list-container');
     if (!container) return;
-    
+
     // Ensure detail container is hidden and list is shown
     let detailContainer = document.getElementById('approvals-detail-container');
     if (detailContainer) detailContainer.style.display = 'none';
@@ -5590,16 +5590,16 @@ window.renderApprovalsList = function() {
     container.innerHTML = html;
 };
 
-window.viewApproval = function(mpcId) {
+window.viewApproval = function (mpcId) {
     window.currentApprovalId = mpcId;
     window._approvalEditMode = false;
     window.renderApprovalDetail();
 };
 
-window.renderApprovalDetail = function() {
+window.renderApprovalDetail = function () {
     const app = window._pendingApprovals.find(a => a.mpc_id === window.currentApprovalId);
     if (!app) return;
-    
+
     let detailContainer = document.getElementById('approvals-detail-container');
     if (!detailContainer) {
         detailContainer = document.createElement('div');
@@ -5611,7 +5611,7 @@ window.renderApprovalDetail = function() {
         if (parent) parent.appendChild(detailContainer);
         else return;
     }
-    
+
     const listContainer = document.getElementById('approvals-list-container');
     if (listContainer) listContainer.style.display = 'none';
     detailContainer.style.display = 'flex';
@@ -5622,13 +5622,13 @@ window.renderApprovalDetail = function() {
         let data = {};
         try {
             data = typeof app.mpc_proposed_data === 'string' ? JSON.parse(app.mpc_proposed_data || '{}') : (app.mpc_proposed_data || {});
-        } catch(e) {}
+        } catch (e) { }
         const table = app.mpc_target_table;
-        
-        const field = (key, label, type='text') => {
+
+        const field = (key, label, type = 'text') => {
             const val = data[key] || '';
             const baseStyle = "width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: rgba(255,255,255,0.05); color: var(--text-primary); font-family: inherit;";
-            
+
             if (readOnly) {
                 return `<div style="margin-bottom: 0.75rem;">
                     <label style="display:block; font-size:0.8rem; margin-bottom:0.25rem; color:var(--text-tertiary);">${label}</label>
@@ -5648,16 +5648,16 @@ window.renderApprovalDetail = function() {
                 ${content}
             </div>
         `;
-        
+
         const row = (content) => `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">${content}</div>`;
 
         if (table === 'tbl_action') {
             return `<div id="${readOnly ? '' : 'app-form-' + app.mpc_id}">
                 ${section('Definition', field('description', 'Description', 'textarea'))}
-                ${section('Impact', 
-                    row(field('status', 'Status') + field('priority', 'Priority')) +
-                    row(field('desired_outcome', 'Desired Outcome') + field('success_criteria', 'Success Criteria'))
-                )}
+                ${section('Impact',
+                row(field('status', 'Status') + field('priority', 'Priority')) +
+                row(field('desired_outcome', 'Desired Outcome') + field('success_criteria', 'Success Criteria'))
+            )}
                 ${section('Logistics', row(field('start_date', 'Start Date', 'date') + field('due_date', 'Due Date', 'date')))}
                 ${section('Version Control', row(field('recent_progress', 'Recent Progress', 'textarea') + field('current_blockers', 'Current Blockers', 'textarea')))}
                 ${section('Other', field('note', 'Note', 'textarea'))}
@@ -5665,18 +5665,18 @@ window.renderApprovalDetail = function() {
         } else if (table === 'tbl_stakeholder') {
             return `<div id="${readOnly ? '' : 'app-form-' + app.mpc_id}">
                 ${section('Definition', row(field('name', 'Name') + field('role', 'Role')))}
-                ${section('Posture', 
-                    row(field('posture_current', 'Current Posture') + field('posture_desired', 'Desired Posture')) +
-                    row(field('posture_next_step', 'Next Step') + field('posture_target_date', 'Target Date', 'date'))
-                )}
+                ${section('Posture',
+                row(field('posture_current', 'Current Posture') + field('posture_desired', 'Desired Posture')) +
+                row(field('posture_next_step', 'Next Step') + field('posture_target_date', 'Target Date', 'date'))
+            )}
             </div>`;
         } else if (table === 'tbl_contact') {
             return `<div id="${readOnly ? '' : 'app-form-' + app.mpc_id}">
                 ${section('Profile', row(field('first_name', 'First Name') + field('last_name', 'Last Name')))}
-                ${section('Contact Info', 
-                    row(field('email', 'Email', 'email') + field('phone', 'Phone', 'tel')) +
-                    field('organisation', 'Organisation')
-                )}
+                ${section('Contact Info',
+                row(field('email', 'Email', 'email') + field('phone', 'Phone', 'tel')) +
+                field('organisation', 'Organisation')
+            )}
                 ${section('Other', field('notes', 'Notes', 'textarea'))}
             </div>`;
         } else if (table === 'tbl_risk') {
@@ -5714,14 +5714,14 @@ window.renderApprovalDetail = function() {
                         Source: ${app.mpc_source} | Target: ${app.mpc_target_table}
                     </div>
                 </div>
-                ${!isEdit ? 
-                    `<button class="btn-primary" onclick="window._approvalEditMode = true; window.renderApprovalDetail();" style="display:flex; align-items:center; gap:0.4rem; padding: 0.5rem 1rem;">
+                ${!isEdit ?
+            `<button class="btn-primary" onclick="window._approvalEditMode = true; window.renderApprovalDetail();" style="display:flex; align-items:center; gap:0.4rem; padding: 0.5rem 1rem;">
                         <span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit / Merge
-                    </button>` : 
-                    `<button class="btn-secondary" onclick="window._approvalEditMode = false; window.renderApprovalDetail();" style="display:flex; align-items:center; gap:0.4rem; padding: 0.5rem 1rem;">
+                    </button>` :
+            `<button class="btn-secondary" onclick="window._approvalEditMode = false; window.renderApprovalDetail();" style="display:flex; align-items:center; gap:0.4rem; padding: 0.5rem 1rem;">
                         Cancel Edit
                     </button>`
-                }
+        }
             </div>
             
             <div class="approval-field">
@@ -5741,11 +5741,11 @@ window.renderApprovalDetail = function() {
     `;
 };
 
-window.rejectApproval = async function(mpcId) {
+window.rejectApproval = async function (mpcId) {
     if (!confirm('Are you sure you want to reject this extraction?')) return;
     const card = document.getElementById(`approval-card-${mpcId}`);
     if (card) card.style.opacity = '0.5';
-    
+
     const success = await window.approvePendingChange(mpcId, null, 'rejected');
     if (success) {
         window._pendingApprovals = window._pendingApprovals.filter(a => a.mpc_id !== mpcId);
@@ -5756,7 +5756,7 @@ window.rejectApproval = async function(mpcId) {
     }
 };
 
-window.saveAndApproveApproval = async function(mpcId) {
+window.saveAndApproveApproval = async function (mpcId) {
     let finalData = {};
     const app = (window._pendingApprovals || []).find(a => a.mpc_id === mpcId);
     if (!app) return;
@@ -5773,10 +5773,10 @@ window.saveAndApproveApproval = async function(mpcId) {
     } else {
         finalData = typeof app.mpc_proposed_data === 'string' ? JSON.parse(app.mpc_proposed_data || '{}') : (app.mpc_proposed_data || {});
     }
-    
+
     const card = document.getElementById(`approval-card-${mpcId}`);
     if (card) card.style.opacity = '0.5';
-    
+
     const success = await window.approvePendingChange(mpcId, finalData, window._approvalEditMode ? 'edited_then_approved' : 'approved');
     if (success) {
         window._pendingApprovals = window._pendingApprovals.filter(a => a.mpc_id !== mpcId);
@@ -5788,7 +5788,7 @@ window.saveAndApproveApproval = async function(mpcId) {
 };
 
 // Global click listener for closing popovers
-document.addEventListener('click', function(e) {
+document.addEventListener('click', function (e) {
     const attPopover = document.getElementById('edit-int-attendees-popover');
     if (attPopover && attPopover.style.display === 'block' && !e.target.closest('#edit-int-attendees-wrapper')) {
         attPopover.style.display = 'none';
@@ -5799,7 +5799,7 @@ document.addEventListener('click', function(e) {
     }
 });
 
-window.showToast = function(message) {
+window.showToast = function (message) {
     let toast = document.getElementById('global-toast');
     if (!toast) {
         toast = document.createElement('div');
@@ -5810,7 +5810,7 @@ window.showToast = function(message) {
     toast.innerText = message;
     toast.style.opacity = '1';
     toast.style.transform = 'translate(-50%, -20px)';
-    
+
     setTimeout(() => {
         toast.style.opacity = '0';
         toast.style.transform = 'translate(-50%, 0)';
@@ -5821,48 +5821,50 @@ window.showToast = function(message) {
 //  CONTACTS
 // ══════════════════════════════════════════════════════════════════════
 
-window.renderContacts = function() {
+window.renderContacts = function () {
     window.filterContacts();
 };
 
-window.filterContacts = function() {
+window.filterContacts = function () {
     const listEl = document.getElementById('contact-list');
     if (!listEl) return;
-    
+
     let query = '';
     const searchInp = document.getElementById('contact-search');
     if (searchInp) query = searchInp.value.toLowerCase();
-    
+
     const contacts = window.getData('contacts') || [];
-    
+
     const filtered = contacts.filter(c => {
-        if (query && !c.name.toLowerCase().includes(query) && 
-            !(c.organisation||'').toLowerCase().includes(query) &&
-            !(c.email||'').toLowerCase().includes(query)) return false;
+        if (query && !c.name.toLowerCase().includes(query) &&
+            !(c.organisation || '').toLowerCase().includes(query) &&
+            !(c.email || '').toLowerCase().includes(query)) return false;
         return true;
     });
-    
+
     listEl.innerHTML = filtered.map(c => `
-        <tr style="border-bottom:1px solid var(--border-subtle); transition:background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background='transparent'">
-            <td style="padding:1rem;">
-                <div style="display:flex; align-items:center; gap:0.75rem;">
-                    <div class="avatar" style="width:32px; height:32px; font-size:0.9rem;">${c.name.charAt(0)}</div>
-                    <div>
-                        <div style="font-weight:600; color:var(--text-primary); font-size:0.9rem;">${c.name}</div>
-                    </div>
+        <div class="adet-card" style="padding:1.5rem; display:flex; flex-direction:column; justify-content:space-between; transition:transform 0.2s, box-shadow 0.2s; cursor:pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.05)';">
+            <div>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+                    <div class="avatar" style="width:48px; height:48px; font-size:1.2rem;">${c.name.charAt(0)}</div>
+                    <span style="display:inline-flex; align-items:center; padding:0.2rem 0.6rem; border-radius:100px; font-size:0.75rem; font-weight:600; background:${c.active ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}; color:${c.active ? 'var(--energy-algae)' : 'var(--energy-alert)'};">
+                        ${c.active ? 'Active' : 'Inactive'}
+                    </span>
                 </div>
-            </td>
-            <td style="padding:1rem; color:var(--text-secondary); font-size:0.9rem;">${c.organisation || '—'}</td>
-            <td style="padding:1rem; color:var(--text-secondary); font-size:0.9rem;">${c.email || '—'}</td>
-            <td style="padding:1rem;">
-                <span style="display:inline-flex; align-items:center; padding:0.2rem 0.5rem; border-radius:100px; font-size:0.75rem; font-weight:600; background:${c.active ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}; color:${c.active ? 'var(--energy-algae)' : 'var(--energy-alert)'};">
-                    ${c.active ? 'Active' : 'Inactive'}
-                </span>
-            </td>
-        </tr>
+                <div style="font-weight:700; color:var(--text-primary); font-size:1.1rem; margin-bottom:0.25rem;">${c.name}</div>
+                <div style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:0.75rem; display:flex; align-items:center; gap:0.4rem;">
+                    <span class="material-symbols-outlined" style="font-size:1rem; color:var(--text-tertiary);">domain</span>
+                    ${c.organisation || 'No Organisation'}
+                </div>
+            </div>
+            <div style="padding-top:1rem; border-top:1px solid var(--border-subtle); color:var(--text-secondary); font-size:0.85rem; display:flex; align-items:center; gap:0.4rem;">
+                <span class="material-symbols-outlined" style="font-size:1rem; color:var(--text-tertiary);">mail</span>
+                ${c.email || 'No Email'}
+            </div>
+        </div>
     `).join('');
-    
+
     if (filtered.length === 0) {
-        listEl.innerHTML = `<tr><td colspan="4" style="padding:2rem; text-align:center; color:var(--text-tertiary);">No contacts found</td></tr>`;
+        listEl.innerHTML = `<div style="grid-column:1/-1; padding:3rem; text-align:center; color:var(--text-tertiary); background:var(--bg-app); border:1px dashed var(--border-subtle); border-radius:12px;">No contacts found</div>`;
     }
 };

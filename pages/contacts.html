@@ -2,14 +2,19 @@
     <div style="display:flex; gap:1rem; align-items:center;">
         <h2 style="margin:0;">Contacts</h2>
     </div>
-    <button class="btn-secondary" onclick="loadView('stakeholders'); history.pushState(null, '', '#stakeholders')">Back to Stakeholders</button>
+    <button class="btn-secondary" onclick="loadView('stakeholders'); history.pushState(null, '', '#stakeholders')">Back
+        to Stakeholders</button>
 </header>
 
-<div class="spine-section" style="padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap:wrap;">
+<div class="spine-section"
+    style="padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap:wrap;">
     <div style="position:relative;">
-        <span class="material-symbols-outlined" style="position:absolute; left:0.6rem; top:50%; transform:translateY(-50%); font-size:1rem; color:var(--text-tertiary); pointer-events:none;">search</span>
+        <span class="material-symbols-outlined"
+            style="position:absolute; left:0.6rem; top:50%; transform:translateY(-50%); font-size:1rem; color:var(--text-tertiary); pointer-events:none;">search</span>
         <input type="text" id="contact-search" placeholder="Search contacts..." oninput="window.filterContacts()"
-            style="width: 300px; padding:0.45rem 0.75rem 0.45rem 2rem; border:1px solid var(--border-subtle); background:rgba(0,0,0,0.02); color:var(--text-primary); border-radius:20px; font-size:0.82rem; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--energy-algae)'" onblur="this.style.borderColor='var(--border-subtle)'">
+            style="width: 300px; padding:0.45rem 0.75rem 0.45rem 2rem; border:1px solid var(--border-subtle); background:rgba(0,0,0,0.02); color:var(--text-primary); border-radius:20px; font-size:0.82rem; outline:none; transition:border-color 0.2s;"
+            onfocus="this.style.borderColor='var(--energy-algae)'"
+            onblur="this.style.borderColor='var(--border-subtle)'">
     </div>
 </div>
 
@@ -18,7 +23,8 @@
         <thead style="background:rgba(0,0,0,0.02); border-bottom:1px solid var(--border-subtle);">
             <tr>
                 <th style="padding:1rem; font-weight:600; color:var(--text-secondary); font-size:0.85rem;">Name</th>
-                <th style="padding:1rem; font-weight:600; color:var(--text-secondary); font-size:0.85rem;">Organisation</th>
+                <th style="padding:1rem; font-weight:600; color:var(--text-secondary); font-size:0.85rem;">Organisation
+                </th>
                 <th style="padding:1rem; font-weight:600; color:var(--text-secondary); font-size:0.85rem;">Email</th>
                 <th style="padding:1rem; font-weight:600; color:var(--text-secondary); font-size:0.85rem;">Status</th>
             </tr>
