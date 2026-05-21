@@ -3767,14 +3767,32 @@ function _adetMakeEditChip(label, removeId) {
 }
 
 function _adetMakeEditTodoRow(id, completed, detail) {
-    return `<div style="display:flex;align-items:center;gap:0.5rem;" id="adet-todo-e-${id}">
+    return `<div style="display:flex;align-items:center;gap:0.5rem;" id="adet-todo-e-${id}" class="adet-todo-row">
+        <div style="display:flex;flex-direction:column;gap:0;color:var(--text-tertiary);cursor:pointer;flex-shrink:0;">
+            <span class="material-symbols-outlined" style="font-size:1.2rem;line-height:0.6;font-weight:600;" onclick="window.adetMoveTodoUp('${id}')">keyboard_arrow_up</span>
+            <span class="material-symbols-outlined" style="font-size:1.2rem;line-height:0.6;font-weight:600;" onclick="window.adetMoveTodoDown('${id}')">keyboard_arrow_down</span>
+        </div>
         <input type="checkbox" ${completed ? 'checked' : ''} style="flex-shrink:0;cursor:pointer;width:16px;height:16px;">
         <input type="text" value="${(detail || '').replace(/"/g, '&quot;')}" placeholder="To-do item…"
             style="flex:1;padding:0.3rem 0.55rem;border:1px solid var(--border-subtle);background:var(--bg-app);color:var(--text-primary);border-radius:5px;font-size:0.82rem;font-family:inherit;">
-        <button onclick="document.getElementById('adet-todo-e-${id}').remove()"
+        <button type="button" onclick="document.getElementById('adet-todo-e-${id}').remove()"
             style="background:#ef4444;border:none;color:#fff;width:22px;height:22px;border-radius:4px;cursor:pointer;font-size:0.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">−</button>
     </div>`;
 }
+
+window.adetMoveTodoUp = function(id) {
+    const row = document.getElementById('adet-todo-e-' + id);
+    if (row && row.previousElementSibling && row.previousElementSibling.classList.contains('adet-todo-row')) {
+        row.parentNode.insertBefore(row, row.previousElementSibling);
+    }
+};
+
+window.adetMoveTodoDown = function(id) {
+    const row = document.getElementById('adet-todo-e-' + id);
+    if (row && row.nextElementSibling && row.nextElementSibling.classList.contains('adet-todo-row')) {
+        row.parentNode.insertBefore(row.nextElementSibling, row);
+    }
+};
 
 // ── window.openActionDetailEdit ──────────────────────────────────────
 
@@ -4270,7 +4288,7 @@ window.adetSave = async function () {
     const allTags = [...new Set([...activePre, ...customTags])];
 
     // Collect IDs from Chips
-    const ownerIds = Array.from(document.querySelectorAll('#adet-e-owner-chips .adet-edit-chip')).map(c => parseInt(c.dataset.id));
+    const ownerIds = Array.from(document.querySelectorAll('#adet-e-owner-chips .adet-edit-chip')).map(c => c.dataset.id);
     const owner = Array.from(document.querySelectorAll('#adet-e-owner-chips .adet-edit-chip')).map(c => c.dataset.name).join(' + ');
 
     const audienceIds = Array.from(document.querySelectorAll('#adet-e-audience-chips .adet-edit-chip')).map(c => c.dataset.id);
