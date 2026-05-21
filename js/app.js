@@ -3828,6 +3828,10 @@ window.openActionDetailEdit = function () {
     set('adet-e-title', a.activity);
     set('adet-e-description', a.description);
 
+    const ownerChips = document.getElementById('adet-e-owner-chips');
+    if (ownerChips) {
+        ownerChips.innerHTML = '';
+        const contacts = window.getData('contacts') || [];
         const oIds = a.ownerIds || [];
         oIds.forEach(id => {
             const c = contacts.find(x => x.id == id) || { id, name: 'Unknown' };
