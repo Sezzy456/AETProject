@@ -45,8 +45,8 @@
     <!-- Advanced button moved to bottom of page -->
 </div>
 
-<!-- ── DESCRIPTION (3/4) + TO-DO (1/4) ─────────────────────── -->
-<div style="display:grid; grid-template-columns:3fr 1fr; gap:1.5rem; align-items:start;">
+<!-- ── DESCRIPTION (1/2) + TO-DO (1/2) ─────────────────────── -->
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; align-items:start;">
     <div>
         <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.4rem; font-weight:500;">Description</div>
         <div class="adet-card" style="padding:1.25rem;">
@@ -78,8 +78,8 @@
 <!-- ── SUBTLE FULL-WIDTH DIVIDER ───────────────────────────── -->
 <div style="border-top:1px solid var(--border-subtle); margin:1.25rem 0; opacity:0.5;"></div>
 
-<!-- ── RECENT PROGRESS (3/4) + BLOCKERS (1/4) ──────────────── -->
-<div style="display:grid; grid-template-columns:3fr 1fr; gap:1.5rem; align-items:start; margin-bottom:1.5rem;">
+<!-- ── RECENT PROGRESS (1/2) + BLOCKERS (1/2) ──────────────── -->
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; align-items:start; margin-bottom:1.5rem;">
     <div>
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.4rem;">
             <div style="font-size:0.8rem; color:var(--text-tertiary); font-weight:500;">Recent Progress</div>
@@ -432,8 +432,8 @@
     </details>
 
     <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-        <button type="button" class="btn-secondary" onclick="window.adetDelete()" style="color: #ef4444; border-color: #fca5a5; margin-right: auto;">Delete Action</button>
-        <button type="button" class="btn-primary" style="padding:0.75rem 2rem; font-size:1rem;" onclick="window.adetSave()">Save Action</button>
+        <button type="button" class="btn-secondary" onclick="if(confirm('Once it is archived it is gone. Are you sure you want to archive this action?')) window.adetArchive();" style="color: #ef4444; border-color: #fca5a5; margin-right: auto;">Archive Action</button>
+        <button type="button" class="btn-primary" style="padding:0.75rem 2rem; font-size:1rem;" onclick="window.adetSave()">Save</button>
     </div>
 
 </div><!-- /adet-edit-mode -->
@@ -441,7 +441,7 @@
 <!-- Floating Save Bar -->
 <div id="adet-floating-save-bar" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--border-subtle); padding:1rem 2rem; box-shadow:0 -4px 12px rgba(0,0,0,0.05); z-index:100; justify-content:flex-end; gap:1rem; align-items:center;">
     <button class="btn-secondary" onclick="window.closeActionDetailEdit()" style="padding: 0.6rem 1.5rem;">Cancel</button>
-    <button class="btn-primary" id="adet-floating-save-btn" onclick="window.adetSave()" style="padding: 0.6rem 2rem; font-weight: 600; background:var(--energy-algae);">Save Action</button>
+    <button class="btn-primary" id="adet-floating-save-btn" onclick="window.adetSave()" style="padding: 0.6rem 2rem; font-weight: 600; background:var(--energy-algae);">Save</button>
 </div>
 
 <!-- ── STYLES ──────────────────────────────────────────────── -->

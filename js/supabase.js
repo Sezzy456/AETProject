@@ -104,7 +104,7 @@ async function fetchActions() {
         const { data: rows, error } = await _sb.from('tbl_action').select('*').eq('ac_active', true);
         if (error) throw error;
 
-        const { data: ownerRows } = await _sb.from('tbl_action_owner').select('ao_action_original_id, ao_contact_id').eq('ao_active', true);
+        const { data: ownerRows } = await _sb.from('tbl_action_owner').select('ao_action_original_id, ao_user_id').eq('ao_active', true);
         const { data: audRows } = await _sb.from('tbl_action_audience').select('aa_action_original_id, aa_stakeholder_original_id').eq('aa_active', true);
         const { data: contacts } = await _sb.from('tbl_contact').select('co_id, co_first_name, co_last_name, co_organisation').eq('co_active', true);
         const { data: stakeholders } = await _sb.from('tbl_stakeholder').select('sta_original_id, sta_name').eq('sta_active', true);
@@ -117,9 +117,9 @@ async function fetchActions() {
 
         return (rows || []).map(r => {
             const origId = String(r.ac_original_id);
-            const owners = (ownerRows||[]).filter(o => String(o.ao_action_original_id)===origId).map(o => { const c=contactMap[o.ao_contact_id]; return c?(c.co_organisation||`${c.co_first_name} ${c.co_last_name}`.trim()):''; }).filter(Boolean);
+            const owners = (ownerRows||[]).filter(o => String(o.ao_action_original_id)===origId).map(o => { const c=contactMap[o.ao_user_id]; return c?(c.co_organisation||`${c.co_first_name} ${c.co_last_name}`.trim()):''; }).filter(Boolean);
             const audiences = (audRows||[]).filter(a => String(a.aa_action_original_id)===origId).map(a => staMap[a.aa_stakeholder_original_id]||a.aa_stakeholder_original_id).filter(Boolean);
-            const ownerIds = (ownerRows||[]).filter(o => String(o.ao_action_original_id)===origId).map(o => String(o.ao_contact_id));
+            const ownerIds = (ownerRows||[]).filter(o => String(o.ao_action_original_id)===origId).map(o => String(o.ao_user_id));
             const audienceIds = (audRows||[]).filter(a => String(a.aa_action_original_id)===origId).map(a => a.aa_stakeholder_original_id);
             const objRef = r.ac_objective_id ? objMap[r.ac_objective_id] : null;
             const versions = (allVersions||[]).filter(v => String(v.ac_original_id)===origId);
@@ -550,17 +550,17 @@ window.updateActionDB = async function(uiData, isNew) {
         // Save Owners
         if (uiData.ownerIds !== undefined) {
             const { data: existingOwners } = await _sb.from('tbl_action_owner').select('*').eq('ao_action_original_id', actionOrigId).eq('ao_active', true);
-            const existingOIds = (existingOwners || []).map(a => String(a.ao_contact_id));
+            const existingOIds = (existingOwners || []).map(a => String(a.ao_user_id));
             const newOIds = (uiData.ownerIds || []).map(id => String(id).replace('c', ''));
             
             const toRemoveO = existingOIds.filter(id => !newOIds.includes(id));
             const toAddO = newOIds.filter(id => !existingOIds.includes(id));
             
             if (toRemoveO.length > 0) {
-                await _sb.from('tbl_action_owner').update({ ao_active: false, ao_modified: new Date().toISOString(), ao_modified_by: 1 }).eq('ao_action_original_id', actionOrigId).in('ao_contact_id', toRemoveO).eq('ao_active', true);
+                await _sb.from('tbl_action_owner').update({ ao_active: false, ao_modified: new Date().toISOString(), ao_modified_by: 1 }).eq('ao_action_original_id', actionOrigId).in('ao_user_id', toRemoveO).eq('ao_active', true);
             }
             if (toAddO.length > 0) {
-                const rows = toAddO.map(cId => ({ ao_action_original_id: actionOrigId, ao_contact_id: parseInt(cId), ao_active: true, ao_created: new Date().toISOString(), ao_created_by: 1, ao_modified: new Date().toISOString(), ao_modified_by: 1 }));
+                const rows = toAddO.map(cId => ({ ao_action_original_id: actionOrigId, ao_user_id: parseInt(cId), ao_active: true, ao_created: new Date().toISOString(), ao_created_by: 1, ao_modified: new Date().toISOString(), ao_modified_by: 1 }));
                 await _sb.from('tbl_action_owner').insert(rows);
             }
         }

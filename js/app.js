@@ -4311,20 +4311,18 @@ window.adetSave = async function () {
         
         try {
             if (gran === 'month') {
-                const d = new Date(`${val}-01T${timeStr}:00`);
-                if (!isNaN(d.getTime())) finalDueDate = d.toISOString();
+                finalDueDate = `${val}-01T${timeStr}:00`;
             } else if (gran === 'week') {
                 // simple week to date parser (fallback to today if invalid)
                 const [y, w] = val.split('-W');
                 if (y && w) {
                     const simpleD = new Date(parseInt(y), 0, 1 + (parseInt(w)-1)*7);
-                    // Add time
-                    simpleD.setHours(parseInt(timeStr.split(':')[0]||0), parseInt(timeStr.split(':')[1]||0));
-                    finalDueDate = simpleD.toISOString();
+                    const m = String(simpleD.getMonth()+1).padStart(2, '0');
+                    const d = String(simpleD.getDate()).padStart(2, '0');
+                    finalDueDate = `${simpleD.getFullYear()}-${m}-${d}T${timeStr}:00`;
                 }
             } else {
-                const d = new Date(`${val}T${timeStr}:00`);
-                if (!isNaN(d.getTime())) finalDueDate = d.toISOString();
+                finalDueDate = `${val}T${timeStr}:00`;
             }
         } catch(e) {}
     }
