@@ -5972,18 +5972,16 @@ window.saveContactEdit = async function() {
         
         document.getElementById('contact-edit-modal').style.display = 'none';
         
-        // Refresh cache and re-render
-        if (window._fetchDataCache && window._fetchDataCache['contacts']) {
-            delete window._fetchDataCache['contacts'];
+        // Refresh contacts data and re-render
+        if (typeof fetchContacts === 'function') {
+            const freshContacts = await fetchContacts();
+            if (freshContacts && typeof window.updateData === 'function') {
+                window.updateData('contacts', freshContacts);
+            }
         }
         
-        // Re-run the global refresh (this calls fetchContacts in supabase.js)
-        if (window.refreshAllData) {
-            await window.refreshAllData();
-        } else if (window._fetchDataCache) {
-            // fallback if no global refresh
-            // just reload the view
-            loadView('contacts');
+        if (typeof window.filterContacts === 'function') {
+            window.filterContacts();
         }
         
     } catch (err) {
