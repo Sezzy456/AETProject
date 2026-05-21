@@ -5922,7 +5922,7 @@ window.viewContactEdit = function(contactId) {
             document.getElementById('ce-last-name').value = parts.slice(1).join(' ') || '';
             document.getElementById('ce-organisation').value = contact.organisation || '';
             document.getElementById('ce-email').value = contact.email || '';
-            document.getElementById('ce-color').value = contact.color || '';
+            document.getElementById('ce-color').value = contact.color || '#10b981';
             document.getElementById('ce-active').checked = contact.active !== false;
         }
     } else {
@@ -5930,7 +5930,7 @@ window.viewContactEdit = function(contactId) {
         document.getElementById('ce-last-name').value = '';
         document.getElementById('ce-organisation').value = '';
         document.getElementById('ce-email').value = '';
-        document.getElementById('ce-color').value = '';
+        document.getElementById('ce-color').value = '#10b981';
         document.getElementById('ce-active').checked = true;
     }
     
@@ -5960,12 +5960,12 @@ window.saveContactEdit = async function() {
     try {
         if (id) {
             // Update
-            const { error } = await window._sb.from('tbl_contact').update(newData).eq('co_id', id);
+            const { error } = await _sb.from('tbl_contact').update(newData).eq('co_id', id);
             if (error) throw error;
             window.showToast('Contact updated successfully');
         } else {
             // Insert
-            const { error } = await window._sb.from('tbl_contact').insert([newData]);
+            const { error } = await _sb.from('tbl_contact').insert([newData]);
             if (error) throw error;
             window.showToast('Contact added successfully');
         }
