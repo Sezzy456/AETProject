@@ -7,7 +7,7 @@
 </header>
 
 <div class="spine-section"
-    style="padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap:wrap;">
+    style="padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: center; justify-content: space-between; flex-wrap:wrap;">
     <div style="position:relative;">
         <span class="material-symbols-outlined"
             style="position:absolute; left:0.6rem; top:50%; transform:translateY(-50%); font-size:1rem; color:var(--text-tertiary); pointer-events:none;">search</span>
@@ -16,21 +16,11 @@
             onfocus="this.style.borderColor='var(--energy-algae)'"
             onblur="this.style.borderColor='var(--border-subtle)'">
     </div>
+    <button class="btn-secondary" onclick="window.toggleContactSort()" id="contact-sort-btn" style="display:flex; align-items:center; gap:0.5rem;">
+        <span class="material-symbols-outlined" style="font-size:1.1rem;">sort_by_alpha</span> Sort A-Z
+    </button>
 </div>
 
-<div class="adet-card" style="padding:0; overflow:hidden;">
-    <table style="width:100%; border-collapse:collapse; text-align:left;">
-        <thead style="background:rgba(0,0,0,0.02); border-bottom:1px solid var(--border-subtle);">
-            <tr>
-                <th style="padding:1rem; font-weight:600; color:var(--text-secondary); font-size:0.85rem;">Name</th>
-                <th style="padding:1rem; font-weight:600; color:var(--text-secondary); font-size:0.85rem;">Organisation
-                </th>
-                <th style="padding:1rem; font-weight:600; color:var(--text-secondary); font-size:0.85rem;">Email</th>
-                <th style="padding:1rem; font-weight:600; color:var(--text-secondary); font-size:0.85rem;">Status</th>
-            </tr>
-        </thead>
-        <tbody id="contact-list">
-            <!-- Populated by JS -->
-        </tbody>
-    </table>
+<div id="contact-list" style="display:flex; flex-direction:column; gap:1rem; padding:1rem 0;">
+    <!-- Populated by JS -->
 </div>

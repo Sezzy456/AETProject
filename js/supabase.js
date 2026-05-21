@@ -91,7 +91,9 @@ async function fetchContacts() {
         return (contacts || []).map(c => ({
             id: c.co_id,
             name: `${c.co_first_name} ${c.co_last_name}`.trim(),
-            organisation: c.co_organisation || ''
+            organisation: c.co_organisation || '',
+            email: c.co_email || '',
+            active: c.co_active
         }));
     } catch (e) { console.error('[Supabase] fetchContacts error:', e); return null; }
 }

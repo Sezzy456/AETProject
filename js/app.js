@@ -5825,6 +5825,17 @@ function renderContacts() {
     window.filterContacts();
 }
 
+window.toggleContactSort = function() {
+    window._contactSortAZ = !window._contactSortAZ;
+    const btn = document.getElementById('contact-sort-btn');
+    if (btn) {
+        btn.innerHTML = window._contactSortAZ 
+            ? `<span class="material-symbols-outlined" style="font-size:1.1rem;">sort_by_alpha</span> Sort Z-A` 
+            : `<span class="material-symbols-outlined" style="font-size:1.1rem;">sort_by_alpha</span> Sort A-Z`;
+    }
+    window.filterContacts();
+};
+
 window.filterContacts = function () {
     const listEl = document.getElementById('contact-list');
     if (!listEl) return;
@@ -5835,20 +5846,39 @@ window.filterContacts = function () {
 
     const contacts = window.getData('contacts') || [];
 
-    const filtered = contacts.filter(c => {
+    let filtered = contacts.filter(c => {
         if (query && !c.name.toLowerCase().includes(query) &&
             !(c.organisation || '').toLowerCase().includes(query) &&
             !(c.email || '').toLowerCase().includes(query)) return false;
         return true;
     });
 
-    listEl.innerHTML = filtered.map(c => `
+    if (window._contactSortAZ === true) {
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (window._contactSortAZ === false) {
+        filtered.sort((a, b) => b.name.localeCompare(a.name));
+    }
+
+    listEl.innerHTML = filtered.map(c => {
+        const parts = c.name.split(' ').filter(p => p);
+        let initials = parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : (parts[0] ? parts[0].substring(0, 2) : '?');
+        initials = initials.toUpperCase();
+        const hue = (c.name.length * (c.name.charCodeAt(0) || 1) * 17) % 360;
+        const color = `hsl(${hue}, 65%, 45%)`;
+        
+        // Contacts are filtered by eq('co_active', true) in supabase, so they are always active if they made it here, 
+        // but we'll check c.active !== false just in case.
+        const isActive = c.active !== false;
+
+        return `
         <div class="adet-card" style="padding:1.5rem; display:flex; flex-direction:column; justify-content:space-between; transition:transform 0.2s, box-shadow 0.2s; cursor:pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.05)';">
             <div>
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
-                    <div class="avatar" style="width:48px; height:48px; font-size:1.2rem;">${c.name.charAt(0)}</div>
-                    <span style="display:inline-flex; align-items:center; padding:0.2rem 0.6rem; border-radius:100px; font-size:0.75rem; font-weight:600; background:${c.active ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}; color:${c.active ? 'var(--energy-algae)' : 'var(--energy-alert)'};">
-                        ${c.active ? 'Active' : 'Inactive'}
+                    <div style="width:48px; height:48px; border-radius:50%; background:${color}; color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:600; flex-shrink:0;">
+                        ${initials}
+                    </div>
+                    <span style="display:inline-flex; align-items:center; padding:0.2rem 0.6rem; border-radius:100px; font-size:0.75rem; font-weight:600; background:${isActive ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}; color:${isActive ? 'var(--energy-algae)' : 'var(--energy-alert)'};">
+                        ${isActive ? 'Active' : 'Inactive'}
                     </span>
                 </div>
                 <div style="font-weight:700; color:var(--text-primary); font-size:1.1rem; margin-bottom:0.25rem;">${c.name}</div>
@@ -5862,7 +5892,8 @@ window.filterContacts = function () {
                 ${c.email || 'No Email'}
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 
     if (filtered.length === 0) {
         listEl.innerHTML = `<div style="grid-column:1/-1; padding:3rem; text-align:center; color:var(--text-tertiary); background:var(--bg-app); border:1px dashed var(--border-subtle); border-radius:12px;">No contacts found</div>`;
