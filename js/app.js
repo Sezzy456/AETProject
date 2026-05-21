@@ -72,6 +72,7 @@ function relativePastDate(dateStr) {
     return `${Math.floor(diff / 365)} year${Math.floor(diff / 365) > 1 ? 's' : ''} ago`;
 }
 
+
 // ---- VERSIONED SAVE UTILITY ----
 // Creates new version row (active=true), deactivates old row.
 // tableName: e.g. 'tbl_action'
@@ -225,6 +226,7 @@ const VIEW_FILES = {
     'strategy_spine': 'pages/strategy_spine.html',
     'knowledge_bank': 'pages/knowledge_bank.html',
     'approvals': 'pages/approvals.html',
+    'contacts': 'pages/contacts.html',
 };
 
 // Maps view names to their post-load render functions
@@ -240,6 +242,7 @@ const VIEW_RENDERERS = {
     'strategy_spine': renderStrategySpine,
     'knowledge_bank': renderMessaging,
     'approvals': renderApprovals,
+    'contacts': renderContacts,
 };
 
 // Track current action being viewed/edited
@@ -3945,30 +3948,37 @@ window.openActionDetailEdit = function () {
     }
 
     if (a.timing?.dueDate) {
-        const d = new Date(a.timing.dueDate);
-        if (!isNaN(d.getTime())) {
-            const iso = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString();
-            if (gran === 'month') {
-                set('adet-e-due-month', iso.substring(0, 7)); // YYYY-MM
-            } else if (gran === 'week') {
-                // Approximate week mapping: use ISO week? Standard <input type="week"> expects 2026-W12
-                // For simplicity, we just set the exact date input as fallback if it's complex, or calculate it.
-                // Let's just set the date to the exact date picker and if they want to edit week they can select week.
-                // To accurately parse to YYYY-Www we'd need a helper, but let's do a simple fallback:
-                set('adet-e-due-date', iso.substring(0, 10)); // YYYY-MM-DD
-                // To support native week, we do our best or fallback
-                try {
-                    const tempD = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-                    tempD.setUTCDate(tempD.getUTCDate() + 4 - (tempD.getUTCDay()||7));
-                    const yearStart = new Date(Date.UTC(tempD.getUTCFullYear(),0,1));
-                    const weekNo = Math.ceil(( ( (tempD - yearStart) / 86400000) + 1)/7);
-                    set('adet-e-due-week', `${tempD.getUTCFullYear()}-W${weekNo.toString().padStart(2, '0')}`);
-                } catch(e) {}
-            } else {
-                set('adet-e-due-date', iso.substring(0, 10)); // YYYY-MM-DD
-            }
-            set('adet-e-due-time', iso.substring(11, 16)); // HH:mm
+        let datePart = a.timing.dueDate;
+        let timePart = '';
+        if (a.timing.dueDate.includes('T')) {
+            const parts = a.timing.dueDate.split('T');
+            datePart = parts[0];
+            timePart = parts[1].substring(0, 5); // HH:mm
+            // If the time is explicitly exactly "00:00", we assume it was cleared.
+            if (timePart === '00:00') timePart = '';
+        } else if (a.timing.dueDate.includes(' ')) {
+            const parts = a.timing.dueDate.split(' ');
+            datePart = parts[0];
+            timePart = parts[1].substring(0, 5);
+            if (timePart === '00:00') timePart = '';
         }
+
+        if (gran === 'month') {
+            set('adet-e-due-month', datePart.substring(0, 7)); // YYYY-MM
+        } else if (gran === 'week') {
+            set('adet-e-due-date', datePart); // YYYY-MM-DD
+            try {
+                const d = new Date(datePart);
+                const tempD = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+                tempD.setUTCDate(tempD.getUTCDate() + 4 - (tempD.getUTCDay()||7));
+                const yearStart = new Date(Date.UTC(tempD.getUTCFullYear(),0,1));
+                const weekNo = Math.ceil(( ( (tempD - yearStart) / 86400000) + 1)/7);
+                set('adet-e-due-week', `${tempD.getUTCFullYear()}-W${weekNo.toString().padStart(2, '0')}`);
+            } catch(e) {}
+        } else {
+            set('adet-e-due-date', datePart); // YYYY-MM-DD
+        }
+        set('adet-e-due-time', timePart); // HH:mm
     } else {
         set('adet-e-due-date', '');
         set('adet-e-due-week', '');
@@ -5807,3 +5817,52 @@ window.showToast = function(message) {
     }, 2500);
 };
 
+// ══════════════════════════════════════════════════════════════════════
+//  CONTACTS
+// ══════════════════════════════════════════════════════════════════════
+
+window.renderContacts = function() {
+    window.filterContacts();
+};
+
+window.filterContacts = function() {
+    const listEl = document.getElementById('contact-list');
+    if (!listEl) return;
+    
+    let query = '';
+    const searchInp = document.getElementById('contact-search');
+    if (searchInp) query = searchInp.value.toLowerCase();
+    
+    const contacts = window.getData('contacts') || [];
+    
+    const filtered = contacts.filter(c => {
+        if (query && !c.name.toLowerCase().includes(query) && 
+            !(c.organisation||'').toLowerCase().includes(query) &&
+            !(c.email||'').toLowerCase().includes(query)) return false;
+        return true;
+    });
+    
+    listEl.innerHTML = filtered.map(c => `
+        <tr style="border-bottom:1px solid var(--border-subtle); transition:background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background='transparent'">
+            <td style="padding:1rem;">
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <div class="avatar" style="width:32px; height:32px; font-size:0.9rem;">${c.name.charAt(0)}</div>
+                    <div>
+                        <div style="font-weight:600; color:var(--text-primary); font-size:0.9rem;">${c.name}</div>
+                    </div>
+                </div>
+            </td>
+            <td style="padding:1rem; color:var(--text-secondary); font-size:0.9rem;">${c.organisation || '—'}</td>
+            <td style="padding:1rem; color:var(--text-secondary); font-size:0.9rem;">${c.email || '—'}</td>
+            <td style="padding:1rem;">
+                <span style="display:inline-flex; align-items:center; padding:0.2rem 0.5rem; border-radius:100px; font-size:0.75rem; font-weight:600; background:${c.active ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}; color:${c.active ? 'var(--energy-algae)' : 'var(--energy-alert)'};">
+                    ${c.active ? 'Active' : 'Inactive'}
+                </span>
+            </td>
+        </tr>
+    `).join('');
+    
+    if (filtered.length === 0) {
+        listEl.innerHTML = `<tr><td colspan="4" style="padding:2rem; text-align:center; color:var(--text-tertiary);">No contacts found</td></tr>`;
+    }
+};

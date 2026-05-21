@@ -117,7 +117,7 @@ async function fetchActions() {
 
         return (rows || []).map(r => {
             const origId = String(r.ac_original_id);
-            const owners = (ownerRows||[]).filter(o => String(o.ao_action_original_id)===origId).map(o => { const c=contactMap[o.ao_user_id]; return c?(c.co_organisation||`${c.co_first_name} ${c.co_last_name}`.trim()):''; }).filter(Boolean);
+            const owners = (ownerRows||[]).filter(o => String(o.ao_action_original_id)===origId).map(o => { const c=contactMap[o.ao_user_id]; return c?(`${c.co_first_name} ${c.co_last_name}`.trim()):''; }).filter(Boolean);
             const audiences = (audRows||[]).filter(a => String(a.aa_action_original_id)===origId).map(a => staMap[a.aa_stakeholder_original_id]||a.aa_stakeholder_original_id).filter(Boolean);
             const ownerIds = (ownerRows||[]).filter(o => String(o.ao_action_original_id)===origId).map(o => String(o.ao_user_id));
             const audienceIds = (audRows||[]).filter(a => String(a.aa_action_original_id)===origId).map(a => a.aa_stakeholder_original_id);
