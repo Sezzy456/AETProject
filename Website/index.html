@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ARRC | Advanced Resource Recovery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <nav class="main-nav">
+      <div class="nav-container">
+        <a href="#landing" class="logo">
+          <span class="logo-text">ARRC</span>
+        </a>
+        <div class="nav-links">
+          <a href="#landing">Story</a>
+          <a href="#economic">Economy</a>
+          <a href="#environmental">Environment</a>
+          <a href="#council">Council Info</a>
+        </div>
+      </div>
+    </nav>
+
+    <main id="app">
+      <!-- Landing Page / Story -->
+      <section id="landing" class="section parallax-section">
+        <div class="parallax-bg layer-1"></div>
+        <div class="parallax-bg layer-2"></div>
+        <div class="parallax-bg layer-3"></div>
+        
+        <div class="container content-overlay">
+          <div class="hero-text">
+            <h1 class="hero-title">Turning Waste into Opportunities</h1>
+            <p class="hero-subtitle">The Advanced Resource Recovery Cycle</p>
+          </div>
+          
+          <div class="arrc-cycle-container">
+            <!-- GSAP Animated Cycle Graphic will go here -->
+            <div class="cycle-nodes">
+              <div class="node" id="node-sanitised">
+                <h3>Sanitised</h3>
+              </div>
+              <div class="cycle-arrow"></div>
+              <div class="node" id="node-sorted">
+                <h3>Sorted</h3>
+              </div>
+              <div class="cycle-arrow"></div>
+              <div class="node" id="node-distributed">
+                <h3>Distributed</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Economic Impact -->
+      <section id="economic" class="section dark-section">
+        <div class="container">
+          <h2 class="section-title">Fostering a Circular Economy</h2>
+          <div class="grid-2">
+            <div class="text-content">
+              <p>ARRC directly boosts the local economy by creating jobs and ensuring valuable materials re-enter the market rather than being buried in a landfill.</p>
+              <ul class="stats-list">
+                <li><span class="stat-number" id="stat-jobs">0</span>+ Local Jobs Created</li>
+                <li><span class="stat-number" id="stat-revenue">0</span>M in Retained Value</li>
+              </ul>
+            </div>
+            <div class="graphic-placeholder">
+              <!-- Placeholder for Circular Economy Infographic -->
+              <div class="circular-graphic"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Environmental Impact -->
+      <section id="environmental" class="section nature-section">
+        <div class="container">
+          <h2 class="section-title">Protecting the Environment</h2>
+          <div class="comparison-container">
+            <div class="compare-card" id="card-landfill">
+              <h3>Landfill (Status Quo)</h3>
+              <div class="bar-chart">
+                <div class="bar methane-bar" data-height="85%"></div>
+                <p>High Methane Emissions</p>
+              </div>
+            </div>
+            <div class="compare-card" id="card-arrc">
+              <h3>Advanced Resource Recovery</h3>
+              <div class="bar-chart">
+                <div class="bar resource-bar" data-height="95%"></div>
+                <p>High Resource Retention</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Council Involvement -->
+      <section id="council" class="section white-section">
+        <div class="container text-center">
+          <h2 class="section-title">Get Your Council Involved</h2>
+          <p class="section-subtitle">Join the movement towards a sustainable, circular economy in your region.</p>
+          <div class="action-steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <h4>Reach Out</h4>
+              <p>Contact our partnership team to explore feasibility.</p>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <h4>Assess</h4>
+              <p>We analyze your local waste streams and identify opportunities.</p>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <h4>Implement</h4>
+              <p>Roll out the ARRC infrastructure in your region.</p>
+            </div>
+          </div>
+          <a href="#" class="btn-primary">Contact Us</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="main-footer">
+      <div class="container">
+        <p>&copy; 2026 Advanced Energy Tech (AET). All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
