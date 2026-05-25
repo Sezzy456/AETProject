@@ -2,14 +2,14 @@
 
 :root {
   /* Color Palette based on "mature nature" aesthetic */
-  --color-bg: #f5f8f5;
+  --color-bg: #e6f0e9; /* Light green base */
   --color-white: #ffffff;
   --color-dark: #0a1f13;
   --color-primary: #1f5c3a; /* Deep forest green */
   --color-primary-light: #2b7a4d;
   --color-accent: #8bc34a; /* Light leaf green */
   --color-text: #2c3e33;
-  --color-text-light: #647b6d;
+  --color-text-light: #4a6655;
   
   --font-heading: 'Outfit', sans-serif;
   --font-body: 'Inter', sans-serif;
@@ -24,13 +24,13 @@
 }
 
 html {
-  scroll-behavior: smooth; /* Smooth scrolling for anchor links */
+  scroll-behavior: smooth;
 }
 
 body {
   font-family: var(--font-body);
   color: var(--color-text);
-  background-color: var(--color-bg);
+  background: linear-gradient(135deg, #e6f0e9 0%, #c9e0d1 100%);
   line-height: 1.6;
   overflow-x: hidden;
 }
@@ -47,6 +47,33 @@ h1, h2, h3, h4, h5 {
   padding: 0 2rem;
   width: 100%;
 }
+
+/* Global Parallax Background */
+.global-parallax-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.parallax-bg {
+  position: absolute;
+  bottom: -50vh; /* Start lower to allow for more upward movement */
+  left: 0;
+  width: 100%;
+  height: 200vh; /* Make taller so it doesn't run out of background */
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+}
+
+/* Abstract placeholder shapes made much stronger so the parallax is obvious */
+.layer-1 { background: radial-gradient(ellipse at 50% 100%, rgba(139, 195, 74, 0.4) 0%, transparent 60%); }
+.layer-2 { background: radial-gradient(ellipse at 20% 80%, rgba(43, 122, 77, 0.5) 0%, transparent 60%); }
+.layer-3 { background: radial-gradient(ellipse at 80% 70%, rgba(31, 92, 58, 0.6) 0%, transparent 60%); }
 
 /* Typography */
 .section-title {
@@ -73,7 +100,7 @@ h1, h2, h3, h4, h5 {
   left: 0;
   width: 100%;
   height: var(--nav-height);
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(230, 240, 233, 0.8); /* Light green glass */
   backdrop-filter: blur(10px);
   z-index: 1000;
   box-shadow: 0 2px 20px rgba(0,0,0,0.05);
@@ -104,7 +131,7 @@ h1, h2, h3, h4, h5 {
 
 .nav-links a {
   text-decoration: none;
-  color: var(--color-text);
+  color: var(--color-dark);
   font-weight: 500;
   margin-left: 2rem;
   transition: color 0.3s ease;
@@ -121,32 +148,11 @@ h1, h2, h3, h4, h5 {
   position: relative;
   display: flex;
   align-items: center;
+  /* Background is now completely transparent so the global parallax shows through */
+  background-color: transparent; 
 }
 
-/* Hero / Landing */
-#landing {
-  background: linear-gradient(135deg, #e6f0e9 0%, #c9e0d1 100%);
-  overflow: hidden;
-  position: relative;
-}
-
-.parallax-bg {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center bottom;
-  background-repeat: no-repeat;
-  z-index: 1;
-}
-
-/* We will add real images here, using colors as placeholders for the layers */
-.layer-1 { background-color: rgba(31, 92, 58, 0.1); transform: translateY(0); height: 50%; }
-.layer-2 { background-color: rgba(31, 92, 58, 0.2); transform: translateY(0); height: 40%; }
-.layer-3 { background-color: rgba(31, 92, 58, 0.3); transform: translateY(0); height: 30%; }
-
+/* Content overlays to make text readable over the background */
 .content-overlay {
   position: relative;
   z-index: 10;
@@ -170,10 +176,11 @@ h1, h2, h3, h4, h5 {
 }
 
 .arrc-cycle-container {
-  background: white;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(5px);
   padding: 3rem;
   border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.05);
 }
 
 .cycle-nodes {
@@ -183,7 +190,7 @@ h1, h2, h3, h4, h5 {
 }
 
 .node {
-  background: var(--color-bg);
+  background: white;
   padding: 2rem;
   border-radius: 50%;
   width: 150px;
@@ -195,7 +202,6 @@ h1, h2, h3, h4, h5 {
   box-shadow: 0 10px 20px rgba(0,0,0,0.05);
   text-align: center;
   z-index: 2;
-  background: white;
 }
 
 .cycle-arrow {
@@ -207,20 +213,15 @@ h1, h2, h3, h4, h5 {
 }
 
 /* Economic Impact */
-.dark-section {
-  background-color: var(--color-dark);
-  color: var(--color-white);
-}
-
-.dark-section .section-title {
-  color: var(--color-white);
-}
-
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4rem;
   align-items: center;
+}
+
+.text-content p {
+  font-size: 1.1rem;
 }
 
 .stats-list {
@@ -233,13 +234,14 @@ h1, h2, h3, h4, h5 {
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
+  font-weight: 500;
 }
 
 .stat-number {
   font-family: var(--font-heading);
   font-size: 3.5rem;
   font-weight: 700;
-  color: var(--color-accent);
+  color: var(--color-primary); /* Changed to primary since bg is light */
   margin-right: 1rem;
   min-width: 100px;
 }
@@ -252,17 +254,15 @@ h1, h2, h3, h4, h5 {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(255,255,255,0.5);
 }
 .graphic-placeholder .circular-graphic::after {
   content: "Infographic Graphic Area";
   color: var(--color-primary-light);
+  font-weight: bold;
 }
 
 /* Environment Section */
-.nature-section {
-  background-color: var(--color-bg);
-}
-
 .comparison-container {
   display: flex;
   gap: 2rem;
@@ -271,7 +271,7 @@ h1, h2, h3, h4, h5 {
 }
 
 .compare-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.9);
   padding: 2.5rem;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.05);
@@ -303,10 +303,10 @@ h1, h2, h3, h4, h5 {
 }
 
 .methane-bar {
-  background: #e74c3c; /* Red for bad */
+  background: #e74c3c;
 }
 .resource-bar {
-  background: var(--color-accent); /* Green for good */
+  background: var(--color-primary);
 }
 
 .bar-chart p {
@@ -318,10 +318,6 @@ h1, h2, h3, h4, h5 {
 }
 
 /* Council Section */
-.white-section {
-  background-color: white;
-}
-
 .action-steps {
   display: flex;
   justify-content: center;
@@ -333,12 +329,15 @@ h1, h2, h3, h4, h5 {
   text-align: center;
   flex: 1;
   max-width: 250px;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 2rem;
+  border-radius: 16px;
 }
 
 .step-num {
   width: 60px;
   height: 60px;
-  background-color: var(--color-primary-light);
+  background-color: var(--color-primary);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -359,18 +358,19 @@ h1, h2, h3, h4, h5 {
   font-weight: 600;
   font-size: 1.1rem;
   transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(31, 92, 58, 0.2);
 }
 
 .btn-primary:hover {
   background-color: var(--color-primary-light);
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(31, 92, 58, 0.2);
+  box-shadow: 0 10px 20px rgba(31, 92, 58, 0.3);
 }
 
 /* Footer */
 .main-footer {
-  background-color: var(--color-dark);
-  color: var(--color-text-light);
+  background-color: rgba(10, 31, 19, 0.9);
+  color: rgba(255,255,255,0.7);
   padding: 2rem 0;
   text-align: center;
 }

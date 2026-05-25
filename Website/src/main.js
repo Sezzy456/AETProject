@@ -6,58 +6,56 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 document.addEventListener("DOMContentLoaded", () => {
-  // 1. Landing Page Parallax Effect
-  // As the user scrolls down, the layers move at different speeds
+  // 1. Global Parallax Background
+  // These layers span the entire body scroll. We move them upwards (negative y) at different speeds.
+  // We use large numbers so the effect is very obvious over the long scroll of the site.
   gsap.to(".layer-1", {
-    y: -50,
+    y: "-40vh", // Move up slowly
     ease: "none",
     scrollTrigger: {
-      trigger: "#landing",
+      trigger: "body",
       start: "top top",
-      end: "bottom top",
-      scrub: true
+      end: "bottom bottom",
+      scrub: 1 
     }
   });
 
   gsap.to(".layer-2", {
-    y: -100,
+    y: "-80vh", // Move up faster
     ease: "none",
     scrollTrigger: {
-      trigger: "#landing",
+      trigger: "body",
       start: "top top",
-      end: "bottom top",
-      scrub: true
+      end: "bottom bottom",
+      scrub: 1
     }
   });
 
   gsap.to(".layer-3", {
-    y: -200,
+    y: "-120vh", // Move up fastest (closest to camera)
     ease: "none",
     scrollTrigger: {
-      trigger: "#landing",
+      trigger: "body",
       start: "top top",
-      end: "bottom top",
-      scrub: true
+      end: "bottom bottom",
+      scrub: 1
     }
   });
 
   // 2. ARRC Cycle Nodes Animation
-  // Animate the nodes appearing one by one
   const nodes = gsap.utils.toArray('.node');
   const arrows = gsap.utils.toArray('.cycle-arrow');
 
   const tl = gsap.timeline({
     scrollTrigger: {
       trigger: ".arrc-cycle-container",
-      start: "top 80%", // Start animation when container is 80% down the viewport
+      start: "top 80%",
     }
   });
 
-  // Start with elements hidden
   gsap.set(nodes, { scale: 0, opacity: 0 });
   gsap.set(arrows, { scaleX: 0, opacity: 0, transformOrigin: "left center" });
 
-  // Animate them in sequentially
   tl.to(nodes[0], { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.7)" })
     .to(arrows[0], { scaleX: 1, opacity: 1, duration: 0.3 })
     .to(nodes[1], { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.7)" })
@@ -66,7 +64,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   // 3. Economic Section: Number Counters
-  // Animate numbers counting up
   const jobStat = document.getElementById('stat-jobs');
   const revStat = document.getElementById('stat-revenue');
 
@@ -80,19 +77,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  gsap.to(revStat, {
-    innerHTML: 2.5, // 2.5M
-    duration: 2,
-    scrollTrigger: {
-      trigger: "#economic",
-      start: "top 70%"
-    },
-    onUpdate: function() {
-      // Format to 1 decimal place
-      revStat.innerHTML = this.targets()[0].innerHTML.slice(0, 3);
-    }
-  });
-  // Quick fix for the number formatting issue with direct innerHTML tweening:
   gsap.to({ val: 0 }, {
     val: 2.5,
     duration: 2,
@@ -107,7 +91,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   // 4. Environmental Section: Bar Charts
-  // Animate the bars growing from the bottom
   const bars = gsap.utils.toArray('.bar');
   
   bars.forEach(bar => {
@@ -128,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
     y: 50,
     opacity: 0,
     duration: 0.8,
-    stagger: 0.2, // Animate one after another with 0.2s delay
+    stagger: 0.2,
     scrollTrigger: {
       trigger: ".action-steps",
       start: "top 80%"
