@@ -680,6 +680,9 @@ function renderStakeholderDetail() {
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id') || window.currentStakeholderId;
 
+    const setTxt = (elId, value) => { const el = document.getElementById(elId); if (el) { if (!value && value !== 0) { el.innerHTML = '<span style="color:var(--text-tertiary); font-style:italic;">-</span>'; } else { el.textContent = value; } } };
+    const setHtml = (elId, value) => { const el = document.getElementById(elId); if (el) { if (!value && value !== 0) { el.innerHTML = '<span style="color:var(--text-tertiary); font-style:italic;">-</span>'; } else { el.innerHTML = value; } } };
+
     if (window._stakeholderOpenInEditMode) {
         window._stakeholderOpenInEditMode = false;
         setTimeout(() => {
@@ -688,7 +691,6 @@ function renderStakeholderDetail() {
             }
         }, 50);
         if (!id) {
-            const setTxt = (elId, value) => { const el = document.getElementById(elId); if (el) el.textContent = value || '-'; };
             setTxt('detail-name', 'New Stakeholder');
             setTxt('view-role', '');
             document.getElementById('sdet-e-name-row').style.display = 'flex';
@@ -710,9 +712,6 @@ function renderStakeholderDetail() {
 
     window.currentStakeholderId = id;
     document.title = `${s.name} - Detail`;
-
-    const setTxt = (elId, value) => { const el = document.getElementById(elId); if (el) el.textContent = value || '-'; };
-    const setHtml = (elId, value) => { const el = document.getElementById(elId); if (el) el.innerHTML = value || '-'; };
 
     setTxt('view-breadcrumb-name', s.name);
     setTxt('detail-name', s.name);
@@ -1046,7 +1045,7 @@ window.toggleStakeholderEdit = function () {
         if (nameRow) nameRow.style.display = 'flex';
         if (roleRow) roleRow.style.display = 'flex';
 
-        ['sdet-e-name-inline', 'sdet-e-role-inline', 'sdet-e-owner-inline', 'sdet-e-narrativeHook', 'sdet-e-audience-message', 'sdet-e-values', 'sdet-e-authority', 'sdet-e-posture-current', 'sdet-e-posture-desired', 'sdet-e-posture-next', 'sdet-e-posture-target', 'sdet-e-barriers', 'sdet-e-engagement-approach', 'sdet-e-tactics', 'sdet-e-rel-internal', 'sdet-e-rel-external', 'sdet-e-contact-pref', 'sdet-e-contact-tone', 'sdet-e-contact-pitch'].forEach(eid => set(eid, ''));
+        ['sdet-e-name-inline', 'sdet-e-role-inline', 'sdet-e-owner-inline', 'sdet-e-narrativeHook', 'sdet-e-audience-message', 'sdet-e-values', 'sdet-e-authority', 'sdet-e-posture-current', 'sdet-e-posture-desired', 'sdet-e-posture-next', 'sdet-e-posture-target', 'sdet-e-barriers', 'sdet-e-engagement-approach', 'sdet-e-rel-internal', 'sdet-e-rel-external', 'sdet-e-contact-pref', 'sdet-e-contact-tone', 'sdet-e-contact-pitch'].forEach(eid => set(eid, ''));
         set('sdet-e-status-inline', 'Operational');
         set('sdet-e-influence', '5');
         set('sdet-e-interest', '5');
@@ -1080,7 +1079,12 @@ window.toggleStakeholderEdit = function () {
                 set('sdet-e-posture-target', s.postureJourney?.target || s.postureJourney?.goalTarget || '');
                 set('sdet-e-barriers', s.strategicApproach?.barriers || '');
                 set('sdet-e-engagement-approach', s.strategicApproach?.engagementApproach || '');
-                set('sdet-e-tactics', s.strategicApproach?.tactics ? JSON.stringify(s.strategicApproach.tactics, null, 2) : '');
+                // Load tactics into hidden data
+                const td = document.getElementById('sdet-e-tactics-data');
+                if (td) {
+                    td.value = JSON.stringify(s.strategicApproach?.tactics || []);
+                    window.sdetRenderTacticsChips();
+                }
                 set('sdet-e-rel-internal', s.relationships?.internalLink || '');
                 set('sdet-e-rel-external', s.relationships?.externalTension || '');
                 set('sdet-e-contact-pref', s.contactConduct?.preferences || '');
@@ -1091,9 +1095,12 @@ window.toggleStakeholderEdit = function () {
                 const ownerSelect = document.getElementById('sdet-e-owner-inline');
                 if (ownerSelect) {
                     const allContacts = window.getData('contacts') || [];
-                    const internals = allContacts.filter(c => c.internal);
-                    ownerSelect.innerHTML = '<option value="">Unassigned</option>' + internals.map(c => `<option value="${c.name.replace(/"/g, '&quot;')}">${c.name}</option>`).join('');
-                    ownerSelect.value = s.owner || '';
+                    const internals = allContacts.filter(c => c.co_is_internal === true || c.internal === true);
+                    ownerSelect.innerHTML = '<option value="">Unassigned</option>' + internals.map(c => {
+                        const name = c.name || ((c.co_first_name || '') + ' ' + (c.co_last_name || '')).trim();
+                        return `<option value="${c.id}">${name}</option>`;
+                    }).join('');
+                    ownerSelect.value = s.ownerId || s.owner || '';
                 }
             }
         }
@@ -6149,4 +6156,77 @@ window.commitStatusChange = function() {
             window.updateDetailStatus(newStatus);
         }
     }
+};
+
+window.sdetUpdatePriorityWord = function() {
+    const infInput = document.getElementById('sdet-e-influence');
+    const intInput = document.getElementById('sdet-e-interest');
+    if (!infInput || !intInput) return;
+    const inf = parseInt(infInput.value, 10) || 5;
+    const int_ = parseInt(intInput.value, 10) || 5;
+    
+    let verbStr = 'MONITOR';
+    if (inf >= 6 && int_ >= 6) verbStr = 'ENGAGE';
+    else if (inf >= 6 && int_ <= 5) verbStr = 'SATISFY';
+    else if (inf <= 5 && int_ >= 6) verbStr = 'INFORM';
+    else verbStr = 'MONITOR';
+    
+    const vBadge = document.getElementById('view-matrix-verb');
+    if (vBadge) vBadge.textContent = verbStr;
+};
+
+window.sdetRenderTacticsChips = function() {
+    const container = document.getElementById('sdet-e-tactics-chips');
+    const dataEl = document.getElementById('sdet-e-tactics-data');
+    if (!container || !dataEl) return;
+    
+    let tactics = [];
+    try { tactics = JSON.parse(dataEl.value) || []; } catch(e) {}
+    
+    if (tactics.length === 0) {
+        container.innerHTML = '<span style="color:var(--text-tertiary); font-style:italic; font-size:0.85rem;">No tactics added.</span>';
+        return;
+    }
+    
+    container.innerHTML = tactics.map((t, i) => {
+        const label = typeof t === 'string' ? t : (t.as_description || t.text || 'Tactic');
+        return `<div style="display:flex; align-items:center; gap:0.25rem; background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-secondary); border-radius:4px; padding:0.2rem 0.5rem; font-size:0.8rem;">${label}<span class="material-symbols-outlined" style="font-size:1rem; cursor:pointer; color:var(--text-tertiary);" onclick="window.sdetRemoveTactic(${i})">close</span></div>`;
+    }).join('');
+};
+
+window.sdetAddTactic = function() {
+    const input = document.getElementById('sdet-e-tactics-input');
+    const dataEl = document.getElementById('sdet-e-tactics-data');
+    if (!input || !dataEl) return;
+    
+    const val = input.value.trim();
+    if (!val) return;
+    
+    let tactics = [];
+    try { tactics = JSON.parse(dataEl.value) || []; } catch(e) {}
+    
+    const stakeholderId = window.currentStakeholderId;
+    const newTactic = { as_id: 'as_' + Date.now(), as_description: val, as_active: true, as_stakeholder_id: stakeholderId };
+    
+    tactics.push(newTactic);
+    
+    if (stakeholderId && window.addData) {
+        window.addData('assets', newTactic);
+    }
+    
+    dataEl.value = JSON.stringify(tactics);
+    input.value = '';
+    window.sdetRenderTacticsChips();
+};
+
+window.sdetRemoveTactic = function(index) {
+    const dataEl = document.getElementById('sdet-e-tactics-data');
+    if (!dataEl) return;
+    
+    let tactics = [];
+    try { tactics = JSON.parse(dataEl.value) || []; } catch(e) {}
+    
+    tactics.splice(index, 1);
+    dataEl.value = JSON.stringify(tactics);
+    window.sdetRenderTacticsChips();
 };
