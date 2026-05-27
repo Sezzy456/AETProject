@@ -835,7 +835,7 @@ function renderStakeholderDetail() {
                         <div style="flex:1; cursor:pointer; position:relative; background:#f97316;" onclick="window.previewStatusChange('Strained', this)" title="Strained">${sh.status === 'Strained' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
                         <div style="flex:1; cursor:pointer; position:relative; background:#ef4444;" onclick="window.previewStatusChange('Critical/At Risk', this)" title="Critical/At Risk">${sh.status === 'Critical/At Risk' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
                     </div>
-                    <button id="status-save-btn" onclick="window.commitStatusChange()" style="display:none; position:absolute; left:calc(${x}% + 15px); top:50%; transform:translateY(-50%); width:32px; height:32px; border-radius:50%; background:var(--energy-algae); color:white; border:none; box-shadow:0 2px 8px rgba(0,0,0,0.2); z-index:5; align-items:center; justify-content:center; cursor:pointer;" title="Save Status">
+                    <button id="status-save-btn" onclick="window.commitStatusChange(this)" style="display:none; position:absolute; left:calc(${x}% + 15px); top:50%; transform:translateY(-50%); width:32px; height:32px; border-radius:50%; background:var(--energy-algae); color:white; border:none; box-shadow:0 2px 8px rgba(0,0,0,0.2); z-index:5; align-items:center; justify-content:center; cursor:pointer;" title="Save Status">
                         <span class="material-symbols-outlined" style="font-size:1.2rem;">save</span>
                     </button>
                     <div style="position:absolute; left:${x}%; top:${y}; transform:translate(-50%,-50%); width:28px; height:28px; border-radius:50%; border:2px solid #22c55e; animation:ping 2s cubic-bezier(0,0,0.2,1) infinite; z-index:3; pointer-events:none;"></div>
@@ -862,6 +862,8 @@ function renderStakeholderDetail() {
             </svg>
             ${dotsHtml}
         `;
+        const historyContainerEdit = document.getElementById('view-status-history-lines-edit');
+        if (historyContainerEdit) historyContainerEdit.innerHTML = hl.innerHTML;
     } else if (hl) {
         hl.innerHTML = '<div style="color:var(--text-tertiary); font-style:italic; padding-left:1rem; padding-top:1rem; font-size:0.9rem;">No historical status records found.</div>';
     }
@@ -888,9 +890,7 @@ function renderStakeholderDetail() {
 
     // Contacts
     const cList = document.getElementById('view-contacts-list');
-    if (cList) {
-        if (s.contacts && s.contacts.length > 0) {
-            cList.innerHTML = s.contacts.map(c => `
+    const contactsHtml = (s.contacts && s.contacts.length > 0) ? s.contacts.map(c => `
                 <div class="card" style="display:flex; justify-content:space-between; align-items:flex-start; padding:1rem; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-app); cursor:pointer;">
                     <div>
                         <div style="font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">${c.name} ${c.isLead ? '<span style="background:rgba(245, 158, 11, 0.2); color:var(--energy-mid); font-size:0.7rem; padding:0.1rem 0.3rem; border-radius:4px; margin-left:0.5rem;">PRIMARY CONTACT</span>' : ''}</div>
@@ -902,13 +902,13 @@ function renderStakeholderDetail() {
                     </div>
                     <button style="background:none; border:none; cursor:pointer; color:var(--text-tertiary);"><span class="material-symbols-outlined">more_vert</span></button>
                 </div>
-            `).join('');
-        } else {
-            cList.innerHTML = '<span style="color:var(--text-tertiary); font-style:italic;">No contacts recorded.</span>';
-        }
+            `).join('') : '<span style="color:var(--text-tertiary); font-style:italic;">No contacts recorded.</span>';
+
+    if (cList) {
+        cList.innerHTML = contactsHtml;
+        const cListEdit = document.getElementById('view-contacts-list-edit');
+        if (cListEdit) cListEdit.innerHTML = contactsHtml;
     }
-
-
 
     // Audience Message from sta_audience_message (direct DB field)
     const audContainer = document.getElementById('audience-msg-container');
@@ -931,9 +931,9 @@ function renderStakeholderDetail() {
         const topActions = shActions.slice(0, 3);
         const moreCount = shActions.length > 3 ? shActions.length - 3 : 0;
         
-        actContainer.innerHTML = topActions.length === 0
+        const actionsHtml = topActions.length === 0
             ? '<span style="color:var(--text-tertiary); font-style:italic; font-size:0.9rem;">No linked actions.</span>'
-            : topActions.map(a => `<div class="card" style="padding:1rem; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-app); display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+            : topActions.map(a => `<div class="card" style="padding:1rem; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-app); display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="window.viewAction('${a.id}')">
                 <div>
                     <div style="font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">${a.activity}</div>
                     <span style="font-size:0.8rem; color:var(--text-secondary);">Owner: ${a.owner || '-'} | Due: ${a.dueDate || '-'}</span>
@@ -941,10 +941,15 @@ function renderStakeholderDetail() {
                 <div><span class="status-badge" style="border-color:#3b82f6; color:#3b82f6; padding:0.1rem 0.5rem; font-size:0.75rem;">${a.status}</span></div>
              </div>`).join('');
              
+        if (actContainer) actContainer.innerHTML = actionsHtml;
+        const actContainerEdit = document.getElementById('stakeholder-actions-container-edit');
+        if (actContainerEdit) actContainerEdit.innerHTML = actionsHtml;
+             
+        const moreCountText = moreCount > 0 ? `+ ${moreCount} more current actions` : '';
         const moreActionsEl = document.getElementById('stakeholder-more-actions');
-        if (moreActionsEl) {
-            moreActionsEl.textContent = moreCount > 0 ? `+ ${moreCount} more current actions` : '';
-        }
+        if (moreActionsEl) moreActionsEl.textContent = moreCountText;
+        const moreActionsEditEl = document.getElementById('stakeholder-more-actions-edit');
+        if (moreActionsEditEl) moreActionsEditEl.textContent = moreCountText;
     }
 
     // Linked Interactions
@@ -953,29 +958,32 @@ function renderStakeholderDetail() {
         const allLogs = window.getData('activityLog') || [];
         const shLogs = allLogs.filter(l => (l.attendees && l.attendees.includes(s.name)) || l.title.includes(s.name));
         
-        const lastUpdateTextEl = document.getElementById('stakeholder-last-update-text');
-        if (lastUpdateTextEl) {
-            if (shLogs.length > 0) {
-                const parts = shLogs[0].date.split('/');
-                let logDate;
-                if (parts.length === 3) logDate = new Date(parts[2], parts[1]-1, parts[0]);
-                else logDate = new Date(shLogs[0].date);
-                const diffDays = Math.floor(Math.abs(new Date() - logDate) / (1000 * 60 * 60 * 24));
-                let relStr = diffDays === 0 ? 'Today' : diffDays === 1 ? '1 day ago' : diffDays < 7 ? diffDays + ' days ago' : diffDays < 30 ? Math.floor(diffDays/7) + ' weeks ago' : diffDays < 365 ? Math.floor(diffDays/30) + ' months ago' : Math.floor(diffDays/365) + ' years ago';
-                lastUpdateTextEl.textContent = `Last update: ${relStr}`;
-            } else {
-                lastUpdateTextEl.textContent = '';
-            }
+        let lastUpdateText = '';
+        if (shLogs.length > 0) {
+            const parts = shLogs[0].date.split('/');
+            let logDate;
+            if (parts.length === 3) logDate = new Date(parts[2], parts[1]-1, parts[0]);
+            else logDate = new Date(shLogs[0].date);
+            const diffDays = Math.floor(Math.abs(new Date() - logDate) / (1000 * 60 * 60 * 24));
+            let relStr = diffDays === 0 ? 'Today' : diffDays === 1 ? '1 day ago' : diffDays < 7 ? diffDays + ' days ago' : diffDays < 30 ? Math.floor(diffDays/7) + ' weeks ago' : diffDays < 365 ? Math.floor(diffDays/30) + ' months ago' : Math.floor(diffDays/365) + ' years ago';
+            lastUpdateText = `Last update: ${relStr}`;
         }
+        
+        const lastUpdateTextEl = document.getElementById('stakeholder-last-update-text');
+        if (lastUpdateTextEl) lastUpdateTextEl.textContent = lastUpdateText;
 
         const topLogs = shLogs.slice(0, 3);
-        intContainer.innerHTML = topLogs.length === 0
+        const logsHtml = topLogs.length === 0
             ? '<span style="color:var(--text-tertiary); font-style:italic; font-size:0.9rem;">No recent updates.</span>'
-            : topLogs.map(l => `<div class="card" style="padding:1rem; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-app); cursor:pointer;">
+            : topLogs.map(l => `<div class="card" style="padding:1rem; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-app); cursor:pointer;" onclick="window.viewInteraction('${l.id}')">
                 <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.25rem;">${l.date}</div>
                 <div style="font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">${l.title}</div>
                 <div style="font-size:0.85rem; color:var(--text-secondary);">${l.notes}</div>
              </div>`).join('');
+             
+        if (intContainer) intContainer.innerHTML = logsHtml;
+        const intContainerEdit = document.getElementById('stakeholder-interactions-container-edit');
+        if (intContainerEdit) intContainerEdit.innerHTML = logsHtml;
     }
 }
 
@@ -1000,10 +1008,21 @@ window.cancelStakeholderEdit = function () {
     const editBtn = document.getElementById('sdet-edit-toggle-btn');
     const cancelBtn = document.getElementById('sdet-cancel-btn');
 
-    if (viewMode) viewMode.style.display = 'block';
+    if (viewMode) viewMode.style.display = '';
     if (editMode) editMode.style.display = 'none';
     if (editBtn) editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
     if (cancelBtn) cancelBtn.style.display = 'none';
+
+    // Hide inline inputs
+    ['sdet-e-name-inline', 'sdet-e-role-inline', 'sdet-e-status-inline'].forEach(eid => {
+        const el = document.getElementById(eid);
+        if (el) el.style.display = 'none';
+    });
+    // Show view elements
+    ['detail-name', 'detail-role-wrap', 'view-status-badge', 'status-tooltip-wrap'].forEach(eid => {
+        const el = document.getElementById(eid);
+        if (el) el.style.display = '';
+    });
 };
 
 window.toggleStakeholderEdit = function () {
@@ -1026,8 +1045,8 @@ window.toggleStakeholderEdit = function () {
         if (nameRow) nameRow.style.display = 'flex';
         if (roleRow) roleRow.style.display = 'flex';
 
-        ['sdet-e-name', 'sdet-e-role', 'sdet-e-narrativeHook', 'sdet-e-audience-message', 'sdet-e-values', 'sdet-e-authority', 'sdet-e-posture-current', 'sdet-e-posture-desired', 'sdet-e-posture-next', 'sdet-e-posture-target', 'sdet-e-barriers', 'sdet-e-engagement-approach', 'sdet-e-tactics', 'sdet-e-rel-internal', 'sdet-e-rel-external', 'sdet-e-contact-pref', 'sdet-e-contact-tone', 'sdet-e-contact-pitch'].forEach(eid => set(eid, ''));
-        set('sdet-e-status', 'Operational');
+        ['sdet-e-name-inline', 'sdet-e-role-inline', 'sdet-e-narrativeHook', 'sdet-e-audience-message', 'sdet-e-values', 'sdet-e-authority', 'sdet-e-posture-current', 'sdet-e-posture-desired', 'sdet-e-posture-next', 'sdet-e-posture-target', 'sdet-e-barriers', 'sdet-e-engagement-approach', 'sdet-e-tactics', 'sdet-e-rel-internal', 'sdet-e-rel-external', 'sdet-e-contact-pref', 'sdet-e-contact-tone', 'sdet-e-contact-pitch'].forEach(eid => set(eid, ''));
+        set('sdet-e-status-inline', 'Operational');
         set('sdet-e-influence', '5');
         set('sdet-e-interest', '5');
         const infDisp = document.getElementById('sdet-e-inf-display');
@@ -1039,12 +1058,12 @@ window.toggleStakeholderEdit = function () {
             const stakeholders = window.getData('stakeholders') || [];
             const s = stakeholders.find(x => x.id === id);
             if (s) {
-                set('sdet-e-name', s.name);
-                set('sdet-e-role', s.role);
+                set('sdet-e-name-inline', s.name);
+                set('sdet-e-role-inline', s.role);
                 set('sdet-e-narrativeHook', s.narrativeHook);
                 set('sdet-e-audience-message', s.audienceMessage || '');
                 set('sdet-e-values', (s.powerDynamics?.values || []).join(', '));
-                set('sdet-e-status', s.status);
+                set('sdet-e-status-inline', s.status);
                 set('sdet-e-influence', s.powerDynamics?.influence || '5');
                 set('sdet-e-interest', s.powerDynamics?.interest || '5');
                 set('sdet-e-authority', s.powerDynamics?.authority || s.decisionAuthority || '');
@@ -1068,10 +1087,73 @@ window.toggleStakeholderEdit = function () {
             }
         }
         viewMode.style.display = 'none';
-        editMode.style.display = 'flex';
+        editMode.style.display = '';
         editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done';
         if (cancelBtn) cancelBtn.style.display = 'inline-flex';
+
+        // Hide view elements in header
+        ['detail-name', 'detail-role-wrap', 'view-status-badge', 'status-tooltip-wrap'].forEach(eid => {
+            const el = document.getElementById(eid);
+            if (el) el.style.display = 'none';
+        });
+        // Show inline inputs
+        ['sdet-e-name-inline', 'sdet-e-role-inline'].forEach(eid => {
+            const el = document.getElementById(eid);
+            if (el) el.style.display = 'block';
+        });
+        const statusEl = document.getElementById('sdet-e-status-inline');
+        if (statusEl) statusEl.style.display = 'inline-block';
+        
+        // Render values chips
+        if (typeof window.sdetRenderValuesChips === 'function') {
+            window.sdetRenderValuesChips();
+        }
     }
+};
+
+window.sdetAddValue = function() {
+    const input = document.getElementById('sdet-e-value-input');
+    const hidden = document.getElementById('sdet-e-values');
+    if (!input || !hidden || !input.value.trim()) return;
+    
+    const newVal = input.value.trim();
+    let current = hidden.value ? hidden.value.split(',').map(v => v.trim()).filter(Boolean) : [];
+    if (!current.includes(newVal)) {
+        current.push(newVal);
+        hidden.value = current.join(', ');
+        window.sdetRenderValuesChips();
+    }
+    input.value = '';
+};
+
+window.sdetRemoveValue = function(valToRemove) {
+    const hidden = document.getElementById('sdet-e-values');
+    if (!hidden) return;
+    let current = hidden.value ? hidden.value.split(',').map(v => v.trim()).filter(Boolean) : [];
+    current = current.filter(v => v !== valToRemove);
+    hidden.value = current.join(', ');
+    window.sdetRenderValuesChips();
+};
+
+window.sdetRenderValuesChips = function() {
+    const container = document.getElementById('sdet-e-values-chips');
+    const hidden = document.getElementById('sdet-e-values');
+    if (!container || !hidden) return;
+    
+    const values = hidden.value ? hidden.value.split(',').map(v => v.trim()).filter(Boolean) : [];
+    if (values.length === 0) {
+        container.innerHTML = '<span style="font-size:0.85rem; color:var(--text-tertiary); font-style:italic;">No values added yet.</span>';
+        return;
+    }
+    
+    container.innerHTML = values.map(v => `
+        <div style="font-size:0.8rem; padding:0.25rem 0.6rem; border-radius:100px; background:rgba(99,102,241,0.1); color:#4f46e5; border:1px solid rgba(99,102,241,0.2); display:flex; align-items:center; gap:0.4rem;">
+            ${v}
+            <button type="button" onclick="window.sdetRemoveValue('${v.replace(/'/g, "\\'")}')" style="background:none; border:none; padding:0; display:flex; align-items:center; color:#4f46e5; cursor:pointer; opacity:0.7;">
+                <span class="material-symbols-outlined" style="font-size:1rem;">close</span>
+            </button>
+        </div>
+    `).join('');
 };
 
 window.saveStakeholder = function () {
@@ -1090,8 +1172,8 @@ window.saveStakeholder = function () {
         if (!s) return;
     }
 
-    s.name = get('sdet-e-name').trim() || s.name || 'New Stakeholder';
-    s.role = get('sdet-e-role').trim() || s.role || '';
+    s.name = get('sdet-e-name-inline').trim() || s.name || 'New Stakeholder';
+    s.role = get('sdet-e-role-inline').trim() || s.role || '';
     s.narrativeHook = get('sdet-e-narrativeHook');
     s.audienceMessage = get('sdet-e-audience-message');
 
@@ -1102,7 +1184,7 @@ window.saveStakeholder = function () {
     s.powerDynamics.authority = get('sdet-e-authority');
     s.decisionAuthority = s.powerDynamics.authority; // Keep for compatibility if needed
 
-    const newStatus = get('sdet-e-status');
+    const newStatus = get('sdet-e-status-inline');
     if (newStatus && newStatus !== s.status) {
         if (!s.statusHistory) s.statusHistory = [];
         const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -1144,12 +1226,23 @@ window.saveStakeholder = function () {
 
     const viewMode = document.getElementById('sdet-view-mode');
     const editMode = document.getElementById('sdet-edit-mode');
-    if (viewMode) viewMode.style.display = 'flex';
+    if (viewMode) viewMode.style.display = '';
     if (editMode) editMode.style.display = 'none';
     const editBtn = document.getElementById('sdet-edit-toggle-btn');
     if (editBtn) editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
     const cancelBtn = document.getElementById('sdet-cancel-btn');
     if (cancelBtn) cancelBtn.style.display = 'none';
+
+    // Hide inline inputs
+    ['sdet-e-name-inline', 'sdet-e-role-inline', 'sdet-e-status-inline'].forEach(eid => {
+        const el = document.getElementById(eid);
+        if (el) el.style.display = 'none';
+    });
+    // Show view elements
+    ['detail-name', 'detail-role-wrap', 'view-status-badge', 'status-tooltip-wrap'].forEach(eid => {
+        const el = document.getElementById(eid);
+        if (el) el.style.display = '';
+    });
 };
 
 // Update status from stakeholder detail
