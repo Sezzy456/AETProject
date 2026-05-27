@@ -804,19 +804,34 @@ function renderStakeholderDetail() {
             'Operational': '8%', 'Stable': '25%', 'Dormant': '41%',
             'Friction Points': '58%', 'Strained': '75%', 'Critical/At Risk': '91%'
         };
-        const len = s.statusHistory.length;
+        let displayHistory = [];
+        if (s.statusHistory.length > 0) {
+            displayHistory.push(s.statusHistory[0]);
+            for (let i = 1; i < s.statusHistory.length - 1; i++) {
+                if (s.statusHistory[i].status !== s.statusHistory[i - 1].status) {
+                    displayHistory.push(s.statusHistory[i]);
+                }
+            }
+            if (s.statusHistory.length > 1) {
+                if (displayHistory[displayHistory.length - 1] !== s.statusHistory[s.statusHistory.length - 1]) {
+                    displayHistory.push(s.statusHistory[s.statusHistory.length - 1]);
+                }
+            }
+        }
+        
+        const len = displayHistory.length;
         let svgLines = '', dotsHtml = '';
 
-        s.statusHistory.forEach((sh, i) => {
+        displayHistory.forEach((sh, i) => {
             const y = statusY[sh.status] || '50%';
-            const x = len === 1 ? 50 : 10 + (70 / (len - 1)) * i;
+            const x = len === 1 ? 50 : 5 + (90 / (len - 1)) * i;
             if (i > 0) {
-                const prevY = statusY[s.statusHistory[i - 1].status] || '50%';
-                const prevX = 10 + (70 / (len - 1)) * (i - 1);
+                const prevY = statusY[displayHistory[i - 1].status] || '50%';
+                const prevX = 5 + (90 / (len - 1)) * (i - 1);
                 svgLines += `<line x1="${prevX}%" y1="${prevY}" x2="${x}%" y2="${y}" stroke="#60a5fa" stroke-width="3" />`;
             }
 
-            dotsHtml += `<div style="position:absolute; left:${x}%; bottom:-25px; transform:translateX(-50%); font-size:0.7rem; color:var(--text-secondary); font-weight:600; white-space:nowrap;">${sh.date}</div>`;
+            dotsHtml += `<div style="position:absolute; left:${x}%; bottom:-35px; transform: rotate(-45deg) translate(-10px, 0px); transform-origin: left center; font-size:0.65rem; color:var(--text-secondary); font-weight:600; white-space:nowrap; z-index:1;">${sh.date}</div>`;
 
             const isLast = i === len - 1;
             if (isLast) {
@@ -851,8 +866,6 @@ function renderStakeholderDetail() {
                 ${svgLines}
             </svg>
             ${dotsHtml}
-            <div style="position:absolute; left:92%; top:0; bottom:0; width:1px; background:#22c55e; opacity:0.8; z-index:1;"></div>
-            <div style="position:absolute; left:92%; top:8%; transform:translate(-50%, -50%); background:#22c55e; color:#fff; padding:2px 10px; border-radius:100px; font-size:0.7rem; font-weight:bold; z-index:2; box-shadow:0 2px 4px rgba(34,197,94,0.3);">Desired</div>
         `;
     } else if (hl) {
         hl.innerHTML = '<div style="color:var(--text-tertiary); font-style:italic; padding-left:1rem; padding-top:1rem; font-size:0.9rem;">No historical status records found.</div>';
