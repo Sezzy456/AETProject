@@ -804,23 +804,14 @@ function renderStakeholderDetail() {
             'Operational': '8%', 'Stable': '25%', 'Dormant': '41%',
             'Friction Points': '58%', 'Strained': '75%', 'Critical/At Risk': '91%'
         };
-        let displayHistory = [];
-        if (s.statusHistory.length > 0) {
-            displayHistory.push(s.statusHistory[0]);
-            for (let i = 1; i < s.statusHistory.length - 1; i++) {
-                if (s.statusHistory[i].status !== s.statusHistory[i - 1].status) {
-                    displayHistory.push(s.statusHistory[i]);
-                }
-            }
-            if (s.statusHistory.length > 1) {
-                if (displayHistory[displayHistory.length - 1] !== s.statusHistory[s.statusHistory.length - 1]) {
-                    displayHistory.push(s.statusHistory[s.statusHistory.length - 1]);
-                }
-            }
-        }
+        let displayHistory = s.statusHistory;
         
         const len = displayHistory.length;
-        let svgLines = '', dotsHtml = '';
+        let svgLines = '', dotsHtml = '', bgLinesHtml = '';
+
+        Object.values(statusY).forEach(y => {
+            bgLinesHtml += `<div style="position:absolute; left:0; top:${y}; width:100%; height:1px; border-top:1px dashed var(--border-subtle); z-index:0; opacity:0.6;"></div>`;
+        });
 
         displayHistory.forEach((sh, i) => {
             const y = statusY[sh.status] || '50%';
@@ -831,7 +822,7 @@ function renderStakeholderDetail() {
                 svgLines += `<line x1="${prevX}%" y1="${prevY}" x2="${x}%" y2="${y}" stroke="#60a5fa" stroke-width="3" />`;
             }
 
-            dotsHtml += `<div style="position:absolute; left:${x}%; bottom:-35px; transform: rotate(-45deg) translate(-10px, 0px); transform-origin: left center; font-size:0.65rem; color:var(--text-secondary); font-weight:600; white-space:nowrap; z-index:1;">${sh.date}</div>`;
+            dotsHtml += `<div style="position:absolute; left:${x}%; bottom:-35px; transform: translateX(-100%) rotate(-45deg); transform-origin: right top; font-size:0.65rem; color:var(--text-secondary); font-weight:600; white-space:nowrap; z-index:1; padding-right:6px;">${sh.date}</div>`;
 
             const isLast = i === len - 1;
             if (isLast) {
@@ -849,8 +840,8 @@ function renderStakeholderDetail() {
                 `;
             } else {
                 dotsHtml += `
-                    <div class="custom-tooltip" style="position:absolute; left:${x}%; top:${y}; transform:translate(-50%, -50%);">
-                       <div style="width:16px; height:16px; border-radius:50%; background:#1e3a8a; border:2px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,0.3); z-index:2;"></div>
+                    <div class="custom-tooltip" style="position:absolute; left:${x}%; top:${y}; transform:translate(-50%, -50%); z-index:2;">
+                       <div style="width:16px; height:16px; border-radius:50%; background:#1e3a8a; border:2px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>
                        <div class="custom-tooltip-content" style="top:100%; margin-top:12px; width:220px; z-index:9999;">
                            <div style="font-size:0.75rem; color:var(--text-tertiary); font-family:'JetBrains Mono'; margin-bottom:0.1rem;">${sh.date}</div>
                            <div style="font-size:0.85rem; font-weight:700; color:var(--text-primary); margin-bottom:0.25rem;">${sh.status}</div>
@@ -862,7 +853,8 @@ function renderStakeholderDetail() {
         });
 
         hl.innerHTML = `
-            <svg style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;" preserveAspectRatio="none">
+            ${bgLinesHtml}
+            <svg style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1;" preserveAspectRatio="none">
                 ${svgLines}
             </svg>
             ${dotsHtml}
