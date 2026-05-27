@@ -873,13 +873,16 @@ function renderStakeholderDetail() {
         setTxt('view-barriers', `"${s.strategicApproach.barriers || ''}"`);
         setHtml('view-engagement-approach', s.strategicApproach.engagementApproach);
         const tacC = document.getElementById('view-tactics');
-        if (tacC && s.strategicApproach.tactics) {
-            tacC.innerHTML = s.strategicApproach.tactics.map(t => `<div style="display:flex; align-items:center; gap:0.5rem; background:var(--bg-app); border:1px solid var(--border-subtle); padding:0.5rem; border-radius:4px;">
-                <span style="background:#3b82f6; color:white; font-size:0.7rem; padding:0.1rem 0.4rem; border-radius:4px; text-transform:uppercase; font-weight:bold;">${t.type}</span>
-                <span style="font-size:0.85rem;">${t.text}</span>
-            </div>`).join('');
+        if (tacC) {
+            let tacticsStr = '<span style="color:var(--text-tertiary); font-style:italic;">-</span>';
+            if (s.strategicApproach && s.strategicApproach.tactics && Array.isArray(s.strategicApproach.tactics) && s.strategicApproach.tactics.length > 0) {
+                tacticsStr = s.strategicApproach.tactics.map(t => {
+                    const label = typeof t === 'string' ? t : t.text;
+                    return `<span style="background:var(--bg-app); border:1px solid var(--border-subtle); color:var(--text-secondary); border-radius:4px; padding:0.2rem 0.5rem; font-size:0.75rem;">${label}</span>`;
+                }).join('');
+            }
+            tacC.innerHTML = tacticsStr;
         }
-    }
 
     // Contact Conduct
     if (s.contactConduct) {
@@ -1101,7 +1104,15 @@ window.toggleStakeholderEdit = function () {
                         const name = c.name || ((c.co_first_name || '') + ' ' + (c.co_last_name || '')).trim();
                         return `<option value="${c.id}">${name}</option>`;
                     }).join('');
-                    ownerSelect.value = s.sta_owner_contact_id || s.ownerId || s.owner || '';
+                    let currentOwnerId = s.sta_owner_contact_id || s.ownerId;
+                    if (!currentOwnerId && s.owner) {
+                        const found = internals.find(c => {
+                            const name = c.name || ((c.co_first_name || '') + ' ' + (c.co_last_name || '')).trim();
+                            return name === s.owner;
+                        });
+                        if (found) currentOwnerId = found.id;
+                    }
+                    ownerSelect.value = currentOwnerId || '';
                 }
             }
         }
