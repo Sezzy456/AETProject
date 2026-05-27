@@ -884,7 +884,7 @@ function renderStakeholderDetail() {
         tacC.innerHTML = tacticsStr;
     }
 
-    } // Contact Conduct
+    // Contact Conduct
     const cc = s.contactConduct || {};
     setTxt('view-contact-pref', cc.preferences || '-');
     setTxt('view-contact-tone', cc.emailTone || '-');
