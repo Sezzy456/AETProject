@@ -1,5 +1,5 @@
 // ============================================================
-//  AET Portal — app.js
+//  AET Portal — app.js 
 //  Architecture: portal.html is the single shell.
 //  Each view is a real HTML file in /pages/ loaded via fetch().
 // ============================================================
