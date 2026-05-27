@@ -1095,12 +1095,13 @@ window.toggleStakeholderEdit = function () {
                 const ownerSelect = document.getElementById('sdet-e-owner-inline');
                 if (ownerSelect) {
                     const allContacts = window.getData('contacts') || [];
-                    const internals = allContacts.filter(c => c.co_is_internal === true || c.internal === true);
+                    let internals = allContacts.filter(c => c.co_is_internal === true || c.internal === true);
+                    if (internals.length === 0) internals = allContacts; // Fallback if data not populated yet
                     ownerSelect.innerHTML = '<option value="">Unassigned</option>' + internals.map(c => {
                         const name = c.name || ((c.co_first_name || '') + ' ' + (c.co_last_name || '')).trim();
                         return `<option value="${c.id}">${name}</option>`;
                     }).join('');
-                    ownerSelect.value = s.ownerId || s.owner || '';
+                    ownerSelect.value = s.sta_owner_contact_id || s.ownerId || s.owner || '';
                 }
             }
         }

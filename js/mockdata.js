@@ -147,7 +147,7 @@ const mockData = {
                     id: "c1",
                     name: "Linda Vo",
                     role: "Comms",
-                    isLead: true,
+                    isLead: true, co_is_internal: true,
                     phone: "+61 400 000 000",
                     email: "linda.vo@cogb.vic.gov.au"
                 },
@@ -155,7 +155,7 @@ const mockData = {
                     id: "c2",
                     name: "Sarah Evans",
                     role: "Web Developer",
-                    isLead: false,
+                    isLead: false, co_is_internal: true,
                     phone: "+61 411 111 111",
                     email: "sarah@example.com"
                 }
