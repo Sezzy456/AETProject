@@ -204,8 +204,7 @@ details[open] > summary .material-symbols-outlined {
                 <div>
                     <div style="font-size:0.85rem; margin-bottom:0.5rem;">Influence:</div>
                     <div style="display:flex; align-items:center; gap:1rem;">
-                        <span style="font-size:0.9rem; font-weight:600;" id="view-influence-label">-</span>
-                        <div style="flex:1; height:6px; background:var(--border-subtle); border-radius:100px; position:relative;">
+                        <div style="flex:1; height:12px; background:var(--border-subtle); border-radius:100px; position:relative;">
                             <div id="view-influence-bar" style="position:absolute; left:0; top:0; height:100%; width:0%; background:var(--text-secondary); border-radius:100px;"></div>
                         </div>
                     </div>
@@ -213,8 +212,7 @@ details[open] > summary .material-symbols-outlined {
                 <div>
                     <div style="font-size:0.85rem; margin-bottom:0.25rem;">Interest:</div>
                     <div style="display:flex; align-items:center; gap:1rem;">
-                        <span style="font-size:0.9rem; font-weight:600;" id="view-interest-label">-</span>
-                        <div style="flex:1; height:6px; background:var(--border-subtle); border-radius:100px; position:relative;">
+                        <div style="flex:1; height:12px; background:var(--border-subtle); border-radius:100px; position:relative;">
                             <div id="view-interest-bar" style="position:absolute; left:0; top:0; height:100%; width:0%; background:var(--text-secondary); border-radius:100px;"></div>
                         </div>
                     </div>
@@ -222,16 +220,16 @@ details[open] > summary .material-symbols-outlined {
             </div>
 
             <div class="sdet-row">
-                <div class="sdet-row-label" style="width:180px;">Values:</div>
+                <div class="sdet-row-label">Values:</div>
                 <div id="view-values-container" class="sdet-row-content" style="display:flex; gap:0.5rem; flex-wrap:wrap;"></div>
             </div>
 
             <div class="sdet-row">
-                <div class="sdet-row-label" style="width:180px;">Decision-Making Authority:</div>
+                <div class="sdet-row-label">Decision-Making Authority:</div>
                 <div id="view-authority" class="sdet-row-content">-</div>
             </div>
             
-            <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--border-subtle); margin-bottom:1.5rem;">
+            <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--border-subtle); margin-bottom:2.5rem;">
                 <div style="font-size:0.85rem; font-weight:600; margin-bottom:1rem;">Status History</div>
                 <div id="view-status-history-lines" style="position:relative; width:100%; height:140px;"></div>
             </div>
@@ -241,21 +239,26 @@ details[open] > summary .material-symbols-outlined {
     <!-- RIGHT COLUMN: Activity, Tasks & Contacts -->
     <div class="sdet-col-right">
         <!-- BLOCK 1: Timeline & Log -->
+        <!-- BLOCK 1: Recent Updates -->
         <div class="sdet-block">
-            <div class="sdet-block-title" style="display:flex; justify-content:space-between; align-items:center; border-bottom:none; padding-bottom:0; margin-bottom:1rem;">
-                <span>Timeline & Log (The Pulse)</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <div style="font-weight:700; font-size:1.1rem; color:var(--text-primary);">Recent Updates</div>
                 <button class="btn-primary" style="padding:0.2rem 0.6rem; font-size:0.75rem; height:auto; text-transform:none; letter-spacing:normal;" onclick="event.stopPropagation(); window._prefillStakeholderId=window.currentStakeholderId; window.viewInteractionEdit();">+ Add Update</button>
             </div>
             
-            <div style="font-weight:600; font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem; text-transform:uppercase; letter-spacing:0.04em;">Recent Updates</div>
-            <div id="stakeholder-interactions-container" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1.5rem;">
+            <div id="stakeholder-last-update-text" style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:1rem; font-style:italic;"></div>
+            <div id="stakeholder-interactions-container" style="display:flex; flex-direction:column; gap:1rem;">
                 <!-- Interactions injected here -->
             </div>
-            
-            <div style="font-weight:600; font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem; border-top:1px solid var(--border-subtle); padding-top:1rem; text-transform:uppercase; letter-spacing:0.04em;">Actions</div>
+        </div>
+
+        <!-- BLOCK 1b: Actions -->
+        <div class="sdet-block">
+            <div style="font-weight:700; font-size:1.1rem; color:var(--text-primary); margin-bottom:1rem;">Actions</div>
             <div id="stakeholder-actions-container" style="display:flex; flex-direction:column; gap:1rem;">
                 <!-- Actions injected here -->
             </div>
+            <div id="stakeholder-more-actions" style="font-size:0.8rem; color:var(--text-tertiary); margin-top:0.75rem;"></div>
         </div>
 
         <!-- BLOCK 2: Execution & Messaging -->
@@ -277,19 +280,7 @@ details[open] > summary .material-symbols-outlined {
                 </div>
             </div>
             
-            <div class="sdet-row" style="flex-direction:column; gap:0.5rem; border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:1rem;">
-                <div class="sdet-row-label" style="width:100%;">Relationships:</div>
-                <div class="sdet-row-content" style="width:100%;">
-                    <div style="display:flex; flex-direction:column; gap:0.5rem; font-size:0.9rem; line-height:1.5;">
-                        <div><span style="color:var(--text-tertiary);">Internal Link:</span> <span id="view-rel-internal">-</span></div>
-                        <div><span style="color:var(--text-tertiary);">External Tension:</span> <span id="view-rel-external">-</span></div>
-                        <div style="margin-top:0.5rem;"><span style="color:var(--text-tertiary); font-weight:600;">"Key Ties"</span></div>
-                        <ul id="view-rel-ties" style="margin:0; padding-left:1.5rem; color:var(--text-primary);"></ul>
-                        <div style="margin-top:0.5rem;"><span style="color:var(--text-tertiary); font-weight:600;">"Friction Points"</span></div>
-                        <ul id="view-rel-friction" style="margin:0; padding-left:1.5rem; color:var(--text-primary);"></ul>
-                    </div>
-                </div>
-            </div>
+
 
             <div style="border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:1rem;">
                 <div style="font-size:0.9rem; font-weight:600; margin-bottom:1rem; color:var(--text-secondary);">KEY CONTACTS</div>
@@ -449,22 +440,6 @@ details[open] > summary .material-symbols-outlined {
     </div>
 </div>
 
-<!-- ── RELATIONSHIPS ───────────────────────────────────────── -->
-<div class="sdet-row" style="margin-top:1.5rem;">
-    <div class="sdet-row-label">Relationships:</div>
-    <div class="sdet-row-content" style="flex:1;">
-        <div style="display:flex; flex-direction:column; gap:0.5rem; font-size:0.9rem; line-height:1.5;">
-            <div style="display:flex; align-items:center; gap:0.5rem;">
-                <span style="color:var(--text-tertiary); width:120px;">Internal Link:</span> 
-                <input type="text" id="sdet-e-rel-internal" style="flex:1; padding:0.4rem; border:1px solid var(--border-subtle); border-radius:4px; font-family:inherit;">
-            </div>
-            <div style="display:flex; align-items:center; gap:0.5rem;">
-                <span style="color:var(--text-tertiary); width:120px;">External Tension:</span> 
-                <input type="text" id="sdet-e-rel-external" style="flex:1; padding:0.4rem; border:1px solid var(--border-subtle); border-radius:4px; font-family:inherit;">
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- ══════════════════════════════════════════════════════════
      CONTACT CONDUCT / COMMUNICATION

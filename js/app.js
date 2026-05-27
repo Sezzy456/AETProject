@@ -828,13 +828,16 @@ function renderStakeholderDetail() {
             if (isLast) {
                 dotsHtml += `
                     <div style="position:absolute; left:${x}%; top:0; height:100%; width:16px; transform:translateX(-50%); display:flex; flex-direction:column; border-radius:100px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.2); border:2px solid #fff; z-index:4; background:#e5e7eb;">
-                        <div style="flex:1; cursor:pointer; position:relative; background:#22c55e;" onclick="updateDetailStatus('Operational')" title="Operational">${sh.status === 'Operational' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
-                        <div style="flex:1; cursor:pointer; position:relative; background:#a3e635;" onclick="updateDetailStatus('Stable')" title="Stable">${sh.status === 'Stable' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
-                        <div style="flex:1; cursor:pointer; position:relative; background:#f9fafb;" onclick="updateDetailStatus('Dormant')" title="Dormant">${sh.status === 'Dormant' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
-                        <div style="flex:1; cursor:pointer; position:relative; background:#eab308;" onclick="updateDetailStatus('Friction Points')" title="Friction Points">${sh.status === 'Friction Points' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
-                        <div style="flex:1; cursor:pointer; position:relative; background:#f97316;" onclick="updateDetailStatus('Strained')" title="Strained">${sh.status === 'Strained' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
-                        <div style="flex:1; cursor:pointer; position:relative; background:#ef4444;" onclick="updateDetailStatus('Critical/At Risk')" title="Critical/At Risk">${sh.status === 'Critical/At Risk' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
+                        <div style="flex:1; cursor:pointer; position:relative; background:#22c55e;" onclick="window.previewStatusChange('Operational', this)" title="Operational">${sh.status === 'Operational' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
+                        <div style="flex:1; cursor:pointer; position:relative; background:#a3e635;" onclick="window.previewStatusChange('Stable', this)" title="Stable">${sh.status === 'Stable' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
+                        <div style="flex:1; cursor:pointer; position:relative; background:#f9fafb;" onclick="window.previewStatusChange('Dormant', this)" title="Dormant">${sh.status === 'Dormant' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
+                        <div style="flex:1; cursor:pointer; position:relative; background:#eab308;" onclick="window.previewStatusChange('Friction Points', this)" title="Friction Points">${sh.status === 'Friction Points' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
+                        <div style="flex:1; cursor:pointer; position:relative; background:#f97316;" onclick="window.previewStatusChange('Strained', this)" title="Strained">${sh.status === 'Strained' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
+                        <div style="flex:1; cursor:pointer; position:relative; background:#ef4444;" onclick="window.previewStatusChange('Critical/At Risk', this)" title="Critical/At Risk">${sh.status === 'Critical/At Risk' ? '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>' : ''}</div>
                     </div>
+                    <button id="status-save-btn" onclick="window.commitStatusChange()" style="display:none; position:absolute; left:calc(${x}% + 15px); top:50%; transform:translateY(-50%); width:32px; height:32px; border-radius:50%; background:var(--energy-algae); color:white; border:none; box-shadow:0 2px 8px rgba(0,0,0,0.2); z-index:5; align-items:center; justify-content:center; cursor:pointer;" title="Save Status">
+                        <span class="material-symbols-outlined" style="font-size:1.2rem;">save</span>
+                    </button>
                     <div style="position:absolute; left:${x}%; top:${y}; transform:translate(-50%,-50%); width:28px; height:28px; border-radius:50%; border:2px solid #22c55e; animation:ping 2s cubic-bezier(0,0,0.2,1) infinite; z-index:3; pointer-events:none;"></div>
                     <style>@keyframes ping{75%,100%{transform:scale(1.5);opacity:0;}}</style>
                 `;
@@ -905,15 +908,7 @@ function renderStakeholderDetail() {
         }
     }
 
-    // Relationships
-    if (s.relationships) {
-        setTxt('view-rel-internal', s.relationships.internalLink);
-        setTxt('view-rel-external', s.relationships.externalTension);
-        const ties = document.getElementById('view-rel-ties');
-        if (ties) ties.innerHTML = (s.relationships.keyTies || []).map(t => `<li>${t}</li>`).join('') || '-';
-        const friction = document.getElementById('view-rel-friction');
-        if (friction) friction.innerHTML = (s.relationships.frictionPoints || []).map(t => `<li>${t}</li>`).join('') || '-';
-    }
+
 
     // Audience Message from sta_audience_message (direct DB field)
     const audContainer = document.getElementById('audience-msg-container');
@@ -921,9 +916,6 @@ function renderStakeholderDetail() {
         if (s.audienceMessage && s.audienceMessage.trim()) {
             audContainer.innerHTML = `
                 <div class="sdet-card" id="aud-msg-card">
-                    <div style="display:flex; align-items:center; gap:0.5rem; color:#3b82f6; font-weight:600; margin-bottom:1rem;">
-                        <span class="material-symbols-outlined">groups</span> ${s.name}
-                    </div>
                     <p id="aud-msg-text" style="font-size:0.9rem; line-height:1.5; color:var(--text-primary); margin:0;">${s.audienceMessage}</p>
                 </div>`;
         } else {
@@ -936,15 +928,23 @@ function renderStakeholderDetail() {
     if (actContainer) {
         const allActions = window.getData('actions') || [];
         const shActions = allActions.filter(a => a.linkType === 'Stakeholder' && a.linkId === s.id);
-        actContainer.innerHTML = shActions.length === 0
+        const topActions = shActions.slice(0, 3);
+        const moreCount = shActions.length > 3 ? shActions.length - 3 : 0;
+        
+        actContainer.innerHTML = topActions.length === 0
             ? '<span style="color:var(--text-tertiary); font-style:italic; font-size:0.9rem;">No linked actions.</span>'
-            : shActions.map(a => `<div class="card" style="padding:1rem; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-app); display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+            : topActions.map(a => `<div class="card" style="padding:1rem; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-app); display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
                 <div>
                     <div style="font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">${a.activity}</div>
                     <span style="font-size:0.8rem; color:var(--text-secondary);">Owner: ${a.owner || '-'} | Due: ${a.dueDate || '-'}</span>
                 </div>
                 <div><span class="status-badge" style="border-color:#3b82f6; color:#3b82f6; padding:0.1rem 0.5rem; font-size:0.75rem;">${a.status}</span></div>
              </div>`).join('');
+             
+        const moreActionsEl = document.getElementById('stakeholder-more-actions');
+        if (moreActionsEl) {
+            moreActionsEl.textContent = moreCount > 0 ? `+ ${moreCount} more current actions` : '';
+        }
     }
 
     // Linked Interactions
@@ -952,9 +952,26 @@ function renderStakeholderDetail() {
     if (intContainer) {
         const allLogs = window.getData('activityLog') || [];
         const shLogs = allLogs.filter(l => (l.attendees && l.attendees.includes(s.name)) || l.title.includes(s.name));
-        intContainer.innerHTML = shLogs.length === 0
-            ? '<span style="color:var(--text-tertiary); font-style:italic; font-size:0.9rem;">No recent interactions.</span>'
-            : shLogs.map(l => `<div class="card" style="padding:1rem; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-app); cursor:pointer;">
+        
+        const lastUpdateTextEl = document.getElementById('stakeholder-last-update-text');
+        if (lastUpdateTextEl) {
+            if (shLogs.length > 0) {
+                const parts = shLogs[0].date.split('/');
+                let logDate;
+                if (parts.length === 3) logDate = new Date(parts[2], parts[1]-1, parts[0]);
+                else logDate = new Date(shLogs[0].date);
+                const diffDays = Math.floor(Math.abs(new Date() - logDate) / (1000 * 60 * 60 * 24));
+                let relStr = diffDays === 0 ? 'Today' : diffDays === 1 ? '1 day ago' : diffDays < 7 ? diffDays + ' days ago' : diffDays < 30 ? Math.floor(diffDays/7) + ' weeks ago' : diffDays < 365 ? Math.floor(diffDays/30) + ' months ago' : Math.floor(diffDays/365) + ' years ago';
+                lastUpdateTextEl.textContent = `Last update: ${relStr}`;
+            } else {
+                lastUpdateTextEl.textContent = '';
+            }
+        }
+
+        const topLogs = shLogs.slice(0, 3);
+        intContainer.innerHTML = topLogs.length === 0
+            ? '<span style="color:var(--text-tertiary); font-style:italic; font-size:0.9rem;">No recent updates.</span>'
+            : topLogs.map(l => `<div class="card" style="padding:1rem; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-app); cursor:pointer;">
                 <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.25rem;">${l.date}</div>
                 <div style="font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">${l.title}</div>
                 <div style="font-size:0.85rem; color:var(--text-secondary);">${l.notes}</div>
@@ -5994,5 +6011,27 @@ window.saveContactEdit = async function() {
         alert('Failed to save contact: ' + err.message);
     } finally {
         if (btn) btn.innerHTML = 'Save Contact';
+    }
+};
+
+window.previewStatusChange = function(status, el) {
+    window._pendingStatusChange = status;
+    const parent = el.parentElement;
+    const children = parent.children;
+    for (let i=0; i<children.length; i++) {
+        children[i].innerHTML = '';
+    }
+    el.innerHTML = '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>';
+    const saveBtn = document.getElementById('status-save-btn');
+    if (saveBtn) saveBtn.style.display = 'flex';
+};
+
+window.commitStatusChange = function() {
+    if (window._pendingStatusChange) {
+        const newStatus = window._pendingStatusChange;
+        window._pendingStatusChange = null;
+        if (typeof window.updateDetailStatus === 'function') {
+            window.updateDetailStatus(newStatus);
+        }
     }
 };
