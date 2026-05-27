@@ -717,7 +717,8 @@ function renderStakeholderDetail() {
     setTxt('view-breadcrumb-name', s.name);
     setTxt('detail-name', s.name);
     setTxt('view-role', s.role);
-    setTxt('view-narrativeHook', `"${s.narrativeHook || ''}"`);
+    setTxt('view-owner-name', s.owner || '-');
+    setTxt('view-narrativeHook', s.narrativeHook ? `“${s.narrativeHook}”` : '-');
 
     // Status Badge
     const stBadge = document.getElementById('view-status-badge');
@@ -1014,7 +1015,7 @@ window.cancelStakeholderEdit = function () {
     if (cancelBtn) cancelBtn.style.display = 'none';
 
     // Hide inline inputs
-    ['sdet-e-name-inline', 'sdet-e-role-inline', 'sdet-e-status-inline'].forEach(eid => {
+    ['sdet-e-name-inline', 'edit-role-wrap', 'sdet-e-owner-inline', 'sdet-e-status-inline'].forEach(eid => {
         const el = document.getElementById(eid);
         if (el) el.style.display = 'none';
     });
@@ -1045,7 +1046,7 @@ window.toggleStakeholderEdit = function () {
         if (nameRow) nameRow.style.display = 'flex';
         if (roleRow) roleRow.style.display = 'flex';
 
-        ['sdet-e-name-inline', 'sdet-e-role-inline', 'sdet-e-narrativeHook', 'sdet-e-audience-message', 'sdet-e-values', 'sdet-e-authority', 'sdet-e-posture-current', 'sdet-e-posture-desired', 'sdet-e-posture-next', 'sdet-e-posture-target', 'sdet-e-barriers', 'sdet-e-engagement-approach', 'sdet-e-tactics', 'sdet-e-rel-internal', 'sdet-e-rel-external', 'sdet-e-contact-pref', 'sdet-e-contact-tone', 'sdet-e-contact-pitch'].forEach(eid => set(eid, ''));
+        ['sdet-e-name-inline', 'sdet-e-role-inline', 'sdet-e-owner-inline', 'sdet-e-narrativeHook', 'sdet-e-audience-message', 'sdet-e-values', 'sdet-e-authority', 'sdet-e-posture-current', 'sdet-e-posture-desired', 'sdet-e-posture-next', 'sdet-e-posture-target', 'sdet-e-barriers', 'sdet-e-engagement-approach', 'sdet-e-tactics', 'sdet-e-rel-internal', 'sdet-e-rel-external', 'sdet-e-contact-pref', 'sdet-e-contact-tone', 'sdet-e-contact-pitch'].forEach(eid => set(eid, ''));
         set('sdet-e-status-inline', 'Operational');
         set('sdet-e-influence', '5');
         set('sdet-e-interest', '5');
@@ -1060,6 +1061,7 @@ window.toggleStakeholderEdit = function () {
             if (s) {
                 set('sdet-e-name-inline', s.name);
                 set('sdet-e-role-inline', s.role);
+                set('sdet-e-owner-inline', s.owner);
                 set('sdet-e-narrativeHook', s.narrativeHook);
                 set('sdet-e-audience-message', s.audienceMessage || '');
                 set('sdet-e-values', (s.powerDynamics?.values || []).join(', '));
@@ -1084,6 +1086,15 @@ window.toggleStakeholderEdit = function () {
                 set('sdet-e-contact-pref', s.contactConduct?.preferences || '');
                 set('sdet-e-contact-tone', s.contactConduct?.emailTone || '');
                 set('sdet-e-contact-pitch', s.contactConduct?.elevatorPitches || '');
+
+                // Populate owner dropdown
+                const ownerSelect = document.getElementById('sdet-e-owner-inline');
+                if (ownerSelect) {
+                    const allContacts = window.getData('contacts') || [];
+                    const internals = allContacts.filter(c => c.internal);
+                    ownerSelect.innerHTML = '<option value="">Unassigned</option>' + internals.map(c => `<option value="${c.name.replace(/"/g, '&quot;')}">${c.name}</option>`).join('');
+                    ownerSelect.value = s.owner || '';
+                }
             }
         }
         viewMode.style.display = 'none';
@@ -1091,15 +1102,14 @@ window.toggleStakeholderEdit = function () {
         editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done';
         if (cancelBtn) cancelBtn.style.display = 'inline-flex';
 
-        // Hide view elements in header
-        ['detail-name', 'detail-role-wrap', 'view-status-badge', 'status-tooltip-wrap'].forEach(eid => {
+        ['detail-name', 'detail-role-wrap', 'view-owner-name', 'view-status-badge', 'status-tooltip-wrap'].forEach(eid => {
             const el = document.getElementById(eid);
             if (el) el.style.display = 'none';
         });
-        // Show inline inputs
-        ['sdet-e-name-inline', 'sdet-e-role-inline'].forEach(eid => {
+
+        ['sdet-e-name-inline', 'edit-role-wrap', 'sdet-e-owner-inline', 'sdet-e-status-inline'].forEach(eid => {
             const el = document.getElementById(eid);
-            if (el) el.style.display = 'block';
+            if (el) el.style.display = 'flex';
         });
         const statusEl = document.getElementById('sdet-e-status-inline');
         if (statusEl) statusEl.style.display = 'inline-block';
@@ -1174,6 +1184,7 @@ window.saveStakeholder = function () {
 
     s.name = get('sdet-e-name-inline').trim() || s.name || 'New Stakeholder';
     s.role = get('sdet-e-role-inline').trim() || s.role || '';
+    s.owner = get('sdet-e-owner-inline') || s.owner || '';
     s.narrativeHook = get('sdet-e-narrativeHook');
     s.audienceMessage = get('sdet-e-audience-message');
 
@@ -1188,7 +1199,7 @@ window.saveStakeholder = function () {
     if (newStatus && newStatus !== s.status) {
         if (!s.statusHistory) s.statusHistory = [];
         const dateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-        s.statusHistory.push({ date: dateStr, status: newStatus, notes: 'Status updated via profile edit.' });
+        s.statusHistory.unshift({ date: dateStr, status: newStatus, notes: 'Status updated via profile edit.' });
         s.status = newStatus;
     }
 
@@ -6115,8 +6126,19 @@ window.previewStatusChange = function(status, el) {
         children[i].innerHTML = '';
     }
     el.innerHTML = '<div style="position:absolute; top:50%; left:50%; width:8px; height:8px; background:#000; border-radius:50%; transform:translate(-50%,-50%); border:2px solid #fff;"></div>';
-    const saveBtn = document.getElementById('status-save-btn');
-    if (saveBtn) saveBtn.style.display = 'flex';
+    
+    const inlineSelect = document.getElementById('sdet-e-status-inline');
+    if (inlineSelect) {
+        inlineSelect.value = status;
+    }
+    
+    const editMode = document.getElementById('sdet-edit-mode');
+    const isEditMode = editMode && editMode.style.display !== 'none';
+    
+    const saveBtn = parent.nextElementSibling;
+    if (saveBtn && saveBtn.id === 'status-save-btn' && !isEditMode) {
+        saveBtn.style.display = 'flex';
+    }
 };
 
 window.commitStatusChange = function() {

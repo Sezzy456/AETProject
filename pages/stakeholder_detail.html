@@ -82,12 +82,21 @@ details[open] > summary .material-symbols-outlined {
     <div>
         <button class="btn-secondary" onclick="loadView('stakeholders'); history.pushState(null, '', '#stakeholders')" style="height:32px; padding:0 0.75rem; font-size:0.8rem; margin-bottom:1rem;">← Back to Stakeholders</button>
         <h1 id="detail-name" style="margin-bottom:0.5rem; font-size:2rem;">Loading Profile...</h1>
-        <input type="text" id="sdet-e-name-inline" style="display:none; margin-bottom:0.5rem; font-size:2rem; font-weight:bold; font-family:inherit; border:1px solid var(--border-subtle); border-radius:6px; padding:0.2rem 0.5rem; width:100%; max-width:400px; background:var(--bg-app);">
+        <input type="text" id="sdet-e-name-inline" style="display:none; margin-bottom:0.5rem; font-size:2rem; font-weight:bold; font-family:inherit; border:1px solid var(--border-subtle); border-radius:6px; padding:0.2rem 0.5rem; width:100%; max-width:800px; background:var(--bg-app);">
         
         <div style="font-size:0.9rem; color:var(--text-secondary); display:flex; align-items:center; gap:0.5rem;">
             <span id="detail-role-wrap"><span style="color:var(--text-tertiary);">Role:</span> <span id="view-role" style="font-weight:600;">-</span></span>
-            <input type="text" id="sdet-e-role-inline" placeholder="Role" style="display:none; font-size:0.9rem; font-family:inherit; border:1px solid var(--border-subtle); border-radius:4px; padding:0.1rem 0.4rem; width:200px; background:var(--bg-app);">
+            <div id="edit-role-wrap" style="display:none; align-items:center; gap:0.25rem;">
+                <span style="color:var(--text-tertiary);">Role:</span>
+                <input type="text" id="sdet-e-role-inline" placeholder="Role" style="font-size:0.9rem; font-family:inherit; border:1px solid var(--border-subtle); border-radius:4px; padding:0.1rem 0.4rem; width:200px; background:var(--bg-app);">
+            </div>
             
+            <div style="display:flex; align-items:center; gap:0.25rem; position:relative;">
+                <span style="color:var(--text-tertiary); margin-left:0.5rem; margin-right:0.5rem;">Owner:</span>
+                <span id="view-owner-name" style="font-weight:600;">-</span>
+                <select id="sdet-e-owner-inline" style="display:none; padding:0.2rem 0.4rem; font-size:0.8rem; border:1px solid var(--border-subtle); border-radius:4px; font-family:inherit; background:var(--bg-app);"></select>
+            </div>
+
             <div style="display:flex; align-items:center; gap:0.25rem; position:relative;">
                 <span style="color:var(--text-tertiary); margin-left:0.5rem; margin-right:0.5rem;">Status:</span>
                 <span id="view-status-badge" style="background:rgba(245, 158, 11, 0.2); color:var(--energy-mid); padding:0.2rem 0.6rem; border-radius:4px; font-weight:600; font-size:0.8rem;">-</span>
@@ -289,7 +298,11 @@ details[open] > summary .material-symbols-outlined {
             <div class="sdet-row" style="flex-direction:column; gap:0.5rem; border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:1rem;">
                 <div class="sdet-row-label" style="width:100%;">Preferences:</div>
                 <div class="sdet-row-content" style="width:100%;">
-                    <div id="view-contact-pref" style="margin-bottom:0.5rem;">-</div>
+                    <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.25rem;"><strong>Comms Preferences:</strong></div>
+                    <div id="view-contact-pref" style="margin-bottom:0.75rem;">-</div>
+                    <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.25rem;"><strong>Email Tone:</strong></div>
+                    <div id="view-contact-tone" style="margin-bottom:0.75rem;">-</div>
+                    <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.25rem;"><strong>Elevator Pitch:</strong></div>
                     <div id="view-contact-pitch" style="font-size:0.85rem; color:var(--text-secondary);">-</div>
                 </div>
             </div>
@@ -430,8 +443,7 @@ details[open] > summary .material-symbols-outlined {
                 </div>
             </div>
             
-            <!-- Read-only status graph block so the layout holds perfectly -->
-            <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--border-subtle); margin-bottom:2.5rem; opacity:0.6; pointer-events:none;">
+            <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--border-subtle); margin-bottom:2.5rem;">
                 <div style="font-size:0.85rem; font-weight:600; margin-bottom:1rem;">Status History</div>
                 <div id="view-status-history-lines-edit" style="position:relative; width:100%; height:140px;"></div>
             </div>
@@ -478,22 +490,32 @@ details[open] > summary .material-symbols-outlined {
             <div class="sdet-row" style="flex-direction:column; gap:0.5rem; border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:1rem;">
                 <div class="sdet-row-label" style="width:100%;">Preferences:</div>
                 <div class="sdet-row-content" style="width:100%;">
-                    <input type="text" id="sdet-e-contact-pref" placeholder="Comms Preferences" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; font-family:inherit; font-size:0.95rem; margin-bottom:0.5rem;">
-                    <input type="text" id="sdet-e-contact-tone" placeholder="Email tone" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; font-family:inherit; font-size:0.95rem; margin-bottom:0.5rem;">
+                    <label style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.25rem; display:block;"><strong>Comms Preferences:</strong></label>
+                    <input type="text" id="sdet-e-contact-pref" placeholder="Comms Preferences" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; font-family:inherit; font-size:0.95rem; margin-bottom:0.75rem;">
+                    
+                    <label style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.25rem; display:block;"><strong>Email Tone:</strong></label>
+                    <input type="text" id="sdet-e-contact-tone" placeholder="Email tone" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; font-family:inherit; font-size:0.95rem; margin-bottom:0.75rem;">
+                    
+                    <label style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.25rem; display:block;"><strong>Elevator Pitch:</strong></label>
                     <textarea id="sdet-e-contact-pitch" rows="3" placeholder="Elevator pitches" style="width:100%; padding:0.6rem; border:1px solid var(--border-subtle); border-radius:6px; font-family:inherit; font-size:0.95rem; resize:vertical;"></textarea>
                 </div>
             </div>
 
-            <div style="border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:1rem; opacity:0.6; pointer-events:none;">
+            <div style="border-top:1px solid var(--border-subtle); padding-top:1rem; margin-top:1rem;">
                 <div style="font-size:0.9rem; font-weight:600; margin-bottom:1rem; color:var(--text-secondary);">KEY CONTACTS</div>
                 <div id="view-contacts-list-edit" style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1rem;"></div>
+                
+                <button class="btn-secondary" style="width:100%; justify-content:space-between; display:flex; align-items:center; gap:0.5rem;" onclick="const el=document.getElementById('quick-add-form'); const icon=document.getElementById('quick-add-arrow'); if(el.style.display==='none'){el.style.display='block'; icon.innerText='expand_less';}else{el.style.display='none'; icon.innerText='expand_more';}">
+                    <div style="display:flex; align-items:center; gap:0.5rem;"><span class="material-symbols-outlined">person_add</span> Quick Add Contact</div>
+                    <span id="quick-add-arrow" class="material-symbols-outlined">expand_more</span>
+                </button>
             </div>
         </div>
     </div>
-</div>
-
-<div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:2rem; width:100%;">
-    <button class="btn-primary" style="height:44px; padding:0 2rem; background:#374151;" onclick="window.saveStakeholder()">Save Changes</button>
+    
+    <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:2rem; width:100%;">
+        <button class="btn-primary" style="height:44px; padding:0 2rem; background:#374151;" onclick="window.saveStakeholder()">Save Changes</button>
+    </div>
 </div>
 
 </div>
