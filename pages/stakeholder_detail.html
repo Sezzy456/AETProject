@@ -3,23 +3,23 @@
 .sdet-thick-slider {
     -webkit-appearance: none;
     width: 100%;
-    height: 8px;
-    background: #e5e7eb;
-    border-radius: 4px;
+    height: 12px;
+    background: var(--border-subtle);
+    border-radius: 100px;
     outline: none;
 }
 .sdet-thick-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: var(--text-secondary);
     cursor: pointer;
 }
 .sdet-thick-slider::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: var(--text-secondary);
     cursor: pointer;
@@ -394,11 +394,12 @@ details[open] > summary .material-symbols-outlined {
                             </div>
                             <div style="text-align:center; font-size:0.85rem; padding:0.25rem; display:flex; align-items:center; justify-content:center; gap:0.5rem;">
                                 <span style="color:#ef4444; font-weight:bold;">Target Date:</span> 
-                                <input type="text" id="sdet-e-posture-target" placeholder="e.g. 25 Apr 2026" style="padding:0.2rem; border:1px solid var(--border-subtle); border-radius:4px; font-family:inherit; font-size:0.8rem;">
+                                <input type="date" id="sdet-e-posture-target" style="padding:0.2rem; border:1px solid var(--border-subtle); border-radius:4px; font-family:inherit; font-size:0.8rem;">
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
             <div class="sdet-row">
                 <div class="sdet-row-label">Narrative Hook:</div>
                 <div class="sdet-row-content">

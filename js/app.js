@@ -1202,7 +1202,18 @@ window.saveStakeholder = function () {
 
     s.name = get('sdet-e-name-inline').trim() || s.name || 'New Stakeholder';
     s.role = get('sdet-e-role-inline').trim() || s.role || '';
-    s.owner = get('sdet-e-owner-inline') || s.owner || '';
+    const ownerId = get('sdet-e-owner-inline');
+    if (ownerId) {
+        s.sta_owner_contact_id = parseInt(ownerId);
+        const internals = window.getData('contacts').filter(c => c.co_is_internal === true);
+        const foundOwner = internals.find(c => c.id == s.sta_owner_contact_id);
+        if (foundOwner) {
+            s.owner = foundOwner.name || ((foundOwner.co_first_name || '') + ' ' + (foundOwner.co_last_name || '')).trim();
+        }
+    } else {
+        s.sta_owner_contact_id = null;
+        s.owner = '';
+    }
     s.narrativeHook = get('sdet-e-narrativeHook');
     s.audienceMessage = get('sdet-e-audience-message');
 
