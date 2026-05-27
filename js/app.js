@@ -884,7 +884,7 @@ function renderStakeholderDetail() {
             tacC.innerHTML = tacticsStr;
         }
 
-    // Contact Conduct
+    } // Contact Conduct
     if (s.contactConduct) {
         setTxt('view-contact-pref', s.contactConduct.preferences);
         setTxt('view-contact-tone', s.contactConduct.emailTone);
