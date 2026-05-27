@@ -373,19 +373,32 @@ details[open] > summary .material-symbols-outlined {
             <div class="sdet-row" style="flex-direction:column; gap:0.5rem;">
                 <div class="sdet-row-label" style="width:100%;">Posturing Journey:</div>
                 <div class="sdet-row-content" style="width:100%;">
-                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.75rem;">
-                        <input type="text" id="sdet-e-posture-current" placeholder="Current posture" style="flex:1; padding:0.4rem; border:1px solid var(--border-subtle); border-radius:4px; font-size:0.85rem; font-family:inherit;">
-                        <span style="display:flex; align-items:center; color:var(--text-tertiary);">→</span>
-                        <input type="text" id="sdet-e-posture-desired" placeholder="Desired posture" style="flex:1; padding:0.4rem; border:1px solid var(--border-subtle); border-radius:4px; font-size:0.85rem; font-family:inherit;">
-                    </div>
-                    <label style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.25rem; display:block;">Next step (trigger):</label>
-                    <textarea id="sdet-e-posture-next" rows="2" placeholder="e.g. MOU Signed" style="width:100%; padding:0.4rem; border:1px solid var(--border-subtle); border-radius:4px; font-size:0.85rem; font-family:inherit; resize:vertical; margin-bottom:0.5rem;"></textarea>
-                    
-                    <label style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.25rem; display:block;">Target date (e.g. APR 2026):</label>
-                    <input type="text" id="sdet-e-posture-target" placeholder="APR 2026" style="width:100%; max-width:150px; padding:0.4rem; border:1px solid var(--border-subtle); border-radius:4px; font-size:0.85rem; font-family:inherit;">
-                </div>
-            </div>
+                    <div style="display:grid; grid-template-columns: 1fr auto 1fr; align-items:start; gap:1rem;">
+                        <div class="sdet-card" style="min-width: 0; padding:1rem; border:1px solid var(--border-subtle); border-radius:12px; background:var(--bg-surface);">
+                            <div style="color:#6b7280; font-size:0.8rem; font-weight:600; margin-bottom:0.5rem;">Current:</div>
+                            <textarea id="sdet-e-posture-current" rows="2" style="width:100%; padding:0.4rem; border:1px solid var(--border-subtle); border-radius:6px; font-family:inherit; font-size:0.95rem; resize:vertical;"></textarea>
+                        </div>
+                        
+                        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:1.5rem 0.5rem 0 0.5rem; max-width: 200px;">
+                            <span class="material-symbols-outlined" style="color:var(--text-tertiary); margin-bottom:0.25rem;">arrow_forward</span>
+                            <div style="text-align:center; font-size:0.75rem;">
+                                <div style="color:#ef4444; font-weight:bold; margin-bottom:0.2rem;">Next Step:</div>
+                                <textarea id="sdet-e-posture-next" rows="2" style="width:100%; padding:0.3rem; border:1px solid var(--border-subtle); border-radius:4px; font-family:inherit; font-size:0.85rem; resize:vertical;"></textarea>
+                            </div>
+                        </div>
 
+                        <div style="min-width: 0; display:flex; flex-direction:column; gap:0.5rem;">
+                            <div style="border:1px solid #3b82f6; padding:1rem; border-radius:12px; background:rgba(59,130,246,0.05); flex:1;">
+                                <div style="color:#6b7280; font-size:0.8rem; font-weight:600; margin-bottom:0.5rem;">Desired:</div>
+                                <textarea id="sdet-e-posture-desired" rows="2" style="width:100%; padding:0.4rem; border:1px solid var(--border-subtle); border-radius:6px; font-family:inherit; font-size:0.95rem; resize:vertical;"></textarea>
+                            </div>
+                            <div style="text-align:center; font-size:0.85rem; padding:0.25rem; display:flex; align-items:center; justify-content:center; gap:0.5rem;">
+                                <span style="color:#ef4444; font-weight:bold;">Target Date:</span> 
+                                <input type="text" id="sdet-e-posture-target" placeholder="e.g. 25 Apr 2026" style="padding:0.2rem; border:1px solid var(--border-subtle); border-radius:4px; font-family:inherit; font-size:0.8rem;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
             <div class="sdet-row">
                 <div class="sdet-row-label">Narrative Hook:</div>
                 <div class="sdet-row-content">
