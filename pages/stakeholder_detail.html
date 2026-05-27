@@ -308,9 +308,12 @@ details[open] > summary .material-symbols-outlined {
 <!-- ══════════════════════════════════════════════════════════
      EDIT MODE
 ═══════════════════════════════════════════════════════════ -->
-<div id="sdet-edit-mode" style="display:none; margin-bottom: 2rem;">
+<div id="sdet-edit-mode" style="display:none; gap:2rem; flex-wrap:wrap; align-items:flex-start; margin-bottom: 2rem;">
+    <!-- LEFT COLUMN -->
+    <div class="sdet-col-left">
 
-<!-- ── IDENTITY INFO ─────────────────────────── -->
+<h3 class="sdet-section-title">Stakeholder Profile</h3>
+
 <div class="sdet-row" id="sdet-e-name-row" style="margin-top:1.5rem;">
     <div class="sdet-row-label">Name *:</div>
     <div class="sdet-row-content">
@@ -421,6 +424,10 @@ details[open] > summary .material-symbols-outlined {
     </div>
 </div>
 
+    </div>
+    <!-- RIGHT COLUMN -->
+    <div class="sdet-col-right">
+
 <!-- ── STRATEGIC APPROACH ──────────────────────────────────── -->
 <div class="sdet-row" style="margin-top:1.5rem;">
     <div class="sdet-row-label">Strategic Approach:</div>
@@ -465,7 +472,10 @@ details[open] > summary .material-symbols-outlined {
     </div>
 </div>
 
-<div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:2rem;">
+    </div>
+</div>
+
+<div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:2rem; width:100%;">
     <button class="btn-primary" style="height:44px; padding:0 2rem; background:#374151;" onclick="window.saveStakeholder()">Save Changes</button>
 </div>
 

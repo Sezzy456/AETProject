@@ -1068,7 +1068,7 @@ window.toggleStakeholderEdit = function () {
             }
         }
         viewMode.style.display = 'none';
-        editMode.style.display = 'block';
+        editMode.style.display = 'flex';
         editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">check</span> Done';
         if (cancelBtn) cancelBtn.style.display = 'inline-flex';
     }
@@ -1144,7 +1144,7 @@ window.saveStakeholder = function () {
 
     const viewMode = document.getElementById('sdet-view-mode');
     const editMode = document.getElementById('sdet-edit-mode');
-    if (viewMode) viewMode.style.display = 'block';
+    if (viewMode) viewMode.style.display = 'flex';
     if (editMode) editMode.style.display = 'none';
     const editBtn = document.getElementById('sdet-edit-toggle-btn');
     if (editBtn) editBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
