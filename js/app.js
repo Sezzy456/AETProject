@@ -6,7 +6,8 @@ window.sdetUpdateSliderBg = function(el) {
     const max = parseFloat(el.max) || 10;
     const val = parseFloat(el.value) || 5;
     const percentage = ((val - min) / (max - min)) * 100;
-    el.style.background = `linear-gradient(to right, var(--text-secondary) ${percentage}%, var(--border-subtle) ${percentage}%)`;
+    el.style.background = 'transparent';
+    el.style.setProperty('--slider-fill', `${percentage}%`);
 }; 
 //  Architecture: portal.html is the single shell.
 //  Each view is a real HTML file in /pages/ loaded via fetch().
@@ -1038,7 +1039,7 @@ window.cancelStakeholderEdit = function () {
         if (el) el.style.display = 'none';
     });
     // Show view elements
-    ['detail-name', 'detail-role-wrap', 'view-status-badge', 'status-tooltip-wrap'].forEach(eid => {
+    ['detail-name', 'detail-role-wrap', 'view-owner-name', 'view-status-badge', 'status-tooltip-wrap'].forEach(eid => {
         const el = document.getElementById(eid);
         if (el) el.style.display = '';
     });
