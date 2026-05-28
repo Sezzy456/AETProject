@@ -1318,7 +1318,7 @@ window.saveStakeholder = function () {
         if (el) el.style.display = 'none';
     });
     // Show view elements
-    ['detail-name', 'detail-role-wrap', 'view-status-badge', 'status-tooltip-wrap'].forEach(eid => {
+    ['detail-name', 'detail-role-wrap', 'view-owner-name', 'view-status-badge', 'status-tooltip-wrap'].forEach(eid => {
         const el = document.getElementById(eid);
         if (el) el.style.display = '';
     });

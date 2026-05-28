@@ -4,25 +4,45 @@
     -webkit-appearance: none;
     width: 100%;
     height: 12px;
-    background: var(--border-subtle);
-    border-radius: 100px;
+    background: transparent;
     outline: none;
+}
+.sdet-thick-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 12px;
+    background: linear-gradient(to right, var(--text-secondary) var(--slider-fill, 50%), var(--border-subtle) var(--slider-fill, 50%));
+    border-radius: 100px;
 }
 .sdet-thick-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 12px;
-    height: 12px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: var(--text-secondary);
     cursor: pointer;
+    margin-top: -4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.sdet-thick-slider::-moz-range-track {
+    width: 100%;
+    height: 12px;
+    background: var(--border-subtle);
+    border-radius: 100px;
+}
+.sdet-thick-slider::-moz-range-progress {
+    height: 12px;
+    background: var(--text-secondary);
+    border-radius: 100px;
 }
 .sdet-thick-slider::-moz-range-thumb {
-    width: 12px;
-    height: 12px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: var(--text-secondary);
     cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 </style>
 <style>
