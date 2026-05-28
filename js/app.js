@@ -2633,6 +2633,9 @@ window.filterActions = function () {
     }
     let actions = rawData;
 
+    // Filter out archived items
+    actions = actions.filter(a => a._active !== false);
+
     // Filter out invalid statuses created by AI agent previously
     const validStatuses = ['Planned', 'Pending', 'In Progress', 'Completed'];
     actions = actions.filter(a => validStatuses.includes(a.status));
@@ -2740,6 +2743,20 @@ window.clearActionsFilters = function () {
     window.filterActions();
 };
 
+window.toggleShowCompleted = function (checked) {
+    const btn = document.querySelector('.kanban-toggle-pill[data-col="Completed"]');
+    if (btn) {
+        if (checked && _kanbanHiddenCols.includes('Completed')) {
+            window.toggleKanbanCol('Completed', btn);
+            return; // toggleKanbanCol calls filterActions
+        } else if (!checked && !_kanbanHiddenCols.includes('Completed')) {
+            window.toggleKanbanCol('Completed', btn);
+            return; // toggleKanbanCol calls filterActions
+        }
+    }
+    window.filterActions();
+};
+
 window.switchActionsTab = function (tab, btn) {
     _actCurrentTab = tab;
     ['list', 'kanban', 'gantt'].forEach(t => {
@@ -2763,16 +2780,34 @@ window.toggleKanbanCol = function (col, btn) {
     const idx = _kanbanHiddenCols.indexOf(col);
     if (idx >= 0) {
         _kanbanHiddenCols.splice(idx, 1);
-        btn.classList.add('active');
-        btn.style.opacity = '1';
-        const cb = btn.querySelector('.kanban-cb');
-        if (cb) cb.textContent = 'check_box';
+        if (btn) {
+            btn.classList.add('active');
+            btn.style.opacity = '1';
+            const cb = btn.querySelector('.kanban-cb');
+            if (cb) cb.textContent = 'check_box';
+        }
+        
+        if (col === 'Completed') {
+            const chk = document.getElementById('act-show-completed');
+            if (chk && !chk.checked) chk.checked = true;
+            window.filterActions();
+            return; // filterActions redraws kanban
+        }
     } else {
         _kanbanHiddenCols.push(col);
-        btn.classList.remove('active');
-        btn.style.opacity = '0.4';
-        const cb = btn.querySelector('.kanban-cb');
-        if (cb) cb.textContent = 'check_box_outline_blank';
+        if (btn) {
+            btn.classList.remove('active');
+            btn.style.opacity = '0.4';
+            const cb = btn.querySelector('.kanban-cb');
+            if (cb) cb.textContent = 'check_box_outline_blank';
+        }
+        
+        if (col === 'Completed') {
+            const chk = document.getElementById('act-show-completed');
+            if (chk && chk.checked) chk.checked = false;
+            window.filterActions();
+            return;
+        }
     }
     // Re-render kanban columns
     const container = document.getElementById('act-kanban-container');
@@ -2899,6 +2934,150 @@ window._kanbanDrop = async function (actionId, newStatus) {
     // Re-render kanban
     const filtered = window._lastFilteredActions || actions;
     _actRenderKanban(filtered);
+};
+
+window.showKanbanQuickAdd = function() {
+    const pendingCol = document.querySelector('.act-kanban-col[data-status="Pending"]');
+    if (!pendingCol) {
+        alert("Please ensure the 'Pending' column is visible to quick add an action.");
+        return;
+    }
+    
+    // Check if already open
+    if (document.getElementById('kanban-quick-add-card')) return;
+    
+    // Get contacts and stakeholders for dropdowns
+    const contacts = window.getData('contacts') || [];
+    const ownerOptions = '<option value="">- Owner -</option>' + contacts.map(c => `<option value="${c.name.replace(/"/g, '&quot;')}">${c.name}</option>`).join('');
+    
+    const stakeholders = window.getData('stakeholders') || [];
+    const shOptions = '<option value="">- Stakeholder -</option>' + stakeholders.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    
+    const spine = window.getData('spine') || {};
+    const objectives = spine.objectives || [];
+    const objOptions = '<option value="">- Objective -</option>' + objectives.map(o => `<option value="${o.id}">🎯 ${o.text.substring(0,30)}${o.text.length>30?'...':''}</option>`).join('');
+    
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+
+    const cardHtml = `
+        <div id="kanban-quick-add-card" class="act-kanban-card" style="border-left:3px solid #94a3b8; padding:0.75rem; background:#fff; margin-bottom:0.75rem;">
+            <div style="font-weight:600; font-size:0.85rem; color:var(--text-primary); margin-bottom:0.5rem; border-bottom:1px solid var(--border-subtle); padding-bottom:0.3rem;">New Action</div>
+            
+            <input type="text" id="kqa-title" placeholder="Action Title..." style="width:100%; padding:0.3rem 0.4rem; border:1px solid var(--border-subtle); border-radius:4px; font-size:0.8rem; margin-bottom:0.4rem; font-weight:600;" autofocus>
+            
+            <textarea id="kqa-desc" placeholder="Description..." rows="2" style="width:100%; padding:0.3rem 0.4rem; border:1px solid var(--border-subtle); border-radius:4px; font-size:0.8rem; margin-bottom:0.4rem; font-family:inherit; resize:vertical;"></textarea>
+            
+            <div style="display:flex; gap:0.4rem; margin-bottom:0.4rem;">
+                <input type="date" id="kqa-due" value="${todayStr}" style="flex:1; padding:0.3rem; border:1px solid var(--border-subtle); border-radius:4px; font-size:0.75rem; color:var(--text-secondary);">
+                <select id="kqa-owner" style="flex:1; padding:0.3rem; border:1px solid var(--border-subtle); border-radius:4px; font-size:0.75rem;">
+                    ${ownerOptions}
+                </select>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:0.4rem; margin-bottom:0.5rem;">
+                <select id="kqa-obj" style="width:100%; padding:0.3rem; border:1px solid var(--border-subtle); border-radius:4px; font-size:0.75rem;">
+                    ${objOptions}
+                </select>
+                <select id="kqa-sh" style="width:100%; padding:0.3rem; border:1px solid var(--border-subtle); border-radius:4px; font-size:0.75rem;">
+                    ${shOptions}
+                </select>
+            </div>
+            
+            <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+                <button type="button" onclick="document.getElementById('kanban-quick-add-card').remove()" style="padding:0.3rem 0.6rem; border:none; background:var(--bg-surface); color:var(--text-secondary); border-radius:4px; cursor:pointer; font-size:0.75rem;">Cancel</button>
+                <button type="button" onclick="window.saveKanbanQuickAdd()" style="padding:0.3rem 0.6rem; border:none; background:var(--energy-algae); color:#fff; font-weight:600; border-radius:4px; cursor:pointer; font-size:0.75rem;">Add</button>
+            </div>
+        </div>
+    `;
+    
+    // Insert after the column header
+    const header = pendingCol.querySelector('.act-kanban-col-header');
+    if (header) {
+        header.insertAdjacentHTML('afterend', cardHtml);
+    }
+};
+
+window.saveKanbanQuickAdd = async function() {
+    const title = document.getElementById('kqa-title')?.value.trim();
+    if (!title) { alert('Title is required.'); return; }
+    
+    const btn = event.currentTarget;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="material-symbols-outlined spin" style="font-size:0.8rem; vertical-align:middle;">autorenew</span> Adding...';
+    btn.disabled = true;
+    
+    const desc = document.getElementById('kqa-desc')?.value.trim();
+    const due = document.getElementById('kqa-due')?.value;
+    const owner = document.getElementById('kqa-owner')?.value;
+    
+    const objId = document.getElementById('kqa-obj')?.value;
+    const shId = document.getElementById('kqa-sh')?.value;
+    
+    // Map SH ID to name for audience
+    let audienceNames = [];
+    let audienceIds = [];
+    if (shId) {
+        const shList = window.getData('stakeholders') || [];
+        const sh = shList.find(s => String(s.id) === String(shId));
+        if (sh) {
+            audienceNames.push(sh.name);
+            audienceIds.push(sh.id);
+        }
+    }
+    
+    // Owner resolution
+    let ownerIds = [];
+    if (owner) {
+        const cList = window.getData('contacts') || [];
+        const c = cList.find(c => c.name === owner);
+        if (c) ownerIds.push(c.id);
+    }
+    
+    const now = new Date();
+    const nowStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })
+        + ' ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        
+    const newAction = {
+        id: 'act_' + Date.now(),
+        activity: title,
+        description: desc,
+        status: 'Pending',
+        priority: 'Medium',
+        owner: owner,
+        ownerIds: ownerIds,
+        audience: audienceNames,
+        audienceIds: audienceIds,
+        commsObjectiveId: objId,
+        timing: {
+            granularity: 'date',
+            dueDate: due ? due + 'T00:00:00' : ''
+        },
+        versionControl: {
+            currentVersion: nowStr,
+            lastEdited: nowStr,
+            taskCreated: nowStr,
+            whoEdited: 'Portal User'
+        }
+    };
+    
+    const actions = window.getData('actions') || [];
+    actions.push(newAction);
+    window.updateData('actions', actions);
+    
+    // Save to DB
+    if (window.updateActionDB) {
+        await window.updateActionDB(newAction, true);
+        if (typeof fetchActions === 'function' && window._sb) {
+            const fresh = await fetchActions();
+            if (fresh) {
+                window._sbCache.actions = fresh;
+                window.updateData('actions', fresh);
+            }
+        }
+    }
+    
+    window.filterActions();
 };
 
 // ---- GANTT VIEW ----

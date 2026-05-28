@@ -69,7 +69,7 @@
 
     <div style="margin-left:auto; display:flex; gap:1rem; align-items:center;">
         <label style="display:flex; align-items:center; gap:0.35rem; font-size:0.82rem; color:var(--text-secondary); cursor:pointer;">
-            <input type="checkbox" id="act-show-completed" onchange="window.filterActions()" style="accent-color:var(--energy-algae); cursor:pointer;">
+            <input type="checkbox" id="act-show-completed" onchange="window.toggleShowCompleted(this.checked)" style="accent-color:var(--energy-algae); cursor:pointer;">
             Show completed
         </label>
         <div class="custom-sort-pill" style="display:flex; align-items:center; border:1px solid var(--border-subtle); border-radius:20px; background:var(--bg-surface); padding:0.15rem; transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
@@ -123,6 +123,9 @@
         </button>
         <button class="kanban-toggle-pill active" data-col="Completed" onclick="window.toggleKanbanCol('Completed', this)" style="display:inline-flex; align-items:center; gap:0.2rem; padding:0.25rem 0.7rem 0.25rem 0.5rem; border-radius:100px; border:1.5px solid #34d399; background:rgba(52,211,153,0.15); color:var(--text-primary); cursor:pointer; font-family:inherit; font-size:0.78rem; font-weight:500; transition:all 0.2s;">
             <span class="material-symbols-outlined kanban-cb" style="font-size:1rem;color:#34d399;">check_box</span> Completed
+        </button>
+        <button class="btn-primary" onclick="window.showKanbanQuickAdd()" style="margin-left:auto; padding:0.3rem 0.8rem; font-size:0.8rem; display:inline-flex; align-items:center; gap:0.3rem;">
+            <span class="material-symbols-outlined" style="font-size:1rem;">add</span> Quick Add
         </button>
     </div>
     <div id="act-kanban-container" style="display:grid; grid-template-columns:repeat(4,1fr); gap:0.75rem; align-items:start; overflow:hidden;">
