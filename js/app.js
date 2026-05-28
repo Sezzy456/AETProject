@@ -3157,7 +3157,7 @@ function _actRenderGantt(actions) {
                 else if (unit === 'Months') lengthMs = val * 30 * 86400000;
                 else lengthMs = val * 7 * 86400000;
             } else if (a.timing?.predictedLength) {
-                lengthMs = (parseFloat(a.timing.predictedLength) || 4) * 7 * 86400000;
+                lengthMs = (parseFloat(a.timing.predictedLength) || 1) * 7 * 86400000;
             }
             
             let barStart = sDate;
@@ -3171,11 +3171,11 @@ function _actRenderGantt(actions) {
                 barEnd = dDate;
             } else if (!sDate && !dDate) {
                 barStart = rangeStart;
-                barEnd = new Date(rangeStart.getTime() + (lengthMs || 4 * 7 * 86400000));
+                barEnd = new Date(rangeStart.getTime() + (lengthMs || 1 * 7 * 86400000));
             } else if (sDate && !dDate && !lengthMs) {
-                barEnd = new Date(sDate.getTime() + 4 * 7 * 86400000);
+                barEnd = new Date(sDate.getTime() + 1 * 7 * 86400000);
             } else if (!sDate && dDate && !lengthMs) {
-                barStart = new Date(dDate.getTime() - 4 * 7 * 86400000);
+                barStart = new Date(dDate.getTime() - 1 * 7 * 86400000);
             }
             
             const leftPct = Math.max(0, Math.min(100, ((barStart - rangeStart) / 86400000 / totalDays) * 100));
