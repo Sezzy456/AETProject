@@ -2920,6 +2920,19 @@ function _actRenderKanban(actions) {
             ${cards}
         </div>`;
     }).join('');
+
+    // Apply hidden columns state
+    let visibleCount = 0;
+    const cols = container.querySelectorAll('.act-kanban-col');
+    cols.forEach(c => {
+        if (_kanbanHiddenCols.includes(c.getAttribute('data-status'))) {
+            c.style.display = 'none';
+        } else {
+            c.style.display = 'flex';
+            visibleCount++;
+        }
+    });
+    container.style.gridTemplateColumns = `repeat(${visibleCount || 1}, 1fr)`;
 }
 
 // Kanban drop handler — update action status
