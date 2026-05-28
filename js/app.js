@@ -4932,7 +4932,6 @@ window.adetDelete = function () {
 window.adetArchive = function () {
     const id = window.currentActionId;
     if (!id) return;
-    if (!confirm('Archive this action? It will be hidden from active views.')) return;
     let actions = window.getData('actions') || [];
     const action = actions.find(x => x.id === id);
     if (action) {
