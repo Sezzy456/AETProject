@@ -444,14 +444,14 @@ details[open] > summary .material-symbols-outlined {
                         <span>Influence:</span>
                         <span id="sdet-e-inf-display" style="font-weight:600;">5</span>
                     </div>
-                    <input type="range" class="sdet-thick-slider" id="sdet-e-influence" min="1" max="10" step="1" style="width:100%; accent-color:var(--text-secondary);" oninput="document.getElementById('sdet-e-inf-display').innerText = this.value; window.sdetUpdatePriorityWord();">
+                    <input type="range" class="sdet-thick-slider" id="sdet-e-influence" min="1" max="10" step="1" style="width:100%;" oninput="document.getElementById('sdet-e-inf-display').innerText = this.value; window.sdetUpdatePriorityWord(); window.sdetUpdateSliderBg(this);">
                 </div>
                 <div>
                     <div style="font-size:0.85rem; margin-bottom:0.5rem; display:flex; justify-content:space-between;">
                         <span>Interest:</span>
                         <span id="sdet-e-int-display" style="font-weight:600;">5</span>
                     </div>
-                    <input type="range" class="sdet-thick-slider" id="sdet-e-interest" min="1" max="10" step="1" style="width:100%; accent-color:var(--text-secondary);" oninput="document.getElementById('sdet-e-int-display').innerText = this.value; window.sdetUpdatePriorityWord();">
+                    <input type="range" class="sdet-thick-slider" id="sdet-e-interest" min="1" max="10" step="1" style="width:100%;" oninput="document.getElementById('sdet-e-int-display').innerText = this.value; window.sdetUpdatePriorityWord(); window.sdetUpdateSliderBg(this);">
                 </div>
             </div>
 

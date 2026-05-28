@@ -1,5 +1,13 @@
 // ============================================================
-//  AET Portal — app.js 
+//  AET Portal
+window.sdetUpdateSliderBg = function(el) {
+    if (!el) return;
+    const min = parseFloat(el.min) || 1;
+    const max = parseFloat(el.max) || 10;
+    const val = parseFloat(el.value) || 5;
+    const percentage = ((val - min) / (max - min)) * 100;
+    el.style.background = `linear-gradient(to right, var(--text-secondary) ${percentage}%, var(--border-subtle) ${percentage}%)`;
+}; 
 //  Architecture: portal.html is the single shell.
 //  Each view is a real HTML file in /pages/ loaded via fetch().
 // ============================================================
@@ -699,7 +707,19 @@ function renderStakeholderDetail() {
         }
     }
 
-    if (!id) return;
+    if (!id) {
+        if (window._stakeholderOpenInEditMode) {
+            setTxt('view-breadcrumb-name', 'New Stakeholder');
+            document.title = 'New Stakeholder - Detail';
+            window._stakeholderOpenInEditMode = false;
+            setTimeout(window.toggleStakeholderEdit, 50);
+            return;
+        } else {
+            const container = document.getElementById('view-container');
+            if (container) container.innerHTML = '<div style="padding:2rem;">Stakeholder not found.</div>';
+            return;
+        }
+    }
 
     const stakeholders = window.getData('stakeholders');
     const s = stakeholders.find(item => item.id == id);
@@ -1055,6 +1075,10 @@ window.toggleStakeholderEdit = function () {
         if (infDisp) infDisp.innerText = '5';
         const intDisp = document.getElementById('sdet-e-int-display');
         if (intDisp) intDisp.innerText = '5';
+        if (typeof window.sdetUpdateSliderBg === 'function') {
+            window.sdetUpdateSliderBg(document.getElementById('sdet-e-influence'));
+            window.sdetUpdateSliderBg(document.getElementById('sdet-e-interest'));
+        }
 
         if (id) {
             const stakeholders = window.getData('stakeholders') || [];
@@ -1074,6 +1098,10 @@ window.toggleStakeholderEdit = function () {
                 if (infDisp) infDisp.innerText = s.powerDynamics?.influence || '5';
                 const intDisp = document.getElementById('sdet-e-int-display');
                 if (intDisp) intDisp.innerText = s.powerDynamics?.interest || '5';
+                if (typeof window.sdetUpdateSliderBg === 'function') {
+                    window.sdetUpdateSliderBg(document.getElementById('sdet-e-influence'));
+                    window.sdetUpdateSliderBg(document.getElementById('sdet-e-interest'));
+                }
 
                 set('sdet-e-posture-current', s.postureJourney?.current || '');
                 set('sdet-e-posture-desired', s.postureJourney?.desired || '');
@@ -1114,6 +1142,20 @@ window.toggleStakeholderEdit = function () {
                     ownerSelect.value = currentOwnerId || '';
                 }
             }
+        } else {
+            const ownerSelect = document.getElementById('sdet-e-owner-inline');
+            if (ownerSelect) {
+                const allContacts = window.getData('contacts') || [];
+                let internals = allContacts.filter(c => c.co_is_internal === true || c.internal === true);
+                if (internals.length === 0) internals = allContacts;
+                ownerSelect.innerHTML = '<option value="">Unassigned</option>' + internals.map(c => {
+                    const name = c.name || ((c.co_first_name || '') + ' ' + (c.co_last_name || '')).trim();
+                    return `<option value="${c.id}">${name}</option>`;
+                }).join('');
+                ownerSelect.value = '';
+            }
+            const valuesHidden = document.getElementById('sdet-e-values');
+            if (valuesHidden) valuesHidden.value = '';
         }
         viewMode.style.display = 'none';
         editMode.style.display = '';
@@ -1205,7 +1247,7 @@ window.saveStakeholder = function () {
     const ownerId = get('sdet-e-owner-inline');
     if (ownerId) {
         s.sta_owner_contact_id = parseInt(ownerId);
-        const internals = window.getData('contacts').filter(c => c.co_is_internal === true);
+        let internals = window.getData('contacts') || [];
         const foundOwner = internals.find(c => c.id == s.sta_owner_contact_id);
         if (foundOwner) {
             s.owner = foundOwner.name || ((foundOwner.co_first_name || '') + ' ' + (foundOwner.co_last_name || '')).trim();
