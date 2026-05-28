@@ -585,6 +585,20 @@ window.filterStakeholders = function () {
     if (search) stakeholders = stakeholders.filter(s => (s.name || '').toLowerCase().includes(search) || (s.role || '').toLowerCase().includes(search));
     if (statusF.length > 0) stakeholders = stakeholders.filter(s => statusF.includes(s.status));
     if (roleF.length > 0) stakeholders = stakeholders.filter(s => roleF.includes(s.role));
+    
+    // Process Interest Filter
+    const interestF = window.getMultiSelectValues('stakeholder-filter-interest');
+    if (interestF.length > 0) {
+        stakeholders = stakeholders.filter(s => {
+            const intScore = (s.powerDynamics && s.powerDynamics.interest) ? parseInt(s.powerDynamics.interest, 10) : 5; // Default to 5
+            return interestF.some(level => {
+                if (level === 'High') return intScore >= 7;
+                if (level === 'Medium') return intScore >= 4 && intScore <= 6;
+                if (level === 'Low') return intScore >= 1 && intScore <= 3;
+                return false;
+            });
+        });
+    }
 
     if (sortMode === 'name') stakeholders.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     else if (sortMode === 'status') {
@@ -593,6 +607,26 @@ window.filterStakeholders = function () {
     } else if (sortMode === 'role') stakeholders.sort((a, b) => (a.role || '').localeCompare(b.role || ''));
 
     if (sortDir === 'desc') stakeholders.reverse();
+
+    // Toggle Quick Filters Visibility
+    const hasActiveFilters = search.trim() !== '' || statusF.length > 0 || roleF.length > 0 || interestF.length > 0;
+    const quickFiltersBlock = document.getElementById('stakeholder-quick-filters');
+    const clearFiltersBtn = document.getElementById('stakeholder-clear-filters-btn');
+    
+    if (quickFiltersBlock) quickFiltersBlock.style.display = hasActiveFilters ? 'none' : 'flex';
+    if (clearFiltersBtn) clearFiltersBtn.style.display = hasActiveFilters ? 'inline-flex' : 'none';
+
+    // Update filter count badge
+    const filterCountEl = document.getElementById('stakeholder-filter-count');
+    if (filterCountEl) {
+        const totalFilters = statusF.length + roleF.length + interestF.length;
+        if (totalFilters > 0) {
+            filterCountEl.style.display = 'inline-block';
+            filterCountEl.innerText = totalFilters;
+        } else {
+            filterCountEl.style.display = 'none';
+        }
+    }
 
     const container = document.getElementById('stakeholder-list');
     if (!container) return;
@@ -6291,4 +6325,72 @@ window.sdetRemoveTactic = function(index) {
     tactics.splice(index, 1);
     dataEl.value = JSON.stringify(tactics);
     window.sdetRenderTacticsChips();
+};
+
+window.applyStakeholderQuickFilter = function(category, value) {
+    const groupId = 'stakeholder-filter-' + category.toLowerCase();
+    const group = document.getElementById(groupId);
+    if (!group) return;
+
+    // Uncheck "All"
+    const allCb = group.querySelector('input[value=""]');
+    if (allCb) {
+        allCb.checked = false;
+        allCb.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    // Uncheck everything else first (single select for quick filters)
+    const checkboxes = group.querySelectorAll('input[type="checkbox"]:not([value=""])');
+    checkboxes.forEach(cb => {
+        cb.checked = false;
+        cb.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    // Check the target(s)
+    // "Critical/At Risk" for Needs Attention is a single value, but they might want multiple.
+    // For now it maps to 1:1
+    const targetCb = group.querySelector(`input[value="${value}"]`);
+    if (targetCb) {
+        targetCb.checked = true;
+        targetCb.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    // We must manually clear search bar too since quick filters previously used it
+    const searchInput = document.getElementById('stakeholder-search');
+    if (searchInput) searchInput.value = '';
+
+    // Apply filters
+    if (typeof window.filterStakeholders === 'function') {
+        window.filterStakeholders();
+    }
+};
+
+window.clearStakeholdersFilters = function() {
+    ['status', 'role', 'interest'].forEach(cat => {
+        const group = document.getElementById('stakeholder-filter-' + cat);
+        if (group) {
+            const checkboxes = group.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                cb.checked = false;
+                cb.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+            const allCb = group.querySelector('input[value=""]');
+            if (allCb) {
+                allCb.checked = true;
+                allCb.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+    });
+    
+    const searchInput = document.getElementById('stakeholder-search');
+    if (searchInput) searchInput.value = '';
+
+    const sortDir = document.getElementById('stakeholder-sort-dir');
+    if (sortDir) sortDir.dataset.dir = 'asc';
+    const sort = document.getElementById('stakeholder-sort');
+    if (sort) sort.value = 'name';
+
+    if (typeof window.filterStakeholders === 'function') {
+        window.filterStakeholders();
+    }
 };

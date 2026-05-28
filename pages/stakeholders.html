@@ -18,8 +18,11 @@
         <button id="stakeholder-mega-trigger" onclick="window.toggleMegaMenu('stakeholder-mega-menu')" style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:20px; padding:0.4rem 1rem; font-size:0.85rem; font-weight:500; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:0.4rem; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--energy-algae)';this.style.color='var(--text-primary)'" onmouseout="if(!this.classList.contains('active')) { this.style.borderColor='var(--border-subtle)';this.style.color='var(--text-secondary)'; }">
             <span class="material-symbols-outlined" style="font-size:1.2rem;">filter_list</span> Filters <span id="stakeholder-filter-count" style="display:none;background:var(--energy-algae);color:#fff;border-radius:10px;padding:0.1rem 0.4rem;font-size:0.7rem;font-weight:700;">0</span>
         </button>
-        <div id="stakeholder-mega-menu" class="mega-menu-dropdown" style="display:none; position:absolute; top:100%; left:0; margin-top:0.5rem; background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:12px; padding:1.5rem; min-width:380px; z-index:100; box-shadow:0 8px 24px rgba(0,0,0,0.12);">
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+        <button id="stakeholder-clear-filters-btn" onclick="window.clearStakeholdersFilters()" style="display:none; background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:20px; padding:0.4rem 1rem; font-size:0.85rem; font-weight:500; color:var(--energy-alert); cursor:pointer; align-items:center; gap:0.4rem; transition:all 0.2s; margin-left:0.5rem;" onmouseover="this.style.borderColor='var(--energy-alert)';this.style.background='rgba(239,68,68,0.05)'" onmouseout="this.style.borderColor='var(--border-subtle)';this.style.background='var(--bg-surface)'">
+            <span class="material-symbols-outlined" style="font-size:1.1rem;">close</span> Clear
+        </button>
+        <div id="stakeholder-mega-menu" class="mega-menu-dropdown" style="display:none; position:absolute; top:100%; left:0; margin-top:0.5rem; background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:12px; padding:1.5rem; min-width:550px; z-index:100; box-shadow:0 8px 24px rgba(0,0,0,0.12);">
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5rem;">
                 
                 <div class="mega-menu-group" id="stakeholder-filter-status" data-on-change="filterStakeholders">
                     <h4 style="margin:0 0 0.5rem 0; font-size:0.85rem; color:var(--text-primary); border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">Status</h4>
@@ -36,6 +39,14 @@
                     <h4 style="margin:0 0 0.5rem 0; font-size:0.85rem; color:var(--text-primary); border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">Role</h4>
                     <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="" checked> All</label>
                     <!-- Populated dynamically -->
+                </div>
+
+                <div class="mega-menu-group" id="stakeholder-filter-interest" data-on-change="filterStakeholders">
+                    <h4 style="margin:0 0 0.5rem 0; font-size:0.85rem; color:var(--text-primary); border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">Interest Level</h4>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="" checked> All</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="High"> High Interest (7-10)</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Medium"> Medium Interest (4-6)</label>
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" value="Low"> Low Interest (1-3)</label>
                 </div>
             </div>
             
@@ -61,13 +72,12 @@
 </div>
 
 <!-- Quick Filters -->
-<div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:2rem; flex-wrap:wrap; font-size:0.8rem;">
+<div id="stakeholder-quick-filters" style="display:flex; align-items:center; gap:0.5rem; margin-bottom:2rem; flex-wrap:wrap; font-size:0.8rem;">
     <span style="font-weight:600; color:var(--text-secondary);">Quick Filters:</span>
-    <span class="quick-filter-pill" onclick="document.getElementById('stakeholder-search').value='At Risk'; window.filterStakeholders();" style="background:var(--bg-surface); border:1px solid var(--border-subtle); padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='var(--bg-surface)'">🔍 Needs Attention</span>
-    <span class="quick-filter-pill" onclick="document.getElementById('stakeholder-search').value='Primary Partner'; window.filterStakeholders();" style="background:var(--bg-surface); border:1px solid var(--border-subtle); padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='var(--bg-surface)'">🔍 Primary Partner</span>
-    <span class="quick-filter-pill" onclick="document.getElementById('stakeholder-search').value='High Interest'; window.filterStakeholders();" style="background:var(--bg-surface); border:1px solid var(--border-subtle); padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='var(--bg-surface)'">🔍 High Interest</span>
-    <span class="quick-filter-pill" onclick="document.getElementById('stakeholder-search').value='Supply Chain'; window.filterStakeholders();" style="background:var(--bg-surface); border:1px solid var(--border-subtle); padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='var(--bg-surface)'">🔍 Supply Chain</span>
-    <span class="quick-filter-pill" onclick="document.getElementById('stakeholder-search').value=''; window.clearStakeholdersFilters();" style="background:var(--bg-surface); border:1px solid var(--border-subtle); padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='var(--bg-surface)'">✕ Clear</span>
+    <span class="quick-filter-pill" onclick="window.applyStakeholderQuickFilter('Status', 'Critical/At Risk');" style="background:var(--bg-surface); border:1px solid var(--border-subtle); padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='var(--bg-surface)'">🔍 Needs Attention</span>
+    <span class="quick-filter-pill" onclick="window.applyStakeholderQuickFilter('Role', 'Primary Partner');" style="background:var(--bg-surface); border:1px solid var(--border-subtle); padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='var(--bg-surface)'">🔍 Primary Partner</span>
+    <span class="quick-filter-pill" onclick="window.applyStakeholderQuickFilter('Interest', 'High');" style="background:var(--bg-surface); border:1px solid var(--border-subtle); padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='var(--bg-surface)'">🔍 High Interest</span>
+    <span class="quick-filter-pill" onclick="window.applyStakeholderQuickFilter('Role', 'Supply Chain');" style="background:var(--bg-surface); border:1px solid var(--border-subtle); padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='var(--bg-surface)'">🔍 Supply Chain</span>
 </div>
 
 <div id="stakeholder-list" style="display:flex; flex-direction:column; gap:0.5rem;">
