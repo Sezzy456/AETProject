@@ -2928,7 +2928,7 @@ function _actRenderKanban(actions) {
         if (_kanbanHiddenCols.includes(c.getAttribute('data-status'))) {
             c.style.display = 'none';
         } else {
-            c.style.display = 'flex';
+            c.style.display = '';
             visibleCount++;
         }
     });
