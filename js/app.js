@@ -691,33 +691,30 @@ function renderStakeholderDetail() {
     const setTxt = (elId, value) => { const el = document.getElementById(elId); if (el) { if (!value && value !== 0) { el.innerHTML = '<span style="color:var(--text-tertiary); font-style:italic;">-</span>'; } else { el.textContent = value; } } };
     const setHtml = (elId, value) => { const el = document.getElementById(elId); if (el) { if (!value && value !== 0) { el.innerHTML = '<span style="color:var(--text-tertiary); font-style:italic;">-</span>'; } else { el.innerHTML = value; } } };
 
-    if (window._stakeholderOpenInEditMode) {
-        window._stakeholderOpenInEditMode = false;
-        setTimeout(() => {
-            if (typeof window.toggleStakeholderEdit === 'function') {
-                window.toggleStakeholderEdit();
-            }
-        }, 50);
-        if (!id) {
-            setTxt('detail-name', 'New Stakeholder');
-            setTxt('view-role', '');
-            document.getElementById('sdet-e-name-row').style.display = 'flex';
-            document.getElementById('sdet-e-role-row').style.display = 'flex';
-            return;
-        }
-    }
-
     if (!id) {
         if (window._stakeholderOpenInEditMode) {
             setTxt('view-breadcrumb-name', 'New Stakeholder');
             document.title = 'New Stakeholder - Detail';
             window._stakeholderOpenInEditMode = false;
-            setTimeout(window.toggleStakeholderEdit, 50);
+            setTimeout(() => {
+                if (typeof window.toggleStakeholderEdit === 'function') {
+                    window.toggleStakeholderEdit();
+                }
+            }, 50);
             return;
         } else {
             const container = document.getElementById('view-container');
             if (container) container.innerHTML = '<div style="padding:2rem;">Stakeholder not found.</div>';
             return;
+        }
+    } else {
+        if (window._stakeholderOpenInEditMode) {
+            window._stakeholderOpenInEditMode = false;
+            setTimeout(() => {
+                if (typeof window.toggleStakeholderEdit === 'function') {
+                    window.toggleStakeholderEdit();
+                }
+            }, 50);
         }
     }
 
@@ -1246,7 +1243,7 @@ window.saveStakeholder = function () {
     s.role = get('sdet-e-role-inline').trim() || s.role || '';
     const ownerId = get('sdet-e-owner-inline');
     if (ownerId) {
-        s.sta_owner_contact_id = parseInt(ownerId);
+        s.sta_owner_contact_id = ownerId;
         let internals = window.getData('contacts') || [];
         const foundOwner = internals.find(c => c.id == s.sta_owner_contact_id);
         if (foundOwner) {
