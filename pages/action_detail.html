@@ -285,6 +285,21 @@
                     <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Vague / Textual Date (Optional):</div>
                     <input type="text" id="adet-e-due-text" placeholder="e.g. End of Q3 2026" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
                 </div>
+                <div style="margin-top:0.5rem; padding-top:0.5rem; border-top:1px solid var(--border-subtle);">
+                    <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Start Date:</div>
+                    <input type="date" id="adet-e-start" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; width: 100%; padding: 0.5rem; font-family: 'Inter', sans-serif;">
+                </div>
+                <div style="margin-top:0.5rem;">
+                    <div style="font-size:0.8rem; color:var(--text-tertiary); margin-bottom:0.25rem;">Predicted Length:</div>
+                    <div style="display:flex; gap:0.5rem;">
+                        <input type="number" id="adet-e-length" placeholder="e.g. 4" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; flex: 1; padding: 0.5rem; font-family: 'Inter', sans-serif;">
+                        <select id="adet-e-length-unit" style="border: 1px solid var(--border-subtle); border-radius: 6px; background: #fff; padding: 0.5rem; font-family: 'Inter', sans-serif;">
+                            <option value="Days">Days</option>
+                            <option value="Weeks" selected>Weeks</option>
+                            <option value="Months">Months</option>
+                        </select>
+                    </div>
+                </div>
                 <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border-subtle);">
                     <div style="display:flex; align-items:center; gap:0.5rem;">
                         <input type="checkbox" id="adet-e-completed-check" onchange="document.getElementById('adet-e-completed-date').style.display = this.checked ? 'block' : 'none'">

@@ -3118,20 +3118,7 @@ function _actRenderGantt(actions) {
     const rangeEnd = new Date(months[months.length - 1].year, months[months.length - 1].month + 1, 0);
     const totalDays = (rangeEnd - rangeStart) / 86400000;
 
-    const getLeft = (dateStr) => {
-        if (!dateStr) return 0;
-        const d = new Date(dateStr + 'T00:00:00');
-        return Math.max(0, Math.min(100, ((d - rangeStart) / 86400000 / totalDays) * 100));
-    };
-    const getWidth = (startStr, endStr, length) => {
-        let start = startStr ? new Date(startStr + 'T00:00:00') : rangeStart;
-        let end = endStr ? new Date(endStr + 'T00:00:00') : start;
-        if (!startStr && length) {
-            const wks = parseFloat(length) || 4;
-            end = new Date(start.getTime() + wks * 7 * 86400000);
-        }
-        return Math.max(2, ((end - start) / 86400000 / totalDays) * 100);
-    };
+
 
     // Group by objective
     const spine = window.getData('spine') || {};
@@ -3160,17 +3147,62 @@ function _actRenderGantt(actions) {
     const renderGroup = (objText, groupActions, color = '#818cf8') => {
         if (groupActions.length === 0) return '';
         const rows = groupActions.map(a => {
-            const left = getLeft(a.timing?.startDate || a.timing?.dueDate);
-            const width = getWidth(a.timing?.startDate, a.timing?.dueDate, a.timing?.predictedLength);
-            const clr = barColors[a.status] || '#94a3b8';
+            let sDate = a.timing?.startDate ? new Date(a.timing.startDate + 'T00:00:00') : null;
+            let dDate = a.timing?.dueDate ? new Date(a.timing.dueDate.split('T')[0] + 'T00:00:00') : null;
+            let lengthMs = 0;
+            if (a.timing?.predictedLengthValue) {
+                const val = parseFloat(a.timing.predictedLengthValue) || 0;
+                const unit = a.timing.predictedLengthUnit || 'Weeks';
+                if (unit === 'Days') lengthMs = val * 86400000;
+                else if (unit === 'Months') lengthMs = val * 30 * 86400000;
+                else lengthMs = val * 7 * 86400000;
+            } else if (a.timing?.predictedLength) {
+                lengthMs = (parseFloat(a.timing.predictedLength) || 4) * 7 * 86400000;
+            }
+            
+            let barStart = sDate;
+            let barEnd = dDate;
+            
+            if (sDate && lengthMs > 0) {
+                barEnd = new Date(sDate.getTime() + lengthMs);
+            } else if (!sDate && dDate && lengthMs > 0) {
+                barStart = new Date(dDate.getTime() - lengthMs);
+            } else if (sDate && dDate && !lengthMs) {
+                barEnd = dDate;
+            } else if (!sDate && !dDate) {
+                barStart = rangeStart;
+                barEnd = new Date(rangeStart.getTime() + (lengthMs || 4 * 7 * 86400000));
+            } else if (sDate && !dDate && !lengthMs) {
+                barEnd = new Date(sDate.getTime() + 4 * 7 * 86400000);
+            } else if (!sDate && dDate && !lengthMs) {
+                barStart = new Date(dDate.getTime() - 4 * 7 * 86400000);
+            }
+            
+            const leftPct = Math.max(0, Math.min(100, ((barStart - rangeStart) / 86400000 / totalDays) * 100));
+            const widthPct = Math.max(0.5, ((barEnd - barStart) / 86400000 / totalDays) * 100);
+            
+            let dueIndicatorHtml = '';
+            if (dDate) {
+                const duePct = Math.max(0, Math.min(100, ((dDate - rangeStart) / 86400000 / totalDays) * 100));
+                dueIndicatorHtml = `<div style="position:absolute; top:-2px; left:${duePct.toFixed(1)}%; width:3px; height:calc(100% + 4px); background:#ef4444; border:1px solid #fff; border-radius:2px; transform:translateX(-50%); z-index:2;" title="Due Date"></div>`;
+            }
+
+            const isCompleted = a.status === 'Completed';
+            const rel = window.relativeDate ? window.relativeDate(a.timing?.dueDate, isCompleted) : { isOverdue: false };
+            let clr = barColors[a.status] || '#94a3b8';
+            if (rel.isOverdue && !isCompleted) {
+                clr = '#ef4444'; // Overdue items turn red
+            }
+
             return `<div style="display:flex; align-items:center; margin-bottom:0.5rem; min-height:28px;">
-                <div style="width:${LABEL_W}px; flex-shrink:0; font-size:0.78rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:0.75rem; cursor:pointer;" onclick="window.openActionModal('${a.id}')" title="${a.activity}">
+                <div style="width:${LABEL_W}px; flex-shrink:0; font-size:0.78rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:0.75rem; cursor:pointer;" onclick="window.viewAction('${a.id}')" title="${a.activity}">
                     ${a.activity}
                 </div>
                 <div style="flex:1; position:relative; height:20px;">
                     ${Array.from({ length: months.length }).map((_, i) => `<div style="position:absolute; top:0; left:${(i / months.length * 100).toFixed(1)}%; width:${(100 / months.length).toFixed(1)}%; height:100%; border-left:1px solid var(--border-subtle); opacity:0.4;"></div>`).join('')}
                     <div style="position:absolute; top:0; left:${todayPct.toFixed(1)}%; width:2px; height:100%; background:#ef4444; opacity:0.3; pointer-events:none; z-index:1;"></div>
-                    <div style="position:absolute; left:${left.toFixed(1)}%; width:${width.toFixed(1)}%; height:100%; background:${clr}; border-radius:4px; opacity:0.85; cursor:pointer; display:flex; align-items:center; padding-left:4px; font-size:0.65rem; color:#fff; font-weight:600; white-space:nowrap; overflow:hidden;" onclick="window.openActionModal('${a.id}')" title="${a.status}"></div>
+                    ${dueIndicatorHtml}
+                    <div style="position:absolute; left:${leftPct.toFixed(1)}%; width:${widthPct.toFixed(1)}%; height:100%; background:${clr}; border-radius:4px; opacity:0.85; cursor:pointer; display:flex; align-items:center; padding-left:4px; font-size:0.65rem; color:#fff; font-weight:600; white-space:nowrap; overflow:hidden;" onclick="window.viewAction('${a.id}')" title="${a.status}"></div>
                 </div>
             </div>`;
         }).join('');
@@ -4419,7 +4451,8 @@ window.openActionDetailEdit = function () {
 
         set('adet-e-due-detail', a.timing?.dueDetail);
         set('adet-e-start', a.timing?.startDate);
-        set('adet-e-length', a.timing?.predictedLength);
+        set('adet-e-length', a.timing?.predictedLengthValue || a.timing?.predictedLength || '');
+        set('adet-e-length-unit', a.timing?.predictedLengthUnit || 'Weeks');
 
         // Predecessor chips
         const predEl = document.getElementById('adet-e-predecessor-chips');
@@ -4816,7 +4849,9 @@ window.adetSave = async function () {
             dueDetail: document.getElementById('adet-e-due-detail')?.value || '',
             startDate: document.getElementById('adet-e-start')?.value || '',
             predecessorActions: orig.timing?.predecessorActions || [],
-            predictedLength: document.getElementById('adet-e-length')?.value || ''
+            predictedLengthValue: document.getElementById('adet-e-length')?.value || '',
+            predictedLengthUnit: document.getElementById('adet-e-length-unit')?.value || 'Weeks',
+            predictedLength: (document.getElementById('adet-e-length')?.value ? (document.getElementById('adet-e-length').value + ' ' + (document.getElementById('adet-e-length-unit')?.value || 'Weeks')) : '')
         },
         resourceRequirement: document.getElementById('adet-e-resource')?.value || '',
         todos: getTodos(),
