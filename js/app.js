@@ -2772,10 +2772,19 @@ window.switchActionsTab = function (tab, btn) {
         btn.style.borderBottomColor = 'var(--energy-algae)';
         btn.style.color = 'var(--text-primary)';
     }
+    
+    // Automatically turn on 'Show completed' when switching to Kanban view
+    if (tab === 'kanban') {
+        const chk = document.getElementById('act-show-completed');
+        if (chk && !chk.checked) {
+            chk.checked = true;
+            window.toggleShowCompleted(true);
+        }
+    }
 };
 
 // ---- KANBAN COLUMN TOGGLE ----
-let _kanbanHiddenCols = [];
+let _kanbanHiddenCols = ['Completed'];
 window.toggleKanbanCol = function (col, btn) {
     const idx = _kanbanHiddenCols.indexOf(col);
     if (idx >= 0) {
