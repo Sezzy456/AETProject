@@ -1,73 +1,114 @@
 <header style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:2rem;">
     <div>
-        <h2 style="margin:0;">Update Log</h2>
-        <p style="margin: 0.5rem 0 0 0; color: var(--text-secondary); font-size: 0.95rem;">Chronological record of interactions, decisions, and signals.</p>
+        <h2 style="margin:0;">Engagement Tracker</h2>
+        <p style="margin: 0.5rem 0 0 0; color: var(--text-secondary); font-size: 0.95rem;">Chronological record of
+            interactions, decisions, and signals.</p>
     </div>
     <div style="display: flex; gap: 0.5rem;">
         <button class="btn-secondary" onclick="document.getElementById('upload-modal').style.display='flex'">
-            <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;margin-right:0.25rem;">upload</span> Upload
+            <span class="material-symbols-outlined"
+                style="font-size:1rem;vertical-align:middle;margin-right:0.25rem;">upload</span> Upload
         </button>
         <button class="btn-primary" onclick="window.viewInteractionEdit()">+ Add Update</button>
     </div>
 </header>
 
 <!-- Upload Modal -->
-<div id="upload-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
-    <div class="card" style="width:600px; max-width:90vw; max-height:85vh; overflow-y:auto; padding:2rem; position:relative;">
-        <button style="position:absolute;top:1rem;right:1rem;background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-size:1.5rem;" onclick="document.getElementById('upload-modal').style.display='none'">✕</button>
+<div id="upload-modal"
+    style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;"
+    onclick="if(event.target===this)this.style.display='none'">
+    <div class="card"
+        style="width:600px; max-width:90vw; max-height:85vh; overflow-y:auto; padding:2rem; position:relative;">
+        <button
+            style="position:absolute;top:1rem;right:1rem;background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-size:1.5rem;"
+            onclick="document.getElementById('upload-modal').style.display='none'">✕</button>
 
         <h3 style="margin-bottom:0.25rem;">Upload Content</h3>
-        <p style="color:var(--text-tertiary);font-size:0.85rem;margin-bottom:1.5rem;">Add notes, record audio, or upload files.</p>
+        <p style="color:var(--text-tertiary);font-size:0.85rem;margin-bottom:1.5rem;">Add notes, record audio, or upload
+            files.</p>
 
         <!-- Manual Notes -->
         <div style="margin-bottom:1.5rem;">
-            <label style="font-size:0.85rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:0.5rem;">Manual Notes</label>
-            <textarea id="upload-manual-notes" placeholder="Type your notes, observations, or meeting minutes here..." style="width:100%;min-height:100px;padding:0.75rem;border:1px solid var(--border-subtle);border-radius:8px;font-size:0.85rem;resize:vertical;outline:none;font-family:inherit;background:var(--bg-app);color:var(--text-primary);box-sizing:border-box;"></textarea>
+            <label
+                style="font-size:0.85rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:0.5rem;">Manual
+                Notes</label>
+            <textarea id="upload-manual-notes" placeholder="Type your notes, observations, or meeting minutes here..."
+                style="width:100%;min-height:100px;padding:0.75rem;border:1px solid var(--border-subtle);border-radius:8px;font-size:0.85rem;resize:vertical;outline:none;font-family:inherit;background:var(--bg-app);color:var(--text-primary);box-sizing:border-box;"></textarea>
         </div>
 
         <!-- Record Audio -->
-        <div style="display:flex;align-items:center;gap:1.25rem;margin-bottom:1.5rem;padding:1rem;background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:12px;">
-            <button id="upload-record-btn" onclick="window.toggleUploadRecording()" style="width:64px;height:64px;border-radius:50%;border:4px solid #ef4444;background:#fff;box-shadow:inset 0 0 0 4px #fff, inset 0 0 0 20px #ef4444;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='none'">
+        <div
+            style="display:flex;align-items:center;gap:1.25rem;margin-bottom:1.5rem;padding:1rem;background:var(--bg-app);border:1px solid var(--border-subtle);border-radius:12px;">
+            <button id="upload-record-btn" onclick="window.toggleUploadRecording()"
+                style="width:64px;height:64px;border-radius:50%;border:4px solid #ef4444;background:#fff;box-shadow:inset 0 0 0 4px #fff, inset 0 0 0 20px #ef4444;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;"
+                onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='none'">
                 <span class="material-symbols-outlined" style="font-size:2rem;color:#fff;display:none;">mic</span>
             </button>
             <div>
                 <div style="font-size:0.95rem;font-weight:600;color:var(--text-primary);">Record Live Audio</div>
-                <div style="font-size:0.8rem;color:var(--text-tertiary);">Click the red button to start recording directly from your microphone</div>
-                <div id="upload-record-indicator" style="display:none;margin-top:0.4rem;display:none;align-items:center;gap:0.5rem;">
-                    <span id="upload-record-dot" style="width:10px;height:10px;border-radius:50%;background:#ef4444;animation:pulse-rec 1s ease-in-out infinite;"></span>
-                    <span id="upload-record-timer" style="font-size:0.85rem;font-weight:600;color:#ef4444;font-family:'JetBrains Mono',monospace;">00:00</span>
+                <div style="font-size:0.8rem;color:var(--text-tertiary);">Click the red button to start recording
+                    directly from your microphone</div>
+                <div id="upload-record-indicator"
+                    style="display:none;margin-top:0.4rem;display:none;align-items:center;gap:0.5rem;">
+                    <span id="upload-record-dot"
+                        style="width:10px;height:10px;border-radius:50%;background:#ef4444;animation:pulse-rec 1s ease-in-out infinite;"></span>
+                    <span id="upload-record-timer"
+                        style="font-size:0.85rem;font-weight:600;color:#ef4444;font-family:'JetBrains Mono',monospace;">00:00</span>
                     <span style="font-size:0.75rem;color:var(--text-tertiary);">Recording...</span>
                 </div>
             </div>
         </div>
 
         <!-- Drag & Drop Zone -->
-        <div id="upload-dropzone" style="border:2px dashed var(--border-subtle); border-radius:12px; padding:3rem 2rem; text-align:center; cursor:pointer; transition:all 0.2s; margin-bottom:1.5rem; background:var(--bg-app);" onmouseover="this.style.borderColor='var(--energy-algae)';this.style.background='rgba(16,185,129,0.03)'" onmouseout="this.style.borderColor='var(--border-subtle)';this.style.background='var(--bg-app)'" onclick="this.querySelector('input').click()">
-            <span class="material-symbols-outlined" style="font-size:3rem;color:var(--text-tertiary);display:block;margin-bottom:0.75rem;">cloud_upload</span>
-            <div style="font-size:1rem;color:var(--text-primary);font-weight:600;margin-bottom:0.25rem;">Drag content here</div>
+        <div id="upload-dropzone"
+            style="border:2px dashed var(--border-subtle); border-radius:12px; padding:3rem 2rem; text-align:center; cursor:pointer; transition:all 0.2s; margin-bottom:1.5rem; background:var(--bg-app);"
+            onmouseover="this.style.borderColor='var(--energy-algae)';this.style.background='rgba(16,185,129,0.03)'"
+            onmouseout="this.style.borderColor='var(--border-subtle)';this.style.background='var(--bg-app)'"
+            onclick="this.querySelector('input').click()">
+            <span class="material-symbols-outlined"
+                style="font-size:3rem;color:var(--text-tertiary);display:block;margin-bottom:0.75rem;">cloud_upload</span>
+            <div style="font-size:1rem;color:var(--text-primary);font-weight:600;margin-bottom:0.25rem;">Drag content
+                here</div>
             <div style="font-size:0.85rem;color:var(--text-tertiary);">or click to browse files</div>
             <input type="file" multiple style="display:none;">
         </div>
 
         <!-- Content Type Buttons -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;margin-bottom:1.5rem;">
-            <div class="card" style="padding:1rem;text-align:center;cursor:pointer;border:1px solid var(--border-subtle);transition:all 0.15s;" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'" onclick="document.querySelector('#upload-dropzone input').click()">
-                <span class="material-symbols-outlined" style="font-size:2rem;color:var(--energy-algae);display:block;margin-bottom:0.5rem;">audio_file</span>
+            <div class="card"
+                style="padding:1rem;text-align:center;cursor:pointer;border:1px solid var(--border-subtle);transition:all 0.15s;"
+                onmouseover="this.style.borderColor='var(--energy-algae)'"
+                onmouseout="this.style.borderColor='var(--border-subtle)'"
+                onclick="document.querySelector('#upload-dropzone input').click()">
+                <span class="material-symbols-outlined"
+                    style="font-size:2rem;color:var(--energy-algae);display:block;margin-bottom:0.5rem;">audio_file</span>
                 <div style="font-size:0.85rem;font-weight:600;">Audio</div>
                 <div style="font-size:0.75rem;color:var(--text-tertiary);">MP3, WAV, M4A</div>
             </div>
-            <div class="card" style="padding:1rem;text-align:center;cursor:pointer;border:1px solid var(--border-subtle);transition:all 0.15s;" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
-                <span class="material-symbols-outlined" style="font-size:2rem;color:var(--energy-algae);display:block;margin-bottom:0.5rem;">videocam</span>
+            <div class="card"
+                style="padding:1rem;text-align:center;cursor:pointer;border:1px solid var(--border-subtle);transition:all 0.15s;"
+                onmouseover="this.style.borderColor='var(--energy-algae)'"
+                onmouseout="this.style.borderColor='var(--border-subtle)'">
+                <span class="material-symbols-outlined"
+                    style="font-size:2rem;color:var(--energy-algae);display:block;margin-bottom:0.5rem;">videocam</span>
                 <div style="font-size:0.85rem;font-weight:600;">Video</div>
                 <div style="font-size:0.75rem;color:var(--text-tertiary);">MP4, MOV, WEBM</div>
             </div>
-            <div class="card" style="padding:1rem;text-align:center;cursor:pointer;border:1px solid var(--border-subtle);transition:all 0.15s;" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
-                <span class="material-symbols-outlined" style="font-size:2rem;color:var(--energy-algae);display:block;margin-bottom:0.5rem;">description</span>
+            <div class="card"
+                style="padding:1rem;text-align:center;cursor:pointer;border:1px solid var(--border-subtle);transition:all 0.15s;"
+                onmouseover="this.style.borderColor='var(--energy-algae)'"
+                onmouseout="this.style.borderColor='var(--border-subtle)'">
+                <span class="material-symbols-outlined"
+                    style="font-size:2rem;color:var(--energy-algae);display:block;margin-bottom:0.5rem;">description</span>
                 <div style="font-size:0.85rem;font-weight:600;">Transcript</div>
                 <div style="font-size:0.75rem;color:var(--text-tertiary);">TXT, DOCX, PDF</div>
             </div>
-            <div class="card" style="padding:1rem;text-align:center;cursor:pointer;border:1px solid var(--border-subtle);transition:all 0.15s;" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
-                <span class="material-symbols-outlined" style="font-size:2rem;color:var(--energy-algae);display:block;margin-bottom:0.5rem;">image</span>
+            <div class="card"
+                style="padding:1rem;text-align:center;cursor:pointer;border:1px solid var(--border-subtle);transition:all 0.15s;"
+                onmouseover="this.style.borderColor='var(--energy-algae)'"
+                onmouseout="this.style.borderColor='var(--border-subtle)'">
+                <span class="material-symbols-outlined"
+                    style="font-size:2rem;color:var(--energy-algae);display:block;margin-bottom:0.5rem;">image</span>
                 <div style="font-size:0.85rem;font-weight:600;">Image</div>
                 <div style="font-size:0.75rem;color:var(--text-tertiary);">PNG, JPG, SVG</div>
             </div>
@@ -75,67 +116,114 @@
 
         <!-- Additional Instructions -->
         <div style="margin-bottom:1.5rem;">
-            <label style="font-size:0.85rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:0.5rem;">Additional Instructions</label>
-            <textarea placeholder="Add any context, notes, or processing instructions for this upload..." style="width:100%;min-height:80px;padding:0.75rem;border:1px solid var(--border-subtle);border-radius:8px;font-size:0.85rem;resize:vertical;outline:none;font-family:inherit;background:var(--bg-app);color:var(--text-primary);box-sizing:border-box;"></textarea>
+            <label
+                style="font-size:0.85rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:0.5rem;">Additional
+                Instructions</label>
+            <textarea placeholder="Add any context, notes, or processing instructions for this upload..."
+                style="width:100%;min-height:80px;padding:0.75rem;border:1px solid var(--border-subtle);border-radius:8px;font-size:0.85rem;resize:vertical;outline:none;font-family:inherit;background:var(--bg-app);color:var(--text-primary);box-sizing:border-box;"></textarea>
         </div>
 
         <!-- Upload actions -->
         <div style="display:flex;justify-content:flex-end;gap:0.5rem;">
-            <button class="btn-secondary" onclick="document.getElementById('upload-modal').style.display='none'">Cancel</button>
+            <button class="btn-secondary"
+                onclick="document.getElementById('upload-modal').style.display='none'">Cancel</button>
             <button class="btn-primary" style="opacity:0.5;pointer-events:none;">Upload</button>
         </div>
     </div>
 </div>
 
 <!-- Filter Bar -->
-<div class="spine-section" style="padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap:wrap;">
+<div class="spine-section"
+    style="padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap:wrap;">
     <div style="position:relative;">
-        <span class="material-symbols-outlined" style="position:absolute; left:0.6rem; top:50%; transform:translateY(-50%); font-size:1rem; color:var(--text-tertiary); pointer-events:none;">search</span>
-        <input type="text" id="interactions-search" placeholder="Search update log..." oninput="window.filterInteractions()"
-            style="width: 200px; padding:0.45rem 0.75rem 0.45rem 2rem; border:1px solid var(--border-subtle); background:rgba(0,0,0,0.02); color:var(--text-primary); border-radius:20px; font-size:0.82rem; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--energy-algae)'" onblur="this.style.borderColor='var(--border-subtle)'">
+        <span class="material-symbols-outlined"
+            style="position:absolute; left:0.6rem; top:50%; transform:translateY(-50%); font-size:1rem; color:var(--text-tertiary); pointer-events:none;">search</span>
+        <input type="text" id="interactions-search" placeholder="Search update log..."
+            oninput="window.filterInteractions()"
+            style="width: 200px; padding:0.45rem 0.75rem 0.45rem 2rem; border:1px solid var(--border-subtle); background:rgba(0,0,0,0.02); color:var(--text-primary); border-radius:20px; font-size:0.82rem; outline:none; transition:border-color 0.2s;"
+            onfocus="this.style.borderColor='var(--energy-algae)'"
+            onblur="this.style.borderColor='var(--border-subtle)'">
     </div>
 
     <div class="custom-filter-mega" style="position:relative; display:inline-block;">
-        <button id="interactions-mega-trigger" onclick="window.toggleMegaMenu('interactions-mega-menu')" style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:20px; padding:0.4rem 1rem; font-size:0.85rem; font-weight:500; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:0.4rem; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--energy-algae)';this.style.color='var(--text-primary)'" onmouseout="if(!this.classList.contains('active')) { this.style.borderColor='var(--border-subtle)';this.style.color='var(--text-secondary)'; }">
-            <span class="material-symbols-outlined" style="font-size:1.2rem;">filter_list</span> Filters <span id="interactions-filter-count" style="display:none;background:var(--energy-algae);color:#fff;border-radius:10px;padding:0.1rem 0.4rem;font-size:0.7rem;font-weight:700;">0</span>
+        <button id="interactions-mega-trigger" onclick="window.toggleMegaMenu('interactions-mega-menu')"
+            style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:20px; padding:0.4rem 1rem; font-size:0.85rem; font-weight:500; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:0.4rem; transition:all 0.2s;"
+            onmouseover="this.style.borderColor='var(--energy-algae)';this.style.color='var(--text-primary)'"
+            onmouseout="if(!this.classList.contains('active')) { this.style.borderColor='var(--border-subtle)';this.style.color='var(--text-secondary)'; }">
+            <span class="material-symbols-outlined" style="font-size:1.2rem;">filter_list</span> Filters <span
+                id="interactions-filter-count"
+                style="display:none;background:var(--energy-algae);color:#fff;border-radius:10px;padding:0.1rem 0.4rem;font-size:0.7rem;font-weight:700;">0</span>
         </button>
-        <div id="interactions-mega-menu" class="mega-menu-dropdown" style="display:none; position:absolute; top:100%; left:0; margin-top:0.5rem; background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:12px; padding:1.5rem; min-width:380px; z-index:100; box-shadow:0 8px 24px rgba(0,0,0,0.12);">
+        <div id="interactions-mega-menu" class="mega-menu-dropdown"
+            style="display:none; position:absolute; top:100%; left:0; margin-top:0.5rem; background:var(--bg-app); border:1px solid var(--border-subtle); border-radius:12px; padding:1.5rem; min-width:380px; z-index:100; box-shadow:0 8px 24px rgba(0,0,0,0.12);">
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
-                
+
                 <div class="mega-menu-group" id="interactions-filter-type" data-on-change="filterInteractions">
-                    <h4 style="margin:0 0 0.5rem 0; font-size:0.85rem; color:var(--text-primary); border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">Type</h4>
-                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" style="margin:0;" value="" checked> All</label>
-                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" style="margin:0;" value="Meeting"> Meeting</label>
-                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" style="margin:0;" value="Email"> Email</label>
-                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" style="margin:0;" value="Call"> Call</label>
-                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" style="margin:0;" value="Grant"> Grant</label>
-                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" style="margin:0;" value="Support"> Support</label>
-                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" style="margin:0;" value="Status"> Status</label>
-                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" style="margin:0;" value="Other"> Other</label>
+                    <h4
+                        style="margin:0 0 0.5rem 0; font-size:0.85rem; color:var(--text-primary); border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">
+                        Type</h4>
+                    <label
+                        style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input
+                            type="checkbox" style="margin:0;" value="" checked> All</label>
+                    <label
+                        style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input
+                            type="checkbox" style="margin:0;" value="Meeting"> Meeting</label>
+                    <label
+                        style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input
+                            type="checkbox" style="margin:0;" value="Email"> Email</label>
+                    <label
+                        style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input
+                            type="checkbox" style="margin:0;" value="Call"> Call</label>
+                    <label
+                        style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input
+                            type="checkbox" style="margin:0;" value="Grant"> Grant</label>
+                    <label
+                        style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input
+                            type="checkbox" style="margin:0;" value="Support"> Support</label>
+                    <label
+                        style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input
+                            type="checkbox" style="margin:0;" value="Status"> Status</label>
+                    <label
+                        style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input
+                            type="checkbox" style="margin:0;" value="Other"> Other</label>
                 </div>
 
                 <div class="mega-menu-group" id="interactions-filter-stakeholder" data-on-change="filterInteractions">
-                    <h4 style="margin:0 0 0.5rem 0; font-size:0.85rem; color:var(--text-primary); border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">Stakeholder</h4>
-                    <label style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input type="checkbox" style="margin:0;" value="" checked> All</label>
+                    <h4
+                        style="margin:0 0 0.5rem 0; font-size:0.85rem; color:var(--text-primary); border-bottom:1px solid var(--border-subtle); padding-bottom:0.25rem;">
+                        Stakeholder</h4>
+                    <label
+                        style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; font-size:0.82rem; cursor:pointer; color:var(--text-secondary);"><input
+                            type="checkbox" style="margin:0;" value="" checked> All</label>
                     <!-- Populated dynamically -->
                 </div>
             </div>
-            
-            <div style="display:flex; justify-content:flex-end; margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--border-subtle); gap:0.5rem;">
-                <button class="btn-secondary" onclick="window.clearInteractionsFilters()" style="padding:0.3rem 0.8rem; font-size:0.8rem;">Clear All</button>
-                <button class="btn-primary" onclick="window.toggleMegaMenu('interactions-mega-menu')" style="padding:0.3rem 0.8rem; font-size:0.8rem;">Apply</button>
+
+            <div
+                style="display:flex; justify-content:flex-end; margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--border-subtle); gap:0.5rem;">
+                <button class="btn-secondary" onclick="window.clearInteractionsFilters()"
+                    style="padding:0.3rem 0.8rem; font-size:0.8rem;">Clear All</button>
+                <button class="btn-primary" onclick="window.toggleMegaMenu('interactions-mega-menu')"
+                    style="padding:0.3rem 0.8rem; font-size:0.8rem;">Apply</button>
             </div>
         </div>
     </div>
 
     <div style="margin-left:auto; display:flex; align-items:center;">
-        <div class="custom-sort-pill" style="display:flex; align-items:center; border:1px solid var(--border-subtle); border-radius:20px; background:var(--bg-surface); padding:0.15rem; transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--energy-algae)'" onmouseout="this.style.borderColor='var(--border-subtle)'">
-            <select id="interactions-sort" onchange="window.filterInteractions()" style="background:transparent; border:none; padding:0.25rem 0.5rem; font-size:0.82rem; color:var(--text-secondary); cursor:pointer; outline:none; border-right:1px solid var(--border-subtle);">
+        <div class="custom-sort-pill"
+            style="display:flex; align-items:center; border:1px solid var(--border-subtle); border-radius:20px; background:var(--bg-surface); padding:0.15rem; transition:border-color 0.2s;"
+            onmouseover="this.style.borderColor='var(--energy-algae)'"
+            onmouseout="this.style.borderColor='var(--border-subtle)'">
+            <select id="interactions-sort" onchange="window.filterInteractions()"
+                style="background:transparent; border:none; padding:0.25rem 0.5rem; font-size:0.82rem; color:var(--text-secondary); cursor:pointer; outline:none; border-right:1px solid var(--border-subtle);">
                 <option value="date">Sort: Date</option>
                 <option value="title">Sort: Title (A-Z)</option>
                 <option value="type">Sort: Type</option>
             </select>
-            <button id="interactions-sort-dir" data-dir="desc" onclick="window.toggleSortDirection('interactions-sort-dir', 'filterInteractions')" style="background:transparent; border:none; color:var(--text-secondary); padding:0 0.4rem; cursor:pointer; font-size:1.2rem; display:flex; align-items:center; outline:none;" class="material-symbols-outlined">
+            <button id="interactions-sort-dir" data-dir="desc"
+                onclick="window.toggleSortDirection('interactions-sort-dir', 'filterInteractions')"
+                style="background:transparent; border:none; color:var(--text-secondary); padding:0 0.4rem; cursor:pointer; font-size:1.2rem; display:flex; align-items:center; outline:none;"
+                class="material-symbols-outlined">
                 arrow_downward
             </button>
         </div>
@@ -143,73 +231,103 @@
 </div>
 
 <div style="margin-bottom: 1.5rem;">
-    <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-tertiary); margin-bottom: 0.5rem; text-transform: uppercase;">Quick Filters</div>
+    <div
+        style="font-size: 0.75rem; font-weight: 700; color: var(--text-tertiary); margin-bottom: 0.5rem; text-transform: uppercase;">
+        Quick Filters</div>
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <button class="quick-filter-btn" onclick="document.getElementById('interactions-search').value='Tense'; window.filterInteractions();"><span style="color: #ef4444;">🔴</span> Tense Only</button>
-        <button class="quick-filter-btn" onclick="document.getElementById('interactions-search').value='Action'; window.filterInteractions();">📝 Has Actions</button>
-        <button class="quick-filter-btn" onclick="document.getElementById('interactions-search').value='Grant'; window.filterInteractions();">📁 Grants</button>
-        <button class="quick-filter-btn" onclick="document.getElementById('interactions-search').value='Email'; window.filterInteractions();">📧 Emails</button>
-        <button class="quick-filter-btn" onclick="document.getElementById('interactions-search').value='Follow-up'; window.filterInteractions();">Follow-Ups</button>
-        <button class="quick-filter-btn" onclick="document.getElementById('interactions-search').value=''; window.clearInteractionsFilters();">✕ Clear</button>
+        <button class="quick-filter-btn"
+            onclick="document.getElementById('interactions-search').value='Tense'; window.filterInteractions();"><span
+                style="color: #ef4444;">🔴</span> Tense Only</button>
+        <button class="quick-filter-btn"
+            onclick="document.getElementById('interactions-search').value='Action'; window.filterInteractions();">📝 Has
+            Actions</button>
+        <button class="quick-filter-btn"
+            onclick="document.getElementById('interactions-search').value='Grant'; window.filterInteractions();">📁
+            Grants</button>
+        <button class="quick-filter-btn"
+            onclick="document.getElementById('interactions-search').value='Email'; window.filterInteractions();">📧
+            Emails</button>
+        <button class="quick-filter-btn"
+            onclick="document.getElementById('interactions-search').value='Follow-up'; window.filterInteractions();">Follow-Ups</button>
+        <button class="quick-filter-btn"
+            onclick="document.getElementById('interactions-search').value=''; window.clearInteractionsFilters();">✕
+            Clear</button>
     </div>
 </div>
 
 <style>
-.quick-filter-btn {
-    background: transparent;
-    border: 1px solid var(--border-subtle);
-    color: var(--text-secondary);
-    padding: 0.25rem 0.75rem;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    transition: all 0.2s;
-}
-.quick-filter-btn:hover {
-    background: rgba(0,0,0,0.05);
-}
-.interaction-card-wrapper {
-    background: #f9fafb;
-    border: 1px solid var(--border-subtle);
-    border-radius: 8px;
-    padding: 1rem 1.5rem;
-    margin-bottom: 1rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-}
-.interaction-card-wrapper:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    border-color: var(--energy-algae);
-}
-.interaction-card-wrapper.upcoming {
-    background: rgba(239, 68, 68, 0.05);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-}
-.interaction-card-wrapper.upcoming:hover {
-    border-color: #ef4444;
-}
-.interaction-pill {
-    background: #fff;
-    border: 1px solid var(--border-subtle);
-    border-radius: 6px;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    color: var(--text-secondary);
-}
-.interaction-pill.agenda-item {
-    background: rgba(0,0,0,0.02);
-}
-@keyframes pulse-rec {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(0.8); }
-}
+    .quick-filter-btn {
+        background: transparent;
+        border: 1px solid var(--border-subtle);
+        color: var(--text-secondary);
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        transition: all 0.2s;
+    }
+
+    .quick-filter-btn:hover {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    .interaction-card-wrapper {
+        background: #f9fafb;
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+    }
+
+    .interaction-card-wrapper:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border-color: var(--energy-algae);
+    }
+
+    .interaction-card-wrapper.upcoming {
+        background: rgba(239, 68, 68, 0.05);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .interaction-card-wrapper.upcoming:hover {
+        border-color: #ef4444;
+    }
+
+    .interaction-pill {
+        background: #fff;
+        border: 1px solid var(--border-subtle);
+        border-radius: 6px;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        color: var(--text-secondary);
+    }
+
+    .interaction-pill.agenda-item {
+        background: rgba(0, 0, 0, 0.02);
+    }
+
+    @keyframes pulse-rec {
+
+        0%,
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        50% {
+            opacity: 0.4;
+            transform: scale(0.8);
+        }
+    }
 </style>
 
 <div id="interactions-list" style="display: flex; flex-direction: column;">
