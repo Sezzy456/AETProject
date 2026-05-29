@@ -31,20 +31,26 @@ function relativeDate(dateStr, isCompleted = false) {
     if (isNaN(d.getTime())) return { text: dateStr, color: 'var(--text-tertiary)', isOverdue: false };
     const now = new Date(); now.setHours(0, 0, 0, 0);
     const diff = Math.round((d - now) / (1000 * 60 * 60 * 24));
-    if (diff < 0) {
-        if (isCompleted) return { text: '', color: 'inherit', isOverdue: false };
-        const absDiff = Math.abs(diff);
-        if (absDiff >= 365) return { text: `overdue by ${Math.floor(absDiff / 365)} year${Math.floor(absDiff / 365) > 1 ? 's' : ''}`, color: '#ef4444', isOverdue: true };
-        if (absDiff >= 31) return { text: `overdue by ${Math.floor(absDiff / 30)} month${Math.floor(absDiff / 30) > 1 ? 's' : ''}`, color: '#ef4444', isOverdue: true };
-        return { text: `overdue by ${absDiff} day${absDiff > 1 ? 's' : ''}`, color: '#ef4444', isOverdue: true };
-    }
+    
     if (isCompleted) return { text: '', color: 'inherit', isOverdue: false };
-    if (diff === 0) return { text: 'due today', color: '#ef4444', isOverdue: false };
-    if (diff <= 7) return { text: `due in ${diff} day${diff > 1 ? 's' : ''}`, color: '#f97316', isOverdue: false };
-    if (diff <= 14) return { text: `due in ${diff} day${diff > 1 ? 's' : ''}`, color: '#eab308', isOverdue: false };
-    if (diff <= 31) return { text: `due in ${diff} days`, color: 'var(--text-tertiary)', isOverdue: false };
-    if (diff < 365) return { text: `due in ${Math.floor(diff / 30)} month${Math.floor(diff / 30) > 1 ? 's' : ''}`, color: 'var(--text-tertiary)', isOverdue: false };
-    return { text: `due in ${Math.floor(diff / 365)} year${Math.floor(diff / 365) > 1 ? 's' : ''}`, color: 'var(--text-tertiary)', isOverdue: false };
+    
+    if (diff < 0) {
+        const absDiff = Math.abs(diff);
+        let color = absDiff <= 7 ? '#f97316' : '#ef4444'; // Orange if <=7 days, Red if >7
+        
+        let text = '';
+        if (absDiff >= 365) text = `overdue by ${Math.floor(absDiff / 365)} year${Math.floor(absDiff / 365) > 1 ? 's' : ''}`;
+        else if (absDiff >= 31) text = `overdue by ${Math.floor(absDiff / 30)} month${Math.floor(absDiff / 30) > 1 ? 's' : ''}`;
+        else text = `overdue by ${absDiff} day${absDiff > 1 ? 's' : ''}`;
+        
+        return { text, color, isOverdue: true };
+    }
+    
+    if (diff === 0) return { text: 'due today', color: '#10b981', isOverdue: false };
+    if (diff <= 7) return { text: `due in ${diff} day${diff > 1 ? 's' : ''}`, color: '#10b981', isOverdue: false };
+    if (diff <= 14) return { text: `due in ${diff} day${diff > 1 ? 's' : ''}`, color: 'var(--text-tertiary)', isOverdue: false };
+    if (diff <= 30) return { text: `due in ${Math.round(diff / 7)} weeks`, color: 'var(--text-tertiary)', isOverdue: false };
+    return { text: `due in ${Math.round(diff / 30)} months`, color: 'var(--text-tertiary)', isOverdue: false };
 }
 
 function relativePastDate(dateStr) {
@@ -1199,7 +1205,7 @@ window.toggleStakeholderEdit = function () {
             if (el) el.style.display = 'none';
         });
 
-        ['sdet-e-name-inline', 'edit-role-wrap', 'sdet-e-owner-inline', 'sdet-e-status-inline'].forEach(eid => {
+        ['sdet-e-name-inline', 'sdet-e-role-inline', 'sdet-e-owner-inline', 'sdet-e-status-inline'].forEach(eid => {
             const el = document.getElementById(eid);
             if (el) el.style.display = 'flex';
         });
@@ -1548,20 +1554,30 @@ function _renderInteractionsList(interactions) {
         if (rawDateStr) {
             const d = new Date(rawDateStr);
             const now = new Date();
-            if (d > now) {
+            const diffDays = Math.round((d.setHours(0,0,0,0) - now.setHours(0,0,0,0)) / (1000 * 60 * 60 * 24));
+            
+            if (diffDays > 0) {
                 isUpcoming = true;
-                color = '#ef4444'; // upcoming
-                fw = '600';
-            } else {
-                const diffDays = Math.round((now.setHours(0, 0, 0, 0) - new Date(d).setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24));
-                if (diffDays <= 14) {
-                    color = '#10b981'; // recent
+                if (diffDays <= 7) {
+                    color = '#10b981'; // green for upcoming within a week
                     fw = '600';
+                } else {
+                    color = 'var(--text-tertiary)';
+                }
+            } else {
+                if (Math.abs(diffDays) <= 7) {
+                    color = '#0ea5e9'; // teal/blue for recent within a week
+                    fw = '600';
+                } else {
+                    color = 'var(--text-tertiary)';
                 }
             }
         }
 
-        let statusBadge = `<span style="color:${color}; font-weight:${fw}; font-size:0.8rem;">${pastRelative || (isUpcoming ? 'Upcoming' : 'Completed')}</span>`;
+        const oScore = parseInt(a.outcomeScore) || 5;
+        const oColor = oScore <= 2 ? '#ef4444' : (oScore === 3 ? '#eab308' : '#10b981');
+        const dot = `<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${oColor}; margin-right:6px;"></span>`;
+        let statusBadge = `<span style="display:inline-flex; align-items:center; color:${color}; font-weight:${fw}; font-size:0.8rem;">${dot}${pastRelative || (isUpcoming ? 'Upcoming' : 'Completed')}</span>`;
 
         const agendaHtml = (a.topics || []).map(t => `<span style="font-size:0.68rem; padding:0.1rem 0.45rem; border-radius:100px; background:rgba(99,102,241,0.1); color:#6366f1; border:1px solid rgba(99,102,241,0.2);">${t}</span>`).join('');
 
@@ -1938,7 +1954,7 @@ window.saveInteraction = function () {
             interactions[idx].outcomeNotes = outcomeNotes;
             interactions[idx].attendeeIds = window._currentAttendeeIds ? window._currentAttendeeIds.map(a => a.id) : [];
             interactions[idx].attendees = window._currentAttendeeIds ? window._currentAttendeeIds.map(a => a.name) : [];
-            interactions[idx].followUpDate = (document.getElementById('edit-int-followup') && document.getElementById('edit-int-followup').checked) ? document.getElementById('edit-int-followup-date').value : '';
+            interactions[idx].followUpDate = (document.getElementById('edit-int-followup') && document.getElementById('edit-int-followup').checked) ? document.getElementById('edit-int-followup-date').value : '',
             interactions[idx].linkedStakeholderId = linkedStakeholderId;
             interactions[idx].linkedObjectiveId = linkedObjectiveId;
             interactions[idx].linkedActionId = linkedActionId;
@@ -2473,6 +2489,19 @@ function _actStatusColor(status) {
     return map[status] || { bg: 'rgba(0,0,0,0.05)', color: 'var(--text-secondary)', dot: '#aaa' };
 }
 
+window.openActionModal = function () {
+    _actClearModal();
+    const list = document.getElementById('act-f-status-list');
+    if (list) list.innerHTML = window.getActionStatuses().map(s => `<option value="${s}"></option>`).join('');
+    
+    // Default current date
+    const dStr = new Date().toLocaleDateString('en-CA');
+    const sel = document.getElementById('act-f-date-created');
+    if (sel) sel.value = dStr;
+
+    _actPopulateObjectiveDropdown();
+};
+
 // Populate objective <select> in modal
 function _actPopulateObjectiveDropdown() {
     const sel = document.getElementById('act-f-objective');
@@ -2905,11 +2934,16 @@ function _actRenderList(actions) {
 function _actRenderKanban(actions) {
     const container = document.getElementById('act-kanban-container');
     if (!container) return;
-    const columns = ['Pending', 'Planned', 'In Progress', 'Completed'];
-    const colColors = { 'Pending': '#94a3b8', 'Planned': '#818cf8', 'In Progress': '#60a5fa', 'Completed': '#34d399' };
-
-    container.innerHTML = columns.map(col => {
-        const colActions = actions.filter(a => a.status === col);
+    const columns = window.getKanbanColumns ? window.getKanbanColumns() : ['Pending', 'Planned', 'In Progress', 'Completed'];
+    const baseColColors = { 'Pending': '#94a3b8', 'Planned': '#818cf8', 'In Progress': '#60a5fa', 'Completed': '#34d399' };
+    
+    container.innerHTML = columns.map((col, index) => {
+        // Deterministic fallback color based on column name if not in base set
+        const colHash = col.split('').reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
+        const hue = Math.abs(colHash) % 360;
+        const color = baseColColors[col] || `hsl(${hue}, 60%, 60%)`;
+        
+        const colActions = actions.filter(a => (a.status || 'Pending') === col);
         const cards = colActions.map(a => {
             const isCompleted = a.status === 'Completed';
             const rel = relativeDate(a.timing?.dueDate, isCompleted);
@@ -2938,10 +2972,10 @@ function _actRenderKanban(actions) {
             ondragleave="this.classList.remove('kanban-drag-over')"
             ondrop="event.preventDefault();this.classList.remove('kanban-drag-over');window._kanbanDrop(event.dataTransfer.getData('text/plain'),'${col}')">
             <div class="act-kanban-col-header">
-                <span style="width:10px;height:10px;background:${colColors[col]};border-radius:2px;display:inline-block;flex-shrink:0;"></span>
+                <span style="width:10px;height:10px;background:${color};border-radius:2px;display:inline-block;flex-shrink:0;"></span>
                 <span>${col}</span>
                 <span style="font-size:0.8rem;font-weight:400;color:var(--text-tertiary);margin-left:auto;">${colActions.length}</span>
-                <span style="display:inline-flex; gap:2px;">${Array(3).fill('<span style="width:4px;height:14px;border-radius:2px;background:' + colColors[col] + ';opacity:0.6;display:inline-block;"></span>').join('')}</span>
+                <span style="display:inline-flex; gap:2px;">${Array(3).fill('<span style="width:4px;height:14px;border-radius:2px;background:' + color + ';opacity:0.6;display:inline-block;"></span>').join('')}</span>
             </div>
             ${cards}
         </div>`;
@@ -6654,4 +6688,33 @@ window.clearStakeholdersFilters = function() {
     if (typeof window.filterStakeholders === 'function') {
         window.filterStakeholders();
     }
+};
+
+
+window.getActionStatuses = function() {
+    const actions = window.getData('actions') || [];
+    const defaults = ['To Action', 'In Progress', 'Completed', 'Pending'];
+    const extracted = actions.map(a => a.status).filter(Boolean);
+    const unique = [...new Set([...defaults, ...extracted])];
+    const final = unique.filter(s => s !== 'Completed');
+    if (unique.includes('Completed')) final.push('Completed');
+    return final;
+};
+
+window.getKanbanColumns = function() {
+    let saved = localStorage.getItem('kanbanColumns');
+    const available = window.getActionStatuses();
+    if (saved) {
+        try {
+            let cols = JSON.parse(saved);
+            const validCols = cols.filter(c => available.includes(c));
+            const missing = available.filter(a => !validCols.includes(a));
+            return [...validCols, ...missing];
+        } catch(e) {}
+    }
+    return available;
+};
+
+window.saveKanbanColumns = function(cols) {
+    localStorage.setItem('kanbanColumns', JSON.stringify(cols));
 };
