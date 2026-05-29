@@ -1,0 +1,82 @@
+<div class="page-header">
+    <h2 class="page-title">Settings</h2>
+</div>
+
+<div style="display: flex; gap: 2rem; align-items: flex-start;">
+    <!-- Settings Sidebar -->
+    <div class="card" style="width: 250px; min-width: 250px; padding: 1rem;">
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <a href="#" class="nav-item active" id="stg-nav-all" onclick="window.showSettingsTab('all')">
+                <span class="material-symbols-outlined">settings</span> All
+            </a>
+            <a href="#" class="nav-item" id="stg-nav-user" onclick="window.showSettingsTab('user')">
+                <span class="material-symbols-outlined">person</span> User
+            </a>
+            <a href="#" class="nav-item" id="stg-nav-notifications" onclick="window.showSettingsTab('notifications')">
+                <span class="material-symbols-outlined">notifications</span> Notifications
+            </a>
+            <a href="#" class="nav-item" id="stg-nav-pages" onclick="window.showSettingsTab('pages')">
+                <span class="material-symbols-outlined">web</span> Pages
+            </a>
+            <a href="#" class="nav-item" id="stg-nav-admin" onclick="window.showSettingsTab('admin')">
+                <span class="material-symbols-outlined">admin_panel_settings</span> Admin
+            </a>
+        </div>
+    </div>
+
+    <!-- Settings Content Panes -->
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 1.5rem;" id="stg-panes-container">
+        
+        <div class="card stg-pane" id="stg-pane-user" style="padding: 1.5rem;">
+            <h3 style="margin-top: 0; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">User</h3>
+            <div style="color: var(--text-tertiary); font-size: 0.9rem;">
+                <p>User colours, profile pic, contact, password.</p>
+            </div>
+        </div>
+
+        <div class="card stg-pane" id="stg-pane-notifications" style="padding: 1.5rem;">
+            <h3 style="margin-top: 0; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">Notifications</h3>
+            <div style="color: var(--text-tertiary); font-size: 0.9rem;">
+                <p>Frequency, triggers and to what medium.</p>
+            </div>
+        </div>
+
+        <div class="card stg-pane" id="stg-pane-pages" style="padding: 1.5rem;">
+            <h3 style="margin-top: 0; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">Pages</h3>
+            <div style="color: var(--text-tertiary); font-size: 0.9rem;">
+                <p>What pages do you want shown in your navigation bar and what order.</p>
+            </div>
+        </div>
+
+        <div class="card stg-pane" id="stg-pane-admin" style="padding: 1.5rem;">
+            <h3 style="margin-top: 0; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">Admin</h3>
+            <div style="color: var(--text-tertiary); font-size: 0.9rem;">
+                <p>For creating teams and users and pages and adjusting permissions.</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+window.showSettingsTab = function(tabName) {
+    // Update active state on nav
+    document.querySelectorAll('[id^="stg-nav-"]').forEach(el => el.classList.remove('active'));
+    const nav = document.getElementById('stg-nav-' + tabName);
+    if (nav) nav.classList.add('active');
+
+    // Show/hide panes
+    const panes = document.querySelectorAll('.stg-pane');
+    panes.forEach(p => {
+        if (tabName === 'all') {
+            p.style.display = 'block';
+        } else {
+            if (p.id === 'stg-pane-' + tabName) {
+                p.style.display = 'block';
+            } else {
+                p.style.display = 'none';
+            }
+        }
+    });
+};
+</script>
