@@ -867,6 +867,38 @@ window.archiveInteraction = async function() {
     }
 };
 
+// Override archive action
+const _origAdetArchive = window.adetArchive;
+window.adetArchive = async function() {
+    if (!_sbReady || !window.currentActionId) {
+        if (_origAdetArchive) _origAdetArchive();
+        return;
+    }
+    
+    if (window.showToast) window.showToast("Archiving action...");
+    
+    try {
+        const { error } = await _sb.from('tbl_action')
+            .update({ ac_active: false })
+            .eq('ac_original_id', window.currentActionId);
+            
+        if (error) throw error;
+        
+        console.log('[Supabase] Action archived:', window.currentActionId);
+        
+        const fresh = await fetchActions();
+        if (fresh) _sbCache.actions = fresh;
+        
+        if (_origAdetArchive) _origAdetArchive();
+        
+    } catch (e) {
+        console.error('[Supabase] Archive error:', e);
+        alert(`Failed to archive action: ${e.message}`);
+        const toast = document.getElementById('global-toast');
+        if (toast) toast.style.opacity = '0';
+    }
+};
+
 // Override save stakeholder
 const _origSaveStakeholder = window.saveStakeholder;
 window.saveStakeholder = async function() {
