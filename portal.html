@@ -26,10 +26,20 @@
             <div id="nav-links-container"
                 style="display: flex; flex-direction: column; gap: 0; flex: 1; overflow-y: auto;">
 
-                <div style="display: flex; gap: 0.5rem; justify-content: center; padding-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); margin-bottom: 1rem;">
-                    <button class="btn-secondary" title="User Settings" onclick="loadView('settings', 'user'); history.pushState(null,'','#settings');" style="padding: 0.4rem; border-radius: 50%; height: auto;"><span class="material-symbols-outlined" style="font-size: 1.2rem;">person</span></button>
-                    <button class="btn-secondary" title="Notifications" onclick="loadView('settings', 'notifications'); history.pushState(null,'','#settings');" style="padding: 0.4rem; border-radius: 50%; height: auto;"><span class="material-symbols-outlined" style="font-size: 1.2rem;">notifications</span></button>
-                    <button class="btn-secondary" title="Settings" onclick="loadView('settings', 'all'); history.pushState(null,'','#settings');" style="padding: 0.4rem; border-radius: 50%; height: auto;"><span class="material-symbols-outlined" style="font-size: 1.2rem;">settings</span></button>
+                <div
+                    style="display: flex; gap: 0.5rem; justify-content: center; padding-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); margin-bottom: 1rem;">
+                    <button class="btn-secondary" title="User Settings"
+                        onclick="loadView('settings', 'user'); history.pushState(null,'','#settings');"
+                        style="padding: 0.4rem; border-radius: 50%; height: auto;"><span
+                            class="material-symbols-outlined" style="font-size: 1.2rem;">person</span></button>
+                    <button class="btn-secondary" title="Notifications"
+                        onclick="loadView('settings', 'notifications'); history.pushState(null,'','#settings');"
+                        style="padding: 0.4rem; border-radius: 50%; height: auto;"><span
+                            class="material-symbols-outlined" style="font-size: 1.2rem;">notifications</span></button>
+                    <button class="btn-secondary" title="Settings"
+                        onclick="loadView('settings', 'all'); history.pushState(null,'','#settings');"
+                        style="padding: 0.4rem; border-radius: 50%; height: auto;"><span
+                            class="material-symbols-outlined" style="font-size: 1.2rem;">settings</span></button>
                 </div>
 
                 <div class="nav-section">
