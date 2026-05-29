@@ -242,6 +242,9 @@ const VIEW_FILES = {
     'knowledge_bank': 'pages/knowledge_bank.html',
     'approvals': 'pages/approvals.html',
     'contacts': 'pages/contacts.html',
+    'assets': 'pages/assets.html',
+    'issues': 'pages/issues.html',
+    'settings': 'pages/settings.html',
 };
 
 // Maps view names to their post-load render functions
@@ -1566,7 +1569,7 @@ function _renderInteractionsList(interactions) {
                 }
             } else {
                 if (Math.abs(diffDays) <= 7) {
-                    color = '#0ea5e9'; // teal/blue for recent within a week
+                    color = '#10b981'; // green for recent within a week
                     fw = '600';
                 } else {
                     color = 'var(--text-tertiary)';
@@ -1575,8 +1578,11 @@ function _renderInteractionsList(interactions) {
         }
 
         const oScore = parseInt(a.outcomeScore) || 5;
-        const oColor = oScore <= 2 ? '#ef4444' : (oScore === 3 ? '#eab308' : '#10b981');
-        const dot = `<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${oColor}; margin-right:6px;"></span>`;
+        let oColor = '#eab308'; // Yellow for 5-6
+        if (oScore >= 7) oColor = '#10b981'; // Green for 7+
+        else if (oScore <= 4) oColor = '#ef4444'; // Red for 1-4
+        
+        const dot = `<span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${oColor}; margin-right:6px;"></span>`;
         let statusBadge = `<span style="display:inline-flex; align-items:center; color:${color}; font-weight:${fw}; font-size:0.8rem;">${dot}${pastRelative || (isUpcoming ? 'Upcoming' : 'Completed')}</span>`;
 
         const agendaHtml = (a.topics || []).map(t => `<span style="font-size:0.68rem; padding:0.1rem 0.45rem; border-radius:100px; background:rgba(99,102,241,0.1); color:#6366f1; border:1px solid rgba(99,102,241,0.2);">${t}</span>`).join('');
@@ -2936,6 +2942,23 @@ function _actRenderKanban(actions) {
     if (!container) return;
     const columns = window.getKanbanColumns ? window.getKanbanColumns() : ['Pending', 'Planned', 'In Progress', 'Completed'];
     const baseColColors = { 'Pending': '#94a3b8', 'Planned': '#818cf8', 'In Progress': '#60a5fa', 'Completed': '#34d399' };
+    
+    // Render dynamic toggles
+    const togglesContainer = document.getElementById('kanban-dynamic-toggles');
+    if (togglesContainer) {
+        togglesContainer.innerHTML = columns.map(col => {
+            const colHash = col.split('').reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
+            const hue = Math.abs(colHash) % 360;
+            const color = baseColColors[col] || `hsl(${hue}, 60%, 60%)`;
+            const existingCol = document.querySelector(`.act-kanban-col[data-status="${col}"]`);
+            const isActive = existingCol ? existingCol.style.display !== 'none' : true;
+            return `
+            <button class="kanban-toggle-pill ${isActive ? 'active' : ''}" data-col="${col}" onclick="window.toggleKanbanCol('${col}', this)" 
+                style="display:inline-flex; align-items:center; gap:0.2rem; padding:0.25rem 0.7rem 0.25rem 0.5rem; border-radius:100px; border:1.5px solid ${color}; background:rgba(255,255,255,0.05); color:var(--text-primary); cursor:pointer; font-family:inherit; font-size:0.78rem; font-weight:500; transition:all 0.2s; ${!isActive ? 'opacity:0.4;' : ''}">
+                <span class="material-symbols-outlined kanban-cb" style="font-size:1rem;color:${color};">${isActive ? 'check_box' : 'check_box_outline_blank'}</span> ${col}
+            </button>`;
+        }).join('');
+    }
     
     container.innerHTML = columns.map((col, index) => {
         // Deterministic fallback color based on column name if not in base set
@@ -6696,8 +6719,9 @@ window.getActionStatuses = function() {
     const defaults = ['To Action', 'In Progress', 'Completed', 'Pending'];
     const extracted = actions.map(a => a.status).filter(Boolean);
     const unique = [...new Set([...defaults, ...extracted])];
-    const final = unique.filter(s => s !== 'Completed');
-    if (unique.includes('Completed')) final.push('Completed');
+    // Filter out 'Complete' as it's a typo of 'Completed'
+    const final = unique.filter(s => s !== 'Completed' && s !== 'Complete');
+    if (unique.includes('Completed') || unique.includes('Complete')) final.push('Completed');
     return final;
 };
 
