@@ -1258,6 +1258,32 @@ window.sdetRenderValuesChips = function() {
     `).join('');
 };
 
+window.archiveStakeholder = function () {
+    const id = window.currentStakeholderId;
+    if (!id) return;
+    let stakeholders = window.getData('stakeholders') || [];
+    const stakeholder = stakeholders.find(x => x.id === id);
+    if (stakeholder) {
+        stakeholder._active = false;
+        window.updateData('stakeholders', stakeholders);
+    }
+    
+    // Switch to view mode
+    const editMode = document.getElementById('sdet-edit-mode');
+    const viewMode = document.getElementById('sdet-view-mode');
+    if (editMode) editMode.style.display = 'none';
+    if (viewMode) viewMode.style.display = 'block';
+    
+    // Reset buttons
+    const btn = document.getElementById('sdet-header-edit-btn');
+    if (btn) btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;">edit</span> Edit';
+    const cbtn = document.getElementById('sdet-header-cancel-btn');
+    if (cbtn) cbtn.remove();
+    
+    loadView('stakeholders');
+    history.pushState(null, '', '#stakeholders');
+};
+
 window.saveStakeholder = function () {
     let id = window.currentStakeholderId;
     const stakeholders = window.getData('stakeholders') || [];

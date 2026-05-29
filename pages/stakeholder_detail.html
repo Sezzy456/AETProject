@@ -565,6 +565,7 @@ details[open] > summary .material-symbols-outlined {
     </div>
     
     <div style="grid-column: 1 / -1; display:flex; justify-content:flex-end; gap:1rem; margin-top:2rem; width:100%;">
+        <button type="button" class="btn-secondary" onclick="if(confirm('Once it is deleted it is gone. Are you sure you want to delete this stakeholder?')) window.archiveStakeholder();" style="color: #ef4444; border-color: #fca5a5; margin-right: auto; height: 44px;">Delete Stakeholder</button>
         <button class="btn-primary" style="height:44px; padding:0 2rem; background:#374151;" onclick="window.saveStakeholder()">Save Changes</button>
     </div>
 </div>
