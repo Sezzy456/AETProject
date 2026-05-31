@@ -6743,3 +6743,7 @@ window.getKanbanColumns = function() {
 window.saveKanbanColumns = function(cols) {
     localStorage.setItem('kanbanColumns', JSON.stringify(cols));
 };
+
+function renderSettings() {
+    // To be implemented: fetch and render core truths, user settings, etc.
+}

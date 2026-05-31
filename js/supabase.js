@@ -1032,8 +1032,10 @@ window.approvePendingChange = async function(mpcId, finalData, status = 'edited_
 window.generateAISummary = async function() {
     if (!_sb) return { error: "Supabase not initialized" };
     try {
+        const localDate = new Date().toLocaleDateString('en-CA');
         const { data, error } = await _sb.functions.invoke('generate-dashboard-summary', {
-            method: 'POST'
+            method: 'POST',
+            body: { localDate }
         });
         if (error) {
             console.error("[Supabase] generate-dashboard-summary error:", error);

@@ -29,7 +29,8 @@ Deno.serve(async (req) => {
     const { data: actions, error: actErr } = await supabaseClient
       .from('tbl_action')
       .select('ac_title, ac_status, ac_due_date')
-      .neq('ac_status', 'Completed')
+      .not('ac_status', 'in', '("Completed","Complete")')
+      .order('ac_due_date', { ascending: true })
       .limit(10);
 
     // - Interactions (Upcoming or recent)
@@ -45,13 +46,39 @@ Deno.serve(async (req) => {
       .select('sta_name, sta_status')
       .in('sta_status', [3, 4, 5]);
 
-    if (actErr || intErr || staErr) {
-      console.error("Error fetching data", { actErr, intErr, staErr });
-      return new Response(JSON.stringify({ error: "Failed to fetch context data", details: { actErr, intErr, staErr } }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 });
+    const { data: coreTruths, error: ctErr } = await supabaseClient
+      .from('tbl_core_truth')
+      .select('ct_type, ct_domain, ct_statement')
+      .eq('ct_active', true)
+      .limit(50);
+
+    if (actErr || intErr || staErr || ctErr) {
+      console.error("Error fetching data", { actErr, intErr, staErr, ctErr });
+      return new Response(JSON.stringify({ error: "Failed to fetch context data", details: { actErr, intErr, staErr, ctErr } }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 });
+    }
+
+    let currentDate = new Date().toISOString().split('T')[0];
+    try {
+      if (req.method === 'POST') {
+        const bodyText = await req.clone().text();
+        if (bodyText) {
+          const body = JSON.parse(bodyText);
+          if (body.localDate) {
+            currentDate = body.localDate;
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Failed to parse request body:", e);
     }
 
     // 3. Prepare prompt for LLM
     const contextStr = `
+Current Date: ${currentDate}
+
+Project Core Truths (Constraints, Rules, and Learned Patterns):
+${JSON.stringify(coreTruths, null, 2)}
+
 Current Active Actions:
 ${JSON.stringify(actions, null, 2)}
 
@@ -62,40 +89,41 @@ Stakeholders Needing Attention:
 ${JSON.stringify(stakeholders, null, 2)}
 `;
 
-    const prompt = `You are an executive AI assistant managing a strategic portfolio dashboard. Based on the following raw data from the system, write a concise, professional executive summary (1 paragraph, max 4 sentences). The summary should highlight the most critical upcoming or overdue actions, key stakeholders that need immediate attention, and briefly mention any upcoming strategic interactions. Be direct, actionable, and use a professional business tone. Do not use markdown formatting.
+    const prompt = `You are an executive AI strategic advisor managing a strategic portfolio dashboard. Based on the raw data from the system, write a concise, professional executive summary (1 paragraph, max 4 sentences). 
+
+Crucially, you must evaluate the Actions, Interactions, and Stakeholders against the "Project Core Truths" and the Current Date. Highlight the most critical upcoming or overdue actions, identify key stakeholders needing immediate attention, and provide synthesis and strategic advice on how to navigate friction points. 
+IMPORTANT: Do not just parrot or copy-paste the exact phrases from the Core Truths (like "divergent BATNAs" or "Failed process"). Synthesize them into natural, high-level strategic guidance. Be direct, actionable, and use a professional business tone. Do not use markdown formatting.
 
 Data:
 ${contextStr}
 `;
 
-    // 4. Call Gemini API
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-    if (!GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY is not set in environment variables");
+    // 4. Call OpenAI API
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    if (!OPENAI_API_KEY) {
+      throw new Error("OPENAI_API_KEY is not set in environment variables");
     }
 
-    const genaiReq = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`, {
+    const openaiReq = await fetch(`https://api.openai.com/v1/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        contents: [{
-          parts: [{ text: prompt }]
-        }],
-        generationConfig: {
-          temperature: 0.3, // Low temperature for more factual/direct summaries
-        }
+        model: 'gpt-4o',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.3, // Low temperature for more factual/direct summaries
       })
     });
 
-    const genaiRes = await genaiReq.json();
+    const openaiRes = await openaiReq.json();
     let generatedSummary = "AI could not generate a summary at this time.";
     
-    if (genaiRes.candidates && genaiRes.candidates.length > 0) {
-      generatedSummary = genaiRes.candidates[0].content.parts[0].text.trim();
+    if (openaiRes.choices && openaiRes.choices.length > 0) {
+      generatedSummary = openaiRes.choices[0].message.content.trim();
     } else {
-      console.error("Gemini API Error:", genaiRes);
+      console.error("OpenAI API Error:", openaiRes);
       throw new Error("Failed to generate summary from LLM");
     }
 
