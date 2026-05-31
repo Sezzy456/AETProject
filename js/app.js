@@ -261,6 +261,7 @@ const VIEW_RENDERERS = {
     'knowledge_bank': renderMessaging,
     'approvals': renderApprovals,
     'contacts': renderContacts,
+    'settings': renderSettings,
 };
 
 // Track current action being viewed/edited

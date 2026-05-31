@@ -552,3 +552,22 @@ COMMENT ON TABLE tbl_Content_Card         IS 'Composable content cards — card,
 COMMENT ON TABLE tbl_Content_Card_Actions IS 'Junction: Content Card ↔ Action (references _original_ID)';
 COMMENT ON TABLE tbl_Content_Card_Interactions IS 'Junction: Content Card ↔ Interaction (references _original_ID)';
 COMMENT ON TABLE tbl_Content_Card_Stakeholders IS 'Junction: Content Card ↔ Stakeholder (references _original_ID)';
+
+-- ─────────────────────────────────────────────────
+--  CORE TRUTHS
+-- ─────────────────────────────────────────────────
+
+CREATE TABLE tbl_core_truth (
+  ct_id            SERIAL PRIMARY KEY,
+  ct_type          VARCHAR,
+  ct_domain        VARCHAR,
+  ct_statement     TEXT,
+
+  -- Audit
+  ct_active        BOOLEAN DEFAULT TRUE,
+  ct_created       TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  ct_modified      TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE tbl_core_truth IS 'Project Core Truths: Constraints, Rules, and Learned Patterns used for AI generation';
+
