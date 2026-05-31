@@ -6744,6 +6744,97 @@ window.saveKanbanColumns = function(cols) {
     localStorage.setItem('kanbanColumns', JSON.stringify(cols));
 };
 
+window.toggleCoreTruthForm = function() {
+    const container = document.getElementById('core-truth-form-container');
+    if (!container) return;
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        document.getElementById('core-truth-id').value = '';
+        document.getElementById('core-truth-type').value = '';
+        document.getElementById('core-truth-domain').value = '';
+        document.getElementById('core-truth-statement').value = '';
+        document.getElementById('core-truth-form-title').innerText = 'Add Core Truth';
+    } else {
+        container.style.display = 'none';
+    }
+};
+
+window.editCoreTruth = function(id) {
+    const truths = window.getData('coreTruths') || [];
+    const truth = truths.find(t => t.id == id);
+    if (!truth) return;
+    const container = document.getElementById('core-truth-form-container');
+    container.style.display = 'block';
+    document.getElementById('core-truth-id').value = truth.id;
+    document.getElementById('core-truth-type').value = truth.type || '';
+    document.getElementById('core-truth-domain').value = truth.domain || '';
+    document.getElementById('core-truth-statement').value = truth.statement || '';
+    document.getElementById('core-truth-form-title').innerText = 'Edit Core Truth';
+};
+
+window.saveCoreTruth = async function() {
+    const id = document.getElementById('core-truth-id').value;
+    const truth = {
+        type: document.getElementById('core-truth-type').value.trim(),
+        domain: document.getElementById('core-truth-domain').value.trim(),
+        statement: document.getElementById('core-truth-statement').value.trim()
+    };
+    if (!truth.type || !truth.statement) {
+        alert("Type and Statement are required.");
+        return;
+    }
+    const btn = document.getElementById('core-truth-save-btn');
+    btn.disabled = true;
+    btn.innerText = 'Saving...';
+    try {
+        if (id) {
+            await window.updateCoreTruth(id, truth);
+        } else {
+            await window.insertCoreTruth(truth);
+        }
+        const fresh = await window.fetchCoreTruths();
+        if (fresh) window._sbCache.coreTruths = fresh;
+        window.toggleCoreTruthForm();
+        renderSettings();
+    } catch(e) {
+        alert("Error saving core truth.");
+    }
+    btn.disabled = false;
+    btn.innerText = 'Save';
+};
+
+window.deleteCoreTruth = async function(id) {
+    if (!confirm("Are you sure you want to delete this core truth?")) return;
+    try {
+        await window.softDeleteCoreTruth(id);
+        const fresh = await window.fetchCoreTruths();
+        if (fresh) window._sbCache.coreTruths = fresh;
+        renderSettings();
+    } catch(e) {
+        alert("Error deleting core truth.");
+    }
+};
+
 function renderSettings() {
-    // To be implemented: fetch and render core truths, user settings, etc.
+    const tbody = document.getElementById('core-truths-tbody');
+    if (!tbody) return;
+    
+    const truths = window.getData('coreTruths') || [];
+    
+    if (truths.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="padding: 1rem; text-align: center; color: var(--text-tertiary);">No core truths found.</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = truths.map(t => `
+        <tr style="border-bottom: 1px solid var(--border-subtle);">
+            <td style="padding: 0.75rem 1rem;">${t.type || '—'}</td>
+            <td style="padding: 0.75rem 1rem;">${t.domain || '—'}</td>
+            <td style="padding: 0.75rem 1rem;">${t.statement || '—'}</td>
+            <td style="padding: 0.75rem 1rem; text-align: right;">
+                <button class="btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="window.editCoreTruth('${t.id}')">Edit</button>
+                <button class="btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--energy-alert);" onclick="window.deleteCoreTruth('${t.id}')">Delete</button>
+            </td>
+        </tr>
+    `).join('');
 }
