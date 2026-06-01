@@ -1046,6 +1046,17 @@ window.bootSupabase = async function() {
         loadView(window.location.hash.replace('#','')||'dashboard');
         return; 
     }
+
+    // AUTH GUARD: Check if we have an active session
+    const { data: { session }, error: sessionError } = await _sb.auth.getSession();
+    if (sessionError || !session) {
+        console.warn('[Supabase] No active session found. Redirecting to login.');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    console.log('[Supabase] Session active for:', session.user.email);
+
     const loaded = await preloadSupabaseData();
     if (loaded) {
         console.log('[Supabase] ✅ Data loaded — reloading current view');
@@ -1054,6 +1065,13 @@ window.bootSupabase = async function() {
         loadView(window.location.hash.replace('#','')||'dashboard');
     }
     loadView(window.location.hash.replace('#','')||'dashboard');
+};
+
+window.logoutSupabase = async function() {
+    if (_sb) {
+        await _sb.auth.signOut();
+    }
+    window.location.href = 'login.html';
 };
 
 // ── PENDING APPROVALS ────────────────────────────────────────────────────────

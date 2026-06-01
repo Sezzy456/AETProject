@@ -132,14 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Login form handler (login.html)
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            window.location.href = 'portal.html';
-        });
-    }
+    // Login form handler has been moved to login.html with actual Supabase Auth integration
 
     // If we are on the portal (view-container exists), load the right view
     const viewContainer = document.getElementById('view-container');

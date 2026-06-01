@@ -32,8 +32,58 @@
         </form>
     </div>
 
-    
-    <script src="js/app.js"></script>
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Supabase if not already done
+            if (typeof initSupabase === 'function') {
+                initSupabase();
+            }
 
+            const loginForm = document.getElementById('login-form');
+            const submitBtn = loginForm.querySelector('button[type="submit"]');
+
+            // Optional: Error message container
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = 'color: #ef4444; font-size: 0.85rem; text-align: center; margin-top: 1rem; display: none;';
+            loginForm.appendChild(errorDiv);
+
+            if (loginForm) {
+                loginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+
+                    if (!email || !password) return;
+
+                    submitBtn.textContent = 'AUTHENTICATING...';
+                    submitBtn.style.opacity = '0.7';
+                    submitBtn.disabled = true;
+                    errorDiv.style.display = 'none';
+
+                    try {
+                        const { data, error } = await _sb.auth.signInWithPassword({
+                            email: email,
+                            password: password
+                        });
+
+                        if (error) throw error;
+
+                        // Success, redirect to portal
+                        window.location.href = 'portal.html';
+                    } catch (err) {
+                        console.error('Login error:', err.message);
+                        errorDiv.textContent = err.message || 'Invalid login credentials.';
+                        errorDiv.style.display = 'block';
+                        submitBtn.textContent = 'INITIATE SESSION';
+                        submitBtn.style.opacity = '1';
+                        submitBtn.disabled = false;
+                    }
+                });
+            }
+        });
+    </script>
+</body>
 </html>
