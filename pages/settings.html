@@ -10,7 +10,7 @@
                 <span class="material-symbols-outlined">settings</span> All
             </a>
             <a href="#" class="nav-item" id="stg-nav-core" onclick="window.showSettingsTab('core')">
-                <span class="material-symbols-outlined">fact_check</span> Core Truths
+                <span class="material-symbols-outlined">fact_check</span> AI Brain
             </a>
             <a href="#" class="nav-item" id="stg-nav-user" onclick="window.showSettingsTab('user')">
                 <span class="material-symbols-outlined">person</span> User
@@ -30,41 +30,41 @@
     <!-- Settings Content Panes -->
     <div style="flex: 1; display: flex; flex-direction: column; gap: 1.5rem;" id="stg-panes-container">
         
-        <!-- Core Truths Pane -->
+        <!-- AI Brain Pane -->
         <div class="card stg-pane" id="stg-pane-core" style="padding: 1.5rem;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">
                 <div>
-                    <h3 style="margin: 0; color: var(--text-primary);">Core Truths</h3>
+                    <h3 style="margin: 0; color: var(--text-primary);">AI Brain</h3>
                     <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-secondary);">Manage the base assumptions, constraints, and patterns used by the AI to generate summaries.</p>
                 </div>
-                <button class="btn-primary" onclick="window.toggleCoreTruthForm()" style="border:none; color:white; padding: 0.5rem 1rem;">+ Add Truth</button>
+                <button class="btn-primary" onclick="window.toggleAIBrainForm()" style="border:none; color:white; padding: 0.5rem 1rem;">+ Add Item</button>
             </div>
 
             <!-- Inline Add/Edit Form (Hidden by default) -->
-            <div id="core-truth-form-container" style="display: none; background: var(--bg-surface); padding: 1.5rem; border: 1px solid var(--border-subtle); border-radius: 8px; margin-bottom: 1.5rem;">
-                <h4 id="core-truth-form-title" style="margin-top: 0; margin-bottom: 1rem; color: var(--text-primary);">Add Core Truth</h4>
-                <input type="hidden" id="core-truth-id">
+            <div id="ai-brain-form-container" style="display: none; background: var(--bg-surface); padding: 1.5rem; border: 1px solid var(--border-subtle); border-radius: 8px; margin-bottom: 1.5rem;">
+                <h4 id="ai-brain-form-title" style="margin-top: 0; margin-bottom: 1rem; color: var(--text-primary);">Add AI Brain Item</h4>
+                <input type="hidden" id="ai-brain-id">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                     <div>
                         <label style="display:block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.25rem;">Type</label>
-                        <input type="text" id="core-truth-type" placeholder="e.g. Constraint, Pattern" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-app); color: var(--text-primary);">
+                        <input type="text" id="ai-brain-type" placeholder="e.g. Constraint, Pattern" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-app); color: var(--text-primary);">
                     </div>
                     <div>
                         <label style="display:block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.25rem;">Domain</label>
-                        <input type="text" id="core-truth-domain" placeholder="e.g. Financial, Strategy, Comms" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-app); color: var(--text-primary);">
+                        <input type="text" id="ai-brain-domain" placeholder="e.g. Financial, Strategy, Comms" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-app); color: var(--text-primary);">
                     </div>
                 </div>
                 <div style="margin-bottom: 1.5rem;">
                     <label style="display:block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.25rem;">Statement</label>
-                    <textarea id="core-truth-statement" rows="3" placeholder="Describe the core truth..." style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-app); color: var(--text-primary); resize: vertical;"></textarea>
+                    <textarea id="ai-brain-statement" rows="3" placeholder="Describe the statement..." style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-app); color: var(--text-primary); resize: vertical;"></textarea>
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
-                    <button class="btn-secondary" onclick="window.toggleCoreTruthForm()" style="padding: 0.4rem 1rem;">Cancel</button>
-                    <button class="btn-primary" onclick="window.saveCoreTruth()" id="core-truth-save-btn" style="padding: 0.4rem 1rem;">Save</button>
+                    <button class="btn-secondary" onclick="window.toggleAIBrainForm()" style="padding: 0.4rem 1rem;">Cancel</button>
+                    <button class="btn-primary" onclick="window.saveAIBrain()" id="ai-brain-save-btn" style="padding: 0.4rem 1rem;">Save</button>
                 </div>
             </div>
 
-            <!-- Core Truths Table -->
+            <!-- AI Brain Table -->
             <div style="overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left;">
                     <thead>
@@ -75,7 +75,7 @@
                             <th style="padding: 0.75rem 1rem; font-weight: 600; text-align: right;">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="core-truths-tbody">
+                    <tbody id="ai-brain-tbody">
                         <!-- Populated by JS -->
                         <tr><td colspan="4" style="padding: 1rem; text-align: center; color: var(--text-tertiary);">Loading...</td></tr>
                     </tbody>

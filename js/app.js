@@ -6737,85 +6737,85 @@ window.saveKanbanColumns = function(cols) {
     localStorage.setItem('kanbanColumns', JSON.stringify(cols));
 };
 
-window.toggleCoreTruthForm = function() {
-    const container = document.getElementById('core-truth-form-container');
+window.toggleAIBrainForm = function() {
+    const container = document.getElementById('ai-brain-form-container');
     if (!container) return;
     if (container.style.display === 'none') {
         container.style.display = 'block';
-        document.getElementById('core-truth-id').value = '';
-        document.getElementById('core-truth-type').value = '';
-        document.getElementById('core-truth-domain').value = '';
-        document.getElementById('core-truth-statement').value = '';
-        document.getElementById('core-truth-form-title').innerText = 'Add Core Truth';
+        document.getElementById('ai-brain-id').value = '';
+        document.getElementById('ai-brain-type').value = '';
+        document.getElementById('ai-brain-domain').value = '';
+        document.getElementById('ai-brain-statement').value = '';
+        document.getElementById('ai-brain-form-title').innerText = 'Add AI Brain Item';
     } else {
         container.style.display = 'none';
     }
 };
 
-window.editCoreTruth = function(id) {
-    const truths = window.getData('coreTruths') || [];
+window.editAIBrain = function(id) {
+    const truths = window.getData('aiBrain') || [];
     const truth = truths.find(t => t.id == id);
     if (!truth) return;
-    const container = document.getElementById('core-truth-form-container');
+    const container = document.getElementById('ai-brain-form-container');
     container.style.display = 'block';
-    document.getElementById('core-truth-id').value = truth.id;
-    document.getElementById('core-truth-type').value = truth.type || '';
-    document.getElementById('core-truth-domain').value = truth.domain || '';
-    document.getElementById('core-truth-statement').value = truth.statement || '';
-    document.getElementById('core-truth-form-title').innerText = 'Edit Core Truth';
+    document.getElementById('ai-brain-id').value = truth.id;
+    document.getElementById('ai-brain-type').value = truth.type || '';
+    document.getElementById('ai-brain-domain').value = truth.domain || '';
+    document.getElementById('ai-brain-statement').value = truth.statement || '';
+    document.getElementById('ai-brain-form-title').innerText = 'Edit AI Brain Item';
 };
 
-window.saveCoreTruth = async function() {
-    const id = document.getElementById('core-truth-id').value;
+window.saveAIBrain = async function() {
+    const id = document.getElementById('ai-brain-id').value;
     const truth = {
-        type: document.getElementById('core-truth-type').value.trim(),
-        domain: document.getElementById('core-truth-domain').value.trim(),
-        statement: document.getElementById('core-truth-statement').value.trim()
+        type: document.getElementById('ai-brain-type').value.trim(),
+        domain: document.getElementById('ai-brain-domain').value.trim(),
+        statement: document.getElementById('ai-brain-statement').value.trim()
     };
     if (!truth.type || !truth.statement) {
         alert("Type and Statement are required.");
         return;
     }
-    const btn = document.getElementById('core-truth-save-btn');
+    const btn = document.getElementById('ai-brain-save-btn');
     btn.disabled = true;
     btn.innerText = 'Saving...';
     try {
         if (id) {
-            await window.updateCoreTruth(id, truth);
+            await window.updateAIBrain(id, truth);
         } else {
-            await window.insertCoreTruth(truth);
+            await window.insertAIBrain(truth);
         }
-        const fresh = await window.fetchCoreTruths();
-        if (fresh) window._sbCache.coreTruths = fresh;
-        window.toggleCoreTruthForm();
+        const fresh = await window.fetchAIBrain();
+        if (fresh) window._sbCache.aiBrain = fresh;
+        window.toggleAIBrainForm();
         renderSettings();
     } catch(e) {
-        alert("Error saving core truth.");
+        alert("Error saving item.");
     }
     btn.disabled = false;
     btn.innerText = 'Save';
 };
 
-window.deleteCoreTruth = async function(id) {
-    if (!confirm("Are you sure you want to delete this core truth?")) return;
+window.deleteAIBrain = async function(id) {
+    if (!confirm("Are you sure you want to delete this item?")) return;
     try {
-        await window.softDeleteCoreTruth(id);
-        const fresh = await window.fetchCoreTruths();
-        if (fresh) window._sbCache.coreTruths = fresh;
+        await window.softDeleteAIBrain(id);
+        const fresh = await window.fetchAIBrain();
+        if (fresh) window._sbCache.aiBrain = fresh;
         renderSettings();
     } catch(e) {
-        alert("Error deleting core truth.");
+        alert("Error deleting item.");
     }
 };
 
 function renderSettings() {
-    const tbody = document.getElementById('core-truths-tbody');
+    const tbody = document.getElementById('ai-brain-tbody');
     if (!tbody) return;
     
-    const truths = window.getData('coreTruths') || [];
+    const truths = window.getData('aiBrain') || [];
     
     if (truths.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="padding: 1rem; text-align: center; color: var(--text-tertiary);">No core truths found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="padding: 1rem; text-align: center; color: var(--text-tertiary);">No items found.</td></tr>';
         return;
     }
     
@@ -6825,8 +6825,8 @@ function renderSettings() {
             <td style="padding: 0.75rem 1rem;">${t.domain || '—'}</td>
             <td style="padding: 0.75rem 1rem;">${t.statement || '—'}</td>
             <td style="padding: 0.75rem 1rem; text-align: right;">
-                <button class="btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="window.editCoreTruth('${t.id}')">Edit</button>
-                <button class="btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--energy-alert);" onclick="window.deleteCoreTruth('${t.id}')">Delete</button>
+                <button class="btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="window.editAIBrain('${t.id}')">Edit</button>
+                <button class="btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--energy-alert);" onclick="window.deleteAIBrain('${t.id}')">Delete</button>
             </td>
         </tr>
     `).join('');

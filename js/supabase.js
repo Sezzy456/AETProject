@@ -747,9 +747,9 @@ async function preloadSupabaseData() {
     if (!_sb) return false;
     console.log('[Supabase] Pre-loading data...');
     try {
-        const [stakeholders, actions, interactions, spine, stats, dashCards, pageLinks, dashVariations, contacts, assets, coreTruths] = await Promise.all([
+        const [stakeholders, actions, interactions, spine, stats, dashCards, pageLinks, dashVariations, contacts, assets, aiBrain] = await Promise.all([
             fetchStakeholders(), fetchActions(), fetchInteractions(), fetchSpine(), fetchStats(),
-            fetchDashboardCards(), fetchPageLinks(), fetchVariationPages('dashboard'), fetchContacts(), fetchAssets(), fetchCoreTruths()
+            fetchDashboardCards(), fetchPageLinks(), fetchVariationPages('dashboard'), fetchContacts(), fetchAssets(), fetchAIBrain()
         ]);
         if (stakeholders) _sbCache.stakeholders = stakeholders;
         if (actions) _sbCache.actions = actions;
@@ -761,7 +761,7 @@ async function preloadSupabaseData() {
         if (dashVariations) _sbCache.dashboardVariations = dashVariations;
         if (contacts) _sbCache.contacts = contacts;
         if (assets) _sbCache.assets = assets;
-        if (coreTruths) _sbCache.coreTruths = coreTruths;
+        if (aiBrain) _sbCache.aiBrain = aiBrain;
         _sbReady = Object.keys(_sbCache).length > 0;
         console.log('[Supabase] Cache loaded:', Object.keys(_sbCache).join(', '));
         return _sbReady;
@@ -975,75 +975,75 @@ window.saveCurrentAction = async function() {
 
 // ── BOOT ────────────────────────────────────────────────────────
 
-// ── CORE TRUTHS ──────────────────────────────────────────────────
+// ── AI BRAIN ──────────────────────────────────────────────────
 
-async function fetchCoreTruths() {
+async function fetchAIBrain() {
     if (!_sb) return null;
     try {
-        const { data: rows, error } = await _sb.from('tbl_core_truth')
+        const { data: rows, error } = await _sb.from('tbl_ai_brain')
             .select('*')
-            .eq('ct_active', true)
-            .order('ct_created', { ascending: true });
+            .eq('ab_active', true)
+            .order('ab_created', { ascending: true });
         if (error) throw error;
         return (rows || []).map(r => ({
-            id: r.ct_id,
-            type: r.ct_type || '',
-            domain: r.ct_domain || '',
-            statement: r.ct_statement || ''
+            id: r.ab_id,
+            type: r.ab_type || '',
+            domain: r.ab_domain || '',
+            statement: r.ab_statement || ''
         }));
-    } catch (e) { console.error('[Supabase] fetchCoreTruths error:', e); return null; }
+    } catch (e) { console.error('[Supabase] fetchAIBrain error:', e); return null; }
 }
 
-async function insertCoreTruth(truth) {
+async function insertAIBrain(truth) {
     if (!_sb) return null;
     try {
-        const { data, error } = await _sb.from('tbl_core_truth')
+        const { data, error } = await _sb.from('tbl_ai_brain')
             .insert({
-                ct_type: truth.type,
-                ct_domain: truth.domain,
-                ct_statement: truth.statement,
-                ct_active: true
+                ab_type: truth.type,
+                ab_domain: truth.domain,
+                ab_statement: truth.statement,
+                ab_active: true
             })
             .select()
             .single();
         if (error) throw error;
         return data;
-    } catch (e) { console.error('[Supabase] insertCoreTruth error:', e); return null; }
+    } catch (e) { console.error('[Supabase] insertAIBrain error:', e); return null; }
 }
 
-async function updateCoreTruth(id, truth) {
+async function updateAIBrain(id, truth) {
     if (!_sb) return null;
     try {
-        const { data, error } = await _sb.from('tbl_core_truth')
+        const { data, error } = await _sb.from('tbl_ai_brain')
             .update({
-                ct_type: truth.type,
-                ct_domain: truth.domain,
-                ct_statement: truth.statement,
-                ct_modified: new Date().toISOString()
+                ab_type: truth.type,
+                ab_domain: truth.domain,
+                ab_statement: truth.statement,
+                ab_modified: new Date().toISOString()
             })
-            .eq('ct_id', id)
+            .eq('ab_id', id)
             .select()
             .single();
         if (error) throw error;
         return data;
-    } catch (e) { console.error('[Supabase] updateCoreTruth error:', e); return null; }
+    } catch (e) { console.error('[Supabase] updateAIBrain error:', e); return null; }
 }
 
-async function softDeleteCoreTruth(id) {
+async function softDeleteAIBrain(id) {
     if (!_sb) return false;
     try {
-        const { error } = await _sb.from('tbl_core_truth')
-            .update({ ct_active: false })
-            .eq('ct_id', id);
+        const { error } = await _sb.from('tbl_ai_brain')
+            .update({ ab_active: false })
+            .eq('ab_id', id);
         if (error) throw error;
         return true;
-    } catch (e) { console.error('[Supabase] softDeleteCoreTruth error:', e); return false; }
+    } catch (e) { console.error('[Supabase] softDeleteAIBrain error:', e); return false; }
 }
 
-window.fetchCoreTruths = fetchCoreTruths;
-window.insertCoreTruth = insertCoreTruth;
-window.updateCoreTruth = updateCoreTruth;
-window.softDeleteCoreTruth = softDeleteCoreTruth;
+window.fetchAIBrain = fetchAIBrain;
+window.insertAIBrain = insertAIBrain;
+window.updateAIBrain = updateAIBrain;
+window.softDeleteAIBrain = softDeleteAIBrain;
 
 window.bootSupabase = async function() {
     if (!initSupabase()) { 

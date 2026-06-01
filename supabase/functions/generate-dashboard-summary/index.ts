@@ -46,15 +46,15 @@ Deno.serve(async (req) => {
       .select('sta_name, sta_status')
       .in('sta_status', [3, 4, 5]);
 
-    const { data: coreTruths, error: ctErr } = await supabaseClient
-      .from('tbl_core_truth')
-      .select('ct_type, ct_domain, ct_statement')
-      .eq('ct_active', true)
+    const { data: aiBrain, error: abErr } = await supabaseClient
+      .from('tbl_ai_brain')
+      .select('ab_type, ab_domain, ab_statement')
+      .eq('ab_active', true)
       .limit(50);
 
-    if (actErr || intErr || staErr || ctErr) {
-      console.error("Error fetching data", { actErr, intErr, staErr, ctErr });
-      return new Response(JSON.stringify({ error: "Failed to fetch context data", details: { actErr, intErr, staErr, ctErr } }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 });
+    if (actErr || intErr || staErr || abErr) {
+      console.error("Error fetching data", { actErr, intErr, staErr, abErr });
+      return new Response(JSON.stringify({ error: "Failed to fetch context data", details: { actErr, intErr, staErr, abErr } }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 });
     }
 
     let currentDate = new Date().toISOString().split('T')[0];
@@ -76,8 +76,8 @@ Deno.serve(async (req) => {
     const contextStr = `
 Current Date: ${currentDate}
 
-Project Core Truths (Constraints, Rules, and Learned Patterns):
-${JSON.stringify(coreTruths, null, 2)}
+AI Brain Items (Constraints, Rules, and Learned Patterns):
+${JSON.stringify(aiBrain, null, 2)}
 
 Current Active Actions:
 ${JSON.stringify(actions, null, 2)}
