@@ -5,12 +5,12 @@
 // ═══════════════════════════════════════════════════════════════
 
 // Local Development (from memo-app 'supabase status')
-const SUPABASE_URL = 'http://127.0.0.1:54321';
-const SUPABASE_KEY = 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH';
+// const SUPABASE_URL = 'http://127.0.0.1:54321';
+// const SUPABASE_KEY = 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH';
 
 // Remote Production (Uncomment to deploy)
-// const SUPABASE_URL = 'https://bhfuframpeysqncouxax.supabase.co';
-// const SUPABASE_KEY = 'sb_publishable_Q1XB1iVRhiJq29cYubL0VQ_oANxFDOp';
+const SUPABASE_URL = 'https://bhfuframpeysqncouxax.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Q1XB1iVRhiJq29cYubL0VQ_oANxFDOp';
 
 let _sb = null;
 let _sbReady = false;
