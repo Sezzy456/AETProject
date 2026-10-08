@@ -1,0 +1,197 @@
+/* Features & Logo Bar Styling */
+
+/* Logo Cloud Section */
+.logos-section {
+  padding: 60px 0;
+  border-bottom: 1px solid var(--border-glass);
+}
+
+.logos-title {
+  text-align: center;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  margin-bottom: 32px;
+  font-weight: 600;
+}
+
+.logo-grid {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 36px;
+  opacity: 0.65;
+  filter: grayscale(100%);
+  transition: var(--transition);
+}
+
+.logo-grid:hover {
+  opacity: 0.9;
+  filter: grayscale(0%);
+}
+
+.company-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--text-muted);
+}
+
+/* Main Features Grid Section */
+.features-section {
+  padding: 120px 0;
+  position: relative;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  margin-top: 60px;
+}
+
+.feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: var(--backdrop-blur);
+}
+
+.feature-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--border-glass-bright);
+  background: var(--bg-card-hover);
+  box-shadow: var(--shadow-glow);
+}
+
+.feature-icon-wrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  margin-bottom: 24px;
+}
+
+.feature-card:nth-child(2) .feature-icon-wrapper {
+  background: rgba(6, 182, 212, 0.12);
+  border-color: rgba(6, 182, 212, 0.25);
+  color: var(--secondary);
+}
+
+.feature-card:nth-child(3) .feature-icon-wrapper {
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.25);
+  color: var(--accent-purple);
+}
+
+.feature-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.feature-desc {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.feature-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 20px;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.feature-link:hover {
+  gap: 10px;
+  color: #818cf8;
+}
+
+/* Feature Spotlight Banners (2-Column Showcase) */
+.spotlight-section {
+  padding: 60px 0 120px 0;
+}
+
+.spotlight-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  margin-bottom: 120px;
+}
+
+.spotlight-row.reverse {
+  direction: rtl;
+}
+
+.spotlight-row.reverse > * {
+  direction: ltr;
+}
+
+.spotlight-content h3 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  line-height: 1.25;
+}
+
+.spotlight-content p {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  margin-bottom: 28px;
+}
+
+.spotlight-checklist {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.spotlight-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.98rem;
+  color: var(--text-main);
+}
+
+.spotlight-checklist li svg {
+  color: var(--accent-emerald);
+  flex-shrink: 0;
+}
+
+.spotlight-media {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border-glass-bright);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  background: var(--bg-elevated);
+}
+
+.spotlight-media img {
+  width: 100%;
+  height: auto;
+  display: block;
+}

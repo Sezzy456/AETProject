@@ -1,0 +1,78 @@
+/* Responsive Layout Adaptations */
+
+@media (max-width: 1024px) {
+  .hero-title {
+    font-size: 3rem;
+  }
+
+  .features-grid, .pricing-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .spotlight-row, .spotlight-row.reverse {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    direction: ltr;
+  }
+
+  .roi-calculator-box {
+    grid-template-columns: 1fr;
+  }
+
+  .floating-stat-badge {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-links, .nav-cta-group {
+    display: none;
+  }
+
+  .nav-links.mobile-open {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 70px;
+    left: 0;
+    width: 100%;
+    background: #0f172a;
+    padding: 24px;
+    border-bottom: 1px solid var(--border-glass-bright);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+  }
+
+  .mobile-toggle {
+    display: block;
+  }
+
+  .hero-title {
+    font-size: 2.2rem;
+  }
+
+  .hero-description {
+    font-size: 1rem;
+  }
+
+  .hero-cta-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .hero-cta-primary, .hero-cta-secondary {
+    width: 100%;
+  }
+
+  .features-grid, .pricing-grid, .kanban-interactive-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .showcase-browser-bar {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .cta-form {
+    flex-direction: column;
+  }
+}
