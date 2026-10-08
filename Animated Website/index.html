@@ -8,31 +8,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
-<body>
+<body class="border-mode-wavy texture-on texture-dots">
 
-    <!-- Header Navigation -->
+    <!-- Background Texture Overlay for Scroll Parallax -->
+    <div id="bg-texture" class="bg-texture texture-dots texture-on"></div>
+
+    <!-- Header Navigation (Clean Floating Nav) -->
     <header class="main-header">
-        <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
-          <linearGradient id="navGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#6dd5ed" />
-            <stop offset="100%" stop-color="#2193b0" />
-          </linearGradient>
-        </svg>
         <div class="nav-container">
             <div class="logo">
-                <img src="images/AET-logo-colour-inline-1200pxW-v1-1024x394.png" alt="AET Logo" style="height: 40px; width: auto;">
+                <img src="images/AET-logo-colour-inline-1200pxW-v1-1024x394.png" alt="AET Logo" class="logo-img">
             </div>
-            <nav class="nav-links">
-                <a href="#home">Home</a>
-                <a href="#what-we-do">What We Do</a>
-                <a href="#who-we-are">About Us</a>
-                <a href="#infographic">Process</a>
-            </nav>
+            <div class="nav-links-wrapper">
+                <nav class="nav-links">
+                    <a href="#home">Home</a>
+                    <a href="#what-we-do">What We Do</a>
+                    <a href="#who-we-are">About Us</a>
+                    <a href="#infographic">Process</a>
+                </nav>
+            </div>
         </div>
-        <!-- Wavy SVG overlay at bottom of header -->
-        <svg class="wave header-wave" viewBox="0 0 1440 120" preserveAspectRatio="none">
-            <path d="M0,60 C320,120 420,0 740,60 C1060,120 1120,0 1440,60 L1440,0 L0,0 Z" fill="url(#navGrad)"></path>
-        </svg>
     </header>
 
     <!-- Landing Hero Section (White background, 2-Column layout) -->
@@ -78,12 +73,38 @@
     <!-- Parallax Image Transition (Hero to What We Do) -->
     <section class="parallax-image hero-parallax">
         <div class="parallax-bg" style="background-image: url('images/DSC03786.jpg');"></div>
+        <!-- Wavy SVGs -->
         <svg class="wave top-wave" viewBox="0 0 1440 120" preserveAspectRatio="none" style="top:-1px; bottom:auto;">
             <path fill="#ffffff" d="M0,60 C320,120 420,0 740,60 C1060,120 1120,0 1440,60 L1440,0 L0,0 Z"></path>
         </svg>
         <svg class="wave bottom-wave" viewBox="0 0 1440 120" preserveAspectRatio="none">
             <path fill="#ffffff" d="M0,60 C320,120 420,0 740,60 C1060,120 1120,0 1440,60 L1440,120 L0,120 Z"></path>
         </svg>
+        <!-- Seamless 1/3-Width Long Ribbon Chevron Dividers (No Color Shift, No Black Outlines) -->
+        <div class="chevron-divider-container top-chevron">
+            <svg class="chevron-divider" viewBox="0 0 1200 36" preserveAspectRatio="none">
+                <g class="chevron-group">
+                    <path d="M -400,2 L 0,2 L 25,18 L 0,34 L -400,34 L -375,18 Z" fill="#94a3b8" />
+                    <path d="M 0,2 L 400,2 L 425,18 L 400,34 L 0,34 L 25,18 Z" fill="#2193b0" />
+                    <path d="M 400,2 L 800,2 L 825,18 L 800,34 L 400,34 L 425,18 Z" fill="#2ecc71" />
+                    <path d="M 800,2 L 1200,2 L 1225,18 L 1200,34 L 800,34 L 825,18 Z" fill="#94a3b8" />
+                    <path d="M 1200,2 L 1600,2 L 1625,18 L 1600,34 L 1200,34 L 1225,18 Z" fill="#2193b0" />
+                    <path d="M 1600,2 L 2000,2 L 2025,18 L 2000,34 L 1600,34 L 1625,18 Z" fill="#2ecc71" />
+                </g>
+            </svg>
+        </div>
+        <div class="chevron-divider-container bottom-chevron">
+            <svg class="chevron-divider" viewBox="0 0 1200 36" preserveAspectRatio="none">
+                <g class="chevron-group">
+                    <path d="M -400,2 L 0,2 L 25,18 L 0,34 L -400,34 L -375,18 Z" fill="#94a3b8" />
+                    <path d="M 0,2 L 400,2 L 425,18 L 400,34 L 0,34 L 25,18 Z" fill="#2193b0" />
+                    <path d="M 400,2 L 800,2 L 825,18 L 800,34 L 400,34 L 425,18 Z" fill="#2ecc71" />
+                    <path d="M 800,2 L 1200,2 L 1225,18 L 1200,34 L 800,34 L 825,18 Z" fill="#94a3b8" />
+                    <path d="M 1200,2 L 1600,2 L 1625,18 L 1600,34 L 1200,34 L 1225,18 Z" fill="#2193b0" />
+                    <path d="M 1600,2 L 2000,2 L 2025,18 L 2000,34 L 1600,34 L 1625,18 Z" fill="#2ecc71" />
+                </g>
+            </svg>
+        </div>
     </section>
 
     <!-- What We Do Section (GSAP) -->
@@ -116,6 +137,31 @@
         <svg class="wave bottom-wave" viewBox="0 0 1440 120" preserveAspectRatio="none">
             <path fill="#ffffff" d="M0,60 C320,120 420,0 740,60 C1060,120 1120,0 1440,60 L1440,120 L0,120 Z"></path>
         </svg>
+        <!-- Seamless 1/3-Width Long Ribbon Chevron Dividers (No Color Shift, No Black Outlines) -->
+        <div class="chevron-divider-container top-chevron">
+            <svg class="chevron-divider" viewBox="0 0 1200 36" preserveAspectRatio="none">
+                <g class="chevron-group">
+                    <path d="M -400,2 L 0,2 L 25,18 L 0,34 L -400,34 L -375,18 Z" fill="#94a3b8" />
+                    <path d="M 0,2 L 400,2 L 425,18 L 400,34 L 0,34 L 25,18 Z" fill="#2193b0" />
+                    <path d="M 400,2 L 800,2 L 825,18 L 800,34 L 400,34 L 425,18 Z" fill="#2ecc71" />
+                    <path d="M 800,2 L 1200,2 L 1225,18 L 1200,34 L 800,34 L 825,18 Z" fill="#94a3b8" />
+                    <path d="M 1200,2 L 1600,2 L 1625,18 L 1600,34 L 1200,34 L 1225,18 Z" fill="#2193b0" />
+                    <path d="M 1600,2 L 2000,2 L 2025,18 L 2000,34 L 1600,34 L 1625,18 Z" fill="#2ecc71" />
+                </g>
+            </svg>
+        </div>
+        <div class="chevron-divider-container bottom-chevron">
+            <svg class="chevron-divider" viewBox="0 0 1200 36" preserveAspectRatio="none">
+                <g class="chevron-group">
+                    <path d="M -400,2 L 0,2 L 25,18 L 0,34 L -400,34 L -375,18 Z" fill="#94a3b8" />
+                    <path d="M 0,2 L 400,2 L 425,18 L 400,34 L 0,34 L 25,18 Z" fill="#2193b0" />
+                    <path d="M 400,2 L 800,2 L 825,18 L 800,34 L 400,34 L 425,18 Z" fill="#2ecc71" />
+                    <path d="M 800,2 L 1200,2 L 1225,18 L 1200,34 L 800,34 L 825,18 Z" fill="#94a3b8" />
+                    <path d="M 1200,2 L 1600,2 L 1625,18 L 1600,34 L 1200,34 L 1225,18 Z" fill="#2193b0" />
+                    <path d="M 1600,2 L 2000,2 L 2025,18 L 2000,34 L 1600,34 L 1625,18 Z" fill="#2ecc71" />
+                </g>
+            </svg>
+        </div>
     </section>
 
     <!-- Who We Are Section -->
@@ -123,7 +169,8 @@
         <h2 class="section-title">Who we are</h2>
         <div class="who-we-are-content">
             <div class="blob-container">
-                <svg viewBox="-50 -50 300 300" xmlns="http://www.w3.org/2000/svg" class="svg-blob" id="rotating-blob">
+                <!-- Tightly proportioned SVG viewBox to eliminate canvas padding around the blob -->
+                <svg viewBox="15 15 170 160" xmlns="http://www.w3.org/2000/svg" class="svg-blob" id="rotating-blob">
                     <defs>
                         <clipPath id="blob-clip-1">
                             <!-- 5 Convex & 5 Concave Soft Symmetrical Star Blob -->
@@ -166,6 +213,31 @@
         <svg class="wave bottom-wave" viewBox="0 0 1440 120" preserveAspectRatio="none">
             <path fill="#ffffff" d="M0,60 C320,120 420,0 740,60 C1060,120 1120,0 1440,60 L1440,120 L0,120 Z"></path>
         </svg>
+        <!-- Seamless 1/3-Width Long Ribbon Chevron Dividers (No Color Shift, No Black Outlines) -->
+        <div class="chevron-divider-container top-chevron">
+            <svg class="chevron-divider" viewBox="0 0 1200 36" preserveAspectRatio="none">
+                <g class="chevron-group">
+                    <path d="M -400,2 L 0,2 L 25,18 L 0,34 L -400,34 L -375,18 Z" fill="#94a3b8" />
+                    <path d="M 0,2 L 400,2 L 425,18 L 400,34 L 0,34 L 25,18 Z" fill="#2193b0" />
+                    <path d="M 400,2 L 800,2 L 825,18 L 800,34 L 400,34 L 425,18 Z" fill="#2ecc71" />
+                    <path d="M 800,2 L 1200,2 L 1225,18 L 1200,34 L 800,34 L 825,18 Z" fill="#94a3b8" />
+                    <path d="M 1200,2 L 1600,2 L 1625,18 L 1600,34 L 1200,34 L 1225,18 Z" fill="#2193b0" />
+                    <path d="M 1600,2 L 2000,2 L 2025,18 L 2000,34 L 1600,34 L 1625,18 Z" fill="#2ecc71" />
+                </g>
+            </svg>
+        </div>
+        <div class="chevron-divider-container bottom-chevron">
+            <svg class="chevron-divider" viewBox="0 0 1200 36" preserveAspectRatio="none">
+                <g class="chevron-group">
+                    <path d="M -400,2 L 0,2 L 25,18 L 0,34 L -400,34 L -375,18 Z" fill="#94a3b8" />
+                    <path d="M 0,2 L 400,2 L 425,18 L 400,34 L 0,34 L 25,18 Z" fill="#2193b0" />
+                    <path d="M 400,2 L 800,2 L 825,18 L 800,34 L 400,34 L 425,18 Z" fill="#2ecc71" />
+                    <path d="M 800,2 L 1200,2 L 1225,18 L 1200,34 L 800,34 L 825,18 Z" fill="#94a3b8" />
+                    <path d="M 1200,2 L 1600,2 L 1625,18 L 1600,34 L 1200,34 L 1225,18 Z" fill="#2193b0" />
+                    <path d="M 1600,2 L 2000,2 L 2025,18 L 2000,34 L 1600,34 L 1625,18 Z" fill="#2ecc71" />
+                </g>
+            </svg>
+        </div>
     </section>
 
     <!-- Infographic Section -->
@@ -184,11 +256,23 @@
         </div>
     </section>
 
-    <!-- Border Style Toggle Floating Control -->
-    <div class="wave-toggle-container">
-        <button id="toggle-waves-btn" class="toggle-waves-btn" title="Toggle between wavy SVG borders and clean straight borders">
-            <i class="fa-solid fa-water"></i> <span id="wave-toggle-text">Wavy Borders: ON</span>
-        </button>
+    <!-- Modern Visual Floating Customization Controls Panel -->
+    <div class="floating-controls-panel">
+        <div class="control-row">
+            <span class="control-title"><i class="fa-solid fa-shapes"></i> Section Border:</span>
+            <div class="btn-toggle-group">
+                <button id="btn-border-wavy" class="pill-btn active" title="Wavy SVG Borders"><i class="fa-solid fa-water"></i> Wavy</button>
+                <button id="btn-border-chevron" class="pill-btn" title="Teal, Green & Grey 1/3-Width Long Ribbon Chevron Arrows"><i class="fa-solid fa-angles-right"></i> Chevron</button>
+                <button id="btn-border-clean" class="pill-btn" title="Clean Straight Borders"><i class="fa-solid fa-minus"></i> Clean</button>
+            </div>
+        </div>
+        <div class="control-row">
+            <span class="control-title"><i class="fa-solid fa-grip"></i> BG Texture:</span>
+            <div class="btn-toggle-group">
+                <button id="btn-texture-toggle" class="pill-btn active" title="Toggle Background Texture"><i class="fa-solid fa-power-off"></i> <span id="texture-status-text">ON</span></button>
+                <button id="btn-texture-style" class="pill-btn" title="Switch Texture Pattern: Soft Dots, Diamond Plate"><i class="fa-solid fa-border-all"></i> <span id="texture-style-text">Soft Dots</span></button>
+            </div>
+        </div>
     </div>
 
     <!-- Footer -->
@@ -196,6 +280,18 @@
         <svg class="wave footer-wave" viewBox="0 0 1440 120" preserveAspectRatio="none">
             <path fill="url(#navGrad)" d="M0,60 C320,120 420,0 740,60 C1060,120 1120,0 1440,60 L1440,120 L0,120 Z"></path>
         </svg>
+        <div class="chevron-divider-container footer-chevron">
+            <svg class="chevron-divider" viewBox="0 0 1200 36" preserveAspectRatio="none">
+                <g class="chevron-group">
+                    <path d="M -400,2 L 0,2 L 25,18 L 0,34 L -400,34 L -375,18 Z" fill="#94a3b8" />
+                    <path d="M 0,2 L 400,2 L 425,18 L 400,34 L 0,34 L 25,18 Z" fill="#2193b0" />
+                    <path d="M 400,2 L 800,2 L 825,18 L 800,34 L 400,34 L 425,18 Z" fill="#2ecc71" />
+                    <path d="M 800,2 L 1200,2 L 1225,18 L 1200,34 L 800,34 L 825,18 Z" fill="#94a3b8" />
+                    <path d="M 1200,2 L 1600,2 L 1625,18 L 1600,34 L 1200,34 L 1225,18 Z" fill="#2193b0" />
+                    <path d="M 1600,2 L 2000,2 L 2025,18 L 2000,34 L 1600,34 L 1625,18 Z" fill="#2ecc71" />
+                </g>
+            </svg>
+        </div>
         <div class="footer-content">
             <div class="social-icons">
                 <a href="#"><i class="fa-brands fa-facebook"></i></a>
@@ -213,4 +309,4 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <script src="main.js"></script>
 </body>
-</html>
+</html>

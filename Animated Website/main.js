@@ -426,28 +426,83 @@ stages.forEach(stage => {
 });
 
 // =================================================================
-// 5. WAVY BORDER TOGGLE
+// 5. VISUAL CUSTOMIZATION CONTROLS (BORDER MODES & BG TEXTURE PARALLAX)
 // =================================================================
-const toggleWavesBtn = document.getElementById('toggle-waves-btn');
-const waveToggleText = document.getElementById('wave-toggle-text');
-let wavesEnabled = true;
+const btnBorderWavy = document.getElementById('btn-border-wavy');
+const btnBorderChevron = document.getElementById('btn-border-chevron');
+const btnBorderClean = document.getElementById('btn-border-clean');
 
-if (toggleWavesBtn) {
-    toggleWavesBtn.addEventListener('click', () => {
-        wavesEnabled = !wavesEnabled;
-        if (wavesEnabled) {
-            document.body.classList.remove('no-waves');
-            waveToggleText.innerText = 'Wavy Borders: ON';
-            toggleWavesBtn.style.background = '#ffffff';
-            toggleWavesBtn.style.color = '#2193b0';
+const btnTextureToggle = document.getElementById('btn-texture-toggle');
+const btnTextureStyle = document.getElementById('btn-texture-style');
+const textureStatusText = document.getElementById('texture-status-text');
+const textureStyleText = document.getElementById('texture-style-text');
+const bgTexture = document.getElementById('bg-texture');
+
+// Border Mode Switching (wavy, chevron, clean)
+function setBorderMode(mode) {
+    document.body.classList.remove('border-mode-wavy', 'border-mode-chevron', 'border-mode-clean');
+    document.body.classList.add(`border-mode-${mode}`);
+
+    [btnBorderWavy, btnBorderChevron, btnBorderClean].forEach(btn => {
+        if (btn) btn.classList.remove('active');
+    });
+
+    if (mode === 'wavy' && btnBorderWavy) btnBorderWavy.classList.add('active');
+    if (mode === 'chevron' && btnBorderChevron) btnBorderChevron.classList.add('active');
+    if (mode === 'clean' && btnBorderClean) btnBorderClean.classList.add('active');
+
+    // Refresh GSAP ScrollTrigger layout calculations when border mode switches
+    ScrollTrigger.refresh();
+}
+
+if (btnBorderWavy) btnBorderWavy.addEventListener('click', () => setBorderMode('wavy'));
+if (btnBorderChevron) btnBorderChevron.addEventListener('click', () => setBorderMode('chevron'));
+if (btnBorderClean) btnBorderClean.addEventListener('click', () => setBorderMode('clean'));
+
+// Background Texture Toggle & Style Switching
+const textureStyles = [
+    { class: 'texture-dots', label: 'Soft Dots' },
+    { class: 'texture-diamond-plate', label: 'Diamond Plate' }
+];
+let currentTextureIndex = 0;
+let isTextureOn = true;
+
+if (btnTextureToggle) {
+    btnTextureToggle.addEventListener('click', () => {
+        isTextureOn = !isTextureOn;
+        if (isTextureOn) {
+            bgTexture.classList.add('texture-on');
+            btnTextureToggle.classList.add('active');
+            if (textureStatusText) textureStatusText.innerText = 'ON';
         } else {
-            document.body.classList.add('no-waves');
-            waveToggleText.innerText = 'Wavy Borders: OFF';
-            toggleWavesBtn.style.background = '#2193b0';
-            toggleWavesBtn.style.color = '#ffffff';
+            bgTexture.classList.remove('texture-on');
+            btnTextureToggle.classList.remove('active');
+            if (textureStatusText) textureStatusText.innerText = 'OFF';
         }
     });
 }
+
+if (btnTextureStyle) {
+    btnTextureStyle.addEventListener('click', () => {
+        // Remove current style class
+        bgTexture.classList.remove(textureStyles[currentTextureIndex].class);
+        // Cycle index
+        currentTextureIndex = (currentTextureIndex + 1) % textureStyles.length;
+        // Add new style class
+        const newStyle = textureStyles[currentTextureIndex];
+        bgTexture.classList.add(newStyle.class);
+        if (textureStyleText) textureStyleText.innerText = newStyle.label;
+    });
+}
+
+// Subtle Scroll Parallax for Background Texture (0.35x scroll speed ratio)
+window.addEventListener('scroll', () => {
+    if (isTextureOn && bgTexture) {
+        const scrollY = window.scrollY;
+        // Move fixed texture opposite to scroll for natural floating depth
+        bgTexture.style.transform = `translate3d(0, ${-scrollY * 0.35}px, 0)`;
+    }
+}, { passive: true });
 
 // =================================================================
 // 6. ACTIVE NAV HIGHLIGHTING
@@ -475,4 +530,5 @@ const observer = new IntersectionObserver((entries) => {
 }, observerOptions);
 
 sections.forEach(sec => observer.observe(sec));
+
 
