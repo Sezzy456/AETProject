@@ -98,36 +98,113 @@ h1, h2, h3 {
     z-index: 10;
 }
 
-/* Video Section */
-.video-section {
+.wave {
+    pointer-events: none !important; /* Ensures SVG wave decorations never block clicks to controls or elements below */
+}
+
+/* Landing Hero Section (White Background 2-Column Layout) */
+.hero-section {
     position: relative;
-    height: calc(100vh - 40px);
-    margin-top: 40px; /* Slight offset so top of video sits comfortably below header logo */
+    background-color: #ffffff;
+    margin-top: 80px; /* Below navbar header */
+    padding: 60px 50px 80px 50px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 140px);
+}
+
+.hero-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 50px;
+    max-width: 1400px;
     width: 100%;
-    overflow: hidden; 
-    pointer-events: auto; /* Allow clicking the background to pause/play */
-    cursor: pointer;
+    margin: 0 auto;
 }
-.video-container {
-    position: fixed;
-    top: 40px;
-    left: 0;
+
+.hero-text-column {
+    flex: 1;
+    max-width: 580px;
+}
+
+.hero-title {
+    font-size: 3.6rem;
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 24px;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+
+.hero-subtitle {
+    font-size: 1.35rem;
+    line-height: 1.7;
+    color: #475569;
+    margin-bottom: 36px;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 16px;
+}
+
+.hero-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    border-radius: 30px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.primary-btn {
+    background: var(--gradient);
+    color: white;
+    box-shadow: 0 6px 20px rgba(33, 147, 176, 0.25);
+}
+
+.primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(33, 147, 176, 0.4);
+}
+
+.hero-video-column {
+    flex: 1.2;
+    display: flex;
+    justify-content: center;
+}
+
+.hero-video-column .video-container {
+    position: relative;
     width: 100%;
-    height: calc(100vh - 40px);
-    z-index: 1; /* Above body, below other sections */
-    cursor: pointer;
+    max-width: 750px;
+    aspect-ratio: 16 / 9;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+    border: 1px solid #e2e8f0;
+    z-index: 5;
 }
-.video-container iframe {
-    width: 100vw;
-    height: 56.25vw;
-    min-height: 100vh;
-    min-width: 177.77vh;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none; /* Let clicks hit the video-container instead! */
+
+.hero-video-column .video-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    pointer-events: auto;
 }
+
+.hero-parallax {
+    height: 45vh;
+}
+
 .top-wave {
     position: absolute;
     bottom: -1px;
@@ -152,6 +229,97 @@ h1, h2, h3 {
 .play-pause-icon.show {
     opacity: 0.8;
     transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* Video Control Bar */
+.video-controls-bar {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 800px;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 40px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    z-index: 100; /* High z-index to guarantee clickability */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    color: white;
+}
+
+.v-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+.v-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.video-time-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+}
+
+#video-seek-bar {
+    flex: 1;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+}
+
+#video-seek-bar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #6dd5ed;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(109, 213, 237, 0.8);
+}
+
+.volume-slider {
+    width: 75px;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+}
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ffffff;
+    cursor: pointer;
 }
 
 /* GSAP What We Do Section */

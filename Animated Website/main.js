@@ -3,34 +3,138 @@
 gsap.registerPlugin(ScrollTrigger);
 
 // =================================================================
-// 1. VIDEO PARALLAX & AUTO-PAUSE (Vimeo API)
+// 1. VIDEO PLAYER CONTROLS & PARALLAX AUTO-PAUSE (Vimeo API)
 // =================================================================
 const iframe = document.getElementById('vimeo-video');
 const player = new Vimeo.Player(iframe);
 
-// Pause the video when we scroll past the video section
+const vPlayBtn = document.getElementById('video-play-btn');
+const playBtnIcon = document.getElementById('play-btn-icon');
+const vCurrentTime = document.getElementById('video-current-time');
+const vDuration = document.getElementById('video-duration');
+const vSeekBar = document.getElementById('video-seek-bar');
+const vMuteBtn = document.getElementById('video-mute-btn');
+const muteBtnIcon = document.getElementById('mute-btn-icon');
+const vVolumeBar = document.getElementById('video-volume-bar');
+const vFullscreenBtn = document.getElementById('video-fullscreen-btn');
+const videoContainer = document.querySelector('.video-container');
+
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+// Pause the video when scrolling past the video section
 ScrollTrigger.create({
     trigger: ".video-section",
-    start: "bottom top", // when bottom of video hits top of viewport
+    start: "bottom top",
     onEnter: () => player.pause(),
     onLeaveBack: () => player.play().catch(e => console.log("Autoplay prevented:", e))
 });
 
-// Allow the user to click the video background to manually pause/play
-const videoContainer = document.querySelector('.video-container');
-const playPauseIcon = document.getElementById('play-pause-icon');
-let isVideoPlaying = true; // Vimeo background videos auto-play by default
-
-videoContainer.addEventListener('click', () => {
-    if (isVideoPlaying) {
-        player.pause();
-        playPauseIcon.classList.add('show');
-    } else {
-        player.play();
-        playPauseIcon.classList.remove('show');
-    }
-    isVideoPlaying = !isVideoPlaying;
+// Ensure loop replay without end-screen recommendations
+player.setLoop(true).catch(e => console.log(e));
+player.on('ended', () => {
+    player.setCurrentTime(0);
+    player.play();
 });
+
+// Load duration
+player.getDuration().then(duration => {
+    if (vDuration) vDuration.innerText = formatTime(duration);
+}).catch(e => console.log(e));
+
+// Update progress bar and time during playback
+player.on('timeupdate', data => {
+    if (vCurrentTime) vCurrentTime.innerText = formatTime(data.seconds);
+    if (vDuration && data.duration) vDuration.innerText = formatTime(data.duration);
+    if (vSeekBar && data.duration) {
+        vSeekBar.value = (data.seconds / data.duration) * 100;
+    }
+});
+
+// Sync Play/Pause Button State
+player.on('play', () => {
+    if (playBtnIcon) playBtnIcon.className = 'fa-solid fa-pause';
+});
+player.on('pause', () => {
+    if (playBtnIcon) playBtnIcon.className = 'fa-solid fa-play';
+});
+
+if (vPlayBtn) {
+    vPlayBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        player.getPaused().then(paused => {
+            if (paused) {
+                player.play();
+            } else {
+                player.pause();
+            }
+        });
+    });
+}
+
+// Seek bar scrubbing
+if (vSeekBar) {
+    vSeekBar.addEventListener('input', (e) => {
+        e.stopPropagation();
+        player.getDuration().then(duration => {
+            const seekTo = duration * (vSeekBar.value / 100);
+            player.setCurrentTime(seekTo);
+        });
+    });
+}
+
+// Mute / Unmute
+let isMuted = false;
+let lastVolume = 1;
+
+if (vMuteBtn) {
+    vMuteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!isMuted) {
+            player.setVolume(0);
+            isMuted = true;
+            if (muteBtnIcon) muteBtnIcon.className = 'fa-solid fa-volume-xmark';
+            if (vVolumeBar) vVolumeBar.value = 0;
+        } else {
+            player.setVolume(lastVolume || 1);
+            isMuted = false;
+            if (muteBtnIcon) muteBtnIcon.className = 'fa-solid fa-volume-high';
+            if (vVolumeBar) vVolumeBar.value = lastVolume || 1;
+        }
+    });
+}
+
+// Volume slider
+if (vVolumeBar) {
+    vVolumeBar.addEventListener('input', (e) => {
+        e.stopPropagation();
+        const val = parseFloat(vVolumeBar.value);
+        player.setVolume(val);
+        lastVolume = val;
+        if (val === 0) {
+            isMuted = true;
+            if (muteBtnIcon) muteBtnIcon.className = 'fa-solid fa-volume-xmark';
+        } else {
+            isMuted = false;
+            if (muteBtnIcon) muteBtnIcon.className = 'fa-solid fa-volume-high';
+        }
+    });
+}
+
+// Fullscreen
+if (vFullscreenBtn && videoContainer) {
+    vFullscreenBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!document.fullscreenElement) {
+            videoContainer.requestFullscreen().catch(err => console.log(err));
+        } else {
+            document.exitFullscreen();
+        }
+    });
+}
 
 // =================================================================
 // 2. 'WHAT WE DO' SCROLLYTELLING ANIMATION & CAROUSEL DOTS
@@ -180,11 +284,11 @@ const whoData = [
     { image: 'images/DSC03786.jpg', title: 'Innovative Engineers', desc: 'Designing the systems that turn everyday waste into tomorrow\'s clean energy.', overlay: 'images/DSC03786-removebg-preview.png' }
 ];
 
-// Soft organic rounded SVG blob paths with gentle rounded curves (no spiky star corners)
+// 5 Convex & 5 Concave Soft Symmetrical Star Blob Paths
 const whoPaths = [
-    "M 100,22 C 140,22 175,50 175,95 C 175,140 145,178 100,178 C 55,178 25,140 25,95 C 25,50 60,22 100,22 Z",
-    "M 100,26 C 148,18 178,58 172,102 C 166,146 138,175 96,172 C 52,169 22,138 28,94 C 34,50 52,34 100,26 Z",
-    "M 96,22 C 138,26 178,48 175,96 C 172,144 142,178 98,174 C 54,170 22,142 26,96 C 30,50 54,18 96,22 Z"
+    "M 100,25 C 116.5,25 120.8,50.8 130.56,57.93 C 140.3,65.0 166.2,61.1 171.33,76.82 C 176.4,92.5 154.5,100.35 149.45,116.07 C 144.4,131.8 157.3,151.1 144.08,160.68 C 130.9,170.3 116.5,152 100,152 C 83.5,152 69.1,170.3 55.92,160.68 C 42.7,151.1 55.6,131.8 50.55,116.07 C 45.5,100.35 23.6,92.5 28.67,76.82 C 33.8,61.1 59.7,65.0 69.44,57.93 C 79.2,50.8 83.5,25 100,25 Z",
+    "M 100,25 C 116.5,25 120.8,50.8 130.56,57.93 C 140.3,65.0 166.2,61.1 171.33,76.82 C 176.4,92.5 154.5,100.35 149.45,116.07 C 144.4,131.8 157.3,151.1 144.08,160.68 C 130.9,170.3 116.5,152 100,152 C 83.5,152 69.1,170.3 55.92,160.68 C 42.7,151.1 55.6,131.8 50.55,116.07 C 45.5,100.35 23.6,92.5 28.67,76.82 C 33.8,61.1 59.7,65.0 69.44,57.93 C 79.2,50.8 83.5,25 100,25 Z",
+    "M 100,25 C 116.5,25 120.8,50.8 130.56,57.93 C 140.3,65.0 166.2,61.1 171.33,76.82 C 176.4,92.5 154.5,100.35 149.45,116.07 C 144.4,131.8 157.3,151.1 144.08,160.68 C 130.9,170.3 116.5,152 100,152 C 83.5,152 69.1,170.3 55.92,160.68 C 42.7,151.1 55.6,131.8 50.55,116.07 C 45.5,100.35 23.6,92.5 28.67,76.82 C 33.8,61.1 59.7,65.0 69.44,57.93 C 79.2,50.8 83.5,25 100,25 Z"
 ];
 
 function initWhoWeAre() {
@@ -370,4 +474,5 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, observerOptions);
 
-sections.forEach(sec => observer.observe(sec));
+sections.forEach(sec => observer.observe(sec));
+
