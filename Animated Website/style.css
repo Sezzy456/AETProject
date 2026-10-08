@@ -9,6 +9,7 @@
 
 html {
     scroll-behavior: smooth;
+    font-size: 108%; /* Subtle global scale up mirroring 110% zoom */
 }
 
 body {
@@ -96,7 +97,7 @@ h1, h2, h3 {
     position: relative;
     background-color: #ffffff;
     margin-top: 80px; /* Below navbar header */
-    padding: 70px 0 90px 0;
+    padding: 50px 0 70px 0;
     box-sizing: border-box;
     display: flex;
     justify-content: center;
@@ -108,11 +109,11 @@ h1, h2, h3 {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 50px;
+    gap: 40px;
     max-width: 1550px;
     width: 100%;
     margin: 0 auto;
-    padding: 0 50px;
+    padding: 0 35px;
     box-sizing: border-box;
 }
 
