@@ -1,0 +1,86 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    background-color: #111;
+    color: white;
+}
+
+.intro-screen, .outro-screen {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #1a1a1a;
+}
+
+.scrolly-section {
+    width: 100%;
+    height: 100vh;
+    /* overflow: hidden; /* I'm going to comment this out */
+    position: relative;
+    /* We don't set height here; GSAP pinning handles it */
+}
+
+.content-wrapper {
+    display: flex;
+    width: 100%;
+    /* flex-direction: row; Force side-by-side */
+    height: 100vh;
+    /* You can make it wider than 100% and overflow if you want */
+}
+
+/* LEFT COLUMN: ANIMATION */
+.animation-column {
+    width: 50%; /* Half the width */
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+}
+
+canvas {
+    max-width: 90%; /* Leave a bit of padding */
+    max-height: 90vh;
+    object-fit: contain;
+}
+
+/* RIGHT COLUMN: TEXT */
+.text-column {
+    width: 50%;
+    height: 100vh;
+    background: #111;
+    color: white;
+
+    position: relative; /* <-- CRUCIAL: This acts as a cage to keep text inside this column */
+}
+
+/* INDIVIDUAL TEXT BLOCKS (Initially hidden) */
+.text-block {
+    opacity: 0;
+    /* transform: translateY(20px); */
+    visibility: hidden;
+    /* transition: all 0.5s ease-out; /* Optional: adds a CSS transition */
+    position: absolute; /* Stack text blocks in the same spot */
+    width: 80%; /* Width of the text area inside the padding */
+    top: 50%; /* location of text */
+    left: 10%; 
+    transform: translateY(-50%) translateY(20px); /* Centers vertically + prepares for hover animation */
+}
+
+/* Hide the delayed sentence fragments initially */
+.text-block .delay-1,
+.text-block .delay-2 {
+    opacity: 0;
+    display: inline-block; /* Allows smooth opacity transitions */
+    /* transition: opacity 0.4s ease-out; */
+}
+
+/* Active class (optional, if you want CSS to handle visibility too)
+.text-block.active {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+} */
+
