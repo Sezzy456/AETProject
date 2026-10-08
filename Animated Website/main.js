@@ -33,7 +33,7 @@ videoContainer.addEventListener('click', () => {
 });
 
 // =================================================================
-// 2. 'WHAT WE DO' SCROLLYTELLING ANIMATION
+// 2. 'WHAT WE DO' SCROLLYTELLING ANIMATION & CAROUSEL DOTS
 // =================================================================
 const canvas = document.getElementById("animation-canvas");
 const context = canvas.getContext("2d");
@@ -42,7 +42,6 @@ const textColumn = document.getElementById("text-column");
 canvas.width = 1920;
 canvas.height = 1080;
 const TOTAL_FRAMES = 294;
-const SCROLL_LENGTH = "+=4000"; // Shorter since we just need scroll space to trigger steps
 
 const getFramePath = (index) => `frames/frame_${index.toString().padStart(5, '0')}.png`;
 
@@ -110,6 +109,14 @@ function initScrollytelling() {
     drawFrame(1);
 
     const DURATION = 15; // 15 seconds total playback time
+    const whatDots = document.querySelectorAll('#what-we-do-dots .dot');
+
+    function updateWhatDots(activeIndex) {
+        whatDots.forEach((d, idx) => {
+            if (idx === activeIndex) d.classList.add('active');
+            else d.classList.remove('active');
+        });
+    }
 
     // Create a master timeline that auto-plays when triggered
     const tl = gsap.timeline({
@@ -139,23 +146,33 @@ function initScrollytelling() {
     const FADE = 0.8; // Snappy 0.8 second fade transitions
 
     // Text timing scales with DURATION, but fade duration stays fixed and snappy
-    tl.to("#text-1", { autoAlpha: 1, y: 0, duration: FADE }, 0.0 * DURATION); // fade in at start
-    tl.to("#text-1", { autoAlpha: 0, y: -20, duration: FADE }, 0.2 * DURATION); // fade out at 20%
+    tl.to("#text-1", { autoAlpha: 1, y: 0, duration: FADE, onStart: () => updateWhatDots(0) }, 0.0 * DURATION);
+    tl.to("#text-1", { autoAlpha: 0, y: -20, duration: FADE }, 0.25 * DURATION);
 
-    tl.to("#text-2", { autoAlpha: 1, y: 0, duration: FADE }, 0.3 * DURATION); // fade in at 30%
+    tl.to("#text-2", { autoAlpha: 1, y: 0, duration: FADE, onStart: () => updateWhatDots(1) }, 0.3 * DURATION);
     tl.to("#text-2 .delay-1", { opacity: 1, duration: 0.5 }, 0.4 * DURATION);
     tl.to("#text-2 .delay-2", { opacity: 1, duration: 0.5 }, 0.5 * DURATION);
-    tl.to("#text-2", { autoAlpha: 0, y: -20, duration: FADE }, 0.7 * DURATION); // fade out at 70%
+    tl.to("#text-2", { autoAlpha: 0, y: -20, duration: FADE }, 0.7 * DURATION);
 
-    tl.to("#text-3", { autoAlpha: 1, y: 0, duration: FADE }, 0.8 * DURATION); // fade in at 80%
-    tl.to("#text-3", { autoAlpha: 0, y: -20, duration: FADE }, 0.95 * DURATION); // fade out right before the loop restarts
+    tl.to("#text-3", { autoAlpha: 1, y: 0, duration: FADE, onStart: () => updateWhatDots(2) }, 0.75 * DURATION);
+    tl.to("#text-3", { autoAlpha: 0, y: -20, duration: FADE }, 0.95 * DURATION);
+
+    // Clickable dots for What We Do
+    const stepTimes = [0.05 * DURATION, 0.35 * DURATION, 0.8 * DURATION];
+    whatDots.forEach((dot, index) => {
+        dot.addEventListener('click', (e) => {
+            e.stopPropagation();
+            tl.seek(stepTimes[index]);
+            updateWhatDots(index);
+        });
+    });
 
     // Initialize the who-we-are section AFTER the what-we-do section so pin spacers order correctly!
     initWhoWeAre();
 }
 
 // =================================================================
-// 3. 'WHO WE ARE' ROTATING BLOB & CONTENT SWAP
+// 3. 'WHO WE ARE' ROTATING BLOB & CONTENT SWAP WITH DOT CAROUSEL
 // =================================================================
 const whoData = [
     { image: 'images/DSC03781.jpg', title: 'Our Dedicated Team', desc: 'We bring decades of engineering and community experience to the table, ensuring sustainable growth.', overlay: 'images/DSC03781-removebg-preview.png' },
@@ -163,13 +180,11 @@ const whoData = [
     { image: 'images/DSC03786.jpg', title: 'Innovative Engineers', desc: 'Designing the systems that turn everyday waste into tomorrow\'s clean energy.', overlay: 'images/DSC03786-removebg-preview.png' }
 ];
 
+// Soft organic rounded SVG blob paths with gentle rounded curves (no spiky star corners)
 const whoPaths = [
-    // 5-Petal Star Shape (all 3 the same for now)
-    "M 100,15 C 120,15 125,60 140,65 C 155,70 185,55 185,75 C 185,95 150,110 150,125 C 150,140 170,180 150,185 C 130,190 110,145 100,145 C 90,145 70,190 50,185 C 30,180 50,140 50,125 C 50,110 15,95 15,75 C 15,55 45,70 60,65 C 75,60 80,15 100,15 Z",
-    // 5-Petal Star Shape
-    "M 100,15 C 120,15 125,60 140,65 C 155,70 185,55 185,75 C 185,95 150,110 150,125 C 150,140 170,180 150,185 C 130,190 110,145 100,145 C 90,145 70,190 50,185 C 30,180 50,140 50,125 C 50,110 15,95 15,75 C 15,55 45,70 60,65 C 75,60 80,15 100,15 Z",
-    // 5-Petal Star Shape
-    "M 100,15 C 120,15 125,60 140,65 C 155,70 185,55 185,75 C 185,95 150,110 150,125 C 150,140 170,180 150,185 C 130,190 110,145 100,145 C 90,145 70,190 50,185 C 30,180 50,140 50,125 C 50,110 15,95 15,75 C 15,55 45,70 60,65 C 75,60 80,15 100,15 Z"
+    "M 100,22 C 140,22 175,50 175,95 C 175,140 145,178 100,178 C 55,178 25,140 25,95 C 25,50 60,22 100,22 Z",
+    "M 100,26 C 148,18 178,58 172,102 C 166,146 138,175 96,172 C 52,169 22,138 28,94 C 34,50 52,34 100,26 Z",
+    "M 96,22 C 138,26 178,48 175,96 C 172,144 142,178 98,174 C 54,170 22,142 26,96 C 30,50 54,18 96,22 Z"
 ];
 
 function initWhoWeAre() {
@@ -181,6 +196,7 @@ function initWhoWeAre() {
     const blobDesc = document.getElementById('who-desc');
     const blobPath1 = document.getElementById('blob-path-1');
     const blobPath2 = document.getElementById('blob-path-2');
+    const whoDots = document.querySelectorAll('#who-we-are-dots .dot');
     
     // Set initial overlays
     if (whoData[0].overlay) {
@@ -190,14 +206,20 @@ function initWhoWeAre() {
     const CYCLE_TIME = 4; // 4 seconds per image
     const DURATION = CYCLE_TIME * whoData.length; // 12 seconds total
 
+    function updateWhoDots(activeIndex) {
+        whoDots.forEach((d, idx) => {
+            if (idx === activeIndex) d.classList.add('active');
+            else d.classList.remove('active');
+        });
+    }
+
     const tl = gsap.timeline({
         paused: true,
         repeat: -1, // Loop endlessly
         scrollTrigger: {
             trigger: ".who-we-are",
             start: "top 60%", // Trigger when section is mostly in view
-            toggleActions: "play pause resume pause" // Pause when off-screen to save performance
-            // No pin, no scrub! (Fixes the wave border gap completely)
+            toggleActions: "play pause resume pause"
         }
     });
 
@@ -211,6 +233,8 @@ function initWhoWeAre() {
 
     // Function to trigger a crossfade swap
     function triggerSwap(index) {
+        updateWhoDots(index);
+
         // Pre-load the next image, path, and overlay into the hidden layer
         blobImage2.setAttribute('href', whoData[index].image);
         blobPath2.setAttribute('d', whoPaths[index]);
@@ -255,8 +279,16 @@ function initWhoWeAre() {
     // 2. Call triggerSwap on a fixed schedule (every 4 seconds)
     tl.call(() => triggerSwap(1), [], CYCLE_TIME);
     tl.call(() => triggerSwap(2), [], CYCLE_TIME * 2);
-    // At the very end of the loop, fade back to the first image just before it repeats!
     tl.call(() => triggerSwap(0), [], DURATION - 0.05); 
+
+    // Clickable dots for Who We Are
+    whoDots.forEach((dot, index) => {
+        dot.addEventListener('click', (e) => {
+            e.stopPropagation();
+            triggerSwap(index);
+            tl.seek(index * CYCLE_TIME);
+        });
+    });
 }
 
 // =================================================================
@@ -290,7 +322,31 @@ stages.forEach(stage => {
 });
 
 // =================================================================
-// 5. ACTIVE NAV HIGHLIGHTING
+// 5. WAVY BORDER TOGGLE
+// =================================================================
+const toggleWavesBtn = document.getElementById('toggle-waves-btn');
+const waveToggleText = document.getElementById('wave-toggle-text');
+let wavesEnabled = true;
+
+if (toggleWavesBtn) {
+    toggleWavesBtn.addEventListener('click', () => {
+        wavesEnabled = !wavesEnabled;
+        if (wavesEnabled) {
+            document.body.classList.remove('no-waves');
+            waveToggleText.innerText = 'Wavy Borders: ON';
+            toggleWavesBtn.style.background = '#ffffff';
+            toggleWavesBtn.style.color = '#2193b0';
+        } else {
+            document.body.classList.add('no-waves');
+            waveToggleText.innerText = 'Wavy Borders: OFF';
+            toggleWavesBtn.style.background = '#2193b0';
+            toggleWavesBtn.style.color = '#ffffff';
+        }
+    });
+}
+
+// =================================================================
+// 6. ACTIVE NAV HIGHLIGHTING
 // =================================================================
 const sections = document.querySelectorAll("section[id]");
 const navLinks = document.querySelectorAll(".nav-links a");
@@ -314,4 +370,4 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, observerOptions);
 
-sections.forEach(sec => observer.observe(sec));
+sections.forEach(sec => observer.observe(sec));

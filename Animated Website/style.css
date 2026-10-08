@@ -1,7 +1,7 @@
 :root {
     --brand-green: #2ecc71;
     --brand-blue: #3498db;
-    --gradient: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);
+    --gradient: linear-gradient(135deg, #6dd5ed 0%, #2193b0 100%);
     --bg-color: #ffffff;
     --section-bg: #f0f4f8;
     --text-color: #333333;
@@ -101,7 +101,8 @@ h1, h2, h3 {
 /* Video Section */
 .video-section {
     position: relative;
-    height: 100vh;
+    height: calc(100vh - 40px);
+    margin-top: 40px; /* Slight offset so top of video sits comfortably below header logo */
     width: 100%;
     overflow: hidden; 
     pointer-events: auto; /* Allow clicking the background to pause/play */
@@ -109,10 +110,10 @@ h1, h2, h3 {
 }
 .video-container {
     position: fixed;
-    top: 0;
+    top: 40px;
     left: 0;
     width: 100%;
-    height: 100vh;
+    height: calc(100vh - 40px);
     z-index: 1; /* Above body, below other sections */
     cursor: pointer;
 }
@@ -179,12 +180,17 @@ h1, h2, h3 {
     justify-content: center;
     align-items: center;
 }
-.text-column {
+.text-column-container {
     position: absolute;
-    left: 20%; /* Moved closer to animation */
-    top: 35%; /* Pushed down slightly */
-    width: 25%; /* Less wide */
+    left: 20%;
+    top: 35%;
+    width: 25%;
     z-index: 10;
+}
+.text-column {
+    position: relative;
+    width: 100%;
+    min-height: 140px;
 }
 .text-block {
     position: absolute;
@@ -205,6 +211,82 @@ h1, h2, h3 {
 .text-block .delay-1, .text-block .delay-2 {
     opacity: 0;
     display: inline;
+}
+
+/* Carousel Dots */
+.carousel-dots {
+    display: flex;
+    gap: 10px;
+    margin-top: 180px; /* Sits below the text block */
+    z-index: 30;
+    position: relative;
+}
+.who-dots {
+    margin-top: 30px;
+}
+.carousel-dots .dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: rgba(33, 147, 176, 0.25);
+    border: 2px solid #2193b0;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.carousel-dots .dot:hover {
+    background-color: rgba(33, 147, 176, 0.5);
+    transform: scale(1.2);
+}
+.carousel-dots .dot.active {
+    background-color: #2193b0;
+    width: 32px;
+    border-radius: 10px;
+}
+
+/* Wavy Border Toggle Button */
+.wave-toggle-container {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 9999;
+}
+.toggle-waves-btn {
+    background: #ffffff;
+    color: #2193b0;
+    border: 2px solid #2193b0;
+    padding: 10px 18px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+.toggle-waves-btn:hover {
+    background: #2193b0;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(33, 147, 176, 0.3);
+}
+
+/* When Wavy Borders are disabled (Clean straight border mode) */
+body.no-waves .wave {
+    display: none !important;
+}
+body.no-waves section[id] {
+    scroll-margin-top: 90px;
+}
+body.no-waves .main-header {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+body.no-waves .what-we-do,
+body.no-waves .who-we-are,
+body.no-waves .infographic-section,
+body.no-waves .parallax-image {
+    border-bottom: 1px solid #e2e8f0;
 }
 
 /* Parallax Sections */
@@ -377,3 +459,4 @@ h1, h2, h3 {
 .social-icons a:hover {
     transform: scale(1.2);
 }
+

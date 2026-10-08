@@ -14,8 +14,8 @@
     <header class="main-header">
         <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
           <linearGradient id="navGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#2193b0" />
-            <stop offset="100%" stop-color="#6dd5ed" />
+            <stop offset="0%" stop-color="#6dd5ed" />
+            <stop offset="100%" stop-color="#2193b0" />
           </linearGradient>
         </svg>
         <div class="nav-container">
@@ -54,7 +54,15 @@
     <section id="what-we-do" class="what-we-do scrolly-section">
         <h2 class="section-title">What we do</h2>
         <div class="content-wrapper">
-            <div id="text-column" class="text-column"></div>
+            <div class="text-column-container">
+                <div id="text-column" class="text-column"></div>
+                <!-- Carousel Dots for What We Do -->
+                <div class="carousel-dots" id="what-we-do-dots">
+                    <span class="dot active" data-index="0" title="Rubbish is Collected"></span>
+                    <span class="dot" data-index="1" title="Where it goes"></span>
+                    <span class="dot" data-index="2" title="The ARRC"></span>
+                </div>
+            </div>
             <div class="canvas-container">
                 <canvas id="animation-canvas"></canvas>
             </div>
@@ -82,12 +90,12 @@
                 <svg viewBox="-50 -50 300 300" xmlns="http://www.w3.org/2000/svg" class="svg-blob" id="rotating-blob">
                     <defs>
                         <clipPath id="blob-clip-1">
-                            <!-- Natively centered blob 1 -->
-                            <path id="blob-path-1" fill="#000" d="M 100,15 C 120,15 125,60 140,65 C 155,70 185,55 185,75 C 185,95 150,110 150,125 C 150,140 170,180 150,185 C 130,190 110,145 100,145 C 90,145 70,190 50,185 C 30,180 50,140 50,125 C 50,110 15,95 15,75 C 15,55 45,70 60,65 C 75,60 80,15 100,15 Z" />
+                            <!-- Soft organic rounded blob shape -->
+                            <path id="blob-path-1" fill="#000" d="M 100,22 C 140,22 175,50 175,95 C 175,140 145,178 100,178 C 55,178 25,140 25,95 C 25,50 60,22 100,22 Z" />
                         </clipPath>
                         <clipPath id="blob-clip-2">
-                            <!-- Natively centered blob 2 (starts same as 1) -->
-                            <path id="blob-path-2" fill="#000" d="M 100,15 C 120,15 125,60 140,65 C 155,70 185,55 185,75 C 185,95 150,110 150,125 C 150,140 170,180 150,185 C 130,190 110,145 100,145 C 90,145 70,190 50,185 C 30,180 50,140 50,125 C 50,110 15,95 15,75 C 15,55 45,70 60,65 C 75,60 80,15 100,15 Z" />
+                            <!-- Soft organic rounded blob shape -->
+                            <path id="blob-path-2" fill="#000" d="M 100,22 C 140,22 175,50 175,95 C 175,140 145,178 100,178 C 55,178 25,140 25,95 C 25,50 60,22 100,22 Z" />
                         </clipPath>
                     </defs>
                     <!-- Two background images for crossfading (masked) -->
@@ -102,6 +110,12 @@
             <div class="who-text-container">
                 <h3 id="who-title">Our Dedicated Team</h3>
                 <p id="who-desc">We bring decades of engineering and community experience to the table, ensuring sustainable growth.</p>
+                <!-- Carousel Dots for Who We Are -->
+                <div class="carousel-dots who-dots" id="who-we-are-dots">
+                    <span class="dot active" data-index="0" title="Our Dedicated Team"></span>
+                    <span class="dot" data-index="1" title="Community Outreach"></span>
+                    <span class="dot" data-index="2" title="Innovative Engineers"></span>
+                </div>
             </div>
         </div>
     </section>
@@ -133,6 +147,13 @@
             </div>
         </div>
     </section>
+
+    <!-- Border Style Toggle Floating Control -->
+    <div class="wave-toggle-container">
+        <button id="toggle-waves-btn" class="toggle-waves-btn" title="Toggle between wavy SVG borders and clean straight borders">
+            <i class="fa-solid fa-water"></i> <span id="wave-toggle-text">Wavy Borders: ON</span>
+        </button>
+    </div>
 
     <!-- Footer -->
     <footer class="main-footer">
