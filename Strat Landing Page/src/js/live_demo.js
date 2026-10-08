@@ -1,42 +1,42 @@
-/* Interactive Hero Showcase & Kanban Workspace Builder */
+/* Interactive Hero Showcase & StratRoom Objective Sandbox */
 
 const SAMPLE_TASKS = {
   engineering: {
     todo: [
-      { tag: 'ai', tagClass: 'tag-ai', title: 'Implement AI Auto-Sprint Summarizer', assignee: 'Alex R.', date: 'Oct 12' },
-      { tag: 'feature', tagClass: 'tag-feature', title: 'OAuth2 SSO Provider Integration', assignee: 'Devon M.', date: 'Oct 14' }
+      { tag: 'strategy', tagClass: 'tag-ai', title: 'Publish Q4 Company Strategy Memo', assignee: 'Sarah T. (CEO)', date: 'Oct 12' },
+      { tag: 'okr goal', tagClass: 'tag-feature', title: 'Align Product Pillars with Revenue Targets', assignee: 'Marcus W. (VP Product)', date: 'Oct 14' }
     ],
     inProgress: [
-      { tag: 'bug', tagClass: 'tag-bug', title: 'Fix WebSocket Reconnection Delay', assignee: 'Sarah T.', date: 'Oct 09' },
-      { tag: 'feature', tagClass: 'tag-feature', title: 'GraphQL API Subscriptions v3', assignee: 'Kenji S.', date: 'Oct 10' }
+      { tag: 'alignment', tagClass: 'tag-bug', title: 'Cross-Department Alignment Check-in', assignee: 'Devon M.', date: 'Oct 09' },
+      { tag: 'memo', tagClass: 'tag-feature', title: 'Broadcast Q4 Engineering Objectives Memo', assignee: 'Kenji S.', date: 'Oct 10' }
     ],
     done: [
-      { tag: 'design', tagClass: 'tag-design', title: 'Dark Mode Glassmorphism Theme Refactor', assignee: 'Elena P.', date: 'Oct 05' },
-      { tag: 'ai', tagClass: 'tag-ai', title: 'Train Blocker Detection Model v1.2', assignee: 'Alex R.', date: 'Oct 07' }
+      { tag: 'achieved', tagClass: 'tag-design', title: 'Annual Strategic Planning Alignment Session', assignee: 'Elena P.', date: 'Oct 05' },
+      { tag: 'okr goal', tagClass: 'tag-ai', title: 'Finalize Executive KPI Dashboard', assignee: 'Alex R.', date: 'Oct 07' }
     ]
   },
   marketing: {
     todo: [
-      { tag: 'feature', tagClass: 'tag-feature', title: 'Q4 Product Launch Press Release', assignee: 'Jessica M.', date: 'Oct 15' },
-      { tag: 'design', tagClass: 'tag-design', title: 'Social Media Banner Kit', assignee: 'Marcus W.', date: 'Oct 18' }
+      { tag: 'strategy', tagClass: 'tag-feature', title: 'Q4 Product Launch Positioning Brief', assignee: 'Jessica M.', date: 'Oct 15' },
+      { tag: 'memo', tagClass: 'tag-design', title: 'Brand Message Cohesion Deck', assignee: 'Marcus W.', date: 'Oct 18' }
     ],
     inProgress: [
-      { tag: 'ai', tagClass: 'tag-ai', title: 'AI Copywriting Assistant for Email Campaigns', assignee: 'Jessica M.', date: 'Oct 10' }
+      { tag: 'alignment', tagClass: 'tag-ai', title: 'Cross-Functional Launch Alignment Pulse', assignee: 'Jessica M.', date: 'Oct 10' }
     ],
     done: [
-      { tag: 'feature', tagClass: 'tag-feature', title: 'Product Hunt Launch Page', assignee: 'Marcus W.', date: 'Oct 01' }
+      { tag: 'achieved', tagClass: 'tag-feature', title: 'Product Hunt Launch Alignment', assignee: 'Marcus W.', date: 'Oct 01' }
     ]
   },
   product: {
     todo: [
-      { tag: 'design', tagClass: 'tag-design', title: 'User Journey Mapping Workshop', assignee: 'Chloe B.', date: 'Oct 16' }
+      { tag: 'okr goal', tagClass: 'tag-design', title: 'User Experience Quality Objective Alignment', assignee: 'Chloe B.', date: 'Oct 16' }
     ],
     inProgress: [
-      { tag: 'ai', tagClass: 'tag-ai', title: 'Feature Prioritization Matrix using AI Score', assignee: 'David L.', date: 'Oct 11' },
-      { tag: 'feature', tagClass: 'tag-feature', title: 'Customer Feedback Sentiment Analysis', assignee: 'Chloe B.', date: 'Oct 12' }
+      { tag: 'strategy', tagClass: 'tag-ai', title: 'Strategic Roadmap Prioritization Matrix', assignee: 'David L.', date: 'Oct 11' },
+      { tag: 'memo', tagClass: 'tag-feature', title: 'Publish Product Strategy V3 Memo', assignee: 'Chloe B.', date: 'Oct 12' }
     ],
     done: [
-      { tag: 'feature', tagClass: 'tag-feature', title: '2026 Product Roadmap Alignment', assignee: 'David L.', date: 'Oct 04' }
+      { tag: 'achieved', tagClass: 'tag-feature', title: 'Synchronize Design Systems with Web App', assignee: 'David L.', date: 'Oct 04' }
     ]
   }
 };
