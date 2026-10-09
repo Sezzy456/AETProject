@@ -301,7 +301,7 @@ function initWhoWeAre() {
     const blobPath1 = document.getElementById('blob-path-1');
     const blobPath2 = document.getElementById('blob-path-2');
     const whoDots = document.querySelectorAll('#who-we-are-dots .dot');
-    
+
     // Set initial overlays
     if (whoData[0].overlay) {
         blobOverlay1.setAttribute('href', whoData[0].overlay);
@@ -327,7 +327,7 @@ function initWhoWeAre() {
         }
     });
 
-    // 1. Rotate the SVG paths continuously 360 degrees over the full loop
+    // 1. Rotate the SVG clip paths continuously 360 degrees over the full loop
     tl.to(["#blob-path-1", "#blob-path-2"], { 
         rotation: 360, 
         svgOrigin: "100 100", 
@@ -342,7 +342,7 @@ function initWhoWeAre() {
         // Pre-load the next image, path, and overlay into the hidden layer
         blobImage2.setAttribute('href', whoData[index].image);
         blobPath2.setAttribute('d', whoPaths[index]);
-        
+
         if (whoData[index].overlay) {
             blobOverlay2.setAttribute('href', whoData[index].overlay);
         } else {
@@ -363,27 +363,29 @@ function initWhoWeAre() {
         gsap.to(blobOverlay2, { opacity: 1, duration: 0.4 });
 
         // Fade OUT Layer 1's overlay so it smoothly disappears, then reset the layers
-        gsap.to(blobOverlay1, { opacity: 0, duration: 0.4, onComplete: () => {
-            // Update layer 1 to match
-            blobImage1.setAttribute('href', whoData[index].image);
-            blobPath1.setAttribute('d', whoPaths[index]);
-            
-            if (whoData[index].overlay) {
-                blobOverlay1.setAttribute('href', whoData[index].overlay);
-            } else {
-                blobOverlay1.removeAttribute('href');
+        gsap.to(blobOverlay1, {
+            opacity: 0, duration: 0.4, onComplete: () => {
+                // Update layer 1 to match
+                blobImage1.setAttribute('href', whoData[index].image);
+                blobPath1.setAttribute('d', whoPaths[index]);
+
+                if (whoData[index].overlay) {
+                    blobOverlay1.setAttribute('href', whoData[index].overlay);
+                } else {
+                    blobOverlay1.removeAttribute('href');
+                }
+
+                // Reset opacities so Layer 1 is fully visible and Layer 2 is hidden, ready for next fade
+                gsap.set(blobOverlay1, { opacity: 1 });
+                gsap.set([blobImage2, blobOverlay2], { opacity: 0 });
             }
-            
-            // Reset opacities so Layer 1 is fully visible and Layer 2 is hidden, ready for next fade
-            gsap.set(blobOverlay1, { opacity: 1 });
-            gsap.set([blobImage2, blobOverlay2], { opacity: 0 });
-        }});
+        });
     }
 
-    // 2. Call triggerSwap on a fixed schedule (every 4 seconds)
+    // Call triggerSwap on a fixed schedule (every 4 seconds)
     tl.call(() => triggerSwap(1), [], CYCLE_TIME);
     tl.call(() => triggerSwap(2), [], CYCLE_TIME * 2);
-    tl.call(() => triggerSwap(0), [], DURATION - 0.05); 
+    tl.call(() => triggerSwap(0), [], DURATION - 0.05);
 
     // Clickable dots for Who We Are
     whoDots.forEach((dot, index) => {
@@ -464,7 +466,7 @@ const textureStyles = [
     { class: 'texture-dots', label: 'Soft Dots' },
     { class: 'texture-diamond-plate', label: 'Diamond Plate' }
 ];
-let currentTextureIndex = 0;
+let currentTextureIndex = 1; // Default to Industrial Diamond Plate
 let isTextureOn = true;
 
 if (btnTextureToggle) {
@@ -495,12 +497,11 @@ if (btnTextureStyle) {
     });
 }
 
-// Subtle Scroll Parallax for Background Texture (0.35x scroll speed ratio)
+// Subtle Scroll Parallax for Background Texture (-0.35x scroll ratio)
 window.addEventListener('scroll', () => {
     if (isTextureOn && bgTexture) {
         const scrollY = window.scrollY;
-        // Move fixed texture opposite to scroll for natural floating depth
-        bgTexture.style.transform = `translate3d(0, ${-scrollY * 0.35}px, 0)`;
+        bgTexture.style.backgroundPositionY = (-scrollY * 0.35) + 'px';
     }
 }, { passive: true });
 
@@ -530,5 +531,3 @@ const observer = new IntersectionObserver((entries) => {
 }, observerOptions);
 
 sections.forEach(sec => observer.observe(sec));
-
-

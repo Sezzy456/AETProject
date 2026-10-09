@@ -29,10 +29,10 @@ section[id] {
 /* Background Texture Layer for Parallax Scrolling */
 .bg-texture {
     position: fixed;
-    top: -30vh;
+    top: 0;
     left: 0;
     width: 100vw;
-    height: 160vh;
+    height: 100vh;
     pointer-events: none;
     z-index: 0;
     opacity: 0;
@@ -44,13 +44,13 @@ section[id] {
 
 /* Texture Option 1: Soft Light Grey Dots Grid */
 .bg-texture.texture-dots {
-    background-image: radial-gradient(#cbd5e1 2.2px, transparent 2.2px);
+    background-image: radial-gradient(#cbd5e1 2px, transparent 2px);
     background-size: 28px 28px;
 }
 
-/* Texture Option 2: Industrial Diamond Tread Plate (Soft Light Grey, Image 2 style) */
+/* Texture Option 2: Industrial Diamond Tread Plate (Staggered / and \ rows, soft light grey) */
 .bg-texture.texture-diamond-plate {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='%23cbd5e1' fill-opacity='0.4'%3E%3Cpath d='M6,4 C12,10 16,14 22,8 C16,2 12,-2 6,4 Z' transform='rotate(45 14 6)'/%3E%3Cpath d='M38,36 C44,42 48,46 54,40 C48,34 44,30 38,36 Z' transform='rotate(45 46 38)'/%3E%3Cpath d='M38,4 C44,10 48,14 54,8 C48,2 44,-2 38,4 Z' transform='rotate(-45 46 6)'/%3E%3Cpath d='M6,36 C12,42 16,46 22,40 C16,34 12,30 6,36 Z' transform='rotate(-45 14 38)'/%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='%2394a3b8' fill-opacity='0.28'%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(16 16) rotate(45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(80 16) rotate(45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(48 48) rotate(-45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(-16 48) rotate(-45)'/%3E%3C/g%3E%3C/svg%3E");
     background-size: 64px 64px;
 }
 
@@ -59,16 +59,30 @@ h1, h2, h3 {
     margin: 0;
     font-weight: 700;
 }
-/* Section Titles */
-.section-title {
+
+/* Section Title Wrapper & Flat White Pill Containers */
+.section-title-wrapper {
     text-align: center;
-    font-size: 4rem; /* Make it relatively large */
-    padding: 0;
-    margin: 0 0 20px 0; /* Close to content */
-    background: var(--gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent; /* Fallback */
+    margin: 45px 0 36px 0;
+    padding-top: 15px;
+    z-index: 20;
+    position: relative;
+}
+
+.section-title {
+    display: inline-block;
+    text-align: center;
+    font-size: 3.5rem;
+    font-weight: 800;
+    padding: 12px 36px;
+    margin: 0;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: none;
+    border: none;
+    color: #2193b0;
+    -webkit-background-clip: initial;
+    -webkit-text-fill-color: #2193b0;
     z-index: 10;
 }
 
@@ -94,21 +108,20 @@ h1, h2, h3 {
     pointer-events: auto;
     display: flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     padding: 10px 22px;
-    border-radius: 20px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 10px;
+    box-shadow: none;
+    border: none;
+    transition: transform 0.3s ease;
 }
 .logo:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
 }
 .logo-img {
-    height: 58px; /* Significantly bigger logo */
+    height: 76px; /* Enlarged logo */
     width: auto;
     display: block;
 }
@@ -123,8 +136,8 @@ h1, h2, h3 {
     gap: 8px;
     background: var(--gradient);
     padding: 12px 28px;
-    border-radius: 24px;
-    box-shadow: 0 10px 30px rgba(33, 147, 176, 0.35);
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(33, 147, 176, 0.25);
     transition: all 0.3s ease;
 }
 .nav-links a {
@@ -145,26 +158,6 @@ h1, h2, h3 {
     border-bottom: 2px solid white;
 }
 
-/* Nav Box Bottom Accents */
-.nav-wavy-accent {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    height: 12px;
-    pointer-events: none;
-    display: none;
-}
-.nav-chevron-accent {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    height: 10px;
-    pointer-events: none;
-    display: none;
-}
-
 .header-wave {
     position: absolute;
     top: 100%;
@@ -175,7 +168,7 @@ h1, h2, h3 {
 }
 
 .wave {
-    pointer-events: none !important; /* Ensures SVG wave decorations never block clicks to controls or elements below */
+    pointer-events: none !important; /* Ensures SVG wave decorations never block clicks */
 }
 
 /* Chevron Divider Styling & Horizontal Left-to-Right Ribbon Animation */
@@ -183,20 +176,20 @@ h1, h2, h3 {
     position: absolute;
     left: 0;
     width: 100%;
-    height: 36px;
+    height: 56px;
     z-index: 10;
     overflow: hidden;
     pointer-events: none;
     display: none;
 }
 .chevron-divider-container.top-chevron {
-    top: -18px;
+    top: -28px;
 }
 .chevron-divider-container.bottom-chevron {
-    bottom: -18px;
+    bottom: -28px;
 }
 .chevron-divider-container.footer-chevron {
-    top: -18px;
+    top: -28px;
 }
 
 .chevron-divider {
@@ -205,7 +198,7 @@ h1, h2, h3 {
     display: block;
 }
 .chevron-group {
-    animation: chevronSlideLeftToRight 5.5s linear infinite;
+    animation: chevronSlideLeftToRight 16s linear infinite; /* Smooth 16s continuous motion */
 }
 
 @keyframes chevronSlideLeftToRight {
@@ -219,30 +212,24 @@ h1, h2, h3 {
 
 /* Border Mode Rules */
 /* Mode 1: Wavy */
-body.border-mode-wavy .wave,
-body.border-mode-wavy .nav-wavy-accent {
+body.border-mode-wavy .wave {
     display: block !important;
 }
-body.border-mode-wavy .chevron-divider-container,
-body.border-mode-wavy .nav-chevron-accent {
+body.border-mode-wavy .chevron-divider-container {
     display: none !important;
 }
 
 /* Mode 2: Chevron Arrows */
-body.border-mode-chevron .wave,
-body.border-mode-chevron .nav-wavy-accent {
+body.border-mode-chevron .wave {
     display: none !important;
 }
-body.border-mode-chevron .chevron-divider-container,
-body.border-mode-chevron .nav-chevron-accent {
+body.border-mode-chevron .chevron-divider-container {
     display: block !important;
 }
 
 /* Mode 3: Clean Straight Borders */
 body.border-mode-clean .wave,
-body.border-mode-clean .chevron-divider-container,
-body.border-mode-clean .nav-wavy-accent,
-body.border-mode-clean .nav-chevron-accent {
+body.border-mode-clean .chevron-divider-container {
     display: none !important;
 }
 body.border-mode-clean section[id] {
@@ -284,14 +271,14 @@ body.border-mode-clean .parallax-image {
 }
 
 .hero-text-column {
-    flex: 0 0 480px;
-    max-width: 480px;
+    flex: 0 0 620px;
+    max-width: 620px;
     box-sizing: border-box;
     background: #ffffff;
-    padding: 36px 40px;
+    padding: 38px 44px;
     border-radius: 28px;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: none;
+    border: none;
 }
 
 .hero-title {
@@ -498,23 +485,16 @@ body.border-mode-clean .parallax-image {
 .what-we-do {
     position: relative;
     background-color: transparent;
-    z-index: 2; /* Cover video container */
-    height: calc(100vh - 80px); /* Fill screen below navbar */
-}
-/* Make the title overlap the canvas area at the top */
-.what-we-do .section-title {
-    position: absolute;
-    top: 100px; /* Safe distance below header */
-    left: 0;
-    width: 100%;
-    text-align: center;
-    z-index: 20; /* Sit above canvas */
+    z-index: 2;
+    padding: 60px 0 50px 0;
+    min-height: 85vh;
+    box-sizing: border-box;
 }
 .what-we-do .content-wrapper {
     position: relative;
     width: 100%;
-    height: calc(100vh - 80px); 
-    padding-top: 180px; /* Big gap below title */
+    min-height: 440px;
+    padding-top: 0;
     box-sizing: border-box;
     display: flex;
     justify-content: center;
@@ -557,8 +537,8 @@ body.border-mode-clean .parallax-image {
     background: #ffffff;
     padding: 28px 34px;
     border-radius: 24px;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: none;
+    border: none;
     box-sizing: border-box;
 }
 .text-block h2 {
@@ -578,30 +558,33 @@ body.border-mode-clean .parallax-image {
 /* Carousel Dots */
 .carousel-dots {
     display: flex;
-    gap: 10px;
-    margin-top: 180px; /* Sits below the text block */
-    z-index: 30;
+    align-items: center;
+    gap: 12px;
+    margin-top: 240px; /* Safe distance below text blocks */
+    z-index: 100;
     position: relative;
+    pointer-events: auto;
 }
 .who-dots {
     margin-top: 30px;
 }
 .carousel-dots .dot {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
-    background-color: rgba(33, 147, 176, 0.25);
+    background-color: rgba(33, 147, 176, 0.3);
     border: 2px solid #2193b0;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-block;
 }
 .carousel-dots .dot:hover {
-    background-color: rgba(33, 147, 176, 0.5);
+    background-color: rgba(33, 147, 176, 0.7);
     transform: scale(1.2);
 }
 .carousel-dots .dot.active {
     background-color: #2193b0;
-    width: 32px;
+    width: 36px;
     border-radius: 10px;
 }
 
@@ -610,11 +593,20 @@ body.border-mode-clean .parallax-image {
     position: relative;
     height: 60vh;
     width: 100%;
-    overflow: hidden;
+    overflow: visible; /* Allows top & bottom chevrons to overlap section borders */
     display: flex;
     align-items: flex-end;
-    z-index: 2; /* Cover video container */
-    background-color: white;
+    z-index: 2;
+    background-color: transparent;
+}
+.parallax-bg-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Clips the 120% height parallax photo strictly within section bounds */
+    z-index: -1;
 }
 .parallax-bg {
     position: absolute;
@@ -625,7 +617,6 @@ body.border-mode-clean .parallax-image {
     background-size: cover;
     background-position: center;
     background-attachment: fixed; 
-    z-index: -1;
 }
 .wave.bottom-wave {
     position: absolute;
@@ -636,12 +627,12 @@ body.border-mode-clean .parallax-image {
     z-index: 2;
 }
 
-/* Who We Are (Resized & Compact Content Box Fix) */
+/* Who We Are */
 .who-we-are {
     position: relative;
     background-color: transparent;
-    padding: 60px 0; /* Reduced from 100px */
-    min-height: auto; /* Fits content tightly without blank space */
+    padding: 100px 0 90px 0;
+    min-height: 80vh;
     z-index: 2;
     display: flex;
     flex-direction: column;
@@ -659,7 +650,7 @@ body.border-mode-clean .parallax-image {
     box-sizing: border-box;
 }
 .blob-container {
-    flex: 0 0 440px; /* Precise size for blob container */
+    flex: 0 0 440px;
     max-width: 440px;
     height: 440px;
     display: flex;
@@ -667,7 +658,7 @@ body.border-mode-clean .parallax-image {
     align-items: center;
 }
 .svg-blob {
-    width: 440px; /* Reduced from 750px! Tightly bounds visible blob */
+    width: 440px;
     height: 440px;
     display: block;
 }
@@ -677,8 +668,8 @@ body.border-mode-clean .parallax-image {
     background: #ffffff;
     padding: 36px 40px;
     border-radius: 28px;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: none;
+    border: none;
     box-sizing: border-box;
 }
 .who-text-container h3 {
@@ -695,8 +686,8 @@ body.border-mode-clean .parallax-image {
 .infographic-section {
     position: relative;
     background-color: transparent;
-    padding: 80px 0;
-    min-height: auto;
+    padding: 100px 0 90px 0;
+    min-height: 80vh;
     z-index: 2;
     display: flex;
     flex-direction: column;
@@ -739,10 +730,11 @@ body.border-mode-clean .parallax-image {
     transform: scale(1.1);
 }
 .info-details {
-    background: white;
+    background: #ffffff;
     padding: 50px;
     border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    box-shadow: none;
+    border: none;
     flex: 1;
 }
 .info-details h3 {
