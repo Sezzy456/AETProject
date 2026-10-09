@@ -100,9 +100,11 @@ h1, h2, h3 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 45px;
+    padding: 16px 30px;
     box-sizing: border-box;
     width: 100%;
+    max-width: 1850px;
+    margin: 0 auto;
 }
 .logo {
     pointer-events: auto;
@@ -249,42 +251,42 @@ body.border-mode-clean .parallax-image {
 .hero-section {
     position: relative;
     background-color: transparent;
-    margin-top: 100px; /* Below navbar header */
-    padding: 40px 0 60px 0;
+    margin-top: 90px; /* Below navbar header */
+    padding: 25px 0 45px 0;
     box-sizing: border-box;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: calc(100vh - 140px);
+    min-height: calc(100vh - 110px);
 }
 
 .hero-container {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 40px;
-    max-width: 1550px;
-    width: 100%;
+    gap: 35px;
+    max-width: 1850px;
+    width: 96%;
     margin: 0 auto;
-    padding: 0 35px;
+    padding: 0 15px;
     box-sizing: border-box;
 }
 
 .hero-text-column {
-    flex: 0 0 620px;
-    max-width: 620px;
+    flex: 0 0 680px;
+    max-width: 680px;
     box-sizing: border-box;
     background: #ffffff;
-    padding: 38px 44px;
+    padding: 44px 50px;
     border-radius: 28px;
     box-shadow: none;
     border: none;
 }
 
 .hero-title {
-    font-size: 3.8rem;
+    font-size: 4.4rem;
     font-weight: 800;
-    line-height: 1.12;
+    line-height: 1.08;
     margin-bottom: 24px;
     background: var(--gradient);
     -webkit-background-clip: text;
@@ -293,10 +295,10 @@ body.border-mode-clean .parallax-image {
 }
 
 .hero-subtitle {
-    font-size: 1.35rem;
-    line-height: 1.6;
+    font-size: 1.5rem;
+    line-height: 1.55;
     color: #475569;
-    margin-bottom: 34px;
+    margin-bottom: 36px;
 }
 
 .hero-actions {
@@ -308,9 +310,9 @@ body.border-mode-clean .parallax-image {
     display: inline-flex;
     align-items: center;
     gap: 12px;
-    padding: 16px 34px;
+    padding: 18px 38px;
     border-radius: 36px;
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     font-weight: 600;
     text-decoration: none;
     transition: all 0.3s ease;
@@ -337,9 +339,9 @@ body.border-mode-clean .parallax-image {
 .video-container {
     position: relative;
     width: 100%;
-    max-width: 940px;
+    max-width: 1180px;
     aspect-ratio: 16 / 9;
-    border-radius: 20px; /* Smooth rounded corners */
+    border-radius: 24px; /* Smooth rounded corners */
     overflow: hidden;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
     border: 1px solid #e2e8f0;
@@ -502,9 +504,9 @@ body.border-mode-clean .parallax-image {
 }
 .text-column-container {
     position: absolute;
-    left: 20%;
+    left: 10%;
     top: 35%;
-    width: 25%;
+    width: 32%;
     z-index: 10;
 }
 .text-column {
@@ -514,9 +516,9 @@ body.border-mode-clean .parallax-image {
 }
 .canvas-container {
     position: absolute;
-    right: 0;
+    right: 3%;
     top: 0;
-    width: 50%;
+    width: 52%;
     height: 100%;
     z-index: 5;
     display: flex;
