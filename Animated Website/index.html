@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
+
 <body class="border-mode-wavy texture-on texture-diamond-plate">
 
     <!-- Background Texture Overlay for Scroll Parallax -->
@@ -35,14 +37,20 @@
         <div class="hero-container">
             <div class="hero-text-column">
                 <h1 class="hero-title">Advanced Energy Tech</h1>
-                <p class="hero-subtitle">Transforming everyday community waste into clean, renewable energy through the Advanced Resource Recovery Centre.</p>
+                <p class="hero-subtitle">Transforming everyday community waste into clean, renewable energy through the
+                    Advanced Resource Recovery Centre.</p>
                 <div class="hero-actions">
-                    <a href="#what-we-do" class="hero-btn primary-btn">Explore What We Do <i class="fa-solid fa-arrow-right"></i></a>
+                    <a href="#what-we-do" class="hero-btn primary-btn">Explore What We Do <i
+                            class="fa-solid fa-arrow-right"></i></a>
                 </div>
             </div>
             <div class="hero-media-column">
                 <div class="video-container">
-                    <iframe id="vimeo-video" src="https://player.vimeo.com/video/1182477218?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479&amp;title=0&amp;byline=0&amp;portrait=0&amp;loop=1" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" title="Community Introduction"></iframe>
+                    <iframe id="vimeo-video"
+                        src="https://player.vimeo.com/video/1182477218?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479&amp;title=0&amp;byline=0&amp;portrait=0&amp;loop=1"
+                        frameborder="0"
+                        allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
+                        title="Community Introduction"></iframe>
                     <!-- Play icon that shows when paused -->
                     <div id="play-pause-icon" class="play-pause-icon">
                         <i class="fa-solid fa-play"></i>
@@ -54,13 +62,15 @@
                         </button>
                         <div class="video-time-container">
                             <span id="video-current-time">0:00</span>
-                            <input type="range" id="video-seek-bar" min="0" max="100" value="0" step="0.1" title="Scrub Video">
+                            <input type="range" id="video-seek-bar" min="0" max="100" value="0" step="0.1"
+                                title="Scrub Video">
                             <span id="video-duration">0:00</span>
                         </div>
                         <button id="video-mute-btn" class="v-btn" title="Mute/Unmute">
                             <i class="fa-solid fa-volume-xmark" id="mute-btn-icon"></i>
                         </button>
-                        <input type="range" id="video-volume-bar" min="0" max="1" value="1" step="0.05" class="volume-slider" title="Volume">
+                        <input type="range" id="video-volume-bar" min="0" max="1" value="1" step="0.05"
+                            class="volume-slider" title="Volume">
                         <button id="video-fullscreen-btn" class="v-btn" title="Toggle Fullscreen">
                             <i class="fa-solid fa-expand"></i>
                         </button>
@@ -73,7 +83,7 @@
     <!-- Parallax Image Transition (Hero to What We Do) -->
     <section class="parallax-image hero-parallax">
         <div class="parallax-bg-wrapper">
-            <div class="parallax-bg" style="background-image: url('images/DSC03786.jpg');"></div>
+            <div class="parallax-bg" style="background-image: url('images/DSC03781.jpg');"></div>
         </div>
         <!-- Wavy SVGs -->
         <svg class="wave top-wave" viewBox="0 0 1440 120" preserveAspectRatio="none" style="top:-1px; bottom:auto;">
@@ -194,25 +204,32 @@
                     <defs>
                         <clipPath id="blob-clip-1">
                             <!-- 5 Convex & 5 Concave Soft Symmetrical Star Blob -->
-                            <path id="blob-path-1" fill="#000" d="M 100,25 C 116.5,25 120.8,50.8 130.56,57.93 C 140.3,65.0 166.2,61.1 171.33,76.82 C 176.4,92.5 154.5,100.35 149.45,116.07 C 144.4,131.8 157.3,151.1 144.08,160.68 C 130.9,170.3 116.5,152 100,152 C 83.5,152 69.1,170.3 55.92,160.68 C 42.7,151.1 55.6,131.8 50.55,116.07 C 45.5,100.35 23.6,92.5 28.67,76.82 C 33.8,61.1 59.7,65.0 69.44,57.93 C 79.2,50.8 83.5,25 100,25 Z" />
+                            <path id="blob-path-1" fill="#000"
+                                d="M 100,25 C 116.5,25 120.8,50.8 130.56,57.93 C 140.3,65.0 166.2,61.1 171.33,76.82 C 176.4,92.5 154.5,100.35 149.45,116.07 C 144.4,131.8 157.3,151.1 144.08,160.68 C 130.9,170.3 116.5,152 100,152 C 83.5,152 69.1,170.3 55.92,160.68 C 42.7,151.1 55.6,131.8 50.55,116.07 C 45.5,100.35 23.6,92.5 28.67,76.82 C 33.8,61.1 59.7,65.0 69.44,57.93 C 79.2,50.8 83.5,25 100,25 Z" />
                         </clipPath>
                         <clipPath id="blob-clip-2">
                             <!-- 5 Convex & 5 Concave Soft Symmetrical Star Blob -->
-                            <path id="blob-path-2" fill="#000" d="M 100,25 C 116.5,25 120.8,50.8 130.56,57.93 C 140.3,65.0 166.2,61.1 171.33,76.82 C 176.4,92.5 154.5,100.35 149.45,116.07 C 144.4,131.8 157.3,151.1 144.08,160.68 C 130.9,170.3 116.5,152 100,152 C 83.5,152 69.1,170.3 55.92,160.68 C 42.7,151.1 55.6,131.8 50.55,116.07 C 45.5,100.35 23.6,92.5 28.67,76.82 C 33.8,61.1 59.7,65.0 69.44,57.93 C 79.2,50.8 83.5,25 100,25 Z" />
+                            <path id="blob-path-2" fill="#000"
+                                d="M 100,25 C 116.5,25 120.8,50.8 130.56,57.93 C 140.3,65.0 166.2,61.1 171.33,76.82 C 176.4,92.5 154.5,100.35 149.45,116.07 C 144.4,131.8 157.3,151.1 144.08,160.68 C 130.9,170.3 116.5,152 100,152 C 83.5,152 69.1,170.3 55.92,160.68 C 42.7,151.1 55.6,131.8 50.55,116.07 C 45.5,100.35 23.6,92.5 28.67,76.82 C 33.8,61.1 59.7,65.0 69.44,57.93 C 79.2,50.8 83.5,25 100,25 Z" />
                         </clipPath>
                     </defs>
                     <!-- Two background images for crossfading (masked) -->
-                    <image id="who-image-1" href="images/DSC03781.jpg" x="0" y="0" width="200" height="200" preserveAspectRatio="xMidYMid slice" clip-path="url(#blob-clip-1)"></image>
-                    <image id="who-image-2" href="images/DSC03781.jpg" x="0" y="0" width="200" height="200" preserveAspectRatio="xMidYMid slice" clip-path="url(#blob-clip-2)" style="opacity: 0;"></image>
-                    
+                    <image id="who-image-1" href="images/DSC03781.jpg" x="0" y="0" width="200" height="200"
+                        preserveAspectRatio="xMidYMid slice" clip-path="url(#blob-clip-1)"></image>
+                    <image id="who-image-2" href="images/DSC03781.jpg" x="0" y="0" width="200" height="200"
+                        preserveAspectRatio="xMidYMid slice" clip-path="url(#blob-clip-2)" style="opacity: 0;"></image>
+
                     <!-- Two foreground overlay images for the pop-out effect (unmasked) -->
-                    <image id="who-overlay-1" href="" x="0" y="0" width="200" height="200" preserveAspectRatio="xMidYMid slice"></image>
-                    <image id="who-overlay-2" href="" x="0" y="0" width="200" height="200" preserveAspectRatio="xMidYMid slice" style="opacity: 0;"></image>
+                    <image id="who-overlay-1" href="" x="0" y="0" width="200" height="200"
+                        preserveAspectRatio="xMidYMid slice"></image>
+                    <image id="who-overlay-2" href="" x="0" y="0" width="200" height="200"
+                        preserveAspectRatio="xMidYMid slice" style="opacity: 0;"></image>
                 </svg>
             </div>
             <div class="who-text-container">
                 <h3 id="who-title">Our Dedicated Team</h3>
-                <p id="who-desc">We bring decades of engineering and community experience to the table, ensuring sustainable growth.</p>
+                <p id="who-desc">We bring decades of engineering and community experience to the table, ensuring
+                    sustainable growth.</p>
                 <!-- Carousel Dots for Who We Are -->
                 <div class="carousel-dots who-dots" id="who-we-are-dots">
                     <span class="dot active" data-index="0" title="Our Dedicated Team"></span>
@@ -291,16 +308,30 @@
         <div class="control-row">
             <span class="control-title"><i class="fa-solid fa-shapes"></i> Section Border:</span>
             <div class="btn-toggle-group">
-                <button id="btn-border-wavy" class="pill-btn active" title="Wavy SVG Borders"><i class="fa-solid fa-water"></i> Wavy</button>
-                <button id="btn-border-chevron" class="pill-btn" title="Teal, Green & Grey 1/3-Width Long Ribbon Chevron Arrows"><i class="fa-solid fa-angles-right"></i> Chevron</button>
-                <button id="btn-border-clean" class="pill-btn" title="Clean Straight Borders"><i class="fa-solid fa-minus"></i> Clean</button>
+                <button id="btn-border-wavy" class="pill-btn active" title="Wavy SVG Borders"><i
+                        class="fa-solid fa-water"></i> Wavy</button>
+                <button id="btn-border-chevron" class="pill-btn"
+                    title="Teal, Green & Grey 1/3-Width Long Ribbon Chevron Arrows"><i
+                        class="fa-solid fa-angles-right"></i> Chevron</button>
+                <button id="btn-border-clean" class="pill-btn" title="Clean Straight Borders"><i
+                        class="fa-solid fa-minus"></i> Clean</button>
             </div>
         </div>
         <div class="control-row">
             <span class="control-title"><i class="fa-solid fa-grip"></i> BG Texture:</span>
             <div class="btn-toggle-group">
-                <button id="btn-texture-toggle" class="pill-btn active" title="Toggle Background Texture"><i class="fa-solid fa-power-off"></i> <span id="texture-status-text">ON</span></button>
-                <button id="btn-texture-style" class="pill-btn" title="Switch Texture Pattern: Soft Dots, Diamond Plate"><i class="fa-solid fa-border-all"></i> <span id="texture-style-text">Diamond Plate</span></button>
+                <button id="btn-texture-toggle" class="pill-btn active" title="Toggle Background Texture"><i
+                        class="fa-solid fa-power-off"></i> <span id="texture-status-text">ON</span></button>
+                <button id="btn-texture-style" class="pill-btn"
+                    title="Switch Texture Pattern: Soft Dots, Diamond Plate"><i class="fa-solid fa-border-all"></i>
+                    <span id="texture-style-text">Diamond Plate</span></button>
+            </div>
+        </div>
+        <div class="control-row">
+            <span class="control-title"><i class="fa-solid fa-moon"></i> Theme Mode:</span>
+            <div class="btn-toggle-group">
+                <button id="btn-theme-toggle" class="pill-btn" title="Toggle Light/Dark Theme"><i
+                        class="fa-solid fa-circle-half-stroke"></i> <span id="theme-status-text">Light</span></button>
             </div>
         </div>
     </div>
@@ -308,7 +339,8 @@
     <!-- Footer -->
     <footer class="main-footer">
         <svg class="wave footer-wave" viewBox="0 0 1440 120" preserveAspectRatio="none">
-            <path fill="url(#navGrad)" d="M0,60 C320,120 420,0 740,60 C1060,120 1120,0 1440,60 L1440,120 L0,120 Z"></path>
+            <path fill="url(#navGrad)" d="M0,60 C320,120 420,0 740,60 C1060,120 1120,0 1440,60 L1440,120 L0,120 Z">
+            </path>
         </svg>
         <div class="chevron-divider-container footer-chevron">
             <svg class="chevron-divider" viewBox="0 0 1200 56" preserveAspectRatio="none">
@@ -342,4 +374,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <script src="main.js"></script>
 </body>
+
 </html>

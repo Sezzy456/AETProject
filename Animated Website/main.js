@@ -497,6 +497,26 @@ if (btnTextureStyle) {
     });
 }
 
+// Theme Dark/Light Mode Switching
+const btnThemeToggle = document.getElementById('btn-theme-toggle');
+const themeStatusText = document.getElementById('theme-status-text');
+let isDarkMode = false;
+
+if (btnThemeToggle) {
+    btnThemeToggle.addEventListener('click', () => {
+        isDarkMode = !isDarkMode;
+        if (isDarkMode) {
+            document.body.classList.add('dark-mode');
+            btnThemeToggle.classList.add('active');
+            if (themeStatusText) themeStatusText.innerText = 'Dark';
+        } else {
+            document.body.classList.remove('dark-mode');
+            btnThemeToggle.classList.remove('active');
+            if (themeStatusText) themeStatusText.innerText = 'Light';
+        }
+    });
+}
+
 // Subtle Scroll Parallax for Background Texture (-0.35x scroll ratio)
 window.addEventListener('scroll', () => {
     if (isTextureOn && bgTexture) {
