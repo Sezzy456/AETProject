@@ -106,7 +106,7 @@ h3 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 28px;
+    padding: 28px 28px 12px 28px;
     box-sizing: border-box;
     width: 100%;
     max-width: 1850px;
@@ -403,7 +403,7 @@ body.official-mode .hero-section {
     position: relative;
     background-color: transparent;
     margin-top: 0;
-    padding: 85px 0 25px 0;
+    padding: 100px 0 25px 0;
     box-sizing: border-box;
     display: flex;
     justify-content: center;
@@ -435,10 +435,10 @@ body.official-mode .hero-section {
 }
 
 .hero-title {
-    font-size: 3.6rem;
+    font-size: 4.1rem;
     font-weight: 800;
     line-height: 1.14;
-    padding-bottom: 10px;
+    padding-bottom: 12px;
     margin-bottom: 16px;
     overflow: visible;
     background: var(--gradient);
@@ -1197,7 +1197,7 @@ body.dark-mode.official-mode .parallax-2 .bottom-wave path {
     }
 
     .main-header .nav-container {
-        padding: 8px 24px;
+        padding: 24px 24px 8px 24px;
     }
 
     .logo {
@@ -1221,7 +1221,7 @@ body.dark-mode.official-mode .parallax-2 .bottom-wave path {
 
     /* Hero Section */
     .hero-section {
-        padding: 75px 0 15px 0;
+        padding: 90px 0 15px 0;
         min-height: calc(100vh - 40px);
     }
 
@@ -1232,17 +1232,17 @@ body.dark-mode.official-mode .parallax-2 .bottom-wave path {
     }
 
     .hero-text-column {
-        flex: 0 0 470px;
-        max-width: 470px;
+        flex: 0 0 490px;
+        max-width: 490px;
         padding: 28px 32px;
         border-radius: 20px;
     }
 
     .hero-title {
-        font-size: 2.7rem;
+        font-size: 3.2rem;
         line-height: 1.15;
         margin-bottom: 12px;
-        padding-bottom: 8px;
+        padding-bottom: 10px;
     }
 
     .hero-subtitle {
@@ -1280,7 +1280,7 @@ body.dark-mode.official-mode .parallax-2 .bottom-wave path {
     }
 
     section[id] {
-        scroll-margin-top: 80px;
+        scroll-margin-top: 88px;
     }
 
     .video-container {
