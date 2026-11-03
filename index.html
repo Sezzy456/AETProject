@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
-<body class="border-mode-wavy texture-on texture-diamond-plate">
+<body class="official-mode border-mode-wavy texture-on texture-diamond-plate">
 
     <!-- Background Texture Overlay for Scroll Parallax -->
     <div id="bg-texture" class="bg-texture texture-diamond-plate texture-on"></div>
@@ -305,33 +305,46 @@
 
     <!-- Modern Visual Floating Customization Controls Panel -->
     <div class="floating-controls-panel">
-        <div class="control-row">
-            <span class="control-title"><i class="fa-solid fa-shapes"></i> Section Border:</span>
+        <div class="control-row preset-row">
+            <span class="control-title"><i class="fa-solid fa-layer-group"></i> Design:</span>
             <div class="btn-toggle-group">
-                <button id="btn-border-wavy" class="pill-btn active" title="Wavy SVG Borders"><i
-                        class="fa-solid fa-water"></i> Wavy</button>
-                <button id="btn-border-chevron" class="pill-btn"
-                    title="Teal, Green & Grey 1/3-Width Long Ribbon Chevron Arrows"><i
-                        class="fa-solid fa-angles-right"></i> Chevron</button>
-                <button id="btn-border-clean" class="pill-btn" title="Clean Straight Borders"><i
-                        class="fa-solid fa-minus"></i> Clean</button>
+                <button id="btn-mode-official" class="pill-btn official-pill active" title="Official Curated Design">
+                    <i class="fa-solid fa-star"></i> Official
+                </button>
+                <button id="btn-mode-custom" class="pill-btn" title="Enable Custom Sandbox Controls">
+                    <i class="fa-solid fa-sliders"></i> Custom
+                </button>
             </div>
         </div>
-        <div class="control-row">
-            <span class="control-title"><i class="fa-solid fa-grip"></i> BG Texture:</span>
-            <div class="btn-toggle-group">
-                <button id="btn-texture-toggle" class="pill-btn active" title="Toggle Background Texture"><i
-                        class="fa-solid fa-power-off"></i> <span id="texture-status-text">ON</span></button>
-                <button id="btn-texture-style" class="pill-btn"
-                    title="Switch Texture Pattern: Soft Dots, Diamond Plate"><i class="fa-solid fa-border-all"></i>
-                    <span id="texture-style-text">Diamond Plate</span></button>
+        <div class="custom-controls-wrapper custom-dimmed" id="custom-controls-wrapper">
+            <div class="control-row">
+                <span class="control-title"><i class="fa-solid fa-shapes"></i> Section Border:</span>
+                <div class="btn-toggle-group">
+                    <button id="btn-border-wavy" class="pill-btn active" title="Wavy SVG Borders"><i
+                            class="fa-solid fa-water"></i> Wavy</button>
+                    <button id="btn-border-chevron" class="pill-btn"
+                        title="Teal, Green & Grey Ribbon Chevron Arrows"><i
+                            class="fa-solid fa-angles-right"></i> Chevron</button>
+                    <button id="btn-border-clean" class="pill-btn" title="Clean Straight Borders"><i
+                            class="fa-solid fa-minus"></i> Clean</button>
+                </div>
             </div>
-        </div>
-        <div class="control-row">
-            <span class="control-title"><i class="fa-solid fa-moon"></i> Theme Mode:</span>
-            <div class="btn-toggle-group">
-                <button id="btn-theme-toggle" class="pill-btn" title="Toggle Light/Dark Theme"><i
-                        class="fa-solid fa-circle-half-stroke"></i> <span id="theme-status-text">Light</span></button>
+            <div class="control-row">
+                <span class="control-title"><i class="fa-solid fa-grip"></i> BG Texture:</span>
+                <div class="btn-toggle-group">
+                    <button id="btn-texture-toggle" class="pill-btn active" title="Toggle Background Texture"><i
+                            class="fa-solid fa-power-off"></i> <span id="texture-status-text">ON</span></button>
+                    <button id="btn-texture-style" class="pill-btn"
+                        title="Switch Texture Pattern"><i class="fa-solid fa-border-all"></i>
+                        <span id="texture-style-text">Diamond Plate</span></button>
+                </div>
+            </div>
+            <div class="control-row">
+                <span class="control-title"><i class="fa-solid fa-moon"></i> Theme Mode:</span>
+                <div class="btn-toggle-group">
+                    <button id="btn-theme-toggle" class="pill-btn" title="Toggle Light/Dark Theme"><i
+                            class="fa-solid fa-circle-half-stroke"></i> <span id="theme-status-text">Light</span></button>
+                </div>
             </div>
         </div>
     </div>
@@ -339,6 +352,12 @@
     <!-- Footer -->
     <footer class="main-footer">
         <svg class="wave footer-wave" viewBox="0 0 1440 120" preserveAspectRatio="none">
+            <defs>
+                <linearGradient id="navGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#6dd5ed" />
+                    <stop offset="100%" stop-color="#2193b0" />
+                </linearGradient>
+            </defs>
             <path fill="url(#navGrad)" d="M0,60 C320,120 420,0 740,60 C1060,120 1120,0 1440,60 L1440,120 L0,120 Z">
             </path>
         </svg>
