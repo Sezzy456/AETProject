@@ -298,6 +298,8 @@ body.official-mode .what-we-do {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='%23ffffff' fill-opacity='0.75'%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(16 16) rotate(45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(80 16) rotate(45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(48 48) rotate(-45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(-16 48) rotate(-45)'/%3E%3C/g%3E%3C/svg%3E");
     background-size: 64px 64px;
     position: relative;
+    min-height: calc(100vh - 80px);
+    box-sizing: border-box;
     padding-top: 50px;
     padding-bottom: 85px;
 }
@@ -330,10 +332,16 @@ body.official-mode .parallax-1 .bottom-chevron {
     display: none !important;
 }
 
-/* Section 2 (Who We Are): Not inverted (Standard white background) with generous bottom gap before chevron */
+/* Section 2 (Who We Are): Page-height spacing with generous bottom gap before chevron */
 body.official-mode .who-we-are {
+    min-height: calc(100vh - 80px);
+    box-sizing: border-box;
     padding-top: 45px;
     padding-bottom: 85px;
+}
+
+body.official-mode .who-we-are .who-we-are-content {
+    flex: 1;
 }
 
 /* Parallax 2: Bottom of Who We Are gets Chevron, Top of How It Works gets Wave */
@@ -353,9 +361,16 @@ body.official-mode .parallax-2 .bottom-chevron {
     display: none !important;
 }
 
-/* Section 3 (How It Works): Clean bottom spacing above straight footer */
+/* Section 3 (How It Works): Page-height spacing and clean bottom spacing above straight footer */
 body.official-mode .infographic-section {
+    min-height: calc(100vh - 80px);
+    box-sizing: border-box;
+    padding-top: 45px;
     padding-bottom: 70px;
+}
+
+body.official-mode .infographic-section .info-grid {
+    flex: 1;
 }
 
 /* Bottom Section / Footer: Straight line (no blue wave, no chevron border) */
@@ -366,8 +381,10 @@ body.official-mode .footer-wave {
     display: none !important;
 }
 
-/* Generous bottom padding for hero section before the chevron */
+/* Hero Section: Page-height minus chevron border and breathing room */
 body.official-mode .hero-section {
+    min-height: calc(100vh - 80px);
+    box-sizing: border-box;
     padding-bottom: 75px;
 }
 
@@ -1229,21 +1246,30 @@ body.dark-mode.official-mode .parallax-2 .bottom-wave path {
     }
 
     body.official-mode .hero-section {
+        min-height: calc(100vh - 70px);
         padding-bottom: 60px;
     }
 
     body.official-mode .what-we-do {
+        min-height: calc(100vh - 70px);
         padding-top: 35px;
         padding-bottom: 70px;
     }
 
     body.official-mode .who-we-are {
+        min-height: calc(100vh - 70px);
         padding-top: 24px;
         padding-bottom: 70px;
     }
 
     body.official-mode .infographic-section {
+        min-height: calc(100vh - 70px);
+        padding-top: 24px;
         padding-bottom: 55px;
+    }
+
+    section[id] {
+        scroll-margin-top: 80px;
     }
 
     .video-container {
