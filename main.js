@@ -459,8 +459,10 @@ function setSiteMode(mode) {
         if (btnModeCustom) btnModeCustom.classList.add('active');
         if (btnModeOfficial) btnModeOfficial.classList.remove('active');
         if (customControlsWrapper) customControlsWrapper.classList.remove('custom-dimmed');
+        if (whatWeDoSection) whatWeDoSection.style.backgroundPositionY = '';
     }
     ScrollTrigger.refresh();
+    updateTextureParallax();
 }
 
 if (btnModeOfficial) btnModeOfficial.addEventListener('click', () => setSiteMode('official'));
@@ -515,6 +517,7 @@ if (btnTextureToggle) {
             btnTextureToggle.classList.remove('active');
             if (textureStatusText) textureStatusText.innerText = 'OFF';
         }
+        updateTextureParallax();
     });
 }
 
@@ -554,12 +557,24 @@ if (btnThemeToggle) {
 }
 
 // Subtle Scroll Parallax for Background Texture (-0.35x scroll ratio)
-window.addEventListener('scroll', () => {
+const whatWeDoSection = document.getElementById('what-we-do');
+
+function updateTextureParallax() {
+    const scrollY = window.scrollY;
     if (isTextureOn && bgTexture) {
-        const scrollY = window.scrollY;
         bgTexture.style.backgroundPositionY = (-scrollY * 0.35) + 'px';
     }
-}, { passive: true });
+    if (whatWeDoSection && isTextureOn && document.body.classList.contains('official-mode')) {
+        const offsetTop = whatWeDoSection.offsetTop || 0;
+        whatWeDoSection.style.backgroundPositionY = (scrollY * 0.65 - offsetTop) + 'px';
+    } else if (whatWeDoSection && !document.body.classList.contains('official-mode')) {
+        whatWeDoSection.style.backgroundPositionY = '';
+    }
+}
+
+window.addEventListener('scroll', updateTextureParallax, { passive: true });
+window.addEventListener('resize', updateTextureParallax);
+updateTextureParallax();
 
 // =================================================================
 // 6. ACTIVE NAV HIGHLIGHTING

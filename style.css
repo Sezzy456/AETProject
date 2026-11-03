@@ -156,9 +156,9 @@ h3 {
 .nav-links a {
     color: white;
     text-decoration: none;
-    padding: 6px 16px;
+    padding: 7px 18px;
     font-weight: 600;
-    font-size: 1.05rem;
+    font-size: 1.15rem;
     transition: opacity 0.3s, transform 0.2s;
     position: relative;
 }
@@ -315,6 +315,11 @@ body.official-mode .what-we-do .section-title {
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
 }
 
+/* Parallax 1: Taller window separating sections */
+body.official-mode .parallax-1 {
+    height: 65vh;
+}
+
 /* Parallax 1: Bottom of What We Do gets Chevron, Top of Who We Are gets Wave (White) */
 body.official-mode .parallax-1 .top-chevron {
     display: block !important;
@@ -342,6 +347,11 @@ body.official-mode .who-we-are {
 
 body.official-mode .who-we-are .who-we-are-content {
     flex: 1;
+}
+
+/* Parallax 2: Taller window separating sections */
+body.official-mode .parallax-2 {
+    height: 65vh;
 }
 
 /* Parallax 2: Bottom of Who We Are gets Chevron, Top of How It Works gets Wave */
@@ -773,7 +783,7 @@ body.official-mode .hero-section {
 /* Parallax Sections */
 .parallax-image {
     position: relative;
-    height: 60vh;
+    height: 65vh;
     width: 100%;
     overflow: visible;
     /* Allows top & bottom chevrons to overlap section borders */
@@ -1199,13 +1209,14 @@ body.dark-mode.official-mode .parallax-2 .bottom-wave path {
     }
 
     .nav-links {
-        padding: 7px 18px;
-        gap: 6px;
+        padding: 9px 22px;
+        gap: 8px;
     }
 
     .nav-links a {
-        font-size: 0.92rem;
-        padding: 4px 10px;
+        font-size: 1.08rem;
+        padding: 6px 14px;
+        font-weight: 600;
     }
 
     /* Hero Section */
@@ -1279,14 +1290,15 @@ body.dark-mode.official-mode .parallax-2 .bottom-wave path {
 
     /* Section Titles */
     .section-title-wrapper {
-        margin: 20px 0 14px 0;
+        margin: 22px 0 16px 0;
         padding-top: 6px;
     }
 
     .section-title {
-        font-size: 2.35rem;
-        padding: 7px 28px;
-        border-radius: 16px;
+        font-size: 2.95rem;
+        font-weight: 800;
+        padding: 10px 36px;
+        border-radius: 20px;
     }
 
     /* What We Do */
@@ -1331,9 +1343,18 @@ body.dark-mode.official-mode .parallax-2 .bottom-wave path {
         padding-left: 30px;
     }
 
-    /* Parallax Images */
+    /* Parallax Images: Taller gap between chevron and wave (approx half page height) */
     .parallax-image {
-        height: 38vh;
+        height: 60vh;
+    }
+
+    body.official-mode .parallax-1,
+    body.official-mode .parallax-2 {
+        height: 60vh;
+    }
+
+    .wave.bottom-wave {
+        height: 100px;
     }
 
     /* Who We Are */
