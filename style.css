@@ -9,8 +9,7 @@
 
 html {
     scroll-behavior: smooth;
-    font-size: 108%;
-    /* Subtle global scale up mirroring 110% zoom */
+    font-size: 100%;
 }
 
 body {
@@ -68,8 +67,8 @@ h3 {
 /* Section Title Wrapper & Flat White Pill Containers */
 .section-title-wrapper {
     text-align: center;
-    margin: 45px 0 36px 0;
-    padding-top: 15px;
+    margin: 32px 0 24px 0;
+    padding-top: 10px;
     z-index: 20;
     position: relative;
 }
@@ -77,12 +76,12 @@ h3 {
 .section-title {
     display: inline-block;
     text-align: center;
-    font-size: 4.4rem;
+    font-size: 3.4rem;
     font-weight: 800;
-    padding: 14px 44px;
+    padding: 12px 36px;
     margin: 0;
     background: #ffffff;
-    border-radius: 24px;
+    border-radius: 20px;
     box-shadow: none;
     border: none;
     color: #2193b0;
@@ -107,7 +106,7 @@ h3 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 30px;
+    padding: 28px 28px 12px 28px;
     box-sizing: border-box;
     width: 100%;
     max-width: 1850px;
@@ -121,7 +120,7 @@ h3 {
     background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
-    padding: 10px 22px;
+    padding: 8px 18px;
     border-radius: 10px;
     box-shadow: none;
     border: none;
@@ -133,8 +132,7 @@ h3 {
 }
 
 .logo-img {
-    height: 76px;
-    /* Enlarged logo */
+    height: 60px;
     width: auto;
     display: block;
 }
@@ -158,9 +156,9 @@ h3 {
 .nav-links a {
     color: white;
     text-decoration: none;
-    padding: 6px 16px;
+    padding: 7px 18px;
     font-weight: 600;
-    font-size: 1.05rem;
+    font-size: 1.15rem;
     transition: opacity 0.3s, transform 0.2s;
     position: relative;
 }
@@ -274,18 +272,143 @@ body.border-mode-clean .parallax-image {
     border-bottom: 1px solid #e2e8f0;
 }
 
+/* Mode 4: Official Preset (Curated Website Design) */
+/* Transition 1: Between Hero and What We Do -> Chevron Border, No Parallax Image */
+body.official-mode .hero-parallax {
+    display: block !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    position: relative;
+    overflow: visible !important;
+    z-index: 15;
+}
+body.official-mode .hero-parallax .parallax-bg-wrapper,
+body.official-mode .hero-parallax .wave,
+body.official-mode .hero-parallax .bottom-chevron {
+    display: none !important;
+}
+body.official-mode .hero-parallax .top-chevron {
+    display: block !important;
+    top: -28px !important;
+}
+
+/* Section 1 (What We Do): Reversed Colors Background (Light Grey main, White diamond plate pattern) */
+body.official-mode .what-we-do {
+    background-color: #f0f4f8;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='%23ffffff' fill-opacity='0.75'%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(16 16) rotate(45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(80 16) rotate(45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(48 48) rotate(-45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(-16 48) rotate(-45)'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 64px 64px;
+    position: relative;
+    min-height: calc(100vh - 80px);
+    box-sizing: border-box;
+    padding-top: 50px;
+    padding-bottom: 85px;
+}
+
+body.official-mode .what-we-do .text-block {
+    background: #ffffff;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+}
+
+body.official-mode .what-we-do .section-title {
+    background: #ffffff;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+}
+
+/* Parallax 1: Taller window separating sections */
+body.official-mode .parallax-1 {
+    height: 65vh;
+}
+
+/* Parallax 1: Bottom of What We Do gets Chevron, Top of Who We Are gets Wave (White) */
+body.official-mode .parallax-1 .top-chevron {
+    display: block !important;
+}
+body.official-mode .parallax-1 .top-wave {
+    display: none !important;
+}
+body.official-mode .parallax-1 .bottom-wave {
+    display: block !important;
+}
+body.official-mode .parallax-1 .bottom-wave path {
+    fill: #ffffff !important;
+}
+body.official-mode .parallax-1 .bottom-chevron {
+    display: none !important;
+}
+
+/* Section 2 (Who We Are): Page-height spacing with generous bottom gap before chevron */
+body.official-mode .who-we-are {
+    min-height: calc(100vh - 80px);
+    box-sizing: border-box;
+    padding-top: 45px;
+    padding-bottom: 85px;
+}
+
+body.official-mode .who-we-are .who-we-are-content {
+    flex: 1;
+}
+
+/* Parallax 2: Taller window separating sections */
+body.official-mode .parallax-2 {
+    height: 65vh;
+}
+
+/* Parallax 2: Bottom of Who We Are gets Chevron, Top of How It Works gets Wave */
+body.official-mode .parallax-2 .top-chevron {
+    display: block !important;
+}
+body.official-mode .parallax-2 .top-wave {
+    display: none !important;
+}
+body.official-mode .parallax-2 .bottom-wave {
+    display: block !important;
+}
+body.official-mode .parallax-2 .bottom-wave path {
+    fill: #ffffff !important;
+}
+body.official-mode .parallax-2 .bottom-chevron {
+    display: none !important;
+}
+
+/* Section 3 (How It Works): Page-height spacing and clean bottom spacing above straight footer */
+body.official-mode .infographic-section {
+    min-height: calc(100vh - 80px);
+    box-sizing: border-box;
+    padding-top: 45px;
+    padding-bottom: 70px;
+}
+
+body.official-mode .infographic-section .info-grid {
+    flex: 1;
+}
+
+/* Bottom Section / Footer: Straight line (no blue wave, no chevron border) */
+body.official-mode .footer-chevron {
+    display: none !important;
+}
+body.official-mode .footer-wave {
+    display: none !important;
+}
+
+/* Hero Section: Page-height minus chevron border and breathing room */
+body.official-mode .hero-section {
+    min-height: calc(100vh - 80px);
+    box-sizing: border-box;
+    padding-bottom: 75px;
+}
+
 /* Landing Hero Section (White Background 2-Column Layout) */
 .hero-section {
     position: relative;
     background-color: transparent;
-    margin-top: 10px;
-    /* Reduced top margin */
-    padding: 20px 0 15px 0;
+    margin-top: 0;
+    padding: 100px 0 25px 0;
     box-sizing: border-box;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: calc(100vh - 110px);
+    min-height: calc(100vh - 50px);
 }
 
 .hero-container {
@@ -293,31 +416,30 @@ body.border-mode-clean .parallax-image {
     align-items: center;
     justify-content: space-between;
     gap: 35px;
-    max-width: 1850px;
-    width: 96%;
+    max-width: 1700px;
+    width: 95%;
     margin: 0 auto;
     padding: 0 15px;
     box-sizing: border-box;
 }
 
 .hero-text-column {
-    flex: 0 0 680px;
-    max-width: 680px;
+    flex: 0 0 600px;
+    max-width: 600px;
     box-sizing: border-box;
     background: #ffffff;
-    padding: 44px 50px;
-    border-radius: 28px;
+    padding: 38px 44px;
+    border-radius: 24px;
     box-shadow: none;
     border: none;
 }
 
 .hero-title {
-    font-size: 4.4rem;
+    font-size: 4.1rem;
     font-weight: 800;
     line-height: 1.14;
     padding-bottom: 12px;
-    /* Prevent 'g' and 'y' text clipping */
-    margin-bottom: 18px;
+    margin-bottom: 16px;
     overflow: visible;
     background: var(--gradient);
     -webkit-background-clip: text;
@@ -326,10 +448,10 @@ body.border-mode-clean .parallax-image {
 }
 
 .hero-subtitle {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     line-height: 1.55;
     color: #475569;
-    margin-bottom: 36px;
+    margin-bottom: 30px;
 }
 
 .hero-actions {
@@ -341,9 +463,9 @@ body.border-mode-clean .parallax-image {
     display: inline-flex;
     align-items: center;
     gap: 12px;
-    padding: 18px 38px;
+    padding: 15px 32px;
     border-radius: 36px;
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     font-weight: 600;
     text-decoration: none;
     transition: all 0.3s ease;
@@ -661,7 +783,7 @@ body.border-mode-clean .parallax-image {
 /* Parallax Sections */
 .parallax-image {
     position: relative;
-    height: 60vh;
+    height: 65vh;
     width: 100%;
     overflow: visible;
     /* Allows top & bottom chevrons to overlap section borders */
@@ -792,52 +914,53 @@ body.border-mode-clean .parallax-image {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 24px;
-    flex: 0 0 120px;
+    gap: 18px;
+    flex: 0 0 80px;
 }
 
 .circle-stage {
-    width: 90px;
-    height: 90px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     background-color: white;
-    border: 4px solid #2193b0;
+    border: 3px solid #2193b0;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 30px;
-    font-weight: bold;
+    font-size: 22px;
+    font-weight: 700;
     color: #2193b0;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .circle-stage.active,
 .circle-stage:hover {
     background-color: #2193b0;
     color: white;
-    transform: scale(1.1);
+    transform: scale(1.08);
+    box-shadow: 0 4px 14px rgba(33, 147, 176, 0.3);
 }
 
 .info-details {
     background: #ffffff;
-    padding: 44px 50px;
-    border-radius: 28px;
+    padding: 38px 44px;
+    border-radius: 24px;
     box-shadow: none;
     border: none;
-    flex: 0 0 720px;
-    max-width: 720px;
+    flex: 0 0 680px;
+    max-width: 680px;
     box-sizing: border-box;
 }
 
 .info-details h3 {
-    font-size: 2.4rem;
-    margin-bottom: 16px;
+    font-size: 2.1rem;
+    margin-bottom: 14px;
     color: #2ecc71;
 }
 
 .info-details p {
-    font-size: 1.35rem;
+    font-size: 1.2rem;
     line-height: 1.6;
 }
 
@@ -847,7 +970,7 @@ body.border-mode-clean .parallax-image {
     bottom: 25px;
     right: 25px;
     z-index: 9999;
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.94);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(226, 232, 240, 0.9);
@@ -862,6 +985,27 @@ body.border-mode-clean .parallax-image {
 
 .floating-controls-panel:hover {
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+}
+
+.preset-row {
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    margin-bottom: 2px;
+}
+
+.custom-controls-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.custom-controls-wrapper.custom-dimmed {
+    opacity: 0.5;
+}
+
+.custom-controls-wrapper.custom-dimmed:hover {
+    opacity: 0.95;
 }
 
 .control-row {
@@ -912,6 +1056,12 @@ body.border-mode-clean .parallax-image {
     background: #2193b0;
     color: #ffffff;
     box-shadow: 0 4px 12px rgba(33, 147, 176, 0.3);
+}
+
+.pill-btn.official-pill.active {
+    background: linear-gradient(135deg, #2193b0 0%, #2ecc71 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(33, 147, 176, 0.4);
 }
 
 /* Footer */
@@ -1021,4 +1171,340 @@ body.dark-mode .pill-btn:hover {
 body.dark-mode .pill-btn.active {
     background: #0284c7;
     color: #ffffff;
+}
+
+/* Official Mode Dark Theme Support */
+body.dark-mode.official-mode .what-we-do {
+    background-color: #1e293b;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='%23334155' fill-opacity='0.6'%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(16 16) rotate(45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(80 16) rotate(45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(48 48) rotate(-45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(-16 48) rotate(-45)'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+body.dark-mode.official-mode .parallax-1 .bottom-wave path {
+    fill: #0f172a !important;
+}
+
+body.dark-mode.official-mode .parallax-2 .bottom-wave path {
+    fill: #0f172a !important;
+}
+
+/* =================================================================
+   LAPTOP & RESPONSIVE OPTIMIZATION
+   Tailored for Laptop Displays (1280px - 1536px, and short viewports)
+   ================================================================= */
+@media screen and (max-width: 1440px), screen and (max-height: 850px) {
+    html {
+        font-size: 92%;
+    }
+
+    .main-header .nav-container {
+        padding: 24px 24px 8px 24px;
+    }
+
+    .logo {
+        padding: 6px 14px;
+    }
+
+    .logo-img {
+        height: 48px;
+    }
+
+    .nav-links {
+        padding: 9px 22px;
+        gap: 8px;
+    }
+
+    .nav-links a {
+        font-size: 1.08rem;
+        padding: 6px 14px;
+        font-weight: 600;
+    }
+
+    /* Hero Section */
+    .hero-section {
+        padding: 90px 0 15px 0;
+        min-height: calc(100vh - 40px);
+    }
+
+    .hero-container {
+        gap: 24px;
+        max-width: 1320px;
+        width: 94%;
+    }
+
+    .hero-text-column {
+        flex: 0 0 490px;
+        max-width: 490px;
+        padding: 28px 32px;
+        border-radius: 20px;
+    }
+
+    .hero-title {
+        font-size: 3.2rem;
+        line-height: 1.15;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+    }
+
+    .hero-subtitle {
+        font-size: 1.06rem;
+        line-height: 1.5;
+        margin-bottom: 22px;
+    }
+
+    .hero-btn {
+        padding: 11px 24px;
+        font-size: 0.96rem;
+    }
+
+    body.official-mode .hero-section {
+        min-height: calc(100vh - 70px);
+        padding-bottom: 60px;
+    }
+
+    body.official-mode .what-we-do {
+        min-height: calc(100vh - 70px);
+        padding-top: 35px;
+        padding-bottom: 70px;
+    }
+
+    body.official-mode .who-we-are {
+        min-height: calc(100vh - 70px);
+        padding-top: 24px;
+        padding-bottom: 70px;
+    }
+
+    body.official-mode .infographic-section {
+        min-height: calc(100vh - 70px);
+        padding-top: 24px;
+        padding-bottom: 55px;
+    }
+
+    section[id] {
+        scroll-margin-top: 88px;
+    }
+
+    .video-container {
+        max-width: 760px;
+        border-radius: 18px;
+    }
+
+    /* Section Titles */
+    .section-title-wrapper {
+        margin: 22px 0 16px 0;
+        padding-top: 6px;
+    }
+
+    .section-title {
+        font-size: 2.95rem;
+        font-weight: 800;
+        padding: 10px 36px;
+        border-radius: 20px;
+    }
+
+    /* What We Do */
+    .what-we-do {
+        padding: 15px 0 30px 0;
+        min-height: auto;
+    }
+
+    .what-we-do .content-wrapper {
+        gap: 24px;
+        max-width: 1320px;
+        width: 94%;
+        min-height: 380px;
+    }
+
+    .text-column-container {
+        flex: 0 0 470px;
+        max-width: 470px;
+    }
+
+    .text-block {
+        padding: 26px 30px;
+        border-radius: 20px;
+    }
+
+    .text-block h2 {
+        font-size: 1.95rem;
+        margin-bottom: 10px;
+    }
+
+    .text-block p {
+        font-size: 1.02rem;
+        line-height: 1.52;
+    }
+
+    #animation-canvas {
+        max-width: 760px;
+        border-radius: 18px;
+    }
+
+    #what-we-do-dots {
+        padding-left: 30px;
+    }
+
+    /* Parallax Images: Taller gap between chevron and wave (approx half page height) */
+    .parallax-image {
+        height: 60vh;
+    }
+
+    body.official-mode .parallax-1,
+    body.official-mode .parallax-2 {
+        height: 60vh;
+    }
+
+    .wave.bottom-wave {
+        height: 100px;
+    }
+
+    /* Who We Are */
+    .who-we-are {
+        padding: 24px 0 38px 0;
+    }
+
+    .who-we-are-content {
+        gap: 28px;
+        max-width: 1180px;
+        width: 94%;
+    }
+
+    .blob-container {
+        width: 350px;
+    }
+
+    .svg-blob {
+        width: 350px;
+        height: 350px;
+    }
+
+    .who-text-container {
+        flex: 0 0 470px;
+        max-width: 470px;
+        padding: 28px 32px;
+        border-radius: 20px;
+    }
+
+    .who-text-container h3 {
+        font-size: 1.95rem;
+        margin-bottom: 10px;
+    }
+
+    .who-text-container p {
+        font-size: 1.02rem;
+        line-height: 1.52;
+    }
+
+    /* Infographic (How It Works) */
+    .infographic-section {
+        padding: 24px 0 45px 0;
+    }
+
+    .info-grid {
+        gap: 36px;
+        max-width: 1060px;
+        width: 94%;
+    }
+
+    .info-graphics {
+        flex: 0 0 65px;
+        gap: 14px;
+    }
+
+    .circle-stage {
+        width: 52px;
+        height: 52px;
+        font-size: 18px;
+        border-width: 2.5px;
+    }
+
+    .info-details {
+        flex: 0 0 470px;
+        max-width: 470px;
+        padding: 28px 32px;
+        border-radius: 20px;
+    }
+
+    .info-details h3 {
+        font-size: 1.85rem;
+        margin-bottom: 10px;
+    }
+
+    .info-details p {
+        font-size: 1.02rem;
+        line-height: 1.52;
+    }
+
+    /* Floating Customization Panel */
+    .floating-controls-panel {
+        padding: 10px 14px;
+        bottom: 14px;
+        right: 14px;
+        border-radius: 18px;
+        gap: 6px;
+    }
+
+    .preset-row {
+        padding-bottom: 6px;
+    }
+
+    .control-row {
+        gap: 8px;
+    }
+
+    .control-title {
+        font-size: 11px;
+    }
+
+    .pill-btn {
+        padding: 4px 10px;
+        font-size: 11px;
+    }
+}
+
+/* Tablet & Mobile Fallbacks */
+@media screen and (max-width: 980px) {
+    .main-header {
+        position: relative;
+    }
+
+    .hero-container,
+    .what-we-do .content-wrapper,
+    .who-we-are-content,
+    .info-grid {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center;
+    }
+
+    .hero-text-column,
+    .text-column-container,
+    .who-text-container,
+    .info-details {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    .hero-media-column,
+    .canvas-container {
+        justify-content: center !important;
+        width: 100% !important;
+    }
+
+    .hero-actions {
+        justify-content: center;
+    }
+
+    #what-we-do-dots {
+        justify-content: center;
+        padding-left: 0;
+    }
+
+    .who-dots {
+        justify-content: center;
+    }
+
+    .info-graphics {
+        flex-direction: row;
+    }
 }

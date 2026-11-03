@@ -25,9 +25,9 @@ function formatTime(seconds) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-// Pause the video when scrolling past the video section
+// Pause the video when scrolling past the hero section
 ScrollTrigger.create({
-    trigger: ".video-section",
+    trigger: ".hero-section",
     start: "bottom top",
     onEnter: () => player.pause(),
     onLeaveBack: () => player.play().catch(e => console.log("Autoplay prevented:", e))
@@ -428,8 +428,12 @@ stages.forEach(stage => {
 });
 
 // =================================================================
-// 5. VISUAL CUSTOMIZATION CONTROLS (BORDER MODES & BG TEXTURE PARALLAX)
+// 5. VISUAL CUSTOMIZATION CONTROLS (OFFICIAL PRESET & SANDBOX CONTROLS)
 // =================================================================
+const btnModeOfficial = document.getElementById('btn-mode-official');
+const btnModeCustom = document.getElementById('btn-mode-custom');
+const customControlsWrapper = document.getElementById('custom-controls-wrapper');
+
 const btnBorderWavy = document.getElementById('btn-border-wavy');
 const btnBorderChevron = document.getElementById('btn-border-chevron');
 const btnBorderClean = document.getElementById('btn-border-clean');
@@ -440,8 +444,39 @@ const textureStatusText = document.getElementById('texture-status-text');
 const textureStyleText = document.getElementById('texture-style-text');
 const bgTexture = document.getElementById('bg-texture');
 
+let isOfficialMode = true;
+
+function setSiteMode(mode) {
+    if (mode === 'official') {
+        isOfficialMode = true;
+        document.body.classList.add('official-mode');
+        if (btnModeOfficial) btnModeOfficial.classList.add('active');
+        if (btnModeCustom) btnModeCustom.classList.remove('active');
+        if (customControlsWrapper) customControlsWrapper.classList.add('custom-dimmed');
+    } else {
+        isOfficialMode = false;
+        document.body.classList.remove('official-mode');
+        if (btnModeCustom) btnModeCustom.classList.add('active');
+        if (btnModeOfficial) btnModeOfficial.classList.remove('active');
+        if (customControlsWrapper) customControlsWrapper.classList.remove('custom-dimmed');
+        if (whatWeDoSection) whatWeDoSection.style.backgroundPositionY = '';
+    }
+    ScrollTrigger.refresh();
+    updateTextureParallax();
+}
+
+if (btnModeOfficial) btnModeOfficial.addEventListener('click', () => setSiteMode('official'));
+if (btnModeCustom) btnModeCustom.addEventListener('click', () => setSiteMode('custom'));
+
+function ensureCustomMode() {
+    if (isOfficialMode) {
+        setSiteMode('custom');
+    }
+}
+
 // Border Mode Switching (wavy, chevron, clean)
 function setBorderMode(mode) {
+    ensureCustomMode();
     document.body.classList.remove('border-mode-wavy', 'border-mode-chevron', 'border-mode-clean');
     document.body.classList.add(`border-mode-${mode}`);
 
@@ -471,6 +506,7 @@ let isTextureOn = true;
 
 if (btnTextureToggle) {
     btnTextureToggle.addEventListener('click', () => {
+        ensureCustomMode();
         isTextureOn = !isTextureOn;
         if (isTextureOn) {
             bgTexture.classList.add('texture-on');
@@ -481,11 +517,13 @@ if (btnTextureToggle) {
             btnTextureToggle.classList.remove('active');
             if (textureStatusText) textureStatusText.innerText = 'OFF';
         }
+        updateTextureParallax();
     });
 }
 
 if (btnTextureStyle) {
     btnTextureStyle.addEventListener('click', () => {
+        ensureCustomMode();
         // Remove current style class
         bgTexture.classList.remove(textureStyles[currentTextureIndex].class);
         // Cycle index
@@ -504,6 +542,7 @@ let isDarkMode = false;
 
 if (btnThemeToggle) {
     btnThemeToggle.addEventListener('click', () => {
+        ensureCustomMode();
         isDarkMode = !isDarkMode;
         if (isDarkMode) {
             document.body.classList.add('dark-mode');
@@ -518,12 +557,24 @@ if (btnThemeToggle) {
 }
 
 // Subtle Scroll Parallax for Background Texture (-0.35x scroll ratio)
-window.addEventListener('scroll', () => {
+const whatWeDoSection = document.getElementById('what-we-do');
+
+function updateTextureParallax() {
+    const scrollY = window.scrollY;
     if (isTextureOn && bgTexture) {
-        const scrollY = window.scrollY;
         bgTexture.style.backgroundPositionY = (-scrollY * 0.35) + 'px';
     }
-}, { passive: true });
+    if (whatWeDoSection && isTextureOn && document.body.classList.contains('official-mode')) {
+        const offsetTop = whatWeDoSection.offsetTop || 0;
+        whatWeDoSection.style.backgroundPositionY = (scrollY * 0.65 - offsetTop) + 'px';
+    } else if (whatWeDoSection && !document.body.classList.contains('official-mode')) {
+        whatWeDoSection.style.backgroundPositionY = '';
+    }
+}
+
+window.addEventListener('scroll', updateTextureParallax, { passive: true });
+window.addEventListener('resize', updateTextureParallax);
+updateTextureParallax();
 
 // =================================================================
 // 6. ACTIVE NAV HIGHLIGHTING
