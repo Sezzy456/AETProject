@@ -23,7 +23,8 @@ body {
 }
 
 section[id] {
-    scroll-margin-top: 110px;
+    scroll-margin-top: 140px;
+    /* Clears nav bar + header wave */
 }
 
 /* Background Texture Layer for Parallax Scrolling */
@@ -83,7 +84,7 @@ h3 {
     z-index: 10;
 }
 
-/* Header & Floating Top Navigation */
+/* Header & Floating Top-Right Navigation */
 .main-header {
     position: fixed;
     top: 0;
@@ -92,13 +93,14 @@ h3 {
     z-index: 1000;
     background: transparent;
     pointer-events: none;
+    /* Base header doesn't block page clicks */
 }
 
 .nav-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 24px 28px 12px 28px;
+    padding: 28px 28px 12px 28px;
     box-sizing: border-box;
     width: 100%;
     max-width: 1850px;
@@ -113,8 +115,8 @@ h3 {
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     padding: 8px 18px;
-    border-radius: 12px;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+    border-radius: 10px;
+    box-shadow: none;
     border: none;
     transition: transform 0.3s ease;
 }
@@ -124,7 +126,7 @@ h3 {
 }
 
 .logo-img {
-    height: 58px;
+    height: 60px;
     width: auto;
     display: block;
 }
@@ -139,13 +141,13 @@ h3 {
     display: none;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
+    width: 50px;
+    height: 50px;
     border: none;
     border-radius: 12px;
     background: var(--gradient);
     color: #ffffff;
-    font-size: 1.35rem;
+    font-size: 1.45rem;
     cursor: pointer;
     box-shadow: 0 6px 20px rgba(33, 147, 176, 0.28);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -166,7 +168,7 @@ h3 {
     gap: 8px;
     background: var(--gradient);
     padding: 12px 28px;
-    border-radius: 12px;
+    border-radius: 10px;
     box-shadow: 0 6px 20px rgba(33, 147, 176, 0.25);
     transition: all 0.3s ease;
 }
@@ -177,7 +179,7 @@ h3 {
     padding: 7px 18px;
     font-weight: 600;
     font-size: 1.15rem;
-    transition: opacity 0.3s, transform 0.2s, background-color 0.2s;
+    transition: opacity 0.3s, transform 0.2s;
     position: relative;
 }
 
@@ -193,6 +195,7 @@ h3 {
 
 .wave {
     pointer-events: none !important;
+    /* Ensures SVG wave decorations never block clicks */
 }
 
 /* Chevron Divider Styling & Horizontal Left-to-Right Ribbon Animation */
@@ -227,6 +230,7 @@ h3 {
 
 .chevron-group {
     animation: chevronSlideLeftToRight 16s linear infinite;
+    /* Smooth 16s continuous motion */
 }
 
 @keyframes chevronSlideLeftToRight {
@@ -239,7 +243,7 @@ h3 {
     }
 }
 
-/* Curated Official Website Design */
+/* Official Preset (Curated Website Design) */
 /* Transition 1: Between Hero and What We Do -> Chevron Border, No Parallax Image */
 body.official-mode .hero-parallax {
     display: block !important;
@@ -258,7 +262,7 @@ body.official-mode .hero-parallax .bottom-chevron {
 
 body.official-mode .hero-parallax .top-chevron {
     display: block !important;
-    top: -28px;
+    top: -28px !important;
 }
 
 /* Section 1 (What We Do): Reversed Colors Background (Light Grey main, White diamond plate pattern) */
@@ -284,9 +288,9 @@ body.official-mode .what-we-do .section-title {
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
 }
 
-/* Parallax 1: Window separating sections */
+/* Parallax 1: Taller window separating sections */
 body.official-mode .parallax-1 {
-    height: 60vh;
+    height: 65vh;
 }
 
 /* Parallax 1: Bottom of What We Do gets Chevron, Top of Who We Are gets Wave (White) */
@@ -310,7 +314,7 @@ body.official-mode .parallax-1 .bottom-chevron {
     display: none !important;
 }
 
-/* Section 2 (Who We Are) */
+/* Section 2 (Who We Are): Page-height spacing with generous bottom gap before chevron */
 body.official-mode .who-we-are {
     min-height: calc(100vh - 80px);
     box-sizing: border-box;
@@ -322,9 +326,9 @@ body.official-mode .who-we-are .who-we-are-content {
     flex: 1;
 }
 
-/* Parallax 2: Window separating sections */
+/* Parallax 2: Taller window separating sections */
 body.official-mode .parallax-2 {
-    height: 60vh;
+    height: 65vh;
 }
 
 /* Parallax 2: Bottom of Who We Are gets Chevron, Top of How It Works gets Wave */
@@ -348,7 +352,7 @@ body.official-mode .parallax-2 .bottom-chevron {
     display: none !important;
 }
 
-/* Section 3 (How It Works) */
+/* Section 3 (How It Works): Page-height spacing and clean bottom spacing above straight footer */
 body.official-mode .infographic-section {
     min-height: calc(100vh - 80px);
     box-sizing: border-box;
@@ -360,7 +364,7 @@ body.official-mode .infographic-section .info-grid {
     flex: 1;
 }
 
-/* Bottom Section / Footer: Straight line */
+/* Bottom Section / Footer: Straight line (no blue wave, no chevron border) */
 body.official-mode .footer-chevron {
     display: none !important;
 }
@@ -402,7 +406,7 @@ body.official-mode .hero-section {
 }
 
 .hero-text-column {
-    flex: 0 1 600px;
+    flex: 0 0 600px;
     max-width: 600px;
     box-sizing: border-box;
     background: #ffffff;
@@ -429,7 +433,7 @@ body.official-mode .hero-section {
     font-size: 1.3rem;
     line-height: 1.55;
     color: #475569;
-    margin: 0 0 30px 0;
+    margin-bottom: 30px;
 }
 
 .hero-actions {
@@ -465,7 +469,6 @@ body.official-mode .hero-section {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    min-width: 0;
 }
 
 .video-container {
@@ -485,6 +488,13 @@ body.official-mode .hero-section {
     height: 100%;
     border: none;
     pointer-events: auto;
+}
+
+#animation-canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
 }
 
 .hero-parallax {
@@ -539,7 +549,6 @@ body.official-mode .hero-section {
     z-index: 100;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     color: white;
-    box-sizing: border-box;
 }
 
 .v-btn {
@@ -550,7 +559,6 @@ body.official-mode .hero-section {
     cursor: pointer;
     width: 38px;
     height: 38px;
-    flex-shrink: 0;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -565,7 +573,6 @@ body.official-mode .hero-section {
 
 .video-time-container {
     flex: 1;
-    min-width: 0;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -576,7 +583,6 @@ body.official-mode .hero-section {
 
 #video-seek-bar {
     flex: 1;
-    min-width: 50px;
     height: 6px;
     -webkit-appearance: none;
     appearance: none;
@@ -645,9 +651,11 @@ body.official-mode .hero-section {
 }
 
 .text-column-container {
-    flex: 0 1 680px;
+    flex: 0 0 680px;
     max-width: 680px;
     position: relative;
+    left: auto;
+    top: auto;
     width: 100%;
     z-index: 10;
 }
@@ -655,17 +663,15 @@ body.official-mode .hero-section {
 .text-column {
     position: relative;
     width: 100%;
-    display: grid;
-    grid-template-columns: 1fr;
-    align-items: center;
     min-height: 230px;
 }
 
 .canvas-container {
     flex: 1;
     position: relative;
+    right: auto;
+    top: auto;
     width: 100%;
-    min-width: 0;
     z-index: 5;
     display: flex;
     align-items: center;
@@ -682,8 +688,9 @@ body.official-mode .hero-section {
 }
 
 .text-block {
-    grid-area: 1 / 1;
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     visibility: hidden;
     background: #ffffff;
@@ -703,7 +710,6 @@ body.official-mode .hero-section {
 .text-block p {
     font-size: 1.35rem;
     line-height: 1.6;
-    margin: 0;
 }
 
 .text-block .delay-1,
@@ -723,7 +729,7 @@ body.official-mode .hero-section {
 }
 
 #what-we-do-dots {
-    margin-top: 16px;
+    margin-top: 14px;
     padding-left: 44px;
     box-sizing: border-box;
 }
@@ -757,9 +763,10 @@ body.official-mode .hero-section {
 /* Parallax Sections */
 .parallax-image {
     position: relative;
-    height: 60vh;
+    height: 65vh;
     width: 100%;
     overflow: visible;
+    /* Allows top & bottom chevrons to overlap section borders */
     display: flex;
     align-items: flex-end;
     z-index: 2;
@@ -773,19 +780,19 @@ body.official-mode .hero-section {
     width: 100%;
     height: 100%;
     overflow: hidden;
+    /* Clips the 120% height parallax photo strictly within section bounds */
     z-index: -1;
 }
 
 .parallax-bg {
     position: absolute;
-    top: -15%;
+    top: 0;
     left: 0;
     width: 100%;
-    height: 130%;
+    height: 120%;
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
-    will-change: transform;
+    background-attachment: fixed;
 }
 
 .wave.bottom-wave {
@@ -837,7 +844,7 @@ body.official-mode .hero-section {
 }
 
 .who-text-container {
-    flex: 0 1 680px;
+    flex: 0 0 680px;
     max-width: 680px;
     background: #ffffff;
     padding: 44px 50px;
@@ -856,7 +863,6 @@ body.official-mode .hero-section {
 .who-text-container p {
     font-size: 1.4rem;
     line-height: 1.7;
-    margin: 0;
 }
 
 /* Infographic */
@@ -922,7 +928,7 @@ body.official-mode .hero-section {
     border-radius: 24px;
     box-shadow: none;
     border: none;
-    flex: 0 1 680px;
+    flex: 0 0 680px;
     max-width: 680px;
     box-sizing: border-box;
 }
@@ -936,7 +942,6 @@ body.official-mode .hero-section {
 .info-details p {
     font-size: 1.2rem;
     line-height: 1.6;
-    margin: 0;
 }
 
 /* Footer */
@@ -976,15 +981,16 @@ body.official-mode .hero-section {
 }
 
 /* =================================================================
-   LAPTOP & DESKTOP RESPONSIVE OPTIMIZATION (max-width: 1440px)
+   LAPTOP & RESPONSIVE OPTIMIZATION
+   Tailored for Laptop Displays (1280px - 1536px, and short viewports)
    ================================================================= */
-@media screen and (max-width: 1440px) {
+@media screen and (max-width: 1440px), screen and (max-height: 850px) {
     html {
-        font-size: 94%;
+        font-size: 92%;
     }
 
     .main-header .nav-container {
-        padding: 20px 24px 8px 24px;
+        padding: 24px 24px 8px 24px;
     }
 
     .logo {
@@ -1008,8 +1014,8 @@ body.official-mode .hero-section {
 
     /* Hero Section */
     .hero-section {
-        padding: 95px 0 25px 0;
-        min-height: auto;
+        padding: 90px 0 15px 0;
+        min-height: calc(100vh - 40px);
     }
 
     .hero-container {
@@ -1019,8 +1025,8 @@ body.official-mode .hero-section {
     }
 
     .hero-text-column {
-        flex: 0 1 460px;
-        max-width: 460px;
+        flex: 0 0 490px;
+        max-width: 490px;
         padding: 28px 32px;
         border-radius: 20px;
     }
@@ -1033,27 +1039,37 @@ body.official-mode .hero-section {
     }
 
     .hero-subtitle {
-        font-size: 1.08rem;
+        font-size: 1.06rem;
         line-height: 1.5;
         margin-bottom: 22px;
     }
 
     .hero-btn {
-        padding: 12px 24px;
-        font-size: 1rem;
+        padding: 11px 24px;
+        font-size: 0.96rem;
     }
 
     body.official-mode .hero-section {
-        min-height: calc(100vh - 60px);
+        min-height: calc(100vh - 70px);
         padding-bottom: 60px;
     }
 
-    body.official-mode .what-we-do,
-    body.official-mode .who-we-are,
-    body.official-mode .infographic-section {
-        min-height: auto;
-        padding-top: 40px;
+    body.official-mode .what-we-do {
+        min-height: calc(100vh - 70px);
+        padding-top: 35px;
         padding-bottom: 70px;
+    }
+
+    body.official-mode .who-we-are {
+        min-height: calc(100vh - 70px);
+        padding-top: 24px;
+        padding-bottom: 70px;
+    }
+
+    body.official-mode .infographic-section {
+        min-height: calc(100vh - 70px);
+        padding-top: 24px;
+        padding-bottom: 55px;
     }
 
     section[id] {
@@ -1067,18 +1083,23 @@ body.official-mode .hero-section {
 
     /* Section Titles */
     .section-title-wrapper {
-        margin: 22px 0 18px 0;
+        margin: 22px 0 16px 0;
         padding-top: 6px;
     }
 
     .section-title {
-        font-size: 2.9rem;
+        font-size: 2.95rem;
         font-weight: 800;
-        padding: 10px 34px;
+        padding: 10px 36px;
         border-radius: 20px;
     }
 
     /* What We Do */
+    .what-we-do {
+        padding: 15px 0 30px 0;
+        min-height: auto;
+    }
+
     .what-we-do .content-wrapper {
         gap: 24px;
         max-width: 1320px;
@@ -1087,8 +1108,8 @@ body.official-mode .hero-section {
     }
 
     .text-column-container {
-        flex: 0 1 450px;
-        max-width: 450px;
+        flex: 0 0 470px;
+        max-width: 470px;
     }
 
     .text-block {
@@ -1102,8 +1123,8 @@ body.official-mode .hero-section {
     }
 
     .text-block p {
-        font-size: 1.05rem;
-        line-height: 1.55;
+        font-size: 1.02rem;
+        line-height: 1.52;
     }
 
     #animation-canvas {
@@ -1115,18 +1136,25 @@ body.official-mode .hero-section {
         padding-left: 30px;
     }
 
-    /* Parallax Images */
-    .parallax-image,
+    /* Parallax Images: Taller gap between chevron and wave (approx half page height) */
+    .parallax-image {
+        height: 60vh;
+    }
+
     body.official-mode .parallax-1,
     body.official-mode .parallax-2 {
-        height: 52vh;
+        height: 60vh;
     }
 
     .wave.bottom-wave {
-        height: 95px;
+        height: 100px;
     }
 
     /* Who We Are */
+    .who-we-are {
+        padding: 24px 0 38px 0;
+    }
+
     .who-we-are-content {
         gap: 28px;
         max-width: 1180px;
@@ -1134,17 +1162,17 @@ body.official-mode .hero-section {
     }
 
     .blob-container {
-        width: 360px;
+        width: 350px;
     }
 
     .svg-blob {
-        width: 360px;
-        height: 360px;
+        width: 350px;
+        height: 350px;
     }
 
     .who-text-container {
-        flex: 0 1 480px;
-        max-width: 480px;
+        flex: 0 0 470px;
+        max-width: 470px;
         padding: 28px 32px;
         border-radius: 20px;
     }
@@ -1155,11 +1183,15 @@ body.official-mode .hero-section {
     }
 
     .who-text-container p {
-        font-size: 1.05rem;
-        line-height: 1.55;
+        font-size: 1.02rem;
+        line-height: 1.52;
     }
 
     /* Infographic (How It Works) */
+    .infographic-section {
+        padding: 24px 0 45px 0;
+    }
+
     .info-grid {
         gap: 36px;
         max-width: 1060px;
@@ -1172,15 +1204,15 @@ body.official-mode .hero-section {
     }
 
     .circle-stage {
-        width: 54px;
-        height: 54px;
+        width: 52px;
+        height: 52px;
         font-size: 18px;
         border-width: 2.5px;
     }
 
     .info-details {
-        flex: 0 1 480px;
-        max-width: 480px;
+        flex: 0 0 470px;
+        max-width: 470px;
         padding: 28px 32px;
         border-radius: 20px;
     }
@@ -1191,8 +1223,8 @@ body.official-mode .hero-section {
     }
 
     .info-details p {
-        font-size: 1.05rem;
-        line-height: 1.55;
+        font-size: 1.02rem;
+        line-height: 1.52;
     }
 }
 
@@ -1200,7 +1232,7 @@ body.official-mode .hero-section {
    TABLET & MOBILE LAYOUT (max-width: 980px)
    ================================================================= */
 @media screen and (max-width: 980px) {
-    /* 1. Fixed Top Header & Collapsible Burger Menu */
+    /* Keep Logo & Burger Button Fixed at Top of Screen */
     .main-header {
         position: fixed;
         top: 0;
@@ -1209,16 +1241,7 @@ body.official-mode .hero-section {
     }
 
     .main-header .nav-container {
-        padding: 14px 20px;
-    }
-
-    .logo {
-        padding: 6px 12px;
-        border-radius: 10px;
-    }
-
-    .logo-img {
-        height: 40px;
+        padding: 16px 20px;
     }
 
     .burger-btn {
@@ -1231,13 +1254,11 @@ body.official-mode .hero-section {
         right: 0;
         flex-direction: column;
         align-items: stretch;
-        min-width: 210px;
-        padding: 10px;
+        min-width: 215px;
+        padding: 12px;
         border-radius: 16px;
-        gap: 4px;
-        background: linear-gradient(135deg, rgba(109, 213, 237, 0.98) 0%, rgba(33, 147, 176, 0.98) 100%);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
+        gap: 6px;
+        background: var(--gradient);
         box-shadow: 0 14px 34px rgba(15, 23, 42, 0.25);
         opacity: 0;
         visibility: hidden;
@@ -1256,9 +1277,8 @@ body.official-mode .hero-section {
 
     .nav-links a {
         text-align: center;
-        padding: 11px 18px;
+        padding: 10px 18px;
         border-radius: 10px;
-        font-size: 1.05rem;
         border-bottom: none !important;
     }
 
@@ -1266,59 +1286,48 @@ body.official-mode .hero-section {
         background: rgba(255, 255, 255, 0.22);
     }
 
-    /* 2. Hero Section: Center Aligned & Ordered Title -> Video -> Text */
-    .hero-section,
+    /* Hero Section: Full-Screen Height, Title Higher & Bigger, Video Centered, Text Below */
     body.official-mode .hero-section {
-        min-height: auto;
-        padding: 86px 0 48px 0;
-        align-items: flex-start;
+        min-height: calc(100vh - 70px);
+        padding: 82px 0 60px 0;
+    }
+
+    .hero-container,
+    .what-we-do .content-wrapper,
+    .who-we-are-content,
+    .info-grid {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center;
     }
 
     .hero-container {
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: flex-start;
-        text-align: center;
-        gap: 18px;
-        width: 92%;
-        max-width: 740px;
-        padding: 0;
+        justify-content: center;
+        gap: 22px;
     }
 
-    /* Unwrap .hero-text-column so .hero-title, .hero-media-column, and .hero-body can be ordered */
+    /* Unwrap .hero-text-column so Title (1), Video (2), and Body Text (3) stack in order */
     .hero-text-column {
         display: contents !important;
     }
 
     .hero-title {
         order: 1;
-        width: auto;
-        max-width: 100%;
-        font-size: clamp(2.55rem, 6.5vw, 3.6rem);
+        font-size: 3.6rem;
         line-height: 1.12;
         margin: 0 auto;
-        padding: 10px 24px 12px 24px;
-        background-color: #ffffff;
-        background-image: var(--gradient);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        padding: 8px 20px 10px 20px;
         text-align: center;
-        position: relative;
-        z-index: 2;
     }
 
     .hero-media-column {
         order: 2;
-        width: 100% !important;
         justify-content: center !important;
-        margin: 0 auto;
+        width: 100% !important;
     }
 
     .video-container {
-        width: 100%;
-        max-width: 720px;
         margin: 0 auto;
-        border-radius: 18px;
     }
 
     .hero-body {
@@ -1326,92 +1335,18 @@ body.official-mode .hero-section {
         width: 100%;
         max-width: 680px;
         background: #ffffff;
-        padding: 24px 28px;
+        padding: 28px 32px;
         border-radius: 20px;
         box-sizing: border-box;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
         text-align: center;
         margin: 0 auto;
-    }
-
-    .hero-subtitle {
-        font-size: 1.12rem;
-        line-height: 1.55;
-        margin-bottom: 20px;
-        text-align: center;
     }
 
     .hero-actions {
         justify-content: center;
     }
 
-    /* 3. Thinner Chevron & Wave Borders for Tablet/Mobile */
-    .chevron-divider-container {
-        height: 34px !important;
-    }
-
-    .chevron-divider-container.top-chevron,
-    body.official-mode .hero-parallax .top-chevron,
-    .chevron-divider-container.footer-chevron {
-        top: -17px !important;
-    }
-
-    .chevron-divider-container.bottom-chevron {
-        bottom: -17px !important;
-    }
-
-    .top-wave,
-    .wave.bottom-wave {
-        height: 60px;
-    }
-
-    /* 4. Shorter, Width-Fitted Parallax Image Dividers */
-    .parallax-image,
-    body.official-mode .parallax-1,
-    body.official-mode .parallax-2 {
-        height: clamp(175px, 32vw, 270px);
-    }
-
-    .parallax-bg {
-        top: -15%;
-        height: 130%;
-        background-size: 100% auto;
-        background-position: center center;
-    }
-
-    /* 5. Other Sections Stacked & Centered */
-    .section-title-wrapper {
-        margin: 14px 0 16px 0;
-        padding-top: 0;
-    }
-
-    .section-title {
-        font-size: clamp(2.1rem, 5.5vw, 2.7rem);
-        padding: 10px 28px;
-    }
-
-    body.official-mode .what-we-do,
-    body.official-mode .who-we-are,
-    body.official-mode .infographic-section {
-        min-height: auto;
-        padding-top: 32px;
-        padding-bottom: 52px;
-    }
-
-    .what-we-do .content-wrapper,
-    .who-we-are-content,
-    .info-grid {
-        flex-direction: column !important;
-        align-items: center !important;
-        text-align: center;
-        gap: 22px;
-        width: 92%;
-        max-width: 720px;
-        min-height: auto;
-        padding: 0;
-    }
-
-    /* Order What We Do: Canvas first, Text second */
+    /* What We Do: Animation Above Text on Mobile/Tablet */
     .what-we-do .canvas-container {
         order: 1;
         justify-content: center !important;
@@ -1425,194 +1360,45 @@ body.official-mode .hero-section {
         width: 100% !important;
     }
 
-    .text-column {
-        min-height: auto;
-    }
-
-    .text-block,
     .who-text-container,
     .info-details {
         flex: 0 0 100% !important;
         max-width: 100% !important;
         width: 100% !important;
-        padding: 24px 26px;
-        border-radius: 20px;
     }
 
     #what-we-do-dots {
         justify-content: center;
         padding-left: 0;
-        margin-top: 14px;
     }
 
     .who-dots {
         justify-content: center;
     }
 
-    .blob-container {
-        width: min(76vw, 330px);
-    }
-
-    .svg-blob {
-        width: min(76vw, 330px);
-        height: min(76vw, 330px);
-    }
-
     .info-graphics {
         flex-direction: row;
-        flex: 0 0 auto;
-        gap: 16px;
-    }
-}
-
-/* =================================================================
-   MOBILE PHONES (max-width: 600px)
-   ================================================================= */
-@media screen and (max-width: 600px) {
-    .main-header .nav-container {
-        padding: 12px 16px;
     }
 
-    .logo {
-        padding: 5px 10px;
-    }
-
-    .logo-img {
-        height: 34px;
-    }
-
-    .burger-btn {
-        width: 44px;
-        height: 44px;
-        font-size: 1.2rem;
-        border-radius: 10px;
-    }
-
-    /* Hero Section on Mobile: Higher up, bigger title, centered video & text */
-    .hero-section,
-    body.official-mode .hero-section {
-        padding: 72px 0 38px 0;
-    }
-
-    .hero-container {
-        width: 92%;
-        gap: 14px;
-    }
-
-    .hero-title {
-        font-size: clamp(2.25rem, 8.2vw, 2.95rem);
-        line-height: 1.12;
-        padding: 6px 10px 8px 10px;
-    }
-
-    .video-container {
-        border-radius: 14px;
-    }
-
-    /* Compact Video Controls Bar on Mobile */
-    .video-controls-bar {
-        bottom: 10px;
-        width: 94%;
-        padding: 6px 12px;
-        gap: 8px;
-    }
-
-    .v-btn {
-        width: 30px;
-        height: 30px;
-        font-size: 13px;
-    }
-
-    .video-time-container {
-        gap: 8px;
-        font-size: 11px;
-    }
-
-    .volume-slider {
-        display: none;
-    }
-
-    .play-pause-icon {
-        font-size: 64px;
-    }
-
-    .hero-body {
-        padding: 20px 20px;
-        border-radius: 18px;
-    }
-
-    .hero-subtitle {
-        font-size: 1rem;
-        line-height: 1.5;
-        margin-bottom: 16px;
-    }
-
-    .hero-btn {
-        padding: 12px 22px;
-        font-size: 0.98rem;
-        width: 100%;
-        max-width: 260px;
-        justify-content: center;
-        box-sizing: border-box;
-    }
-
-    /* Even Thinner Chevron & Wave Borders on Phone */
+    /* Chevrons: Slightly thinner vertically than PC (56px -> 42px), not over-thinned */
     .chevron-divider-container {
-        height: 24px !important;
+        height: 42px !important;
     }
 
     .chevron-divider-container.top-chevron,
     body.official-mode .hero-parallax .top-chevron,
     .chevron-divider-container.footer-chevron {
-        top: -12px !important;
+        top: -21px !important;
     }
 
     .chevron-divider-container.bottom-chevron {
-        bottom: -12px !important;
+        bottom: -21px !important;
     }
 
-    .top-wave,
-    .wave.bottom-wave {
-        height: 42px;
-    }
-
-    /* Compact Parallax Dividers on Phone */
+    /* Parallax Image Dividers: Shorter vertical window while keeping stationary fixed parallax effect */
     .parallax-image,
     body.official-mode .parallax-1,
     body.official-mode .parallax-2 {
-        height: clamp(135px, 35vw, 190px);
-    }
-
-    .section-title {
-        font-size: clamp(1.85rem, 7vw, 2.3rem);
-        padding: 8px 22px;
-        border-radius: 16px;
-    }
-
-    .text-block,
-    .who-text-container,
-    .info-details {
-        padding: 20px 20px;
-        border-radius: 18px;
-    }
-
-    .text-block h2,
-    .who-text-container h3,
-    .info-details h3 {
-        font-size: 1.55rem;
-        margin-bottom: 8px;
-    }
-
-    .text-block p,
-    .who-text-container p,
-    .info-details p {
-        font-size: 0.98rem;
-        line-height: 1.5;
-    }
-
-    .circle-stage {
-        width: 46px;
-        height: 46px;
-        font-size: 16px;
+        height: 40vh;
     }
 }

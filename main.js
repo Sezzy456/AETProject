@@ -467,42 +467,25 @@ stages.forEach(stage => {
 });
 
 // =================================================================
-// 5. SCROLL PARALLAX FOR TEXTURES & PARALLAX PHOTO DIVIDERS
+// 5. SUBTLE SCROLL PARALLAX FOR BACKGROUND TEXTURE (-0.35x scroll ratio)
 // =================================================================
 const bgTexture = document.getElementById('bg-texture');
 const whatWeDoSection = document.getElementById('what-we-do');
-const parallaxSections = document.querySelectorAll('.parallax-1, .parallax-2');
 
-function updateScrollParallax() {
+function updateTextureParallax() {
     const scrollY = window.scrollY;
-    const viewportHeight = window.innerHeight;
-
     if (bgTexture) {
         bgTexture.style.backgroundPositionY = (-scrollY * 0.35) + 'px';
     }
-
     if (whatWeDoSection && document.body.classList.contains('official-mode')) {
         const offsetTop = whatWeDoSection.offsetTop || 0;
         whatWeDoSection.style.backgroundPositionY = (scrollY * 0.65 - offsetTop) + 'px';
     }
-
-    // Smooth cross-device parallax for section divider images
-    parallaxSections.forEach(section => {
-        const bg = section.querySelector('.parallax-bg');
-        if (!bg) return;
-        const rect = section.getBoundingClientRect();
-        if (rect.bottom > 0 && rect.top < viewportHeight) {
-            const progress = (viewportHeight - rect.top) / (viewportHeight + rect.height);
-            const maxShift = rect.height * 0.24;
-            const translateY = (progress - 0.5) * 2 * maxShift;
-            bg.style.transform = `translate3d(0, ${translateY.toFixed(1)}px, 0)`;
-        }
-    });
 }
 
-window.addEventListener('scroll', updateScrollParallax, { passive: true });
-window.addEventListener('resize', updateScrollParallax);
-updateScrollParallax();
+window.addEventListener('scroll', updateTextureParallax, { passive: true });
+window.addEventListener('resize', updateTextureParallax);
+updateTextureParallax();
 
 // =================================================================
 // 6. ACTIVE NAV HIGHLIGHTING
@@ -512,7 +495,7 @@ const navLinks = document.querySelectorAll(".nav-links a");
 
 const observerOptions = {
     root: null,
-    rootMargin: "-20% 0px -60% 0px",
+    rootMargin: "-20% 0px -60% 0px", // Trigger when section is in top half of viewport
     threshold: 0
 };
 
