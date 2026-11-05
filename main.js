@@ -318,9 +318,9 @@ function initScrollytelling() {
 // 3. 'WHO WE ARE' ROTATING BLOB & CONTENT SWAP WITH DOT CAROUSEL
 // =================================================================
 const whoData = [
-    { image: 'images/DSC03781.jpg', title: 'Our Dedicated Team', desc: 'We bring decades of engineering and community experience to the table, ensuring sustainable growth.', overlay: 'images/DSC03781-removebg-preview.png' },
+    { image: 'images/DSC03781.jpg', title: 'Our Dedicated Team', desc: 'We bring decades of engineering and community experience to the table, ensuring sustainable growth.', overlay: 'images/Firefly.png' },
     { image: 'images/IMG_1549.JPG', title: 'Community Outreach', desc: 'Working closely with local groups to educate and empower citizens in waste reduction.', overlay: 'images/IMG_1549-removebg-preview.png' },
-    { image: 'images/DSC03786.jpg', title: 'Innovative Engineers', desc: 'Designing the systems that turn everyday waste into tomorrow\'s clean energy.', overlay: 'images/DSC03786-removebg-preview.png' }
+    { image: 'images/DSC03786.jpg', title: 'Innovative Engineers', desc: 'Designing the systems that turn everyday waste into tomorrow\'s clean energy.', overlay: 'images/3Firefly.png' }
 ];
 
 // 5 Convex & 5 Concave Soft Symmetrical Star Blob Paths
