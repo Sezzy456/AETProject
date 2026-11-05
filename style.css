@@ -780,7 +780,7 @@ body.official-mode .hero-section {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    /* Clips the 120% height parallax photo strictly within section bounds */
+    /* Clips the parallax photo strictly within section bounds */
     z-index: -1;
 }
 
@@ -1395,10 +1395,29 @@ body.official-mode .hero-section {
         bottom: -21px !important;
     }
 
-    /* Parallax Image Dividers: Shorter vertical window while keeping stationary fixed parallax effect */
+    /* Parallax Image Dividers on Tablet/Mobile:
+       1. Smaller vertical divider window (26vw, clamped between 165px and 245px)
+       2. Photo scaled to exact 3:2 aspect ratio at 100% screen width (100vw x 66.67vw) so left & right are NOT cut off
+       3. Counter-scrolled in JS so the photo stays anchored as the window passes over it */
     .parallax-image,
     body.official-mode .parallax-1,
     body.official-mode .parallax-2 {
-        height: 40vh;
+        height: clamp(165px, 26vw, 245px);
+    }
+
+    .parallax-bg {
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 66.67vw;
+        min-height: 185%;
+        background-attachment: scroll;
+        background-size: cover;
+        background-position: center;
+        will-change: transform;
+    }
+
+    .wave.bottom-wave {
+        height: 64px;
     }
 }

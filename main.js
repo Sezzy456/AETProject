@@ -467,13 +467,17 @@ stages.forEach(stage => {
 });
 
 // =================================================================
-// 5. SUBTLE SCROLL PARALLAX FOR BACKGROUND TEXTURE (-0.35x scroll ratio)
+// 5. SCROLL PARALLAX FOR TEXTURES & MOBILE/TABLET PARALLAX DIVIDERS
 // =================================================================
 const bgTexture = document.getElementById('bg-texture');
 const whatWeDoSection = document.getElementById('what-we-do');
+const parallaxSections = document.querySelectorAll('.parallax-1, .parallax-2');
 
 function updateTextureParallax() {
     const scrollY = window.scrollY;
+    const viewportHeight = window.innerHeight;
+    const isMobileOrTablet = window.innerWidth <= 980;
+
     if (bgTexture) {
         bgTexture.style.backgroundPositionY = (-scrollY * 0.35) + 'px';
     }
@@ -481,6 +485,33 @@ function updateTextureParallax() {
         const offsetTop = whatWeDoSection.offsetTop || 0;
         whatWeDoSection.style.backgroundPositionY = (scrollY * 0.65 - offsetTop) + 'px';
     }
+
+    // On tablet & mobile (<= 980px), counter-scroll the width-fitted 3:2 photo
+    // so it stays anchored in the opposite direction of scroll while fitting 100% of screen width.
+    parallaxSections.forEach(section => {
+        const bg = section.querySelector('.parallax-bg');
+        if (!bg) return;
+
+        if (!isMobileOrTablet) {
+            bg.style.transform = '';
+            return;
+        }
+
+        const rect = section.getBoundingClientRect();
+        if (rect.bottom > -50 && rect.top < viewportHeight + 50) {
+            const windowH = rect.height;
+            const bgH = bg.offsetHeight;
+            const maxTravel = Math.max(0, bgH - windowH);
+
+            // Progress from 0 (section entering at bottom of screen) to 1 (section leaving at top of screen)
+            const rawProgress = (viewportHeight - rect.top) / (viewportHeight + windowH);
+            const progress = Math.min(1, Math.max(0, rawProgress));
+
+            // As the window moves UP the screen (progress 0 -> 1), move the photo DOWN inside the window (-maxTravel -> 0)
+            const translateY = -maxTravel * (1 - progress);
+            bg.style.transform = `translate3d(0, ${translateY.toFixed(1)}px, 0)`;
+        }
+    });
 }
 
 window.addEventListener('scroll', updateTextureParallax, { passive: true });
