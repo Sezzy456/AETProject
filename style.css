@@ -44,13 +44,7 @@ section[id] {
     opacity: 0.35;
 }
 
-/* Texture Option 1: Soft Light Grey Dots Grid */
-.bg-texture.texture-dots {
-    background-image: radial-gradient(#cbd5e1 2px, transparent 2px);
-    background-size: 28px 28px;
-}
-
-/* Texture Option 2: Industrial Diamond Tread Plate (Staggered / and \ rows, soft light grey) */
+/* Industrial Diamond Tread Plate (Staggered / and \ rows, soft light grey) */
 .bg-texture.texture-diamond-plate {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='%2394a3b8' fill-opacity='0.28'%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(16 16) rotate(45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(80 16) rotate(45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(48 48) rotate(-45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(-16 48) rotate(-45)'/%3E%3C/g%3E%3C/svg%3E");
     background-size: 64px 64px;
@@ -142,6 +136,32 @@ h3 {
     position: relative;
 }
 
+/* Burger Button (Hidden on Desktop) */
+.burger-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border: none;
+    border-radius: 12px;
+    background: var(--gradient);
+    color: #ffffff;
+    font-size: 1.45rem;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(33, 147, 176, 0.28);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.burger-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(33, 147, 176, 0.38);
+}
+
+.burger-btn:active {
+    transform: scale(0.96);
+}
+
 .nav-links {
     display: flex;
     align-items: center;
@@ -171,15 +191,6 @@ h3 {
 .nav-links a.active {
     font-weight: 700;
     border-bottom: 2px solid white;
-}
-
-.header-wave {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    height: 60px;
-    z-index: 10;
 }
 
 .wave {
@@ -232,47 +243,7 @@ h3 {
     }
 }
 
-/* Border Mode Rules */
-/* Mode 1: Wavy */
-body.border-mode-wavy .wave {
-    display: block !important;
-}
-
-body.border-mode-wavy .chevron-divider-container {
-    display: none !important;
-}
-
-/* Mode 2: Chevron Arrows */
-body.border-mode-chevron .wave {
-    display: none !important;
-}
-
-body.border-mode-chevron .chevron-divider-container {
-    display: block !important;
-}
-
-/* Mode 3: Clean Straight Borders */
-body.border-mode-clean .wave,
-body.border-mode-clean .chevron-divider-container {
-    display: none !important;
-}
-
-body.border-mode-clean section[id] {
-    scroll-margin-top: 90px;
-}
-
-body.border-mode-clean .nav-links {
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-body.border-mode-clean .what-we-do,
-body.border-mode-clean .who-we-are,
-body.border-mode-clean .infographic-section,
-body.border-mode-clean .parallax-image {
-    border-bottom: 1px solid #e2e8f0;
-}
-
-/* Mode 4: Official Preset (Curated Website Design) */
+/* Official Preset (Curated Website Design) */
 /* Transition 1: Between Hero and What We Do -> Chevron Border, No Parallax Image */
 body.official-mode .hero-parallax {
     display: block !important;
@@ -282,11 +253,13 @@ body.official-mode .hero-parallax {
     overflow: visible !important;
     z-index: 15;
 }
+
 body.official-mode .hero-parallax .parallax-bg-wrapper,
 body.official-mode .hero-parallax .wave,
 body.official-mode .hero-parallax .bottom-chevron {
     display: none !important;
 }
+
 body.official-mode .hero-parallax .top-chevron {
     display: block !important;
     top: -28px !important;
@@ -324,15 +297,19 @@ body.official-mode .parallax-1 {
 body.official-mode .parallax-1 .top-chevron {
     display: block !important;
 }
+
 body.official-mode .parallax-1 .top-wave {
     display: none !important;
 }
+
 body.official-mode .parallax-1 .bottom-wave {
     display: block !important;
 }
+
 body.official-mode .parallax-1 .bottom-wave path {
     fill: #ffffff !important;
 }
+
 body.official-mode .parallax-1 .bottom-chevron {
     display: none !important;
 }
@@ -358,15 +335,19 @@ body.official-mode .parallax-2 {
 body.official-mode .parallax-2 .top-chevron {
     display: block !important;
 }
+
 body.official-mode .parallax-2 .top-wave {
     display: none !important;
 }
+
 body.official-mode .parallax-2 .bottom-wave {
     display: block !important;
 }
+
 body.official-mode .parallax-2 .bottom-wave path {
     fill: #ffffff !important;
 }
+
 body.official-mode .parallax-2 .bottom-chevron {
     display: none !important;
 }
@@ -387,6 +368,7 @@ body.official-mode .infographic-section .info-grid {
 body.official-mode .footer-chevron {
     display: none !important;
 }
+
 body.official-mode .footer-wave {
     display: none !important;
 }
@@ -495,7 +477,6 @@ body.official-mode .hero-section {
     max-width: 1180px;
     aspect-ratio: 16 / 9;
     border-radius: 24px;
-    /* Smooth rounded corners */
     overflow: hidden;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
     border: 1px solid #e2e8f0;
@@ -566,7 +547,6 @@ body.official-mode .hero-section {
     align-items: center;
     gap: 14px;
     z-index: 100;
-    /* High z-index to guarantee clickability */
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     color: white;
 }
@@ -750,7 +730,7 @@ body.official-mode .hero-section {
 
 #what-we-do-dots {
     margin-top: 14px;
-    padding-left: 44px; /* Perfectly aligns leftmost dot with the text inside .text-block */
+    padding-left: 44px;
     box-sizing: border-box;
 }
 
@@ -800,7 +780,7 @@ body.official-mode .hero-section {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    /* Clips the 120% height parallax photo strictly within section bounds */
+    /* Clips the parallax photo strictly within section bounds */
     z-index: -1;
 }
 
@@ -964,106 +944,6 @@ body.official-mode .hero-section {
     line-height: 1.6;
 }
 
-/* Modern Visual Floating Customization Panel */
-.floating-controls-panel {
-    position: fixed;
-    bottom: 25px;
-    right: 25px;
-    z-index: 9999;
-    background: rgba(255, 255, 255, 0.94);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(226, 232, 240, 0.9);
-    border-radius: 24px;
-    padding: 14px 20px;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    transition: all 0.3s ease;
-}
-
-.floating-controls-panel:hover {
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
-}
-
-.preset-row {
-    padding-bottom: 8px;
-    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-    margin-bottom: 2px;
-}
-
-.custom-controls-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    transition: opacity 0.3s ease, filter 0.3s ease;
-}
-
-.custom-controls-wrapper.custom-dimmed {
-    opacity: 0.5;
-}
-
-.custom-controls-wrapper.custom-dimmed:hover {
-    opacity: 0.95;
-}
-
-.control-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-}
-
-.control-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: #475569;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-}
-
-.btn-toggle-group {
-    display: flex;
-    gap: 4px;
-    background: #f1f5f9;
-    padding: 4px;
-    border-radius: 30px;
-}
-
-.pill-btn {
-    background: transparent;
-    border: none;
-    color: #64748b;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-weight: 600;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.pill-btn:hover {
-    color: #2193b0;
-}
-
-.pill-btn.active {
-    background: #2193b0;
-    color: #ffffff;
-    box-shadow: 0 4px 12px rgba(33, 147, 176, 0.3);
-}
-
-.pill-btn.official-pill.active {
-    background: linear-gradient(135deg, #2193b0 0%, #2ecc71 100%);
-    color: #ffffff;
-    box-shadow: 0 4px 14px rgba(33, 147, 176, 0.4);
-}
-
 /* Footer */
 .main-footer {
     position: relative;
@@ -1098,93 +978,6 @@ body.official-mode .hero-section {
 
 .social-icons a:hover {
     transform: scale(1.2);
-}
-
-/* Dark Mode Theme Customization */
-body.dark-mode {
-    --bg-color: #0f172a;
-    --text-color: #f8fafc;
-    background-color: #0f172a;
-}
-
-body.dark-mode .bg-texture.texture-dots {
-    background-image: radial-gradient(#475569 2px, transparent 2px);
-}
-
-body.dark-mode .bg-texture.texture-diamond-plate {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='%2364748b' fill-opacity='0.45'%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(16 16) rotate(45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(80 16) rotate(45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(48 48) rotate(-45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(-16 48) rotate(-45)'/%3E%3C/g%3E%3C/svg%3E");
-}
-
-body.dark-mode .hero-text-column,
-body.dark-mode .text-block,
-body.dark-mode .who-text-container,
-body.dark-mode .info-details,
-body.dark-mode .section-title,
-body.dark-mode .logo {
-    background: #1e293b;
-    color: #f8fafc;
-}
-
-body.dark-mode .hero-subtitle,
-body.dark-mode .who-text-container p,
-body.dark-mode .text-block p,
-body.dark-mode .info-details p {
-    color: #cbd5e1;
-}
-
-body.dark-mode .section-title {
-    color: #38bdf8;
-    -webkit-background-clip: initial;
-    -webkit-text-fill-color: #38bdf8;
-}
-
-body.dark-mode .text-block h2,
-body.dark-mode .who-text-container h3 {
-    color: #38bdf8;
-}
-
-body.dark-mode .info-details h3 {
-    color: #4ade80;
-}
-
-body.dark-mode .floating-controls-panel {
-    background: rgba(30, 41, 59, 0.94);
-    border-color: rgba(71, 85, 105, 0.6);
-}
-
-body.dark-mode .control-title {
-    color: #cbd5e1;
-}
-
-body.dark-mode .btn-toggle-group {
-    background: #0f172a;
-}
-
-body.dark-mode .pill-btn {
-    color: #94a3b8;
-}
-
-body.dark-mode .pill-btn:hover {
-    color: #38bdf8;
-}
-
-body.dark-mode .pill-btn.active {
-    background: #0284c7;
-    color: #ffffff;
-}
-
-/* Official Mode Dark Theme Support */
-body.dark-mode.official-mode .what-we-do {
-    background-color: #1e293b;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='%23334155' fill-opacity='0.6'%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(16 16) rotate(45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(80 16) rotate(45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(48 48) rotate(-45)'/%3E%3Crect x='-10' y='-3.5' width='20' height='7' rx='3.5' transform='translate(-16 48) rotate(-45)'/%3E%3C/g%3E%3C/svg%3E");
-}
-
-body.dark-mode.official-mode .parallax-1 .bottom-wave path {
-    fill: #0f172a !important;
-}
-
-body.dark-mode.official-mode .parallax-2 .bottom-wave path {
-    fill: #0f172a !important;
 }
 
 /* =================================================================
@@ -1433,38 +1226,70 @@ body.dark-mode.official-mode .parallax-2 .bottom-wave path {
         font-size: 1.02rem;
         line-height: 1.52;
     }
-
-    /* Floating Customization Panel */
-    .floating-controls-panel {
-        padding: 10px 14px;
-        bottom: 14px;
-        right: 14px;
-        border-radius: 18px;
-        gap: 6px;
-    }
-
-    .preset-row {
-        padding-bottom: 6px;
-    }
-
-    .control-row {
-        gap: 8px;
-    }
-
-    .control-title {
-        font-size: 11px;
-    }
-
-    .pill-btn {
-        padding: 4px 10px;
-        font-size: 11px;
-    }
 }
 
-/* Tablet & Mobile Fallbacks */
+/* =================================================================
+   TABLET & MOBILE LAYOUT (max-width: 980px)
+   ================================================================= */
 @media screen and (max-width: 980px) {
+    /* Keep Logo & Burger Button Fixed at Top of Screen */
     .main-header {
-        position: relative;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+    }
+
+    .main-header .nav-container {
+        padding: 16px 20px;
+    }
+
+    .burger-btn {
+        display: flex;
+    }
+
+    .nav-links {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        flex-direction: column;
+        align-items: stretch;
+        min-width: 215px;
+        padding: 12px;
+        border-radius: 16px;
+        gap: 6px;
+        background: var(--gradient);
+        box-shadow: 0 14px 34px rgba(15, 23, 42, 0.25);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px) scale(0.96);
+        transform-origin: top right;
+        pointer-events: none;
+        transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s;
+    }
+
+    .nav-links.open {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+    }
+
+    .nav-links a {
+        text-align: center;
+        padding: 10px 18px;
+        border-radius: 10px;
+        border-bottom: none !important;
+    }
+
+    .nav-links a.active {
+        background: rgba(255, 255, 255, 0.22);
+    }
+
+    /* Hero Section: Full-Screen Height, Title Higher & Bigger, Video Centered, Text Below */
+    body.official-mode .hero-section {
+        min-height: calc(100vh - 70px);
+        padding: 106px 0 60px 0;
     }
 
     .hero-container,
@@ -1476,23 +1301,71 @@ body.dark-mode.official-mode .parallax-2 .bottom-wave path {
         text-align: center;
     }
 
-    .hero-text-column,
-    .text-column-container,
-    .who-text-container,
-    .info-details {
+    .hero-container {
+        justify-content: center;
+        gap: 22px;
+    }
+
+    /* Unwrap .hero-text-column so Title (1), Video (2), and Body Text (3) stack in order */
+    .hero-text-column {
+        display: contents !important;
+    }
+
+    .hero-title {
+        order: 1;
+        font-size: clamp(2.8rem, 14.2vw, 4.8rem);
+        max-width: 8.5em;
+        line-height: 1.12;
+        margin: 0 auto;
+        padding: 8px 4px 10px 4px;
+        text-align: center;
+    }
+
+    .hero-media-column {
+        order: 2;
+        justify-content: center !important;
+        width: 100% !important;
+    }
+
+    .video-container {
+        margin: 0 auto;
+    }
+
+    .hero-body {
+        order: 3;
+        width: 100%;
+        max-width: 680px;
+        background: #ffffff;
+        padding: 28px 32px;
+        border-radius: 20px;
+        box-sizing: border-box;
+        text-align: center;
+        margin: 0 auto;
+    }
+
+    .hero-actions {
+        justify-content: center;
+    }
+
+    /* What We Do: Animation Above Text on Mobile/Tablet */
+    .what-we-do .canvas-container {
+        order: 1;
+        justify-content: center !important;
+        width: 100% !important;
+    }
+
+    .what-we-do .text-column-container {
+        order: 2;
         flex: 0 0 100% !important;
         max-width: 100% !important;
         width: 100% !important;
     }
 
-    .hero-media-column,
-    .canvas-container {
-        justify-content: center !important;
+    .who-text-container,
+    .info-details {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
         width: 100% !important;
-    }
-
-    .hero-actions {
-        justify-content: center;
     }
 
     #what-we-do-dots {
@@ -1506,5 +1379,46 @@ body.dark-mode.official-mode .parallax-2 .bottom-wave path {
 
     .info-graphics {
         flex-direction: row;
+    }
+
+    /* Chevrons: Slightly thinner vertically than PC (56px -> 42px), not over-thinned */
+    .chevron-divider-container {
+        height: 42px !important;
+    }
+
+    .chevron-divider-container.top-chevron,
+    body.official-mode .hero-parallax .top-chevron,
+    .chevron-divider-container.footer-chevron {
+        top: -21px !important;
+    }
+
+    .chevron-divider-container.bottom-chevron {
+        bottom: -21px !important;
+    }
+
+    /* Parallax Image Dividers on Tablet/Mobile:
+       1. Smaller vertical divider window (26vw, clamped between 165px and 245px)
+       2. Photo scaled to exact 3:2 aspect ratio at 100% screen width (100vw x 66.67vw) so left & right are NOT cut off
+       3. Counter-scrolled in JS so the photo stays anchored as the window passes over it */
+    .parallax-image,
+    body.official-mode .parallax-1,
+    body.official-mode .parallax-2 {
+        height: clamp(165px, 26vw, 245px);
+    }
+
+    .parallax-bg {
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 66.67vw;
+        min-height: 185%;
+        background-attachment: scroll;
+        background-size: cover;
+        background-position: center;
+        will-change: transform;
+    }
+
+    .wave.bottom-wave {
+        height: 64px;
     }
 }

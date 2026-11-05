@@ -3,6 +3,45 @@
 gsap.registerPlugin(ScrollTrigger);
 
 // =================================================================
+// 0. MOBILE / TABLET BURGER NAVIGATION MENU
+// =================================================================
+const burgerBtn = document.getElementById('burger-btn');
+const burgerIcon = document.getElementById('burger-icon');
+const navLinksContainer = document.getElementById('nav-links');
+
+function closeBurgerMenu() {
+    if (!navLinksContainer || !burgerBtn) return;
+    navLinksContainer.classList.remove('open');
+    burgerBtn.setAttribute('aria-expanded', 'false');
+    if (burgerIcon) {
+        burgerIcon.className = 'fa-solid fa-bars';
+    }
+}
+
+if (burgerBtn && navLinksContainer) {
+    burgerBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = navLinksContainer.classList.toggle('open');
+        burgerBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        if (burgerIcon) {
+            burgerIcon.className = isOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+        }
+    });
+
+    navLinksContainer.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            closeBurgerMenu();
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!navLinksContainer.contains(e.target) && !burgerBtn.contains(e.target)) {
+            closeBurgerMenu();
+        }
+    });
+}
+
+// =================================================================
 // 1. VIDEO PLAYER CONTROLS & PARALLAX AUTO-PAUSE (Vimeo API)
 // =================================================================
 const iframe = document.getElementById('vimeo-video');
@@ -279,9 +318,9 @@ function initScrollytelling() {
 // 3. 'WHO WE ARE' ROTATING BLOB & CONTENT SWAP WITH DOT CAROUSEL
 // =================================================================
 const whoData = [
-    { image: 'images/DSC03781.jpg', title: 'Our Dedicated Team', desc: 'We bring decades of engineering and community experience to the table, ensuring sustainable growth.', overlay: 'images/DSC03781-removebg-preview.png' },
+    { image: 'images/DSC03781.jpg', title: 'Our Dedicated Team', desc: 'We bring decades of engineering and community experience to the table, ensuring sustainable growth.', overlay: 'images/Firefly.png' },
     { image: 'images/IMG_1549.JPG', title: 'Community Outreach', desc: 'Working closely with local groups to educate and empower citizens in waste reduction.', overlay: 'images/IMG_1549-removebg-preview.png' },
-    { image: 'images/DSC03786.jpg', title: 'Innovative Engineers', desc: 'Designing the systems that turn everyday waste into tomorrow\'s clean energy.', overlay: 'images/DSC03786-removebg-preview.png' }
+    { image: 'images/DSC03786.jpg', title: 'Innovative Engineers', desc: 'Designing the systems that turn everyday waste into tomorrow\'s clean energy.', overlay: 'images/3Firefly.png' }
 ];
 
 // 5 Convex & 5 Concave Soft Symmetrical Star Blob Paths
@@ -428,148 +467,51 @@ stages.forEach(stage => {
 });
 
 // =================================================================
-// 5. VISUAL CUSTOMIZATION CONTROLS (OFFICIAL PRESET & SANDBOX CONTROLS)
+// 5. SCROLL PARALLAX FOR TEXTURES & MOBILE/TABLET PARALLAX DIVIDERS
 // =================================================================
-const btnModeOfficial = document.getElementById('btn-mode-official');
-const btnModeCustom = document.getElementById('btn-mode-custom');
-const customControlsWrapper = document.getElementById('custom-controls-wrapper');
-
-const btnBorderWavy = document.getElementById('btn-border-wavy');
-const btnBorderChevron = document.getElementById('btn-border-chevron');
-const btnBorderClean = document.getElementById('btn-border-clean');
-
-const btnTextureToggle = document.getElementById('btn-texture-toggle');
-const btnTextureStyle = document.getElementById('btn-texture-style');
-const textureStatusText = document.getElementById('texture-status-text');
-const textureStyleText = document.getElementById('texture-style-text');
 const bgTexture = document.getElementById('bg-texture');
-
-let isOfficialMode = true;
-
-function setSiteMode(mode) {
-    if (mode === 'official') {
-        isOfficialMode = true;
-        document.body.classList.add('official-mode');
-        if (btnModeOfficial) btnModeOfficial.classList.add('active');
-        if (btnModeCustom) btnModeCustom.classList.remove('active');
-        if (customControlsWrapper) customControlsWrapper.classList.add('custom-dimmed');
-    } else {
-        isOfficialMode = false;
-        document.body.classList.remove('official-mode');
-        if (btnModeCustom) btnModeCustom.classList.add('active');
-        if (btnModeOfficial) btnModeOfficial.classList.remove('active');
-        if (customControlsWrapper) customControlsWrapper.classList.remove('custom-dimmed');
-        if (whatWeDoSection) whatWeDoSection.style.backgroundPositionY = '';
-    }
-    ScrollTrigger.refresh();
-    updateTextureParallax();
-}
-
-if (btnModeOfficial) btnModeOfficial.addEventListener('click', () => setSiteMode('official'));
-if (btnModeCustom) btnModeCustom.addEventListener('click', () => setSiteMode('custom'));
-
-function ensureCustomMode() {
-    if (isOfficialMode) {
-        setSiteMode('custom');
-    }
-}
-
-// Border Mode Switching (wavy, chevron, clean)
-function setBorderMode(mode) {
-    ensureCustomMode();
-    document.body.classList.remove('border-mode-wavy', 'border-mode-chevron', 'border-mode-clean');
-    document.body.classList.add(`border-mode-${mode}`);
-
-    [btnBorderWavy, btnBorderChevron, btnBorderClean].forEach(btn => {
-        if (btn) btn.classList.remove('active');
-    });
-
-    if (mode === 'wavy' && btnBorderWavy) btnBorderWavy.classList.add('active');
-    if (mode === 'chevron' && btnBorderChevron) btnBorderChevron.classList.add('active');
-    if (mode === 'clean' && btnBorderClean) btnBorderClean.classList.add('active');
-
-    // Refresh GSAP ScrollTrigger layout calculations when border mode switches
-    ScrollTrigger.refresh();
-}
-
-if (btnBorderWavy) btnBorderWavy.addEventListener('click', () => setBorderMode('wavy'));
-if (btnBorderChevron) btnBorderChevron.addEventListener('click', () => setBorderMode('chevron'));
-if (btnBorderClean) btnBorderClean.addEventListener('click', () => setBorderMode('clean'));
-
-// Background Texture Toggle & Style Switching
-const textureStyles = [
-    { class: 'texture-dots', label: 'Soft Dots' },
-    { class: 'texture-diamond-plate', label: 'Diamond Plate' }
-];
-let currentTextureIndex = 1; // Default to Industrial Diamond Plate
-let isTextureOn = true;
-
-if (btnTextureToggle) {
-    btnTextureToggle.addEventListener('click', () => {
-        ensureCustomMode();
-        isTextureOn = !isTextureOn;
-        if (isTextureOn) {
-            bgTexture.classList.add('texture-on');
-            btnTextureToggle.classList.add('active');
-            if (textureStatusText) textureStatusText.innerText = 'ON';
-        } else {
-            bgTexture.classList.remove('texture-on');
-            btnTextureToggle.classList.remove('active');
-            if (textureStatusText) textureStatusText.innerText = 'OFF';
-        }
-        updateTextureParallax();
-    });
-}
-
-if (btnTextureStyle) {
-    btnTextureStyle.addEventListener('click', () => {
-        ensureCustomMode();
-        // Remove current style class
-        bgTexture.classList.remove(textureStyles[currentTextureIndex].class);
-        // Cycle index
-        currentTextureIndex = (currentTextureIndex + 1) % textureStyles.length;
-        // Add new style class
-        const newStyle = textureStyles[currentTextureIndex];
-        bgTexture.classList.add(newStyle.class);
-        if (textureStyleText) textureStyleText.innerText = newStyle.label;
-    });
-}
-
-// Theme Dark/Light Mode Switching
-const btnThemeToggle = document.getElementById('btn-theme-toggle');
-const themeStatusText = document.getElementById('theme-status-text');
-let isDarkMode = false;
-
-if (btnThemeToggle) {
-    btnThemeToggle.addEventListener('click', () => {
-        ensureCustomMode();
-        isDarkMode = !isDarkMode;
-        if (isDarkMode) {
-            document.body.classList.add('dark-mode');
-            btnThemeToggle.classList.add('active');
-            if (themeStatusText) themeStatusText.innerText = 'Dark';
-        } else {
-            document.body.classList.remove('dark-mode');
-            btnThemeToggle.classList.remove('active');
-            if (themeStatusText) themeStatusText.innerText = 'Light';
-        }
-    });
-}
-
-// Subtle Scroll Parallax for Background Texture (-0.35x scroll ratio)
 const whatWeDoSection = document.getElementById('what-we-do');
+const parallaxSections = document.querySelectorAll('.parallax-1, .parallax-2');
 
 function updateTextureParallax() {
     const scrollY = window.scrollY;
-    if (isTextureOn && bgTexture) {
+    const viewportHeight = window.innerHeight;
+    const isMobileOrTablet = window.innerWidth <= 980;
+
+    if (bgTexture) {
         bgTexture.style.backgroundPositionY = (-scrollY * 0.35) + 'px';
     }
-    if (whatWeDoSection && isTextureOn && document.body.classList.contains('official-mode')) {
+    if (whatWeDoSection && document.body.classList.contains('official-mode')) {
         const offsetTop = whatWeDoSection.offsetTop || 0;
         whatWeDoSection.style.backgroundPositionY = (scrollY * 0.65 - offsetTop) + 'px';
-    } else if (whatWeDoSection && !document.body.classList.contains('official-mode')) {
-        whatWeDoSection.style.backgroundPositionY = '';
     }
+
+    // On tablet & mobile (<= 980px), counter-scroll the width-fitted 3:2 photo
+    // so it stays anchored in the opposite direction of scroll while fitting 100% of screen width.
+    parallaxSections.forEach(section => {
+        const bg = section.querySelector('.parallax-bg');
+        if (!bg) return;
+
+        if (!isMobileOrTablet) {
+            bg.style.transform = '';
+            return;
+        }
+
+        const rect = section.getBoundingClientRect();
+        if (rect.bottom > -50 && rect.top < viewportHeight + 50) {
+            const windowH = rect.height;
+            const bgH = bg.offsetHeight;
+            const maxTravel = Math.max(0, bgH - windowH);
+
+            // Progress from 0 (section entering at bottom of screen) to 1 (section leaving at top of screen)
+            const rawProgress = (viewportHeight - rect.top) / (viewportHeight + windowH);
+            const progress = Math.min(1, Math.max(0, rawProgress));
+
+            // As the window moves UP the screen (progress 0 -> 1), move the photo DOWN inside the window (-maxTravel -> 0)
+            const translateY = -maxTravel * (1 - progress);
+            bg.style.transform = `translate3d(0, ${translateY.toFixed(1)}px, 0)`;
+        }
+    });
 }
 
 window.addEventListener('scroll', updateTextureParallax, { passive: true });
