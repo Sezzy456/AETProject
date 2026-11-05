@@ -22,7 +22,10 @@
                 <img src="images/AET-logo-colour-inline-1200pxW-v1-1024x394.png" alt="AET Logo" class="logo-img">
             </div>
             <div class="nav-links-wrapper">
-                <nav class="nav-links">
+                <button class="burger-btn" id="burger-btn" aria-label="Toggle navigation" aria-expanded="false">
+                    <i class="fa-solid fa-bars" id="burger-icon"></i>
+                </button>
+                <nav class="nav-links" id="nav-links">
                     <a href="#home">Home</a>
                     <a href="#what-we-do">What We Do</a>
                     <a href="#who-we-are">About Us</a>
@@ -37,11 +40,13 @@
         <div class="hero-container">
             <div class="hero-text-column">
                 <h1 class="hero-title">Advanced Energy Tech</h1>
-                <p class="hero-subtitle">Transforming everyday community waste into clean, renewable energy through the
-                    Advanced Resource Recovery Centre.</p>
-                <div class="hero-actions">
-                    <a href="#what-we-do" class="hero-btn primary-btn">Explore What We Do <i
-                            class="fa-solid fa-arrow-right"></i></a>
+                <div class="hero-body">
+                    <p class="hero-subtitle">Transforming everyday community waste into clean, renewable energy through the
+                        Advanced Resource Recovery Centre.</p>
+                    <div class="hero-actions">
+                        <a href="#what-we-do" class="hero-btn primary-btn">Explore What We Do <i
+                                class="fa-solid fa-arrow-right"></i></a>
+                    </div>
                 </div>
             </div>
             <div class="hero-media-column">
@@ -302,52 +307,6 @@
             </div>
         </div>
     </section>
-
-    <!-- Modern Visual Floating Customization Controls Panel -->
-    <div class="floating-controls-panel">
-        <div class="control-row preset-row">
-            <span class="control-title"><i class="fa-solid fa-layer-group"></i> Design:</span>
-            <div class="btn-toggle-group">
-                <button id="btn-mode-official" class="pill-btn official-pill active" title="Official Curated Design">
-                    <i class="fa-solid fa-star"></i> Official
-                </button>
-                <button id="btn-mode-custom" class="pill-btn" title="Enable Custom Sandbox Controls">
-                    <i class="fa-solid fa-sliders"></i> Custom
-                </button>
-            </div>
-        </div>
-        <div class="custom-controls-wrapper custom-dimmed" id="custom-controls-wrapper">
-            <div class="control-row">
-                <span class="control-title"><i class="fa-solid fa-shapes"></i> Section Border:</span>
-                <div class="btn-toggle-group">
-                    <button id="btn-border-wavy" class="pill-btn active" title="Wavy SVG Borders"><i
-                            class="fa-solid fa-water"></i> Wavy</button>
-                    <button id="btn-border-chevron" class="pill-btn"
-                        title="Teal, Green & Grey Ribbon Chevron Arrows"><i
-                            class="fa-solid fa-angles-right"></i> Chevron</button>
-                    <button id="btn-border-clean" class="pill-btn" title="Clean Straight Borders"><i
-                            class="fa-solid fa-minus"></i> Clean</button>
-                </div>
-            </div>
-            <div class="control-row">
-                <span class="control-title"><i class="fa-solid fa-grip"></i> BG Texture:</span>
-                <div class="btn-toggle-group">
-                    <button id="btn-texture-toggle" class="pill-btn active" title="Toggle Background Texture"><i
-                            class="fa-solid fa-power-off"></i> <span id="texture-status-text">ON</span></button>
-                    <button id="btn-texture-style" class="pill-btn"
-                        title="Switch Texture Pattern"><i class="fa-solid fa-border-all"></i>
-                        <span id="texture-style-text">Diamond Plate</span></button>
-                </div>
-            </div>
-            <div class="control-row">
-                <span class="control-title"><i class="fa-solid fa-moon"></i> Theme Mode:</span>
-                <div class="btn-toggle-group">
-                    <button id="btn-theme-toggle" class="pill-btn" title="Toggle Light/Dark Theme"><i
-                            class="fa-solid fa-circle-half-stroke"></i> <span id="theme-status-text">Light</span></button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Footer -->
     <footer class="main-footer">
